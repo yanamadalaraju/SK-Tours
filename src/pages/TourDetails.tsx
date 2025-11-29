@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -27,11 +25,11 @@ const TourDetails = () => {
   const [selectedIndianTours, setSelectedIndianTours] = useState<string[]>([]);
   const [selectedWorldTours, setSelectedWorldTours] = useState<string[]>([]);
 
-  // Mock tour data with multiple images
+  // Expanded tour data for 3 specific tours (matching codes from TourPackages)
   const tourData = {
-    "ABCD00000": {
-      title: "Explore Andaman",
-      duration: "05 Days",
+    "AND00001": {
+      title: "Andaman Swaraj Dweep & Shaheed Dweep Delight",
+      duration: "6N/7D",
       price: "₹64,000",
       emi: "EMI from ₹2,387/month",
       badge: "New Year Deal ₹1,000 Off",
@@ -39,12 +37,12 @@ const TourDetails = () => {
       dates: "42 Dates Available",
       images: [
         "https://i.pinimg.com/736x/09/16/c4/0916c43d72ac007aee1a1a7d6d31d231.jpg",
-        "https://i.pinimg.com/736x/6a/f9/0e/6af90eea656d653c788e7d3f92a77247.jpg",
-        "https://i.pinimg.com/1200x/67/10/27/671027210a396e38b27e5d0432bd18db.jpg",
-        "https://i.pinimg.com/736x/7a/82/6d/7a826d8ac0e6d1fb10ad845f7f6b0ac5.jpg",
-        "https://i.pinimg.com/736x/95/04/dd/9504ddc6c27c0d16ea8ecbde4a95b191.jpg"
+        "https://i.pinimg.com/1200x/6a/f9/0e/6af90eea656d653c788e7d3f92a77247.jpg",
+        "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?w=800&q=80",
+        "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&q=80",
+        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80"
       ],
-      code: "DOMI00000",
+      code: "AND00001",
       description: "Experience the best of Andaman with this comprehensive tour covering Swaraj Dweep (Havelock) and Shaheed Dweep (Neil Island). Enjoy pristine beaches, water sports, and the natural beauty of these islands.",
       highlights: [
         "Visit Radhanagar Beach - one of Asia's best beaches",
@@ -76,59 +74,41 @@ const TourDetails = () => {
         },
         {
           day: "Day 5",
-          title: "Neil Island to Port Blair & Departure",
-          description: "Return to Port Blair. City tour and shopping before departure to airport."
+          title: "Neil Island Exploration",
+          description: "Full day exploring the natural beauty and beaches of Neil Island."
+        },
+        {
+          day: "Day 6",
+          title: "Neil Island to Port Blair",
+          description: "Return ferry to Port Blair. Visit Corbyn's Cove Beach and shopping."
+        },
+        {
+          day: "Day 7",
+          title: "Departure",
+          description: "Transfer to airport for departure flight."
         }
       ],
       departureDates: {
         months: [
           {
-            name: "January",
+            name: "January-2026",
             dates: ["01", "05", "08", "12", "15", "18", "22", "25"]
           },
           {
-            name: "February",
+            name: "February-2026",
             dates: ["02", "06", "09", "13", "16", "19", "23", "26"]
           },
           {
-            name: "March",
+            name: "March-2026",
             dates: ["03", "07", "10", "14", "17", "20", "24", "27"]
           },
           {
-            name: "April",
+            name: "April-2026",
             dates: ["04", "08", "11", "15", "18", "21", "25", "28"]
           },
           {
-            name: "May",
+            name: "May-2026",
             dates: ["05", "09", "12", "16", "19", "22", "26", "29"]
-          },
-          {
-            name: "June",
-            dates: ["06", "10", "13", "17", "20", "23", "27", "30"]
-          },
-          {
-            name: "July",
-            dates: ["01", "05", "08", "12", "15", "18", "22", "25"]
-          },
-          {
-            name: "August",
-            dates: ["02", "06", "09", "13", "16", "19", "23", "26"]
-          },
-          {
-            name: "September",
-            dates: ["03", "07", "10", "14", "17", "20", "24", "27"]
-          },
-          {
-            name: "October",
-            dates: ["04", "08", "11", "15", "18", "21", "25", "28"]
-          },
-          {
-            name: "November",
-            dates: ["05", "09", "12", "16", "19", "22", "26", "29"]
-          },
-          {
-            name: "December",
-            dates: ["06", "10", "13", "17", "20", "23", "27", "30"]
           }
         ]
       },
@@ -197,7 +177,7 @@ const TourDetails = () => {
         {
           city: "Neil Island",
           hotelName: "Coral Cove",
-          nights: "1 Night",
+          nights: "2 Nights",
           roomType: "Standard Room"
         }
       ],
@@ -216,10 +196,10 @@ const TourDetails = () => {
           airline: "IndiGo",
           flightNo: "6E-456",
           from: "Port Blair",
-          depDate: "29 Nov 2025",
+          depDate: "01 Dec 2025",
           depTime: "16:00",
           to: "Delhi",
-          arrDate: "29 Nov 2025",
+          arrDate: "01 Dec 2025",
           arrTime: "19:30"
         }
       ],
@@ -228,25 +208,25 @@ const TourDetails = () => {
         {
           particular: "Per pax on Twin Basis",
           threeStar: "NA",
-          fourStar: "Rs 45,000",
+          fourStar: "Rs 64,000",
           fiveStar: "NA"
         },
         {
           particular: "Per pax on Triple Basis",
           threeStar: "NA",
-          fourStar: "Rs 44,500",
+          fourStar: "Rs 63,500",
           fiveStar: "NA"
         },
         {
           particular: "Child with Bed",
           threeStar: "NA",
-          fourStar: "Rs 38,000",
+          fourStar: "Rs 57,000",
           fiveStar: "NA"
         },
         {
           particular: "Child without Bed",
           threeStar: "NA",
-          fourStar: "Rs 34,000",
+          fourStar: "Rs 53,000",
           fiveStar: "NA"
         },
         {
@@ -274,6 +254,386 @@ const TourDetails = () => {
         "7-14 days before travel: 25% refund",
         "Less than 7 days: No refund",
         "Refund processed within 7-10 working days"
+      ]
+    },
+    "AND00002": {
+      title: "Andaman With Swaraj Dweep Premium",
+      duration: "6N/7D",
+      price: "₹42,000",
+      emi: "EMI from ₹1,567/month",
+      badge: "Best Seller",
+      locations: "Port Blair • Havelock • Neil",
+      dates: "34 Dates Available",
+      images: [
+        "https://i.pinimg.com/1200x/6a/f9/0e/6af90eea656d653c788e7d3f92a77247.jpg",
+        "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?w=800&q=80",
+        "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&q=80",
+        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
+        "https://i.pinimg.com/736x/09/16/c4/0916c43d72ac007aee1a1a7d6d31d231.jpg"
+      ],
+      code: "AND00002",
+      description: "Premium Andaman experience focusing on Swaraj Dweep with luxury accommodations and exclusive activities.",
+      highlights: [
+        "Premium stay at Havelock",
+        "Private beach access",
+        "Exclusive water sports",
+        "Guided nature walks",
+        "Sunset cruises"
+      ],
+      itinerary: [
+        {
+          day: "Day 1",
+          title: "Arrival and Port Blair Sightseeing",
+          description: "Welcome to Andaman! Transfer to hotel and explore local attractions."
+        },
+        {
+          day: "Day 2-4",
+          title: "Swaraj Dweep Exploration",
+          description: "Full immersion in Havelock with premium activities and relaxation."
+        },
+        {
+          day: "Day 5",
+          title: "Neil Island Visit",
+          description: "Day trip to Neil for serene beach experiences."
+        },
+        {
+          day: "Day 6",
+          title: "Port Blair Return",
+          description: "Return to Port Blair with shopping and leisure time."
+        },
+        {
+          day: "Day 7",
+          title: "Departure",
+          description: "Airport transfer after breakfast."
+        }
+      ],
+      departureDates: {
+        months: [
+          {
+            name: "January-2026",
+            dates: ["03", "07", "10", "14", "17", "21", "24"]
+          },
+          {
+            name: "February-2026",
+            dates: ["04", "08", "11", "15", "18", "22", "25"]
+          },
+          {
+            name: "March-2026",
+            dates: ["05", "09", "12", "16", "19", "23", "26"]
+          },
+          {
+            name: "April-2026",
+            dates: ["06", "10", "13", "17", "20", "24", "27"]
+          },
+          {
+            name: "May-2026",
+            dates: ["07", "11", "14", "18", "21", "25", "28"]
+          }
+        ]
+      },
+      inclusionExclusion: {
+        inclusions: [
+          "Premium 4-star accommodations",
+          "All meals included",
+          "Private transfers",
+          "Exclusive guided tours",
+          "Water sports package"
+        ],
+        exclusions: [
+          "Personal expenses",
+          "Optional adventure activities",
+          "Airfare"
+        ]
+      },
+      optionalTours: [
+        {
+          tourName: "Private Yacht Cruise",
+          adult: "₹15,000",
+          child: "₹12,000",
+          particulars: "Sunset yacht experience"
+        },
+        {
+          tourName: "Luxury Spa Package",
+          adult: "₹5,000",
+          child: "₹4,000",
+          particulars: "Full day spa relaxation"
+        }
+      ],
+      hotels: [
+        {
+          city: "Port Blair",
+          hotelName: "Premium Port Blair Resort",
+          nights: "2 Nights",
+          roomType: "Ocean View Suite"
+        },
+        {
+          city: "Havelock",
+          hotelName: "Swaraj Premium Resort",
+          nights: "3 Nights",
+          roomType: "Villa"
+        },
+        {
+          city: "Neil",
+          hotelName: "Neil Luxury Stay",
+          nights: "1 Night",
+          roomType: "Deluxe Room"
+        }
+      ],
+      airlines: [
+        {
+          airline: "Vistara",
+          flightNo: "UK-789",
+          from: "Mumbai",
+          depDate: "20 Dec 2025",
+          depTime: "08:00",
+          to: "Port Blair",
+          arrDate: "20 Dec 2025",
+          arrTime: "11:00"
+        },
+        {
+          airline: "SpiceJet",
+          flightNo: "SG-321",
+          from: "Port Blair",
+          depDate: "27 Dec 2025",
+          depTime: "14:00",
+          to: "Mumbai",
+          arrDate: "27 Dec 2025",
+          arrTime: "17:00"
+        }
+      ],
+      specialRemarks: "• Premium package with exclusive access\n• Limited availability for private tours",
+      tourCost: [
+        {
+          particular: "Per pax on Twin Basis",
+          threeStar: "NA",
+          fourStar: "Rs 42,000",
+          fiveStar: "NA"
+        },
+        {
+          particular: "Per pax on Triple Basis",
+          threeStar: "NA",
+          fourStar: "Rs 41,000",
+          fiveStar: "NA"
+        },
+        {
+          particular: "Child with Bed",
+          threeStar: "NA",
+          fourStar: "Rs 35,000",
+          fiveStar: "NA"
+        },
+        {
+          particular: "Child without Bed",
+          threeStar: "NA",
+          fourStar: "Rs 31,000",
+          fiveStar: "NA"
+        },
+        {
+          particular: "Infant",
+          threeStar: "NA",
+          fourStar: "Rs 5,000",
+          fiveStar: "NA"
+        },
+        {
+          particular: "Per pax Single Occupancy",
+          threeStar: "NA",
+          fourStar: "On Request",
+          fiveStar: "NA"
+        }
+      ],
+      booking: [
+        "30% advance for premium booking",
+        "Balance 30 days prior",
+        "Priority confirmation for groups"
+      ],
+      cancellation: [
+        "45+ days: 95% refund",
+        "30-45 days: 75% refund",
+        "15-30 days: 50% refund",
+        "Less than 15 days: No refund"
+      ]
+    },
+    "AND00003": {
+      title: "Andaman Luxury Escape",
+      duration: "7N/8D",
+      price: "₹89,000",
+      emi: "EMI from ₹3,320/month",
+      badge: "Luxury Collection",
+      locations: "5-Star Resorts • Private Cruise",
+      dates: "28 Dates",
+      images: [
+        "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?w=800&q=80",
+        "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&q=80",
+        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
+        "https://i.pinimg.com/1200x/6a/f9/0e/6af90eea656d653c788e7d3f92a77247.jpg",
+        "https://i.pinimg.com/736x/09/16/c4/0916c43d72ac007aee1a1a7d6d31d231.jpg"
+      ],
+      code: "AND00003",
+      description: "Ultimate luxury escape to Andaman with 5-star resorts, private cruises, and exclusive experiences.",
+      highlights: [
+        "Stay at 5-star luxury resorts",
+        "Private luxury cruise experiences",
+        "Personal butler service",
+        "Helicopter tours available",
+        "Fine dining experiences"
+      ],
+      itinerary: [
+        {
+          day: "Day 1",
+          title: "VIP Arrival",
+          description: "Private airport transfer and check-in to 5-star resort."
+        },
+        {
+          day: "Day 2-5",
+          title: "Luxury Island Hopping",
+          description: "Private cruises between islands with luxury amenities."
+        },
+        {
+          day: "Day 6-7",
+          title: "Exclusive Spa and Relaxation",
+          description: "Full luxury spa treatments and private beach days."
+        },
+        {
+          day: "Day 8",
+          title: "VIP Departure",
+          description: "Private transfer to airport with farewell amenities."
+        }
+      ],
+      departureDates: {
+        months: [
+          {
+            name: "January-2026",
+            dates: ["10", "15", "20", "25"]
+          },
+          {
+            name: "February-2026",
+            dates: ["05", "10", "15", "20"]
+          },
+          {
+            name: "March-2026",
+            dates: ["05", "10", "15", "20"]
+          },
+          {
+            name: "April-2026",
+            dates: ["05", "10", "15", "20"]
+          },
+          {
+            name: "May-2026",
+            dates: ["05", "10", "15", "20"]
+          }
+        ]
+      },
+      inclusionExclusion: {
+        inclusions: [
+          "5-star luxury accommodations",
+          "All gourmet meals",
+          "Private transfers and cruises",
+          "Personal concierge service",
+          "Exclusive experiences"
+        ],
+        exclusions: [
+          "Airfare",
+          "Personal shopping",
+          "Helicopter tours"
+        ]
+      },
+      optionalTours: [
+        {
+          tourName: "Helicopter Island Tour",
+          adult: "₹25,000",
+          child: "₹20,000",
+          particulars: "Private helicopter ride"
+        },
+        {
+          tourName: "Private Chef Dinner",
+          adult: "₹8,000",
+          child: "₹6,000",
+          particulars: "Beachside private dining"
+        }
+      ],
+      hotels: [
+        {
+          city: "Port Blair",
+          hotelName: "Taj Exotica Resort",
+          nights: "3 Nights",
+          roomType: "Ocean Villa"
+        },
+        {
+          city: "Havelock",
+          hotelName: "Barefoot at Havelock",
+          nights: "4 Nights",
+          roomType: "Water Villa"
+        }
+      ],
+      airlines: [
+        {
+          airline: "Emirates",
+          flightNo: "EK-456",
+          from: "Dubai",
+          depDate: "15 Jan 2026",
+          depTime: "10:00",
+          to: "Port Blair via Delhi",
+          arrDate: "15 Jan 2026",
+          arrTime: "18:00"
+        },
+        {
+          airline: "Emirates",
+          flightNo: "EK-789",
+          from: "Port Blair via Delhi",
+          depDate: "23 Jan 2026",
+          depTime: "12:00",
+          to: "Dubai",
+          arrDate: "23 Jan 2026",
+          arrTime: "20:00"
+        }
+      ],
+      specialRemarks: "• Ultra-luxury package\n• Minimum 2 nights stay required\n• Subject to availability",
+      tourCost: [
+        {
+          particular: "Per pax on Twin Basis",
+          threeStar: "NA",
+          fourStar: "NA",
+          fiveStar: "Rs 89,000"
+        },
+        {
+          particular: "Per pax on Triple Basis",
+          threeStar: "NA",
+          fourStar: "NA",
+          fiveStar: "Rs 88,000"
+        },
+        {
+          particular: "Child with Bed",
+          threeStar: "NA",
+          fourStar: "NA",
+          fiveStar: "Rs 75,000"
+        },
+        {
+          particular: "Child without Bed",
+          threeStar: "NA",
+          fourStar: "NA",
+          fiveStar: "Rs 70,000"
+        },
+        {
+          particular: "Infant",
+          threeStar: "NA",
+          fourStar: "NA",
+          fiveStar: "Rs 10,000"
+        },
+        {
+          particular: "Per pax Single Occupancy",
+          threeStar: "NA",
+          fourStar: "NA",
+          fiveStar: "On Request"
+        }
+      ],
+      booking: [
+        "100% advance for luxury booking",
+        "Non-refundable for peak dates",
+        "24-hour confirmation"
+      ],
+      cancellation: [
+        "60+ days: 50% refund",
+        "30-60 days: 25% refund",
+        "Less than 30 days: No refund"
       ]
     }
   };
@@ -344,6 +704,11 @@ const TourDetails = () => {
   const goToImage = (index: number) => {
     setCurrentImageIndex(index);
   };
+
+  // Logic for splitting months into two columns evenly
+  const numMonths = tour.departureDates.months.length;
+  const col1Count = Math.ceil(numMonths / 2);
+  const col2Months = tour.departureDates.months.slice(col1Count);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -555,19 +920,19 @@ const TourDetails = () => {
               <div className="grid grid-cols-8 border-b border-gray-300">
                 <div className="col-span-2 border-r border-gray-300 px-4 py-6 bg-blue-50">
                   <p className="text-xl font-bold text-[#2E4D98] text-center tracking-wide">
-                    DOMI00000
+                    {tour.code}
                   </p>
                 </div>
 
                 <div className="col-span-4 border-r border-gray-300 px-4 py-6 bg-gray-50">
                   <p className="text-xl font-semibold text-gray-900 text-center">
-                    Explore Andaman
+                    {tour.title}
                   </p>
                 </div>
 
                 <div className="col-span-2 px-4 py-6 bg-red-50">
                   <p className="text-xl font-bold text-[#E53C42] text-center">
-                    05 Days
+                    {tour.duration}
                   </p>
                 </div>
               </div>
@@ -639,9 +1004,9 @@ const TourDetails = () => {
                   <h2 className="text-2xl font-bold text-gray-800 mb-6">Departure Dates</h2>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* First Column - Jan to Jun */}
+                    {/* First Column */}
                     <div className="space-y-3">
-                      {tour.departureDates.months.slice(0, 6).map((month, index) => (
+                      {tour.departureDates.months.slice(0, col1Count).map((month, index) => (
                         <div key={index} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-[#2E4D98] transition-colors duration-200">
                           <span className="text-lg font-semibold text-gray-800">{month.name}</span>
                           <div className="flex gap-2 flex-wrap justify-end">
@@ -658,24 +1023,26 @@ const TourDetails = () => {
                       ))}
                     </div>
 
-                    {/* Second Column - Jul to Dec */}
-                    <div className="space-y-3">
-                      {tour.departureDates.months.slice(6, 12).map((month, index) => (
-                        <div key={index} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-[#2E4D98] transition-colors duration-200">
-                          <span className="text-lg font-semibold text-gray-800">{month.name}</span>
-                          <div className="flex gap-2 flex-wrap justify-end">
-                            {month.dates.map((date, dateIndex) => (
-                              <span 
-                                key={dateIndex}
-                                className="px-3 py-2 bg-blue-100 text-blue-700 rounded text-sm font-medium hover:bg-blue-200 transition-colors duration-200 cursor-pointer"
-                              >
-                                {date}
-                              </span>
-                            ))}
+                    {/* Second Column (if months exist) */}
+                    {col2Months.length > 0 && (
+                      <div className="space-y-3">
+                        {col2Months.map((month, index) => (
+                          <div key={index} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-[#2E4D98] transition-colors duration-200">
+                            <span className="text-lg font-semibold text-gray-800">{month.name}</span>
+                            <div className="flex gap-2 flex-wrap justify-end">
+                              {month.dates.map((date, dateIndex) => (
+                                <span 
+                                  key={dateIndex}
+                                  className="px-3 py-2 bg-blue-100 text-blue-700 rounded text-sm font-medium hover:bg-blue-200 transition-colors duration-200 cursor-pointer"
+                                >
+                                  {date}
+                                </span>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   {/* Additional Information */}

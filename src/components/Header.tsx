@@ -7,7 +7,7 @@ import {
   X as XIcon, ChevronLeft
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import logo from "../assets/png[3].png"; // Fixed the filename
+import logo from "../assets/png[3].png"; 
 import { useState, useRef } from "react";
 
 const indianStates = [
@@ -71,10 +71,10 @@ const Header = () => {
       dropdown: [
         { label: "Individual Tours", href: "#indian-individual", icon: Users, subDropdown: indianStates },
         { label: "Group Tours", href: "#indian-group", icon: UsersRound, subDropdown: indianStates },
-        { label: "Ladies Special Tours", href: "#indian-ladies", icon: Sparkles },
-        { label: "Senior Citizen Tours", href: "#indian-senior", icon: Heart },
-        { label: "Students Tours", href: "#indian-students", icon: GraduationCap },
-        { label: "Honeymoon Tours", href: "#indian-honeymoon", icon: Heart },
+     { label: "Ladies Special Tours", href: "/ladies", icon: Sparkles }, 
+ { label: "Senior Citizen Tours", href: "/seniorcitizen", icon: Heart },
+         { label: "Students Tours", href: "/students_tour", icon: GraduationCap },
+        { label: "Honeymoon Tours", href: "/honeymoon_tour", icon: Heart },
       ],
     },
     {
@@ -82,10 +82,10 @@ const Header = () => {
       dropdown: [
         { label: "Individual Tours", href: "#intl-individual", icon: Users, subDropdown: internationalDestinations },
         { label: "Group Tours", href: "#intl-group", icon: UsersRound, subDropdown: internationalDestinations },
-        { label: "Ladies Special Tours", href: "#intl-ladies", icon: Sparkles },
-        { label: "Senior Citizen Tours", href: "#intl-senior", icon: Heart },
-        { label: "Students Tours", href: "#intl-students", icon: GraduationCap },
-        { label: "Honeymoon Tours", href: "#intl-honeymoon", icon: Heart },
+         { label: "Ladies Special Tours", href: "/ladies", icon: Sparkles },
+   { label: "Senior Citizen Tours", href: "/seniorcitizen", icon: Heart },
+           { label: "Students Tours", href: "/students_tours", icon: GraduationCap },
+        { label: "Honeymoon Tours", href: "/honeymoon_tour", icon: Heart },
       ],
     },
     { icon: PlaneTakeoff, label: "Offline Flight Tickets", href: "#offline-flight-tickets" },
@@ -236,19 +236,20 @@ const Header = () => {
                                             ? "/tours-packages"
                                             : `#${item.label.toLowerCase().replace(/\s/g, "-")}-state-${dest.toLowerCase().replace(/\s+/g, "-")}`;
                                           return (
-                                            <td key={colIndex} className="w-1/3 px-2 py-2.5 whitespace-nowrap border-r border-gray-400">
-                                              <a
-                                                href={href}
-                                                className={`block w-full text-sm font-medium text-left transition-colors ${isAndaman
-                                                  ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white hover:from-cyan-600 hover:to-blue-700 shadow-lg"
-                                                  : `hover:text-blue-600 ${rowIndex % 2 === 0 ? 'hover:bg-blue-100' : 'hover:bg-blue-200'}`
-                                                }`}
-                                                title={dest}
-                                              >
-                                                {dest}
-                                                {isAndaman && <Sparkles className="inline-block w-4 h-4 ml-1 animate-pulse" />}
-                                              </a>
-                                            </td>
+// In the Header component, find the table cell with state links and update the href:
+<td key={colIndex} className="w-1/3 px-2 py-2.5 whitespace-nowrap border-r border-gray-400">
+  <a
+    href={`/tours-packages/${encodeURIComponent(dest)}`} // FIXED: Proper routing
+    className={`block w-full text-sm font-medium text-left transition-colors ${isAndaman
+      ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white hover:from-cyan-600 hover:to-blue-700 shadow-lg"
+      : `hover:text-blue-600 ${rowIndex % 2 === 0 ? 'hover:bg-blue-100' : 'hover:bg-blue-200'}`
+    }`}
+    title={dest}
+  >
+    {dest}
+    {isAndaman && <Sparkles className="inline-block w-4 h-4 ml-1 animate-pulse" />}
+  </a>
+</td>
                                           );
                                         })}
                                         {row.length < 3 && [...Array(3 - row.length)].map((_, colIndex) => (
@@ -362,20 +363,22 @@ const Header = () => {
                                   </button>
                                   {mobileSubmenuOpen[sub.label] && (
                                     <ul className="bg-primary border-t border-blue-600">
-                                      {sub.subDropdown.map((dest, j) => {
-                                        const isAndaman = dest === "Andaman";
-                                        return (
-                                          <li key={j}>
-                                            <a
-                                              href={isAndaman ? "/tours-packages" : "#"}
-                                              className={`block px-12 py-2 text-sm font-medium ${isAndaman ? "text-cyan-400 font-bold" : "text-gray-300"} hover:text-white`}
-                                            >
-                                              {dest} {isAndaman && "(Featured)"}
-                                            </a>
-                                          </li>
-                                        );
-                                      })}
-                                    </ul>
+// Update the mobile navigation links:
+{sub.subDropdown.map((dest, j) => {
+  const isAndaman = dest === "Andaman";
+  const href = `/tours-packages/${encodeURIComponent(dest)}`; // FIXED: Proper routing
+  
+  return (
+    <li key={j}>
+      <a
+        href={href}
+        className={`block px-12 py-2 text-sm font-medium ${isAndaman ? "text-cyan-400 font-bold" : "text-gray-300"} hover:text-white`}
+      >
+        {dest} {isAndaman && "(Featured)"}
+      </a>
+    </li>
+  );
+})}                                </ul>
                                   )}
                                 </>
                               )}

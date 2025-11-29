@@ -10,6 +10,10 @@ import TourPackages from "./pages/TourPackages";
 
 import AboutPage from "./pages/AboutPage";
 import TourDetails from "./pages/TourDetails";
+import Ladiesspecial_tour from "./pages/Ladiesspecial_tour";
+import Seniorcitizen_tour from "./pages/Seniorcitizen_tour";
+import Students_tour from "./pages/Students_tour";
+import Honeymoon_tours from "./pages/Honeymoon_tours";
 
 const queryClient = new QueryClient();
 
@@ -22,10 +26,13 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/home" element={<Home />} />
-          <Route path="/tours-packages" element={<TourPackages />} />
+<Route path="/tours-packages/:state?" element={<TourPackages />} />
           <Route path="/about" element={<AboutPage />} />
-          <Route path="/tour/:tourId" element={<TourDetails />} />
-
+<Route path="/tour/:tourId" element={<TourDetails />} />
+          <Route path="/ladies"  element={<Ladiesspecial_tour />} />
+          <Route path="/seniorcitizen" element={<Seniorcitizen_tour />} />
+<Route path="/students_tour" element={<Students_tour />} />
+<Route path="/honeymoon_tour" element= {<Honeymoon_tours />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
