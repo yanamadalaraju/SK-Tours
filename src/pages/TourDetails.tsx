@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Check, X } from 'lucide-react';
 import Header from '@/components/Header';
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -55,37 +56,44 @@ const TourDetails = () => {
         {
           day: "Day 1",
           title: "Arrival in Port Blair",
-          description: "Arrive at Port Blair Airport and transfer to hotel. Later visit Cellular Jail followed by Light and Sound Show."
+          description: "Arrive at Port Blair Airport and transfer to hotel. Later visit Cellular Jail followed by Light and Sound Show.",
+          meals: ["D"] // Only dinner included
         },
         {
           day: "Day 2",
           title: "Port Blair to Havelock",
-          description: "Early morning departure by ferry to Havelock Island. Visit Radhanagar Beach - rated as Asia's best beach."
+          description: "Early morning departure by ferry to Havelock Island. Visit Radhanagar Beach - rated as Asia's best beach.",
+          meals: ["B", "D"] // Breakfast and dinner
         },
         {
           day: "Day 3",
           title: "Havelock Island",
-          description: "Snorkeling at Elephant Beach. Optional scuba diving and other water sports activities."
+          description: "Snorkeling at Elephant Beach. Optional scuba diving and other water sports activities.",
+          meals: ["B", "D"] // Breakfast and dinner
         },
         {
           day: "Day 4",
           title: "Havelock to Neil Island",
-          description: "Ferry to Neil Island. Visit Laxmanpur Beach, Natural Bridge, and Bharatpur Beach."
+          description: "Ferry to Neil Island. Visit Laxmanpur Beach, Natural Bridge, and Bharatpur Beach.",
+          meals: ["B", "D"] // Breakfast and dinner
         },
         {
           day: "Day 5",
           title: "Neil Island Exploration",
-          description: "Full day exploring the natural beauty and beaches of Neil Island."
+          description: "Full day exploring the natural beauty and beaches of Neil Island.",
+          meals: ["B", "D"] // Breakfast and dinner
         },
         {
           day: "Day 6",
           title: "Neil Island to Port Blair",
-          description: "Return ferry to Port Blair. Visit Corbyn's Cove Beach and shopping."
+          description: "Return ferry to Port Blair. Visit Corbyn's Cove Beach and shopping.",
+          meals: ["B", "D"] // Breakfast and dinner
         },
         {
           day: "Day 7",
           title: "Departure",
-          description: "Transfer to airport for departure flight."
+          description: "Transfer to airport for departure flight.",
+          meals: ["B"] // Only breakfast
         }
       ],
       departureDates: {
@@ -209,37 +217,43 @@ const TourDetails = () => {
           particular: "Per pax on Twin Basis",
           threeStar: "NA",
           fourStar: "Rs 64,000",
-          fiveStar: "NA"
+          fiveStar: "NA",
+          remarks: "Standard room sharing"
         },
         {
           particular: "Per pax on Triple Basis",
           threeStar: "NA",
           fourStar: "Rs 63,500",
-          fiveStar: "NA"
+          fiveStar: "NA",
+          remarks: "Triple sharing in deluxe room"
         },
         {
           particular: "Child with Bed",
           threeStar: "NA",
           fourStar: "Rs 57,000",
-          fiveStar: "NA"
+          fiveStar: "NA",
+          remarks: "Extra bed in parent's room"
         },
         {
           particular: "Child without Bed",
           threeStar: "NA",
           fourStar: "Rs 53,000",
-          fiveStar: "NA"
+          fiveStar: "NA",
+          remarks: "No extra bed, sharing with parents"
         },
         {
           particular: "Infant",
           threeStar: "NA",
           fourStar: "Rs 7,000",
-          fiveStar: "NA"
+          fiveStar: "NA",
+          remarks: "Below 2 years, no seat"
         },
         {
           particular: "Per pax Single Occupancy",
           threeStar: "NA",
           fourStar: "On Request",
-          fiveStar: "NA"
+          fiveStar: "NA",
+          remarks: "Single room supplement"
         }
       ],
       booking: [
@@ -284,27 +298,32 @@ const TourDetails = () => {
         {
           day: "Day 1",
           title: "Arrival and Port Blair Sightseeing",
-          description: "Welcome to Andaman! Transfer to hotel and explore local attractions."
+          description: "Welcome to Andaman! Transfer to hotel and explore local attractions.",
+          meals: ["D"] // Only dinner included
         },
         {
           day: "Day 2-4",
           title: "Swaraj Dweep Exploration",
-          description: "Full immersion in Havelock with premium activities and relaxation."
+          description: "Full immersion in Havelock with premium activities and relaxation.",
+          meals: ["B", "L", "D"] // All meals included
         },
         {
           day: "Day 5",
           title: "Neil Island Visit",
-          description: "Day trip to Neil for serene beach experiences."
+          description: "Day trip to Neil for serene beach experiences.",
+          meals: ["B", "D"] // Breakfast and dinner
         },
         {
           day: "Day 6",
           title: "Port Blair Return",
-          description: "Return to Port Blair with shopping and leisure time."
+          description: "Return to Port Blair with shopping and leisure time.",
+          meals: ["B", "D"] // Breakfast and dinner
         },
         {
           day: "Day 7",
           title: "Departure",
-          description: "Airport transfer after breakfast."
+          description: "Airport transfer after breakfast.",
+          meals: ["B"] // Only breakfast
         }
       ],
       departureDates: {
@@ -407,37 +426,43 @@ const TourDetails = () => {
           particular: "Per pax on Twin Basis",
           threeStar: "NA",
           fourStar: "Rs 42,000",
-          fiveStar: "NA"
+          fiveStar: "NA",
+          remarks: "Premium room sharing"
         },
         {
           particular: "Per pax on Triple Basis",
           threeStar: "NA",
           fourStar: "Rs 41,000",
-          fiveStar: "NA"
+          fiveStar: "NA",
+          remarks: "Triple sharing in premium room"
         },
         {
           particular: "Child with Bed",
           threeStar: "NA",
           fourStar: "Rs 35,000",
-          fiveStar: "NA"
+          fiveStar: "NA",
+          remarks: "Extra bed in parent's room"
         },
         {
           particular: "Child without Bed",
           threeStar: "NA",
           fourStar: "Rs 31,000",
-          fiveStar: "NA"
+          fiveStar: "NA",
+          remarks: "No extra bed, sharing with parents"
         },
         {
           particular: "Infant",
           threeStar: "NA",
           fourStar: "Rs 5,000",
-          fiveStar: "NA"
+          fiveStar: "NA",
+          remarks: "Below 2 years, no seat"
         },
         {
           particular: "Per pax Single Occupancy",
           threeStar: "NA",
           fourStar: "On Request",
-          fiveStar: "NA"
+          fiveStar: "NA",
+          remarks: "Single room supplement"
         }
       ],
       booking: [
@@ -480,22 +505,26 @@ const TourDetails = () => {
         {
           day: "Day 1",
           title: "VIP Arrival",
-          description: "Private airport transfer and check-in to 5-star resort."
+          description: "Private airport transfer and check-in to 5-star resort.",
+          meals: ["D"] // Only dinner included
         },
         {
           day: "Day 2-5",
           title: "Luxury Island Hopping",
-          description: "Private cruises between islands with luxury amenities."
+          description: "Private cruises between islands with luxury amenities.",
+          meals: ["B", "L", "D"] // All meals included
         },
         {
           day: "Day 6-7",
           title: "Exclusive Spa and Relaxation",
-          description: "Full luxury spa treatments and private beach days."
+          description: "Full luxury spa treatments and private beach days.",
+          meals: ["B", "L", "D"] // All meals included
         },
         {
           day: "Day 8",
           title: "VIP Departure",
-          description: "Private transfer to airport with farewell amenities."
+          description: "Private transfer to airport with farewell amenities.",
+          meals: ["B"] // Only breakfast
         }
       ],
       departureDates: {
@@ -592,37 +621,43 @@ const TourDetails = () => {
           particular: "Per pax on Twin Basis",
           threeStar: "NA",
           fourStar: "NA",
-          fiveStar: "Rs 89,000"
+          fiveStar: "Rs 89,000",
+          remarks: "Luxury villa sharing"
         },
         {
           particular: "Per pax on Triple Basis",
           threeStar: "NA",
           fourStar: "NA",
-          fiveStar: "Rs 88,000"
+          fiveStar: "Rs 88,000",
+          remarks: "Triple sharing in luxury villa"
         },
         {
           particular: "Child with Bed",
           threeStar: "NA",
           fourStar: "NA",
-          fiveStar: "Rs 75,000"
+          fiveStar: "Rs 75,000",
+          remarks: "Extra bed in parent's villa"
         },
         {
           particular: "Child without Bed",
           threeStar: "NA",
           fourStar: "NA",
-          fiveStar: "Rs 70,000"
+          fiveStar: "Rs 70,000",
+          remarks: "No extra bed, sharing with parents"
         },
         {
           particular: "Infant",
           threeStar: "NA",
           fourStar: "NA",
-          fiveStar: "Rs 10,000"
+          fiveStar: "Rs 10,000",
+          remarks: "Below 2 years, no seat"
         },
         {
           particular: "Per pax Single Occupancy",
           threeStar: "NA",
           fourStar: "NA",
-          fiveStar: "On Request"
+          fiveStar: "On Request",
+          remarks: "Single villa supplement"
         }
       ],
       booking: [
@@ -678,7 +713,7 @@ const TourDetails = () => {
 
   if (!tour) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-[#FFEBEE]">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-800 mb-4">Tour Not Found</h1>
           <Button onClick={() => navigate('/tour-packages')} className="bg-[#2E4D98] hover:bg-[#2E4D98] hover:opacity-90">
@@ -710,8 +745,38 @@ const TourDetails = () => {
   const col1Count = Math.ceil(numMonths / 2);
   const col2Months = tour.departureDates.months.slice(col1Count);
 
+  // Meal Indicator Component
+  const MealIndicator = ({ meals }: { meals: string[] }) => {
+    const mealTypes = [
+      { id: 'B', name: 'Breakfast' },
+      { id: 'L', name: 'Lunch' },
+      { id: 'D', name: 'Dinner' }
+    ];
+
+    return (
+      <div className="flex gap-3">
+        {mealTypes.map((meal) => (
+          <div key={meal.id} className="flex flex-col items-center">
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+              meals.includes(meal.id) 
+                ? 'bg-green-100 border border-green-300' 
+                : 'bg-red-100 border border-red-300'
+            }`}>
+              {meals.includes(meal.id) ? (
+                <Check className="w-4 h-4 text-green-600" />
+              ) : (
+                <X className="w-4 h-4 text-red-600" />
+              )}
+            </div>
+            <span className="text-xs mt-1 text-gray-600">{meal.id}</span>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#FFEBEE]">
       <Header />
       
       <div className="container mx-auto px-4 py-6">
@@ -967,86 +1032,100 @@ const TourDetails = () => {
             </div>
 
             {/* Tab Contents */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="bg-[#2E4D98] rounded-xl shadow-sm p-6">
               
               {/* Itinerary Tab */}
               {activeTab === "itinerary" && (
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-800 mb-6">Tour Itinerary</h2>
-                  <div className="space-y-6">
-                    {tour.itinerary.map((day, index) => (
-                      <div key={index} className="flex gap-6 p-6 border border-gray-200 rounded-lg hover:border-[#2E4D98] transition-colors duration-200">
-                        <div className="flex flex-col items-center flex-shrink-0">
-                          <div className="w-14 h-14 bg-[#2E4D98] text-white rounded-full flex items-center justify-center font-bold text-xl">
-                            {index + 1}
-                          </div>
-                          {index < tour.itinerary.length - 1 && (
-                            <div className="w-0.5 h-full bg-gray-300 mt-4"></div>
-                          )}
+  <div className="bg-[#C2E2FA] rounded-lg p-6 max-h-[calc(100vh-250px)] overflow-y-auto">
+
+    <h2 className="text-2xl font-bold text-gray-800 mb-6">Tour Itinerary</h2>
+
+    <div className="space-y-6">
+      {tour.itinerary.map((day, index) => (
+        <div
+          key={index}
+          className="flex gap-6 p-6 bg-white shadow-sm border border-gray-200 rounded-lg hover:border-[#2E4D98] transition-colors duration-200"
+        >
+          <div className="flex flex-col items-center flex-shrink-0">
+            {index < tour.itinerary.length - 1 && (
+              <div className="w-0.5 h-full bg-gray-300 mt-4"></div>
+            )}
+          </div>
+
+          <div className="flex-1">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-4">
+                <h3 className="text-xl font-bold text-[#2E4D98]">{day.day}</h3>
+                <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
+                <h4 className="text-xl font-semibold text-gray-800">{day.title}</h4>
+              </div>
+              <MealIndicator meals={day.meals} />
+            </div>
+
+            <p className="text-gray-600 leading-relaxed text-lg text-justify tracking-wide">
+              {day.description}
+            </p>
+          </div>
+        </div>
+      ))}
+
+       {/* Meal Legend */}
+                  <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <h3 className="font-semibold text-gray-800 mb-2">Meal Legend:</h3>
+                    <div className="flex gap-6 flex-wrap">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-full bg-green-100 border border-green-300 flex items-center justify-center">
+                          <Check className="w-3 h-3 text-green-600" />
                         </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-4 mb-3">
-                            <h3 className="text-xl font-bold text-[#2E4D98]">{day.day}</h3>
-                            <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
-                            <h4 className="text-xl font-semibold text-gray-800">{day.title}</h4>
-                          </div>
-                          <p className="text-gray-600 leading-relaxed text-lg">{day.description}</p>
-                        </div>
+                        <span className="text-sm text-gray-700">Included</span>
                       </div>
-                    ))}
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-full bg-red-100 border border-red-300 flex items-center justify-center">
+                          <X className="w-3 h-3 text-red-600" />
+                        </div>
+                        <span className="text-sm text-gray-700">Not Included</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-700">B - Breakfast</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-700">L - Lunch</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-700">D - Dinner</span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              )}
+    </div>
+  </div>
+)}
+
 
               {/* Departure Dates Tab */}
               {activeTab === "departure-dt" && (
-                <div>
+                <div className="bg-[#E8F0FF] rounded-lg p-6">
                   <h2 className="text-2xl font-bold text-gray-800 mb-6">Departure Dates</h2>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* First Column */}
-                    <div className="space-y-3">
-                      {tour.departureDates.months.slice(0, col1Count).map((month, index) => (
-                        <div key={index} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-[#2E4D98] transition-colors duration-200">
-                          <span className="text-lg font-semibold text-gray-800">{month.name}</span>
-                          <div className="flex gap-2 flex-wrap justify-end">
-                            {month.dates.map((date, dateIndex) => (
-                              <span 
-                                key={dateIndex}
-                                className="px-3 py-2 bg-blue-100 text-blue-700 rounded text-sm font-medium hover:bg-blue-200 transition-colors duration-200 cursor-pointer"
-                              >
-                                {date}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
+                  {/* Departure Dates Module */}
+                  <div className="border border-gray-300 rounded-lg overflow-hidden">
+                    {/* Top Section */}
+                    <div className="py-3 text-center border-b border-gray-300 bg-[#E8F0FF]">
+                      <h3 className="text-xl font-bold text-gray-900">Departure Dates</h3>
                     </div>
-
-                    {/* Second Column (if months exist) */}
-                    {col2Months.length > 0 && (
-                      <div className="space-y-3">
-                        {col2Months.map((month, index) => (
-                          <div key={index} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-[#2E4D98] transition-colors duration-200">
-                            <span className="text-lg font-semibold text-gray-800">{month.name}</span>
-                            <div className="flex gap-2 flex-wrap justify-end">
-                              {month.dates.map((date, dateIndex) => (
-                                <span 
-                                  key={dateIndex}
-                                  className="px-3 py-2 bg-blue-100 text-blue-700 rounded text-sm font-medium hover:bg-blue-200 transition-colors duration-200 cursor-pointer"
-                                >
-                                  {date}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                    
+                    {/* Middle Section - Empty area */}
+                    <div className="min-h-[300px] p-6 bg-white">
+                      {/* Empty area - no content */}
+                    </div>
+                    
+                    {/* Bottom Section */}
+                    {/* <div className="py-3 text-center border-t border-gray-300 bg-[#E8F0FF]">
+                      <h3 className="text-xl font-bold text-gray-900">Free Flow Entry</h3>
+                    </div> */}
                   </div>
 
                   {/* Additional Information */}
-                  <div className="mt-8 p-6 bg-green-50 rounded-lg border border-green-200">
+                  {/* <div className="mt-8 p-6 bg-green-50 rounded-lg border border-green-200">
                     <h3 className="text-xl font-semibold text-gray-800 mb-3">Booking Information:</h3>
                     <ul className="text-gray-600 space-y-2 text-lg">
                       <li>• All departure dates are guaranteed with minimum 2 passengers</li>
@@ -1054,70 +1133,123 @@ const TourDetails = () => {
                       <li>• Custom departure dates available for groups of 6+</li>
                       <li>• Contact us for last-minute availability</li>
                     </ul>
-                  </div>
+                  </div> */}
                 </div>
               )}
 
               {/* Tourcost Tab */}
-              {activeTab === "tour-cost" && (
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-800 mb-6">Tour Cost</h2>
-                  
-                  <div className="overflow-x-auto">
-                    <table className="w-full border-collapse border border-gray-300">
-                      <thead>
-                        <tr className="bg-gray-100">
-                          <th className="border border-gray-300 px-6 py-4 text-left font-semibold text-gray-700 text-lg">
-                            Particulars - Tour Cost in (Mention)
-                          </th>
-                          <th className="border border-gray-300 px-6 py-4 text-center font-semibold text-gray-700 text-lg">
-                            3 Star
-                          </th>
-                          <th className="border border-gray-300 px-6 py-4 text-center font-semibold text-gray-700 text-lg">
-                            4 Star
-                          </th>
-                          <th className="border border-gray-300 px-6 py-4 text-center font-semibold text-gray-700 text-lg">
-                            5 Star
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {tour.tourCost.map((item, index) => (
-                          <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                            <td className="border border-gray-300 px-6 py-4 text-gray-700 font-medium text-lg">
-                              {item.particular}
-                            </td>
-                            <td className="border border-gray-300 px-6 py-4 text-center text-gray-600 text-lg">
-                              {item.threeStar}
-                            </td>
-                            <td className="border border-gray-300 px-6 py-4 text-center text-green-600 font-semibold text-lg">
-                              {item.fourStar}
-                            </td>
-                            <td className="border border-gray-300 px-6 py-4 text-center text-gray-600 text-lg">
-                              {item.fiveStar}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+             {/* Tourcost Tab */}
+{activeTab === "tour-cost" && (
+  <div>
+    <h2 className="text-2xl font-bold text-white mb-6">Tour Cost</h2>
 
-                  {/* Additional Information */}
-                  <div className="mt-6 p-6 bg-blue-50 rounded-lg border border-blue-200">
-                    <h3 className="text-xl font-semibold text-gray-800 mb-3">Important Notes:</h3>
-                    <ul className="text-gray-600 space-y-2 text-lg">
-                      <li>• All prices are per person in Indian Rupees</li>
-                      <li>• 5% GST extra on total package cost</li>
-                      <li>• Prices are subject to change without prior notice</li>
-                      <li>• Seasonal surcharges may apply during peak seasons</li>
-                    </ul>
-                  </div>
+    
+    <div className="overflow-x-auto border border-gray-300 rounded-lg">
+      <table className="w-full border-collapse">
+        <thead>
+          <tr className="bg-gray-100">
+            <th className="border border-gray-300 px-4 py-3 text-left font-semibold text-gray-700 text-base">
+              Passenger
+            </th>
+            <th className="border border-gray-300 px-4 py-3 text-center font-semibold text-gray-700 text-base">
+              Standard Hit
+            </th>
+            <th className="border border-gray-300 px-4 py-3 text-center font-semibold text-gray-700 text-base">
+              Deluxe Hit
+            </th>
+            <th className="border border-gray-300 px-4 py-3 text-center font-semibold text-gray-700 text-base">
+              Executive Hit
+            </th>
+            <th className="border border-gray-300 px-4 py-3 text-center font-semibold text-gray-700 text-base">
+              Chd With Bed
+            </th>
+            <th className="border border-gray-300 px-4 py-3 text-center font-semibold text-gray-700 text-base">
+              Chd no Bed
+            </th>
+            <th className="border border-gray-300 px-4 py-3 text-center font-semibold text-gray-700 text-base">
+              Remarks
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {[
+            { passenger: "02 Pax", standard: "NA", deluxe: "Rs 64,000", executive: "NA", childWithBed: "Rs 57,000", childNoBed: "Rs 53,000" },
+            { passenger: "03 Pax", standard: "NA", deluxe: "Rs 63,500", executive: "NA", childWithBed: "Rs 56,500", childNoBed: "Rs 52,500" },
+            { passenger: "04 Pax", standard: "NA", deluxe: "Rs 63,000", executive: "NA", childWithBed: "Rs 56,000", childNoBed: "Rs 52,000" },
+            { passenger: "05 Pax", standard: "NA", deluxe: "Rs 62,500", executive: "NA", childWithBed: "Rs 55,500", childNoBed: "Rs 51,500" },
+            { passenger: "06 Pax", standard: "NA", deluxe: "Rs 62,000", executive: "NA", childWithBed: "Rs 55,000", childNoBed: "Rs 51,000" },
+            { passenger: "07 Pax", standard: "NA", deluxe: "Rs 61,500", executive: "NA", childWithBed: "Rs 54,500", childNoBed: "Rs 50,500" },
+            { passenger: "08 Pax", standard: "NA", deluxe: "Rs 61,000", executive: "NA", childWithBed: "Rs 54,000", childNoBed: "Rs 50,000" },
+            { passenger: "09 Pax", standard: "NA", deluxe: "Rs 60,500", executive: "NA", childWithBed: "Rs 53,500", childNoBed: "Rs 49,500" },
+            { passenger: "10 Pax", standard: "NA", deluxe: "Rs 60,000", executive: "NA", childWithBed: "Rs 53,000", childNoBed: "Rs 49,000" }
+          ].map((row, index) => (
+            <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+              <td className="border border-gray-300 px-4 py-3 font-medium text-gray-700 text-base">
+                {row.passenger}
+              </td>
+              <td className="border border-gray-300 px-4 py-3 text-center text-gray-600 text-base">
+                {row.standard}
+              </td>
+              <td className="border border-gray-300 px-4 py-3 text-center text-green-600 font-semibold text-base">
+                {row.deluxe}
+              </td>
+              <td className="border border-gray-300 px-4 py-3 text-center text-gray-600 text-base">
+                {row.executive}
+              </td>
+              <td className="border border-gray-300 px-4 py-3 text-center text-blue-600 font-medium text-base">
+                {row.childWithBed}
+              </td>
+              <td className="border border-gray-300 px-4 py-3 text-center text-purple-600 font-medium text-base">
+                {row.childNoBed}
+              </td>
+              <td className="border border-gray-300 px-4 py-3 text-center">
+                <div 
+                  contentEditable="true"
+                  className="min-h-[60px] w-full p-2 text-left text-sm text-gray-600 border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent overflow-auto"
+                  style={{ 
+                    whiteSpace: 'pre-wrap',
+                    wordWrap: 'break-word',
+                    textAlign: 'left'
+                  }}
+                  placeholder="Enter remarks here..."
+                >
+                  {/* Editable content area */}
                 </div>
-              )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
 
+    {/* Remarks Instructions */}
+    <div className="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+      <h3 className="text-lg font-semibold text-gray-800 mb-2">Remarks Instructions:</h3>
+      <ul className="text-gray-600 space-y-1 text-sm">
+        <li>• Click on any Remarks box to enter free flow text</li>
+        <li>• Text will automatically justify and adjust within the box</li>
+        <li>• You can add multiple lines and paragraphs</li>
+        <li>• The box will expand as you type more content</li>
+      </ul>
+    </div>
+
+    {/* Additional Information */}
+    <div className="mt-6 p-6 bg-blue-50 rounded-lg border border-blue-200">
+      <h3 className="text-xl font-semibold text-gray-800 mb-3">Important Notes:</h3>
+      <ul className="text-gray-600 space-y-2 text-lg">
+        <li>• All prices are per person in Indian Rupees</li>
+        <li>• 5% GST extra on total package cost</li>
+        <li>• Prices are subject to change without prior notice</li>
+        <li>• Seasonal surcharges may apply during peak seasons</li>
+        <li>• Child rates applicable for children between 5-12 years</li>
+        <li>• Infant rates (0-2 years) available on request</li>
+      </ul>
+    </div>
+  </div>
+)}
               {/* Cost Includes Tab */}
               {activeTab === "cost-includes" && (
-                <div>
+                <div className="bg-[#E8F0FF] rounded-lg p-6">
                   <h2 className="text-2xl font-bold text-gray-800 mb-6">Cost Includes</h2>
                   <div className="space-y-3">
                     {tour.inclusionExclusion.inclusions.map((inclusion, index) => (
@@ -1136,7 +1268,7 @@ const TourDetails = () => {
 
               {/* Cost Excludes Tab */}
               {activeTab === "cost-excludes" && (
-                <div>
+                <div className="bg-[#E8F0FF] rounded-lg p-6">
                   <h2 className="text-2xl font-bold text-gray-800 mb-6">Cost Excludes</h2>
                   <div className="space-y-3">
                     {tour.inclusionExclusion.exclusions.map((exclusion, index) => (
@@ -1155,7 +1287,7 @@ const TourDetails = () => {
 
               {/* Flight & Hotel Tab */}
               {activeTab === "flight-&-hotel" && (
-                <div>
+                <div className="bg-[#E8F0FF] rounded-lg p-6">
                   <h2 className="text-2xl font-bold text-gray-800 mb-6">Flight & Hotel Details</h2>
                   
                   <div className="mb-8">
@@ -1215,7 +1347,7 @@ const TourDetails = () => {
 
               {/* Booking Tab */}
               {activeTab === "booking" && (
-                <div>
+                <div className="bg-[#E8F0FF] rounded-lg p-6">
                   <h2 className="text-2xl font-bold text-gray-800 mb-6">Booking Policy</h2>
                   <div className="space-y-4">
                     {tour.booking.map((item, index) => (
@@ -1232,7 +1364,7 @@ const TourDetails = () => {
 
               {/* Cancellation Tab */}
               {activeTab === "cancellation" && (
-                <div>
+                <div className="bg-[#E8F0FF] rounded-lg p-6">
                   <h2 className="text-2xl font-bold text-gray-800 mb-6">Cancellation Policy</h2>
                   <div className="space-y-4">
                     {tour.cancellation.map((item, index) => (
