@@ -17,8 +17,8 @@ const TourPackages = () => {
   const [sortType, setSortType] = useState("recommended");
   
   // Filter states
-  const [durationRange, setDurationRange] = useState([5, 11]);
-  const [priceRange, setPriceRange] = useState([32990, 153000]);
+  const [durationRange, setDurationRange] = useState([0 , 11]);
+  const [priceRange, setPriceRange] = useState([0, 153000]);
   const [selectedDepartureMonths, setSelectedDepartureMonths] = useState<string[]>([]);
   const [selectedIndianTours, setSelectedIndianTours] = useState<string[]>([]);
   const [selectedWorldTours, setSelectedWorldTours] = useState<string[]>([]);
@@ -4100,15 +4100,13 @@ const stateDescriptions = {
   "West Bengal": "Cultural Capital - From Himalayan Hills to Sundarbans Delta!",
 };
 
-  // Update selected state when URL param changes
-  useEffect(() => {
-    if (state) {
-      const decodedState = decodeURIComponent(state);
-      setSelectedState(decodedState);
-      // Auto-select the state in Indian tours filter
-      setSelectedIndianTours([decodedState]);
-    }
-  }, [state]);
+useEffect(() => {
+  if (state) {
+    const decodedState = decodeURIComponent(state);
+    setSelectedState(decodedState);
+    // REMOVED: setSelectedIndianTours([decodedState]);
+  }
+}, [state]);
 
   // Get current state's tour data
   const getCurrentStateTours = () => {
@@ -4140,8 +4138,6 @@ const stateDescriptions = {
       result = result.filter(() => true);
     }
     
-    // Apply Indian tours filter - FIXED LOGIC
- // Replace the Indian tours filter logic with this:
 if (selectedIndianTours.length > 0) {
   result = result.filter(tour => {
     if (!tour.isIndian) return false;
@@ -4226,8 +4222,8 @@ if (selectedIndianTours.length > 0) {
 
   // Clear all filters
   const clearAllFilters = () => {
-    setDurationRange([5, 11]);
-    setPriceRange([32990, 153000]);
+    setDurationRange([0, 11]);
+    setPriceRange([0, 153000]);
     setSelectedDepartureMonths([]);
     setSelectedIndianTours([]);
     setSelectedWorldTours([]);

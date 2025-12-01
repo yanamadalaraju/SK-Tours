@@ -16,8 +16,8 @@ const LadiesSpecialTour = () => {
   const [sortType, setSortType] = useState("recommended");
   
   // Filter states
-  const [durationRange, setDurationRange] = useState([5, 11]);
-  const [priceRange, setPriceRange] = useState([32990, 153000]);
+  const [durationRange, setDurationRange] = useState([0, 11]);
+  const [priceRange, setPriceRange] = useState([0, 153000]);
   const [selectedDepartureMonths, setSelectedDepartureMonths] = useState<string[]>([]);
   const [selectedIndianTours, setSelectedIndianTours] = useState<string[]>([]);
   const [selectedWorldTours, setSelectedWorldTours] = useState<string[]>([]);
@@ -272,8 +272,8 @@ const LadiesSpecialTour = () => {
 
   // Clear all filters
   const clearAllFilters = () => {
-    setDurationRange([5, 11]);
-    setPriceRange([32990, 153000]);
+    setDurationRange([0, 11]);
+    setPriceRange([0, 153000]);
     setSelectedDepartureMonths([]);
     setSelectedIndianTours([]);
     setSelectedWorldTours([]);

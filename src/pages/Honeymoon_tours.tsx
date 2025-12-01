@@ -16,8 +16,8 @@ const Honeymoon_tours = () => {
   const [sortType, setSortType] = useState("recommended");
   
   // Filter states
-  const [durationRange, setDurationRange] = useState([4, 10]);
-  const [priceRange, setPriceRange] = useState([35000, 150000]);
+  const [durationRange, setDurationRange] = useState([0, 10]);
+  const [priceRange, setPriceRange] = useState([0, 150000]);
   const [selectedDepartureMonths, setSelectedDepartureMonths] = useState<string[]>([]);
   const [selectedIndianTours, setSelectedIndianTours] = useState<string[]>([]);
   const [selectedWorldTours, setSelectedWorldTours] = useState<string[]>([]);
@@ -268,8 +268,8 @@ const Honeymoon_tours = () => {
 
   // Clear all filters
   const clearAllFilters = () => {
-    setDurationRange([4, 10]);
-    setPriceRange([35000, 150000]);
+    setDurationRange([0, 10]);
+    setPriceRange([0, 150000]);
     setSelectedDepartureMonths([]);
     setSelectedIndianTours([]);
     setSelectedWorldTours([]);
@@ -340,7 +340,7 @@ const Honeymoon_tours = () => {
                 <Slider 
                   value={priceRange} 
                   onValueChange={setPriceRange}
-                  min={30000} 
+                  min={0} 
                   max={200000} 
                   step={5000} 
                 />
