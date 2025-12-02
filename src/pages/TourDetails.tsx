@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -9,6 +8,67 @@ import { ChevronLeft, ChevronRight, Check, X } from 'lucide-react';
 import Header from '@/components/Header';
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
+
+// DayCard Component
+interface DayCardProps {
+  dayNumber: string;
+  headerColor: string;
+  bodyColor: string;
+}
+
+const DayCard = ({ dayNumber, headerColor, bodyColor }: DayCardProps) => {
+  const [meals, setMeals] = useState({ B: false, L: false, D: false });
+
+  return (
+    <div>
+      {/* Header Row - 3 separate rounded boxes */}
+      <div className="flex gap-2 mb-1">
+        <div className={`${headerColor} text-white font-bold px-4 py-2 rounded-lg text-center min-w-[120px]`}>
+          {dayNumber}
+        </div>
+        <div className={`${headerColor} text-white font-bold px-4 py-2 rounded-lg text-center flex-1`}>
+          Day Details
+        </div>
+        <div className="bg-white border border-gray-300 rounded-lg px-4 py-2 flex items-center gap-3">
+          <label className="flex items-center gap-1">
+            B
+            <input
+              type="radio"
+              checked={meals.B}
+              onChange={() => setMeals(prev => ({ ...prev, B: !prev.B }))}
+              className="w-4 h-4"
+            />
+          </label>
+          <label className="flex items-center gap-1">
+            L
+            <input
+              type="radio"
+              checked={meals.L}
+              onChange={() => setMeals(prev => ({ ...prev, L: !prev.L }))}
+              className="w-4 h-4"
+            />
+          </label>
+          <label className="flex items-center gap-1">
+            D
+            <input
+              type="radio"
+              checked={meals.D}
+              onChange={() => setMeals(prev => ({ ...prev, D: !prev.D }))}
+              className="w-4 h-4"
+            />
+          </label>
+        </div>
+      </div>
+      {/* Content Area */}
+      <div className={`${bodyColor} min-h-[120px] p-4 rounded-lg border border-gray-300`}>
+        <textarea 
+          className="w-full h-full min-h-[100px] bg-transparent resize-none focus:outline-none text-gray-800"
+          placeholder=""
+        />
+      </div>
+    </div>
+  );
+};
 
 const TourDetails = () => {
   const { tourId } = useParams<{ tourId: string }>();
@@ -811,23 +871,6 @@ const TourDetails = () => {
                 />
               </div>
 
-              {/* Departure Date */}
-              <div className="mb-8">
-                <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Departure date</h3>
-                <div className="space-y-3">
-                  {['January-2026', 'February-2026', 'March-2026', 'April-2026', 'May-2026'].map((month) => (
-                    <label key={month} className="flex items-center gap-3 cursor-pointer">
-                      <Checkbox 
-                        checked={selectedDepartureMonths.includes(month)}
-                        onCheckedChange={(checked) => handleDepartureMonthChange(month, checked as boolean)}
-                        className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]" 
-                      />
-                      <span className="text-gray-700">{month}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
               {/* Price */}
               <div className="mb-8">
                 <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Price</h3>
@@ -844,7 +887,7 @@ const TourDetails = () => {
                 />
               </div>
 
-              {/* Indian Tours */}
+              
               <div className="mb-8">
                 <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Indian Tours</h3>
                 <div className={`${showMoreIndian ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
@@ -965,421 +1008,478 @@ const TourDetails = () => {
               )}
             </div>
 
-            {/* Excel-like Table Layout */}
-            <div className="bg-white rounded-xl shadow-sm mb-6 overflow-hidden border border-gray-300">
+<div className="bg-white rounded-xl shadow-sm mb-6 overflow-hidden border border-[#1e3a8a]">
+  {/* ===== FIRST ROW: HEADERS ===== */}
+  <div className="grid grid-cols-8 bg-[#E8F0FF] border-b border-[#1e3a8a]">
+    <div className="border-r border-[#1e3a8a] px-4 py-3">
+      <h3 className="font-bold text-gray-900 text-center text-lg">Tour Code</h3>
+    </div>
+    <div className="col-span-6 border-r border-[#1e3a8a] px-4 py-3">
+      <h3 className="font-bold text-gray-900 text-center text-lg">Tour Name</h3>
+    </div>
+    <div className="px-4 py-3">
+      <h3 className="font-bold text-gray-900 text-center text-lg">Days</h3>
+    </div>
+  </div>
 
-              {/* ===== FIRST ROW: HEADERS ===== */}
-              <div className="grid grid-cols-8 bg-[#E8F0FF] border-b border-gray-300">
-                <div className="col-span-2 border-r border-gray-300 px-4 py-3">
-                  <h3 className="font-bold text-gray-900 text-center text-lg">Tour Code</h3>
-                </div>
-                <div className="col-span-4 border-r border-gray-300 px-4 py-3">
-                  <h3 className="font-bold text-gray-900 text-center text-lg">Tour Name</h3>
-                </div>
-                <div className="col-span-2 px-4 py-3">
-                  <h3 className="font-bold text-gray-900 text-center text-lg">Days</h3>
-                </div>
-              </div>
+  {/* ===== SECOND ROW: VALUES ===== */}
+  <div className="grid grid-cols-8 border-b border-[#1e3a8a]">
+    <div className="border-r border-[#1e3a8a] px-4 py-3 bg-blue-50">
+      <p className="text-xl font-bold text-[#2E4D98] text-center tracking-wide">
+        {tour.code}
+      </p>
+    </div>
 
-              {/* ===== SECOND ROW: VALUES ===== */}
-              <div className="grid grid-cols-8 border-b border-gray-300">
-                <div className="col-span-2 border-r border-gray-300 px-4 py-6 bg-blue-50">
-                  <p className="text-xl font-bold text-[#2E4D98] text-center tracking-wide">
-                    {tour.code}
-                  </p>
-                </div>
+    <div className="col-span-6 border-r border-[#1e3a8a] px-4 py-3 bg-gray-50">
+      <p className="text-xl font-semibold text-gray-900 text-center">
+        {tour.title}
+      </p>
+    </div>
 
-                <div className="col-span-4 border-r border-gray-300 px-4 py-6 bg-gray-50">
-                  <p className="text-xl font-semibold text-gray-900 text-center">
-                    {tour.title}
-                  </p>
-                </div>
+    <div className=" px-4 py-3 bg-red-50">
+      <p className="text-xl font-bold text-[#E53C42] text-center">
+        {tour.duration}
+      </p>
+    </div>
+  </div>
 
-                <div className="col-span-2 px-4 py-6 bg-red-50">
-                  <p className="text-xl font-bold text-[#E53C42] text-center">
-                    {tour.duration}
-                  </p>
-                </div>
-              </div>
+  {/* ===== THIRD ROW: TABS ===== */}
+  <div className="grid grid-cols-8 bg-white">
+{[
+  "Itinerary",
+  "Dep Date",
+  "Tour Cost",
+ "Cost In/Cost Ex" ,
+   "Flight & Hotel",
+  "Booking",
+  "Cancellation",
+  "Instruction"
+].map((label) => (
+  <button
+    key={label}
+    onClick={() => setActiveTab(label.toLowerCase().replace(/\s+/g, '-'))}
+    className={`px-3 py-4 text-sm font-semibold text-center border-r last:border-r-0 border-[#1e3a8a] transition 
+      ${
+        activeTab === label.toLowerCase().replace(/\s+/g, '-')
+          ? "bg-[#2E3a8a] text-white"
+          : "bg-[#E8F0FF] text-gray-700 hover:bg-blue-100"
+      }
+    `}
+  >
+    {label}
+  </button>
+))}
+  </div>
+</div>
+          <div className="bg-[#2E4D98] rounded-xl shadow-sm p-6">
+  
+  {/* Itinerary Tab */}
+  {activeTab === "itinerary" && (
+    <div className="bg-[#C2E2FA] rounded-lg p-3 max-h-[calc(100vh-250px)] overflow-y-auto">
+      <div className="mx-auto my-6 bg-white rounded-lg shadow-lg">
+        {/* Top Header */}
+        <div className="bg-red-600 text-white text-center font-bold text-xl py-3">
+          Tour Itinerary
+        </div>
+        <div className='p-3'>
+          {/* Day Cards using the DayCard component */}
+          <div className="space-y-4 mt-4 ">
+            {[
+              { dayNumber: "Day 01", headerColor: "bg-fuchsia-500", bodyColor: "bg-pink-100" },
+              { dayNumber: "Day 02", headerColor: "bg-emerald-400", bodyColor: "bg-emerald-50" },
+              { dayNumber: "Day 03", headerColor: "bg-orange-400", bodyColor: "bg-orange-50" },
+              { dayNumber: "Day 04", headerColor: "bg-blue-600", bodyColor: "bg-blue-50" },
+              { dayNumber: "Day 05", headerColor: "bg-yellow-400", bodyColor: "bg-yellow-50" },
+            ].map((card) => (
+              <DayCard 
+                key={card.dayNumber}
+                dayNumber={card.dayNumber}
+                headerColor={card.headerColor}
+                bodyColor={card.bodyColor}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )}
 
-              {/* ===== THIRD ROW: TABS ===== */}
-              <div className="grid grid-cols-8 bg-white border-b border-gray-300">
-                {[
-                  "Itinerary",
-                  "Departure Dt",
-                  "Tour Cost",
-                  "Cost Includes",
-                  "Cost Excludes",
-                  "Flight & Hotel",
-                  "Booking",
-                  "Cancellation"
-                ].map((label) => (
-                  <button
-                    key={label}
-                    onClick={() => setActiveTab(label.toLowerCase().replace(/\s+/g, '-'))}
-                    className={`px-3 py-4 text-sm font-semibold text-center border-r last:border-r-0 border-gray-300 transition 
-                      ${
-                        activeTab === label.toLowerCase().replace(/\s+/g, '-')
-                          ? "bg-[#2E4D98] text-white"
-                          : "bg-[#E8F0FF] text-gray-700 hover:bg-blue-100"
-                      }
-                    `}
-                  >
-                    {label}
-                  </button>
+  {/* Departure Dates Tab */}
+  {activeTab === "dep-date" && (
+    <div className="bg-[#E8F0FF] rounded-lg p-6">
+      <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+        Departure Dates
+      </h2>
+      
+      {/* Departure Dates Module */}
+      <div className="border border-gray-300 rounded-lg overflow-hidden">
+        {/* Middle Section - Empty area */}
+        <div className="min-h-[300px] p-6 bg-white">
+          {/* Empty area - no content */}
+        </div>
+      </div>
+    </div>
+  )}
+
+  {/* Tour Cost Tab */}
+  {activeTab === "tour-cost" && (
+    <div className="bg-[#E8F0FF] rounded-lg p-5">
+      <h2 className="text-2xl font-bold text-black text-center mb-6">Tour Cost</h2>
+      
+      <div className="overflow-x-auto rounded-lg" style={{ border: '2px solid #D1D5DB' }}>
+        <table className="w-full border-collapse table-fixed">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="border border-gray-300 px-4 py-3 text-center font-semibold text-gray-700 text-base w-1/5">
+                Passenger
+              </th>
+              <th className="border border-gray-300 px-4 py-3 text-center font-semibold text-gray-700 text-base w-1/5">
+                Standard Hit
+              </th>
+              <th className="border border-gray-300 px-4 py-3 text-center font-semibold text-gray-700 text-base w-1/5">
+                Deluxe Hit
+              </th>
+              <th className="border border-gray-300 px-4 py-3 text-center font-semibold text-gray-700 text-base w-1/5">
+                Executive Hit
+              </th>
+              <th className="border border-gray-300 px-4 py-3 text-center font-semibold text-gray-700 text-base w-1/5">
+                Chd With Bed
+              </th>
+              <th className="border border-gray-300 px-4 py-3 text-center font-semibold text-gray-700 text-base w-1/5">
+                Chd no Bed
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {[
+              { passenger: "02 Pax", standard: "NA", deluxe: "Rs 64,000", executive: "NA", childWithBed: "Rs 57,000", childNoBed: "Rs 53,000" },
+              { passenger: "03 Pax", standard: "NA", deluxe: "Rs 63,500", executive: "NA", childWithBed: "Rs 56,500", childNoBed: "Rs 52,500" },
+              { passenger: "04 Pax", standard: "NA", deluxe: "Rs 63,000", executive: "NA", childWithBed: "Rs 56,000", childNoBed: "Rs 52,000" },
+              { passenger: "05 Pax", standard: "NA", deluxe: "Rs 62,500", executive: "NA", childWithBed: "Rs 55,500", childNoBed: "Rs 51,500" },
+              { passenger: "06 Pax", standard: "NA", deluxe: "Rs 62,000", executive: "NA", childWithBed: "Rs 55,000", childNoBed: "Rs 51,000" },
+              { passenger: "07 Pax", standard: "NA", deluxe: "Rs 61,500", executive: "NA", childWithBed: "Rs 54,500", childNoBed: "Rs 50,500" },
+              { passenger: "08 Pax", standard: "NA", deluxe: "Rs 61,000", executive: "NA", childWithBed: "Rs 54,000", childNoBed: "Rs 50,000" },
+              { passenger: "09 Pax", standard: "NA", deluxe: "Rs 60,500", executive: "NA", childWithBed: "Rs 53,500", childNoBed: "Rs 49,500" },
+              { passenger: "10 Pax", standard: "NA", deluxe: "Rs 60,000", executive: "NA", childWithBed: "Rs 53,000", childNoBed: "Rs 49,000" }
+            ].map((row, index) => (
+              <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                <td className="border border-gray-300 px-4 py-3 text-center font-medium text-gray-700 text-base h-16">
+                  {row.passenger}
+                </td>
+                <td className="border border-gray-300 px-4 py-3 text-center text-gray-600 text-base h-16">
+                  {row.standard}
+                </td>
+                <td className="border border-gray-300 px-4 py-3 text-center text-green-600 font-semibold text-base h-16">
+                  {row.deluxe}
+                </td>
+                <td className="border border-gray-300 px-4 py-3 text-center text-gray-600 text-base h-16">
+                  {row.executive}
+                </td>
+                <td className="border border-gray-300 px-4 py-3 text-center text-blue-600 font-medium text-base h-16">
+                  {row.childWithBed}
+                </td>
+                <td className="border border-gray-300 px-4 py-3 text-center text-purple-600 font-medium text-base h-16">
+                  {row.childNoBed}
+                </td>
+              </tr>
+            ))}
+            <tr className="bg-white">
+              <td
+                colSpan="6"
+                className="border border-gray-300 px-4 py-3 pl-9 text-left font-semibold text-gray-700 text-base h-[70px] bg-white"
+              >
+                Remarks
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )}
+
+  {/* Cost Includes & Excludes Tab */}
+  {activeTab === "cost-in/cost-ex" && (
+    <div className="bg-[#E8F0FF] rounded-lg p-6">
+      <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+        Cost Inclusive & Cost Excludes
+      </h2>
+      
+      {/* Two cards side by side */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        
+        {/* Left Card - Cost Inclusive */}
+        <div className="min-h-[300px] flex flex-col">
+          <div className="bg-[#2E4D98] text-white text-center py-3 rounded-t-lg">
+            <h3 className="text-xl font-bold">Cost Inclusive</h3>
+          </div>
+          <div className="flex-1 overflow-x-auto border-2 border-gray-300 rounded-b-lg bg-white">
+            {/* Empty white card area */}
+            <div className="h-full w-full p-4">
+              {/* Empty content - completely white */}
+            </div>
+          </div>
+        </div>
+        
+        {/* Right Card - Cost Excludes */}
+        <div className="min-h-[300px] flex flex-col">
+          <div className="bg-[#2E4D98] text-white text-center py-3 rounded-t-lg">
+            <h3 className="text-xl font-bold">Cost Excludes</h3>
+          </div>
+          <div className="flex-1 overflow-x-auto border-2 border-gray-300 rounded-b-lg bg-white">
+            {/* Empty white card area */}
+            <div className="h-full w-full p-4">
+              {/* Empty content - completely white */}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )}
+
+  {/* Flight & Hotel Tab */}
+  {activeTab === "flight-&-hotel" && (
+    <div className="bg-[#E8F0FF] rounded-lg p-6">
+      <h2 className="text-2xl font-bold text-gray-800 mb-2 text-center"> Flights / Train or Transport Details</h2>
+      
+      <div className="bg-[#E8F0FF] rounded-lg p-6">
+        <div className="border border-gray-300 rounded-lg overflow-hidden">
+          <div className="min-h-[300px] p-6 bg-white">
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h3 className="text-xl font-semibold text-gray-800 mb-4">Hotel Details</h3>
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse border border-gray-300">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="border border-gray-300 px-4 py-2 text-left">City</th>
+                <th className="border border-gray-300 px-4 py-2 text-left">Hotel Name</th>
+                <th className="border border-gray-300 px-4 py-2 text-left">Room Type</th>
+                <th className="border border-gray-300 px-4 py-2 text-left">Nights</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {tour.hotels.map((hotel, index) => (
+                <tr
+                  key={index}
+                  className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                >
+                  <td className="border border-gray-300 px-4 py-2">{hotel.city}</td>
+                  <td className="border border-gray-300 px-4 py-2">{hotel.hotelName}</td>
+                  <td className="border border-gray-300 px-4 py-2">{hotel.roomType}</td>
+                  <td className="border border-gray-300 px-4 py-2">{hotel.nights}</td>
+                </tr>
+              ))}
+
+              <tr className="bg-white">
+                <th
+                  colSpan="4"
+                  className="border border-gray-300 px-4 py-2 text-left bg-white"
+                >
+                  Remarks
+                </th>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  )}
+
+  {/* Booking Tab */}
+  {activeTab === "booking" && (
+    <div className="bg-[#E8F0FF] rounded-lg p-5">
+      <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
+        Booking Policy
+      </h2>
+      
+      <div className="flex flex-col lg:flex-row gap-3">
+        
+        {/* Left Card - Booking Policy - Wider */}
+        <div className="min-h-[280px] flex-1 flex flex-col">
+          <div className="bg-[#2E4D98] text-white text-center py-3 rounded-t-lg">
+            <h3 className="text-xl font-bold">Booking Policy</h3>
+          </div>
+          <div className="flex-1 overflow-x-auto border-2 border-gray-300 rounded-b-lg bg-white">
+            <div className="h-full w-full p-6">
+              <div className="space-y-4">
+                {tour.booking.map((item, index) => (
+                  <div key={index} className="flex items-start gap-3 p-6 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-lg font-bold">
+                      {index + 1}
+                    </div>
+                    <span className="text-gray-700 text-lg">{item}</span>
+                  </div>
                 ))}
               </div>
             </div>
-
-            {/* Tab Contents */}
-            <div className="bg-[#2E4D98] rounded-xl shadow-sm p-6">
-              
-              {/* Itinerary Tab */}
-              {activeTab === "itinerary" && (
-  <div className="bg-[#C2E2FA] rounded-lg p-6 max-h-[calc(100vh-250px)] overflow-y-auto">
-
-    <h2 className="text-2xl font-bold text-gray-800 mb-6">Tour Itinerary</h2>
-
-    <div className="space-y-6">
-      {tour.itinerary.map((day, index) => (
-        <div
-          key={index}
-          className="flex gap-6 p-6 bg-white shadow-sm border border-gray-200 rounded-lg hover:border-[#2E4D98] transition-colors duration-200"
-        >
-          <div className="flex flex-col items-center flex-shrink-0">
-            {index < tour.itinerary.length - 1 && (
-              <div className="w-0.5 h-full bg-gray-300 mt-4"></div>
-            )}
-          </div>
-
-          <div className="flex-1">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-4">
-                <h3 className="text-xl font-bold text-[#2E4D98]">{day.day}</h3>
-                <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
-                <h4 className="text-xl font-semibold text-gray-800">{day.title}</h4>
-              </div>
-              <MealIndicator meals={day.meals} />
-            </div>
-
-            <p className="text-gray-600 leading-relaxed text-lg text-justify tracking-wide">
-              {day.description}
-            </p>
           </div>
         </div>
-      ))}
-
-       {/* Meal Legend */}
-                  <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <h3 className="font-semibold text-gray-800 mb-2">Meal Legend:</h3>
-                    <div className="flex gap-6 flex-wrap">
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-green-100 border border-green-300 flex items-center justify-center">
-                          <Check className="w-3 h-3 text-green-600" />
-                        </div>
-                        <span className="text-sm text-gray-700">Included</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-red-100 border border-red-300 flex items-center justify-center">
-                          <X className="w-3 h-3 text-red-600" />
-                        </div>
-                        <span className="text-sm text-gray-700">Not Included</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-gray-700">B - Breakfast</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-gray-700">L - Lunch</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-gray-700">D - Dinner</span>
-                      </div>
-                    </div>
-                  </div>
-    </div>
-  </div>
-)}
-
-
-              {/* Departure Dates Tab */}
-              {activeTab === "departure-dt" && (
-                <div className="bg-[#E8F0FF] rounded-lg p-6">
-                  <h2 className="text-2xl font-bold text-gray-800 mb-6">Departure Dates</h2>
-                  
-                  {/* Departure Dates Module */}
-                  <div className="border border-gray-300 rounded-lg overflow-hidden">
-                    {/* Top Section */}
-                    <div className="py-3 text-center border-b border-gray-300 bg-[#E8F0FF]">
-                      <h3 className="text-xl font-bold text-gray-900">Departure Dates</h3>
-                    </div>
-                    
-                    {/* Middle Section - Empty area */}
-                    <div className="min-h-[300px] p-6 bg-white">
-                      {/* Empty area - no content */}
-                    </div>
-                    
-                    {/* Bottom Section */}
-                    {/* <div className="py-3 text-center border-t border-gray-300 bg-[#E8F0FF]">
-                      <h3 className="text-xl font-bold text-gray-900">Free Flow Entry</h3>
-                    </div> */}
-                  </div>
-
-                  {/* Additional Information */}
-                  {/* <div className="mt-8 p-6 bg-green-50 rounded-lg border border-green-200">
-                    <h3 className="text-xl font-semibold text-gray-800 mb-3">Booking Information:</h3>
-                    <ul className="text-gray-600 space-y-2 text-lg">
-                      <li>• All departure dates are guaranteed with minimum 2 passengers</li>
-                      <li>• Early booking recommended for preferred dates</li>
-                      <li>• Custom departure dates available for groups of 6+</li>
-                      <li>• Contact us for last-minute availability</li>
-                    </ul>
-                  </div> */}
-                </div>
-              )}
-
-              {/* Tourcost Tab */}
-             {/* Tourcost Tab */}
-{activeTab === "tour-cost" && (
-  <div>
-    <h2 className="text-2xl font-bold text-white mb-6">Tour Cost</h2>
-
-    
-    <div className="overflow-x-auto border border-gray-300 rounded-lg">
-      <table className="w-full border-collapse">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="border border-gray-300 px-4 py-3 text-left font-semibold text-gray-700 text-base">
-              Passenger
-            </th>
-            <th className="border border-gray-300 px-4 py-3 text-center font-semibold text-gray-700 text-base">
-              Standard Hit
-            </th>
-            <th className="border border-gray-300 px-4 py-3 text-center font-semibold text-gray-700 text-base">
-              Deluxe Hit
-            </th>
-            <th className="border border-gray-300 px-4 py-3 text-center font-semibold text-gray-700 text-base">
-              Executive Hit
-            </th>
-            <th className="border border-gray-300 px-4 py-3 text-center font-semibold text-gray-700 text-base">
-              Chd With Bed
-            </th>
-            <th className="border border-gray-300 px-4 py-3 text-center font-semibold text-gray-700 text-base">
-              Chd no Bed
-            </th>
-            <th className="border border-gray-300 px-4 py-3 text-center font-semibold text-gray-700 text-base">
-              Remarks
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {[
-            { passenger: "02 Pax", standard: "NA", deluxe: "Rs 64,000", executive: "NA", childWithBed: "Rs 57,000", childNoBed: "Rs 53,000" },
-            { passenger: "03 Pax", standard: "NA", deluxe: "Rs 63,500", executive: "NA", childWithBed: "Rs 56,500", childNoBed: "Rs 52,500" },
-            { passenger: "04 Pax", standard: "NA", deluxe: "Rs 63,000", executive: "NA", childWithBed: "Rs 56,000", childNoBed: "Rs 52,000" },
-            { passenger: "05 Pax", standard: "NA", deluxe: "Rs 62,500", executive: "NA", childWithBed: "Rs 55,500", childNoBed: "Rs 51,500" },
-            { passenger: "06 Pax", standard: "NA", deluxe: "Rs 62,000", executive: "NA", childWithBed: "Rs 55,000", childNoBed: "Rs 51,000" },
-            { passenger: "07 Pax", standard: "NA", deluxe: "Rs 61,500", executive: "NA", childWithBed: "Rs 54,500", childNoBed: "Rs 50,500" },
-            { passenger: "08 Pax", standard: "NA", deluxe: "Rs 61,000", executive: "NA", childWithBed: "Rs 54,000", childNoBed: "Rs 50,000" },
-            { passenger: "09 Pax", standard: "NA", deluxe: "Rs 60,500", executive: "NA", childWithBed: "Rs 53,500", childNoBed: "Rs 49,500" },
-            { passenger: "10 Pax", standard: "NA", deluxe: "Rs 60,000", executive: "NA", childWithBed: "Rs 53,000", childNoBed: "Rs 49,000" }
-          ].map((row, index) => (
-            <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-              <td className="border border-gray-300 px-4 py-3 font-medium text-gray-700 text-base">
-                {row.passenger}
-              </td>
-              <td className="border border-gray-300 px-4 py-3 text-center text-gray-600 text-base">
-                {row.standard}
-              </td>
-              <td className="border border-gray-300 px-4 py-3 text-center text-green-600 font-semibold text-base">
-                {row.deluxe}
-              </td>
-              <td className="border border-gray-300 px-4 py-3 text-center text-gray-600 text-base">
-                {row.executive}
-              </td>
-              <td className="border border-gray-300 px-4 py-3 text-center text-blue-600 font-medium text-base">
-                {row.childWithBed}
-              </td>
-              <td className="border border-gray-300 px-4 py-3 text-center text-purple-600 font-medium text-base">
-                {row.childNoBed}
-              </td>
-              <td className="border border-gray-300 px-4 py-3 text-center">
-                <div 
-                  contentEditable="true"
-                  className="min-h-[60px] w-full p-2 text-left text-sm text-gray-600 border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent overflow-auto"
-                  style={{ 
-                    whiteSpace: 'pre-wrap',
-                    wordWrap: 'break-word',
-                    textAlign: 'left'
-                  }}
-                  placeholder="Enter remarks here..."
-                >
-                  {/* Editable content area */}
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-
-    {/* Remarks Instructions */}
-    {/* <div className="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-      <h3 className="text-lg font-semibold text-gray-800 mb-2">Remarks Instructions:</h3>
-      <ul className="text-gray-600 space-y-1 text-sm">
-        <li>• Click on any Remarks box to enter free flow text</li>
-        <li>• Text will automatically justify and adjust within the box</li>
-        <li>• You can add multiple lines and paragraphs</li>
-        <li>• The box will expand as you type more content</li>
-      </ul>
-    </div> */}
-
-    {/* Additional Information */}
-    {/* <div className="mt-6 p-6 bg-blue-50 rounded-lg border border-blue-200">
-      <h3 className="text-xl font-semibold text-gray-800 mb-3">Important Notes:</h3>
-      <ul className="text-gray-600 space-y-2 text-lg">
-        <li>• All prices are per person in Indian Rupees</li>
-        <li>• 5% GST extra on total package cost</li>
-        <li>• Prices are subject to change without prior notice</li>
-        <li>• Seasonal surcharges may apply during peak seasons</li>
-        <li>• Child rates applicable for children between 5-12 years</li>
-        <li>• Infant rates (0-2 years) available on request</li>
-      </ul>
-    </div> */}
-  </div>
-)}
-              {/* Cost Includes Tab */}
-              {activeTab === "cost-includes" && (
-                <div className="bg-[#E8F0FF] rounded-lg p-6">
-                  <h2 className="text-2xl font-bold text-gray-800 mb-6">Cost Includes</h2>
-                  <div className="space-y-3">
-                    {tour.inclusionExclusion.inclusions.map((inclusion, index) => (
-                      <div key={index} className="flex items-start gap-3 p-4 bg-green-50 rounded-lg border border-green-200">
-                        <div className="w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                        </div>
-                        <span className="text-gray-700 text-lg">{inclusion}</span>
-                      </div>
-                    ))}
+        
+        {/* Right Card - Amount Details - Wider */}
+        <div className="min-h-[280px] flex-1 flex flex-col">
+          <div className="bg-[#2E4D98] text-white text-center py-3 rounded-t-lg">
+            <h3 className="text-xl font-bold">Amount Details</h3>
+          </div>
+          <div className="flex-1 overflow-x-auto border-2 border-gray-300 rounded-b-lg bg-white">
+            <div className="h-full w-full p-6">
+              <div className="grid grid-cols-2 gap-6">
+                {/* Card 1 - Takes 2 columns */}
+                <div className="col-span-2 min-h-[80px] flex items-center justify-center p-5 bg-white rounded-lg border border-gray-200 shadow-sm">
+                  <div className="text-center">
+                    <span className="text-2xl font-bold text-green-600">₹50,000</span>
                   </div>
                 </div>
-              )}
-
-              {/* Cost Excludes Tab */}
-              {activeTab === "cost-excludes" && (
-                <div className="bg-[#E8F0FF] rounded-lg p-6">
-                  <h2 className="text-2xl font-bold text-gray-800 mb-6">Cost Excludes</h2>
-                  <div className="space-y-3">
-                    {tour.inclusionExclusion.exclusions.map((exclusion, index) => (
-                      <div key={index} className="flex items-start gap-3 p-4 bg-red-50 rounded-lg border border-red-200">
-                        <div className="w-6 h-6 bg-red-100 text-red-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                          </svg>
-                        </div>
-                        <span className="text-gray-700 text-lg">{exclusion}</span>
-                      </div>
-                    ))}
+                
+                {/* Card 2 - Takes 2 columns */}
+                <div className="col-span-2 min-h-[80px] flex items-center justify-center p-5 bg-white rounded-lg border border-gray-200 shadow-sm">
+                  <div className="text-center">
+                    <span className="text-2xl font-bold text-blue-600">₹50,000</span>
                   </div>
                 </div>
-              )}
-
-              {/* Flight & Hotel Tab */}
-              {activeTab === "flight-&-hotel" && (
-                <div className="bg-[#E8F0FF] rounded-lg p-6">
-                  <h2 className="text-2xl font-bold text-gray-800 mb-6">Flight & Hotel Details</h2>
-                  
-                  <div className="mb-8">
-                    <h3 className="text-xl font-semibold text-gray-800 mb-4">Flight Details</h3>
-                    <div className="space-y-4">
-                      {tour.airlines.map((flight, index) => (
-                        <div key={index} className="border border-gray-200 rounded-lg p-4">
-                          <div className="flex justify-between items-center mb-2">
-                            <span className="font-bold text-lg">{flight.airline} - {flight.flightNo}</span>
-                            <span className="text-gray-600">{flight.depDate} | {flight.depTime}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <div>
-                              <p className="font-medium">{flight.from}</p>
-                              <p className="text-gray-600">Departure</p>
-                            </div>
-                            <div className="text-center">
-                              <p className="text-gray-600">→</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="font-medium">{flight.to}</p>
-                              <p className="text-gray-600">Arrival</p>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-800 mb-4">Hotel Details</h3>
-                    <div className="overflow-x-auto">
-                      <table className="w-full border-collapse border border-gray-300">
-                        <thead>
-                          <tr className="bg-gray-100">
-                            <th className="border border-gray-300 px-4 py-2 text-left">City</th>
-                            <th className="border border-gray-300 px-4 py-2 text-left">Hotel Name</th>
-                            <th className="border border-gray-300 px-4 py-2 text-left">Nights</th>
-                            <th className="border border-gray-300 px-4 py-2 text-left">Room Type</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {tour.hotels.map((hotel, index) => (
-                            <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                              <td className="border border-gray-300 px-4 py-2">{hotel.city}</td>
-                              <td className="border border-gray-300 px-4 py-2">{hotel.hotelName}</td>
-                              <td className="border border-gray-300 px-4 py-2">{hotel.nights}</td>
-                              <td className="border border-gray-300 px-4 py-2">{hotel.roomType}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                
+                {/* Card 3 - Takes 2 columns */}
+                <div className="col-span-2 min-h-[80px] flex items-center justify-center p-5 bg-white rounded-lg border border-gray-200 shadow-sm">
+                  <div className="text-center">
+                    <span className="text-2xl font-bold text-blue-600">₹1,50,000</span>
                   </div>
                 </div>
-              )}
-
-              {/* Booking Tab */}
-              {activeTab === "booking" && (
-                <div className="bg-[#E8F0FF] rounded-lg p-6">
-                  <h2 className="text-2xl font-bold text-gray-800 mb-6">Booking Policy</h2>
-                  <div className="space-y-4">
-                    {tour.booking.map((item, index) => (
-                      <div key={index} className="flex items-start gap-3 p-6 bg-blue-50 rounded-lg border border-blue-200">
-                        <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-lg font-bold">
-                          {index + 1}
-                        </div>
-                        <span className="text-gray-700 text-lg">{item}</span>
-                      </div>
-                    ))}
+                
+                {/* Card 4 - Takes 2 columns */}
+                <div className="col-span-2 min-h-[80px] flex items-center justify-center p-5 bg-white rounded-lg border border-gray-200 shadow-sm">
+                  <div className="text-center">
+                    <span className="text-2xl font-bold text-blue-600">Aadhaar Card</span>
                   </div>
                 </div>
-              )}
-
-              {/* Cancellation Tab */}
-              {activeTab === "cancellation" && (
-                <div className="bg-[#E8F0FF] rounded-lg p-6">
-                  <h2 className="text-2xl font-bold text-gray-800 mb-6">Cancellation Policy</h2>
-                  <div className="space-y-4">
-                    {tour.cancellation.map((item, index) => (
-                      <div key={index} className="flex items-start gap-3 p-6 bg-red-50 rounded-lg border border-red-200">
-                        <div className="w-8 h-8 bg-red-100 text-red-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-lg font-bold">
-                          {index + 1}
-                        </div>
-                        <span className="text-gray-700 text-lg">{item}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
+              </div>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )}
+
+  {/* Cancellation Tab */}
+  {activeTab === "cancellation" && (
+    <div className="bg-[#E8F0FF] rounded-lg p-5">
+      <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+        Cancellation Policy
+      </h2>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+        
+        {/* Left Card - Cancellation Policy */}
+        <div className="min-h-[280px] flex flex-col">
+          <div className="bg-[#E53C42] text-white text-center py-3 rounded-t-lg">
+            <h3 className="text-xl font-bold">Cancellation Policy</h3>
+          </div>
+          <div className="flex-1 overflow-x-auto border-2 border-gray-300 rounded-b-lg bg-white">
+            <div className="h-full w-full p-6">
+              <div className="space-y-4">
+                {tour.cancellation.map((item, index) => (
+                  <div key={index} className="flex items-start gap-3 p-6 bg-red-50 rounded-lg border border-red-200">
+                    <div className="w-8 h-8 bg-red-100 text-red-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-lg font-bold">
+                      {index + 1}
+                    </div>
+                    <span className="text-gray-700 text-lg">{item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Right Card - Cancellation Charges */}
+        <div className="min-h-[280px] flex flex-col">
+          <div className="bg-[#E53C42] text-white text-center py-3 rounded-t-lg">
+            <h3 className="text-xl font-bold">Cancellation Charges</h3>
+          </div>
+          <div className="flex-1 overflow-x-auto border-2 border-gray-300 rounded-b-lg bg-white">
+            <div className="h-full w-full p-6">
+              <div className="space-y-6">
+                {/* Charge Card 1 */}
+                <div className="min-h-[80px] flex items-center justify-center p-5 bg-white rounded-lg border border-red-200 shadow-sm">
+                  <div className="text-center">
+                    <span className="text-2xl font-bold text-red-600">30 Days+</span>
+                  </div>
+                </div>
+                
+                {/* Charge Card 2 */}
+                <div className="min-h-[80px] flex items-center justify-center p-5 bg-white rounded-lg border border-red-200 shadow-sm">
+                  <div className="text-center">
+                    <span className="text-2xl font-bold text-red-600">15-30 Days</span>
+                  </div>
+                </div>
+                
+                {/* Charge Card 3 */}
+                <div className="min-h-[80px] flex items-center justify-center p-5 bg-white rounded-lg border border-red-200 shadow-sm">
+                  <div className="text-center">
+                    <span className="text-2xl font-bold text-red-600">7-14 Days</span>
+                  </div>
+                </div>
+                
+                {/* Charge Card 4 */}
+                <div className="min-h-[80px] flex items-center justify-center p-5 bg-white rounded-lg border border-red-200 shadow-sm">
+                  <div className="text-center">
+                    <span className="text-2xl font-bold text-red-600">0-7 Days</span>
+                  </div>
+                </div>
+                {/* Charge Card 5 */}
+                <div className="min-h-[80px] flex items-center justify-center p-5 bg-white rounded-lg border border-red-200 shadow-sm">
+                  <div className="text-center">
+                    <span className="text-2xl font-bold text-red-600">2-5 Days</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )}
+
+  {/* Instruction Tab */}
+  {activeTab === "instruction" && (
+    <div className="bg-[#E8F0FF] rounded-lg p-6">
+      <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+        Instruction
+      </h2>
+      
+      <div className="border border-gray-300 rounded-lg overflow-hidden">
+        {/* Middle Section - Empty area */}
+        <div className="min-h-[300px] p-6 bg-white">
+          {/* Empty area - no content */}
+        </div>
+      </div>
+    </div>
+  )}
+
+  {/* Action Buttons */}
+
+</div>
+<div className="flex justify-end mt-6">
+  <button className="flex-1 max-w-[150px] bg-green-700 hover:bg-green-800 text-white font-bold py-3 px-4 rounded-l-lg transition-colors border-r border-amber-800 flex items-center justify-center gap-2">
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+    </svg>
+    Download
+  </button>
+  <button className="flex-1 max-w-[150px] bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 transition-colors border-r border-blue-700 flex items-center justify-center gap-2">
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+    </svg>
+    Email
+  </button>
+  <button className="flex-1 max-w-[150px] bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-r-lg transition-colors flex items-center justify-center gap-2">
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    Book Now
+  </button>
+</div>
           </main>
         </div>
       </div>
