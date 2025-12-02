@@ -4272,7 +4272,7 @@ if (selectedIndianTours.length > 0) {
               </div>
 
               {/* Departure Date */}
-              <div className="mb-8">
+              {/* <div className="mb-8">
                 <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Departure date</h3>
                 <div className="space-y-3">
                   {['January-2026', 'February-2026', 'March-2026', 'April-2026', 'May-2026'].map((month) => (
@@ -4286,7 +4286,7 @@ if (selectedIndianTours.length > 0) {
                     </label>
                   ))}
                 </div>
-              </div>
+              </div> */}
 
               {/* Price */}
               <div className="mb-8">
