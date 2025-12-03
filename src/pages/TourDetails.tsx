@@ -9,6 +9,7 @@ import Header from '@/components/Header';
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 
+
 // DayCard Component
 interface DayCardProps {
   dayNumber: string;
@@ -20,18 +21,17 @@ const DayCard = ({ dayNumber, headerColor, bodyColor }: DayCardProps) => {
   const [meals, setMeals] = useState({ B: false, L: false, D: false });
 
   return (
-    <div>
-      {/* Header Row - 3 separate rounded boxes */}
+    <div className="rounded-lg p-3"> 
       <div className="flex gap-2 mb-1">
-        <div className={`${headerColor} text-white font-bold px-4 py-2 rounded-lg text-center min-w-[120px]`}>
+        <div className={`${headerColor} text-white font-bold px-4 py-2 rounded-lg text-center min-w-[120px] border border-black`}> {/* Added border */}
           {dayNumber}
         </div>
-        <div className={`${headerColor} text-white font-bold px-4 py-2 rounded-lg text-center flex-1`}>
+        <div className={`${headerColor} text-white font-bold px-4 py-2 rounded-lg text-center flex-1 border border-black`}> {/* Added border */}
           Day Details
         </div>
-        <div className="bg-white border border-gray-300 rounded-lg px-4 py-2 flex items-center gap-3">
+        <div className={`${headerColor} text-white border border-black rounded-lg px-4 py-2 flex items-center gap-3`}> {/* Changed border to black */}
           <label className="flex items-center gap-1">
-            B
+            <span className="text-white">B</span>
             <input
               type="radio"
               checked={meals.B}
@@ -40,7 +40,7 @@ const DayCard = ({ dayNumber, headerColor, bodyColor }: DayCardProps) => {
             />
           </label>
           <label className="flex items-center gap-1">
-            L
+            <span className="text-white">L</span>
             <input
               type="radio"
               checked={meals.L}
@@ -49,7 +49,7 @@ const DayCard = ({ dayNumber, headerColor, bodyColor }: DayCardProps) => {
             />
           </label>
           <label className="flex items-center gap-1">
-            D
+            <span className="text-white">D</span>
             <input
               type="radio"
               checked={meals.D}
@@ -60,7 +60,7 @@ const DayCard = ({ dayNumber, headerColor, bodyColor }: DayCardProps) => {
         </div>
       </div>
       {/* Content Area */}
-      <div className={`${bodyColor} min-h-[120px] p-4 rounded-lg border border-gray-300`}>
+      <div className={`${bodyColor} min-h-[120px] p-4 rounded-lg border border-black`}> {/* Changed border to black */}
         <textarea 
           className="w-full h-full min-h-[100px] bg-transparent resize-none focus:outline-none text-gray-800"
           placeholder=""
@@ -845,16 +845,15 @@ const TourDetails = () => {
           {/* Filters Sidebar */}
           <aside className="lg:w-80">
             <div className="bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl shadow-lg p-6 border border-blue-200 sticky top-24">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-[#2E4D98]">Indian Tours</h2>
-                <button 
-                  onClick={clearAllFilters}
-                  className="text-sm text-[#E53C42] hover:underline"
-                >
-                  Clear All
-                </button>
-              </div>
-
+              <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black"> {/* Added border */}
+    <h2 className="text-2xl font-bold text-[#2E4D98]">Indian Tours</h2>
+    <button 
+      onClick={clearAllFilters}
+      className="text-sm text-[#E53C42] hover:underline"
+    >
+      Clear All
+    </button>
+  </div>
               {/* Duration */}
               <div className="mb-8">
                 <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Duration</h3>
@@ -889,12 +888,36 @@ const TourDetails = () => {
 
               
               <div className="mb-8">
-                <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Indian Tours</h3>
+              <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black"> {/* Added border */}
+    <h2 className="text-2xl font-bold text-[#2E4D98]">Indian Tours</h2>
+    </div>
                 <div className={`${showMoreIndian ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
                   {[
                     'Andaman', 'Goa', 'Kerala', 'Himachal', 'Rajasthan', 'Kashmir',
                     ...(showMoreIndian
-                      ? ['Tamil Nadu', 'Sikkim', 'Meghalaya', 'Uttarakhand', 'Gujarat', 'Pondicherry']
+                      ? [     'Andhra Pradesh',
+          'Bihar',
+          'Chhattisgarh',
+          'Dadra & Nagar Haveli',
+          'Daman & Diu',
+          'Delhi',
+          'Gujarat',
+          'Haryana',
+          'Jharkhand',
+          'Karnataka',
+          'Ladakh',
+          'Lakshadweep',
+          'Madhya Pradesh',
+          'Maharashtra',
+          'North East',
+          'Odisha',
+          'Puducherry',
+          'Punjab & Haryana',
+          'Seven Sisters',
+          'Tamil Nadu',
+          'Uttar Pradesh',
+          'Uttarakhand',
+          'West Bengal']
                       : [])
                   ].map((place) => (
                     <label key={place} className="flex items-center gap-3 cursor-pointer">
@@ -917,7 +940,9 @@ const TourDetails = () => {
 
               {/* World Tours */}
               <div>
-                <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">World Tours</h3>
+              <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black"> {/* Added border */}
+    <h2 className="text-2xl font-bold text-[#2E4D98]">World Tours</h2>
+  </div>
                 <div className={`${showMoreWorld ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
                   {[
                     'Dubai', 'Europe', 'Maldives', 'Mauritius', 'Thailand', 'Bali',
@@ -1073,36 +1098,36 @@ const TourDetails = () => {
 </div>
           <div className="bg-[#2E4D98] rounded-xl shadow-sm p-6">
   
-  {/* Itinerary Tab */}
-  {activeTab === "itinerary" && (
-    <div className="bg-[#C2E2FA] rounded-lg p-3 max-h-[calc(100vh-250px)] overflow-y-auto">
-      <div className="mx-auto my-6 bg-white rounded-lg shadow-lg">
-        {/* Top Header */}
-        <div className="bg-red-600 text-white text-center font-bold text-xl py-3">
-          Tour Itinerary
-        </div>
-        <div className='p-3'>
-          {/* Day Cards using the DayCard component */}
-          <div className="space-y-4 mt-4 ">
-            {[
-              { dayNumber: "Day 01", headerColor: "bg-fuchsia-500", bodyColor: "bg-pink-100" },
-              { dayNumber: "Day 02", headerColor: "bg-emerald-400", bodyColor: "bg-emerald-50" },
-              { dayNumber: "Day 03", headerColor: "bg-orange-400", bodyColor: "bg-orange-50" },
-              { dayNumber: "Day 04", headerColor: "bg-blue-600", bodyColor: "bg-blue-50" },
-              { dayNumber: "Day 05", headerColor: "bg-yellow-400", bodyColor: "bg-yellow-50" },
-            ].map((card) => (
-              <DayCard 
-                key={card.dayNumber}
-                dayNumber={card.dayNumber}
-                headerColor={card.headerColor}
-                bodyColor={card.bodyColor}
-              />
-            ))}
-          </div>
+{activeTab === "itinerary" && (
+  <div className="bg-[#C2E2FA] rounded-lg p-3 max-h-[calc(100vh-250px)] overflow-y-auto">
+    <div className="mx-auto my-6 bg-white rounded-lg shadow-lg">
+      {/* Top Header */}
+      <div className="bg-red-600 text-white text-center font-bold text-xl py-3">
+        Tour Itinerary
+      </div>
+      <div className='p-3'>
+        {/* Day Cards using the DayCard component */}
+        <div className="space-y-4 mt-4 ">
+          {[
+            { dayNumber: "Day 01", headerColor: "bg-fuchsia-500", bodyColor: "bg-pink-100" },
+            { dayNumber: "Day 02", headerColor: "bg-emerald-400", bodyColor: "bg-emerald-50" },
+            { dayNumber: "Day 03", headerColor: "bg-orange-400", bodyColor: "bg-orange-50" },
+            { dayNumber: "Day 04", headerColor: "bg-blue-600", bodyColor: "bg-blue-50" },
+            { dayNumber: "Day 05", headerColor: "bg-yellow-400", bodyColor: "bg-yellow-50" },
+          ].map((card) => (
+            <DayCard 
+              key={card.dayNumber}
+              dayNumber={card.dayNumber}
+              headerColor={card.headerColor}
+              bodyColor={card.bodyColor}
+            />
+          ))}
         </div>
       </div>
     </div>
-  )}
+  </div>
+)}
+
 
   {/* Departure Dates Tab */}
   {activeTab === "dep-date" && (
@@ -1134,13 +1159,13 @@ const TourDetails = () => {
                 Passenger
               </th>
               <th className="border border-gray-300 px-4 py-3 text-center font-semibold text-gray-700 text-base w-1/5">
-                Standard Hit
+                Standard Hotel
               </th>
               <th className="border border-gray-300 px-4 py-3 text-center font-semibold text-gray-700 text-base w-1/5">
-                Deluxe Hit
+                Deluxe hotel
               </th>
               <th className="border border-gray-300 px-4 py-3 text-center font-semibold text-gray-700 text-base w-1/5">
-                Executive Hit
+                Executive Hotel
               </th>
               <th className="border border-gray-300 px-4 py-3 text-center font-semibold text-gray-700 text-base w-1/5">
                 Chd With Bed
