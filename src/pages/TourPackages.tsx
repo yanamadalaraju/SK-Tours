@@ -4311,7 +4311,31 @@ if (selectedIndianTours.length > 0) {
                   {[
                     'Andaman', 'Goa', 'Kerala', 'Himachal', 'Rajasthan', 'Kashmir',
                     ...(showMoreIndian
-                      ? ['Tamil Nadu', 'Sikkim', 'Meghalaya', 'Uttarakhand', 'Gujarat', 'Pondicherry']
+              
+                      ? [
+                        'Andhra pradesh',
+          'Bihar',
+          'Chhattisgarh',
+          'Dadra & Nagar Haveli',
+          'Daman & Diu',
+          'Delhi',
+          'Gujarat',
+          'Haryana',
+          'Jharkhand',
+          'Karnataka',
+          'Ladakh',
+          'Lakshadweep',
+          'Madhya Pradesh',
+          'Maharashtra',
+          'North East',
+          'Odisha',
+          'Puducherry',
+          'Punjab & Haryana',
+          'Seven Sisters',
+          'Tamil Nadu',
+          'Uttar Pradesh',
+          'Uttarakhand',
+          'West Bengal']
                       : [])
                   ].map((place) => (
                     <label key={place} className="flex items-center gap-3 cursor-pointer">
