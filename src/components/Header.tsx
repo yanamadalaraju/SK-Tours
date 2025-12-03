@@ -107,7 +107,7 @@ const Header = () => {
       ],
     },
     { icon: UsersRound, label: "About Us", href: "/about" }, // ✅ Fixed: Changed from "#about" to "/about"
-    { icon: Phone, label: "Contact Us", href: "#contact" },
+    { icon: Phone, label: "Contact Us", href: "/contact" },
   ];
 
   return (
