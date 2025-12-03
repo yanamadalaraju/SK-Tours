@@ -845,16 +845,15 @@ const TourDetails = () => {
           {/* Filters Sidebar */}
           <aside className="lg:w-80">
             <div className="bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl shadow-lg p-6 border border-blue-200 sticky top-24">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-[#2E4D98]">Indian Tours</h2>
-                <button 
-                  onClick={clearAllFilters}
-                  className="text-sm text-[#E53C42] hover:underline"
-                >
-                  Clear All
-                </button>
-              </div>
-
+              <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black"> {/* Added border */}
+    <h2 className="text-2xl font-bold text-[#2E4D98]">Indian Tours</h2>
+    <button 
+      onClick={clearAllFilters}
+      className="text-sm text-[#E53C42] hover:underline"
+    >
+      Clear All
+    </button>
+  </div>
               {/* Duration */}
               <div className="mb-8">
                 <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Duration</h3>
@@ -889,7 +888,9 @@ const TourDetails = () => {
 
               
               <div className="mb-8">
-                <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Indian Tours</h3>
+              <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black"> {/* Added border */}
+    <h2 className="text-2xl font-bold text-[#2E4D98]">Indian Tours</h2>
+    </div>
                 <div className={`${showMoreIndian ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
                   {[
                     'Andaman', 'Goa', 'Kerala', 'Himachal', 'Rajasthan', 'Kashmir',
@@ -939,7 +940,9 @@ const TourDetails = () => {
 
               {/* World Tours */}
               <div>
-                <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">World Tours</h3>
+              <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black"> {/* Added border */}
+    <h2 className="text-2xl font-bold text-[#2E4D98]">World Tours</h2>
+  </div>
                 <div className={`${showMoreWorld ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
                   {[
                     'Dubai', 'Europe', 'Maldives', 'Mauritius', 'Thailand', 'Bali',
@@ -1156,13 +1159,13 @@ const TourDetails = () => {
                 Passenger
               </th>
               <th className="border border-gray-300 px-4 py-3 text-center font-semibold text-gray-700 text-base w-1/5">
-                Standard Hit
+                Standard Hotel
               </th>
               <th className="border border-gray-300 px-4 py-3 text-center font-semibold text-gray-700 text-base w-1/5">
-                Deluxe Hit
+                Deluxe hotel
               </th>
               <th className="border border-gray-300 px-4 py-3 text-center font-semibold text-gray-700 text-base w-1/5">
-                Executive Hit
+                Executive Hotel
               </th>
               <th className="border border-gray-300 px-4 py-3 text-center font-semibold text-gray-700 text-base w-1/5">
                 Chd With Bed
