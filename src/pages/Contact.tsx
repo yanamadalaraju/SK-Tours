@@ -503,67 +503,7 @@ const ContactPage = () => {
           </div>
         </section>
 
-        {/* Social Media & Final CTA */}
-        <section className="py-20 bg-gradient-to-br from-gray-900 to-blue-900 text-white">
-          <div className="max-w-6xl mx-auto px-4">
-            <div className="grid lg:grid-cols-2 gap-12">
-              <div>
-                <h2 className="text-3xl md:text-4xl font-bold mb-6">
-                  Connect With Us
-                </h2>
-                <p className="text-blue-100 mb-8 max-w-lg">
-                  Follow our social channels for travel inspiration, exclusive offers, destination guides, and company updates.
-                </p>
-                
-                <div className="flex gap-4">
-                  {[
-                    { icon: Instagram, label: 'Instagram', color: 'bg-gradient-to-br from-pink-500 to-purple-600' },
-                    { icon: Facebook, label: 'Facebook', color: 'bg-blue-600' },
-                    { icon: Twitter, label: 'Twitter', color: 'bg-sky-500' },
-                    { icon: Linkedin, label: 'LinkedIn', color: 'bg-blue-700' },
-                    { icon: Youtube, label: 'YouTube', color: 'bg-red-600' },
-                  ].map((social, index) => (
-                    <a
-                      key={index}
-                      href="#"
-                      className={`w-12 h-12 rounded-lg flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-lg ${social.color}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={social.label}
-                    >
-                      <social.icon className="w-5 h-5 text-white" />
-                    </a>
-                  ))}
-                </div>
-              </div>
-              
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20">
-                <h3 className="text-2xl font-bold mb-4">Need Immediate Assistance?</h3>
-                <p className="text-blue-100 mb-6">
-                  For urgent travel queries or emergency support, contact our dedicated helpline.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <a 
-                    href="tel:+919876543210" 
-                    className="flex items-center justify-center gap-3 bg-white text-gray-900 px-8 py-4 rounded-lg font-bold hover:bg-gray-100 transition-all duration-300"
-                  >
-                    <Phone className="w-5 h-5" />
-                    Call Emergency Line
-                  </a>
-                  <a 
-                    href="https://wa.me/919876543210" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-3 bg-green-500 text-white px-8 py-4 rounded-lg font-bold hover:bg-green-600 transition-all duration-300"
-                  >
-                    <MessageCircle className="w-5 h-5" />
-                    WhatsApp Support
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+      
       </div>
       
       <Footer />
