@@ -11,57 +11,61 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 
 // DayCard Component
+
 interface DayCardProps {
   dayNumber: string;
-  headerColor: string;
-  bodyColor: string;
+  headerStyle: React.CSSProperties;
+  bodyStyle: React.CSSProperties;
 }
 
-const DayCard = ({ dayNumber, headerColor, bodyColor }: DayCardProps) => {
+const DayCard = ({ dayNumber, headerStyle, bodyStyle }: DayCardProps) => {
   const [meals, setMeals] = useState({ B: false, L: false, D: false });
 
   return (
-    <div className="rounded-lg p-3"> 
+    <div className="rounded-lg p-3">
       <div className="flex gap-2 mb-1">
-        <div className={`${headerColor} text-white font-bold px-4 py-2 rounded-lg text-center min-w-[120px] border border-black`}> {/* Added border */}
-          {dayNumber}
-        </div>
-        <div className={`${headerColor} text-white font-bold px-4 py-2 rounded-lg text-center flex-1 border border-black`}> {/* Added border */}
+    <div
+  style={{ backgroundColor: headerStyle.backgroundColor, color: "white" }}
+  className="font-bold px-4 py-2 rounded-lg text-center min-w-[100px] border border-black"
+>
+  {dayNumber}
+</div>
+
+        <div
+          style={headerStyle}
+          className="text-white font-bold px-5 py-2 rounded-lg text-center flex-1 border border-black"
+        >
           Day Details
         </div>
-        <div className={`${headerColor} text-white border border-black rounded-lg px-4 py-2 flex items-center gap-3`}> {/* Changed border to black */}
-          <label className="flex items-center gap-1">
-            <span className="text-white">B</span>
-            <input
-              type="radio"
-              checked={meals.B}
-              onChange={() => setMeals(prev => ({ ...prev, B: !prev.B }))}
-              className="w-4 h-4"
-            />
-          </label>
-          <label className="flex items-center gap-1">
-            <span className="text-white">L</span>
-            <input
-              type="radio"
-              checked={meals.L}
-              onChange={() => setMeals(prev => ({ ...prev, L: !prev.L }))}
-              className="w-4 h-4"
-            />
-          </label>
-          <label className="flex items-center gap-1">
-            <span className="text-white">D</span>
-            <input
-              type="radio"
-              checked={meals.D}
-              onChange={() => setMeals(prev => ({ ...prev, D: !prev.D }))}
-              className="w-4 h-4"
-            />
-          </label>
+        <div
+          style={headerStyle}
+          className="text-white border border-black rounded-lg px-1 py-1 inline-flex items-center gap-0.5 min-w-[50px] justify-center"
+        >
+          {["B", "L", "D"].map((meal) => (
+            <label key={meal} className="flex items-center gap-1">
+              <input
+                type="radio"
+                checked={meals[meal as keyof typeof meals]}
+                onChange={() =>
+                  setMeals((prev) => ({
+                    ...prev,
+                    [meal]: !prev[meal as keyof typeof meals],
+                  }))
+                }
+                className="w-4 h-4"
+              />
+              <span className="text-white font-bold">{meal}</span>
+            </label>
+          ))}
         </div>
       </div>
+
       {/* Content Area */}
-      <div className={`${bodyColor} min-h-[120px] p-4 rounded-lg border border-black`}> {/* Changed border to black */}
-        <textarea 
+      <div
+        style={bodyStyle}
+        className="min-h-[120px] p-4 rounded-lg border-2 border-[#1e3a8a]"
+      >
+        <textarea
           className="w-full h-full min-h-[100px] bg-transparent resize-none focus:outline-none text-gray-800"
           placeholder=""
         />
@@ -1031,211 +1035,224 @@ const TourDetails = () => {
                 </div>
               )}
             </div>
+<div className="bg-white rounded-xl shadow-sm mb-1 overflow-hidden border border-white">
 
-<div className="bg-white rounded-xl shadow-sm mb-0.5 overflow-hidden border border-[#1e3a8a]">
-  {/* ===== FIRST ROW: HEADERS ===== */}
-  <div className="grid grid-cols-8 bg-[#E8F0FF] border-b border-[#1e3a8a]">
-    <div className="border-r border-[#1e3a8a] px-4 py-3">
-      <h3 className="font-bold text-gray-900 text-center text-lg">Tour Code</h3>
-    </div>
-    <div className="col-span-6 border-r border-[#1e3a8a] px-4 py-3">
-      <h3 className="font-bold text-gray-900 text-center text-lg">Tour Name</h3>
-    </div>
-    <div className="px-4 py-3">
-      <h3 className="font-bold text-gray-900 text-center text-lg">Days</h3>
-    </div>
+ {/* ===== FIRST ROW: HEADERS ===== */}
+<div className="grid grid-cols-8 bg-[#E8F0FF] border-b border-black">
+  <div className="border-r border-black bg-[#2E3a8a] px-4 py-3">
+    <h3 className="font-bold text-white text-center text-lg">Tour Code</h3>
+  </div>  
+
+  <div className="col-span-6 border-r border-black bg-[#2E3a8a] px-4 py-3">
+    <h3 className="font-bold text-white text-center text-lg">Tour Name</h3>
   </div>
 
-  {/* ===== SECOND ROW: VALUES ===== */}
-  <div className="grid grid-cols-8 border-b border-[#1e3a8a]">
-    <div className="border-r border-[#1e3a8a] px-1 py-3 bg-blue-50">
-      <p className="text-xl font-bold text-[#2E4D98] text-center tracking-wide">
-        {tour.code}
-      </p>
-    </div>
-
-    <div className="col-span-6 border-r border-[#1e3a8a] px-4 py-3 bg-gray-50">
-      <p className="text-xl font-semibold text-gray-900 text-center">
-        {tour.title}
-      </p>
-    </div>
-
-    <div className=" px-4 py-3 bg-red-50">
-      <p className="text-xl font-bold text-[#E53C42] text-center">
-        {tour.duration}
-      </p>
-    </div>
-  </div>
-
-  {/* ===== THIRD ROW: TABS ===== */}
-  <div className="grid grid-cols-8 bg-white">
-{[
-  "Itinerary",
-  "Dep Date",
-  "Tour Cost",
- "Cost In/Cost Ex" ,
-   "Flights & Hotels",
-  "Bookings POI",
-  "Cancellation",
-  "Instructions"
-].map((label) => (
-  <button
-    key={label}
-    onClick={() => setActiveTab(label.toLowerCase().replace(/\s+/g, '-'))}
-    className={`px-3 py-4 text-sm font-semibold text-center border-r last:border-r-0 border-[#1e3a8a] transition 
-      ${
-        activeTab === label.toLowerCase().replace(/\s+/g, '-')
-          ? "bg-[#2E3a8a] text-white"
-          : "bg-[#E8F0FF] text-gray-700 hover:bg-blue-100"
-      }
-    `}
-  >
-    {label}
-  </button>
-))}
+  <div className="px-4 py-3 bg-[#2E3a8a]">
+    <h3 className="font-bold text-white text-center text-lg">Days</h3>
   </div>
 </div>
+
+{/* ===== SECOND ROW: VALUES ===== */}
+<div className="grid grid-cols-8 border-black border-black">
+  <div className="border-r border-black px-1 py-3 bg-blue-50">
+    <p className="text-lg font-bold text-[#2E4D98] text-center tracking-wide">
+      {tour.code}
+    </p>
+  </div>
+
+  <div className="col-span-6 border-r border-black px-4 py-3 bg-gray-50">
+    <p className="text-lg font-semibold text-gray-900 text-center">
+      {tour.title}
+    </p>
+  </div>
+
+  <div className="px-4 py-3 bg-red-50">
+    <p className="text-lg font-bold text-[#E53C42] text-center">
+      {tour.duration}
+    </p>
+  </div>
+</div>
+
+  {/* ===== THIRD ROW: TABS ===== */}
+<div className="grid grid-cols-8 bg-white border-t border-black">
+  {[
+    "Itinerary",
+    "Dep Date",
+    "Tour Cost",
+  "Cost inc./Cost ex.",
+      "Flights & Hotels",
+    "Bookings POI",
+    "Cancellation",
+    "Instructions"
+  ].map((label, idx) => (
+    <button
+      key={label}
+      onClick={() => setActiveTab(label.toLowerCase().replace(/\s+/g, '-'))}
+      className={`px-3 py-4 text-sm font-semibold text-center whitespace-nowrap
+        ${idx < 7 ? "border-r border-black" : ""} transition 
+        ${
+          activeTab === label.toLowerCase().replace(/\s+/g, '-')
+            ? "bg-[#A72703] text-white"        
+        : "bg-[#FFE797] text-gray-800" 
+    }
+      `}
+    >
+      {label}
+    </button>
+  ))}
+</div>
+</div>
+
+
+
+
           <div className="bg-[#2E4D98] rounded-xl shadow-sm p-6">
   
 {activeTab === "itinerary" && (
   <div className="bg-[#C2E2FA] rounded-lg p-1 max-h-[calc(100vh-250px)] overflow-y-auto">
     <div className="mx-auto bg-white rounded-lg shadow-lg">
-      <div className="bg-red-600 text-white text-center font-bold text-xl py-3">
+      <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg">
         Tour Itinerary
       </div>
-      <div className='bg-[#FFEBEE]'>
-        <div className="space-y-4">
-          {[
-            { dayNumber: "Day 01", headerColor: "bg-fuchsia-500", bodyColor: "bg-pink-100" },
-            { dayNumber: "Day 02", headerColor: "bg-emerald-400", bodyColor: "bg-emerald-50" },
-            { dayNumber: "Day 03", headerColor: "bg-orange-400", bodyColor: "bg-orange-50" },
-            { dayNumber: "Day 04", headerColor: "bg-blue-600", bodyColor: "bg-blue-50" },
-            { dayNumber: "Day 05", headerColor: "bg-yellow-400", bodyColor: "bg-yellow-50" },
-          ].map((card) => (
-            <DayCard 
-              key={card.dayNumber}
-              dayNumber={card.dayNumber}
-              headerColor={card.headerColor}
-              bodyColor={card.bodyColor}
-            />
-          ))}
+      <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg">
+        <div className="bg-[#FFEBEE]">
+          <div className="-space-y-5">
+            {[
+              { dayNumber: "Day 01", headerColor: "#A72703", bodyColor: "#FFE797" },
+              { dayNumber: "Day 02", headerColor: "#A72703", bodyColor: "#FFE797" },
+              { dayNumber: "Day 03", headerColor: "#A72703", bodyColor: "#FFE797" },
+              { dayNumber: "Day 04", headerColor: "#A72703", bodyColor: "#FFE797" },
+              { dayNumber: "Day 05", headerColor: "#A72703", bodyColor: "#FFE797" },
+            ].map((card) => (
+              <DayCard
+                key={card.dayNumber}
+                dayNumber={card.dayNumber} // Add this line
+                headerStyle={{ backgroundColor: card.headerColor }}
+                bodyStyle={{ backgroundColor: card.bodyColor }}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </div>
   </div>
 )}
 
-
 {activeTab === "dep-date" && (
   <div className="bg-[#E8F0FF] rounded-lg p-1">
-    <div className="bg-red-600 text-white text-center font-bold text-xl py-3">
-      Departure Dates
-    </div>
-    
-    <div className="border border-gray-300 rounded-t-none border-t-0 rounded-lg overflow-hidden">
-      <div className="min-h-[300px] p-6 bg-[#FFEBEE]">
-      </div>
-    </div>
+<div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg ">
+ Departure Dates
+ </div>
+<div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg">
+  <div className="min-h-[300px] p-6 bg-[#FFEBEE]">
+    {/* Your content here */}
+  </div>
+</div>
   </div>
 )}
 
- {activeTab === "tour-cost" && (
+{activeTab === "tour-cost" && (
   <div className="bg-[#E8F0FF] rounded-lg p-1">
-     <div className="bg-red-600 text-white text-center font-bold text-xl py-3 mb-2">
-Tour
+    <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg mb-2">
+      Tour Cost
     </div>
     
-    <div className="border border-gray-300 rounded-b-lg rounded-t-none overflow-hidden -mt-1">
-      <div className="overflow-x-auto">
-       <table className="w-full border-collapse table-fixed">
-  <thead>
-    <tr className="bg-[#2E4D98]">  
-      <th className="border border-gray-300 px-4 py-3 text-center font-semibold text-white text-base h-14 w-1/6">
-        Passenger
-      </th>
-      <th className="border border-gray-300 px-4 py-3 text-center font-semibold text-white text-base h-14 w-1/6">
-        Standard Hotel
-      </th>
-      <th className="border border-gray-300 px-4 py-3 text-center font-semibold text-white text-base h-14 w-1/6">
-        Deluxe Hotel
-      </th>
-      <th className="border border-gray-300 px-4 py-3 text-center font-semibold text-white text-base h-14 w-1/6">
-        Executive Hotel
-      </th>
-      <th className="border border-gray-300 px-4 py-3 text-center font-semibold text-white text-base h-14 w-1/6">
-        Chd With Bed
-      </th>
-      <th className="border border-gray-300 px-4 py-3 text-center font-semibold text-white text-base h-14 w-1/6">
-        Chd No Bed
-      </th>
-    </tr>
-  </thead>
-  <tbody>
-    {[
-      { passenger: "02 Pax", standard: "NA", deluxe: "Rs 64,000", executive: "NA", childWithBed: "Rs 57,000", childNoBed: "Rs 53,000" },
-      { passenger: "03 Pax", standard: "NA", deluxe: "Rs 63,500", executive: "NA", childWithBed: "Rs 56,500", childNoBed: "Rs 52,500" },
-      { passenger: "04 Pax", standard: "NA", deluxe: "Rs 63,000", executive: "NA", childWithBed: "Rs 56,000", childNoBed: "Rs 52,000" },
-      { passenger: "05 Pax", standard: "NA", deluxe: "Rs 62,500", executive: "NA", childWithBed: "Rs 55,500", childNoBed: "Rs 51,500" },
-      { passenger: "06 Pax", standard: "NA", deluxe: "Rs 62,000", executive: "NA", childWithBed: "Rs 55,000", childNoBed: "Rs 51,000" },
-      { passenger: "07 Pax", standard: "NA", deluxe: "Rs 61,500", executive: "NA", childWithBed: "Rs 54,500", childNoBed: "Rs 50,500" },
-      { passenger: "08 Pax", standard: "NA", deluxe: "Rs 61,000", executive: "NA", childWithBed: "Rs 54,000", childNoBed: "Rs 50,000" },
-      { passenger: "09 Pax", standard: "NA", deluxe: "Rs 60,500", executive: "NA", childWithBed: "Rs 53,500", childNoBed: "Rs 49,500" },
-      { passenger: "10 Pax", standard: "NA", deluxe: "Rs 60,000", executive: "NA", childWithBed: "Rs 53,000", childNoBed: "Rs 49,000" }
-    ].map((row, index) => (
-      <tr key={index} className={index % 2 === 0 ? 'bg-[#FFEBEE]' : 'bg-[#FFEBEE]/80'}>
-        <td className="border border-gray-300 px-4 py-3 text-center font-medium text-gray-700 text-base h-14 w-1/6">
-          {row.passenger}
-        </td>
-        <td className="border border-gray-300 px-4 py-3 text-center text-gray-600 text-base h-14 w-1/6">
-          {row.standard}
-        </td>
-        <td className="border border-gray-300 px-4 py-3 text-center text-green-600 font-semibold text-base h-14 w-1/6">
-          {row.deluxe}
-        </td>
-        <td className="border border-gray-300 px-4 py-3 text-center text-gray-600 text-base h-14 w-1/6">
-          {row.executive}
-        </td>
-        <td className="border border-gray-300 px-4 py-3 text-center text-blue-600 font-medium text-base h-14 w-1/6">
-          {row.childWithBed}
-        </td>
-        <td className="border border-gray-300 px-4 py-3 text-center text-purple-600 font-medium text-base h-14 w-1/6">
-          {row.childNoBed}
-        </td>
+    <div className="border rounded-b-lg rounded-t overflow-hidden -mt-1">
+   <div className="overflow-x-auto border  shadow-sm">
+  <table className="w-full border-collapse table-fixed">
+    {/* ===== TABLE HEADER ===== */}
+    <thead>
+      <tr className="bg-[#2E4D98]">
+        <th className="border border-black px-4 py-3 text-center font-semibold text-white text-base h-14 w-1/6">
+          Passenger
+        </th>
+        <th className="border border-black px-4 py-3 text-center font-semibold text-white text-base h-14 w-1/6">
+          Standard Hotel
+        </th>
+        <th className="border border-black px-4 py-3 text-center font-semibold text-white text-base h-14 w-1/6">
+          Deluxe Hotel
+        </th>
+        <th className="border border-black px-4 py-3 text-center font-semibold text-white text-base h-14 w-1/6">
+          Executive Hotel
+        </th>
+        <th className="border border-black px-4 py-3 text-center font-semibold text-white text-base h-14 w-1/6">
+          Chd With Bed
+        </th>
+        <th className="border border-black px-4 py-3 text-center font-semibold text-white text-base h-14 w-1/6">
+          Chd No Bed
+        </th>
       </tr>
-    ))}
-    
-  </tbody> 
-   
-</table>
-  <div className="bg-[#E8F0FF] rounded-lg mt-1">
-    <div className="bg-red-600 text-white text-center font-bold text-xl py-3">
-     Remarks
-    </div>
-    
-    <div className="border border-gray-300 rounded-t-none border-t-0 rounded-lg overflow-hidden">
-      <div className="min-h-[200px] p-6 bg-[#FFEBEE]">
-      </div>
-    </div>
-  </div>
-      </div>
+    </thead>
+
+    {/* ===== TABLE BODY ===== */}
+    <tbody>
+      {[
+        { passenger: "02 Pax", standard: "NA", deluxe: "Rs 64,000", executive: "NA", childWithBed: "Rs 57,000", childNoBed: "Rs 53,000" },
+        { passenger: "03 Pax", standard: "NA", deluxe: "Rs 63,500", executive: "NA", childWithBed: "Rs 56,500", childNoBed: "Rs 52,500" },
+        { passenger: "04 Pax", standard: "NA", deluxe: "Rs 63,000", executive: "NA", childWithBed: "Rs 56,000", childNoBed: "Rs 52,000" },
+        { passenger: "05 Pax", standard: "NA", deluxe: "Rs 62,500", executive: "NA", childWithBed: "Rs 55,500", childNoBed: "Rs 51,500" },
+        { passenger: "06 Pax", standard: "NA", deluxe: "Rs 62,000", executive: "NA", childWithBed: "Rs 55,000", childNoBed: "Rs 51,000" },
+        { passenger: "07 Pax", standard: "NA", deluxe: "Rs 61,500", executive: "NA", childWithBed: "Rs 54,500", childNoBed: "Rs 50,500" },
+        { passenger: "08 Pax", standard: "NA", deluxe: "Rs 61,000", executive: "NA", childWithBed: "Rs 54,000", childNoBed: "Rs 50,000" },
+        { passenger: "09 Pax", standard: "NA", deluxe: "Rs 60,500", executive: "NA", childWithBed: "Rs 53,500", childNoBed: "Rs 49,500" },
+        { passenger: "10 Pax", standard: "NA", deluxe: "Rs 60,000", executive: "NA", childWithBed: "Rs 53,000", childNoBed: "Rs 49,000" }
+      ].map((row, index) => (
+        <tr key={index} className={index % 2 === 0 ? 'bg-[#FFEBEE]' : 'bg-[#FFEBEE]/80'}>
+          <td className="border border-black px-4 py-3 text-center font-medium text-gray-700 text-base h-14 w-1/6">
+            {row.passenger}
+          </td>
+          <td className="border border-black px-4 py-3 text-center text-gray-600 text-base h-14 w-1/6">
+            {row.standard}
+          </td>
+          <td className="border border-black px-4 py-3 text-center text-green-600 font-semibold text-base h-14 w-1/6">
+            {row.deluxe}
+          </td>
+          <td className="border border-black px-4 py-3 text-center text-gray-600 text-base h-14 w-1/6">
+            {row.executive}
+          </td>
+          <td className="border border-black px-4 py-3 text-center text-blue-600 font-medium text-base h-14 w-1/6">
+            {row.childWithBed}
+          </td>
+          <td className="border border-black px-4 py-3 text-center text-purple-600 font-medium text-base h-14 w-1/6">
+            {row.childNoBed}
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+
+
+
+        <div className="bg-[#E8F0FF] rounded-lg mt-1">
+          <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg ">
+            Remarks
+          </div>
+          <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg">
+            <div className="min-h-[200px] bg-[#FFEBEE]">
+              {/* Your content here */}
+            </div>
+          </div>
+        </div>
+     
     </div>
   </div>
 )}
 
-  {activeTab === "cost-in/cost-ex" && (
-    <div className="bg-[#E8F0FF] rounded-lg p-1">
+{activeTab === "cost-inc./cost-ex." && (
+        <div className="bg-[#E8F0FF] rounded-lg p-1">
    
-           <div className="bg-red-600 text-white text-center font-bold text-xl py-3 mb-1">
+
+       <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg mb-1">
         Cost Inclusive & Cost Excludes
-    </div>
-      
+          </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-1">
         
         <div className="min-h-[300px] flex flex-col">
           <div className="bg-[#2E4D98] text-white text-center py-3 rounded-t-lg">
             <h3 className="text-xl font-bold">Cost Inclusive</h3>
           </div>
-          <div className="flex-1 overflow-x-auto border-2 border-gray-300 rounded-b-lg bg-[#FFEBEE]">
+          <div className="flex-1 overflow-x-auto border-2   border-[#1e3a8a] rounded-b-lg bg-[#FFEBEE]">
             <div className="h-full w-full p-2">
             </div>
           </div>
@@ -1245,7 +1262,7 @@ Tour
           <div className="bg-[#2E4D98] text-white text-center py-3 rounded-t-lg">
             <h3 className="text-xl font-bold">Cost Excludes</h3>
           </div>
-          <div className="flex-1 overflow-x-auto border-2 border-gray-300 rounded-b-lg bg-[#FFEBEE]">
+          <div className="flex-1 overflow-x-auto border-2 border-[#1e3a8a] rounded-b-lg bg-[#FFEBEE]">
             <div className="h-full w-full p-2">
             </div>
           </div>
@@ -1258,68 +1275,77 @@ Tour
     <div className="bg-[#E8F0FF] rounded-lg p-0.2">
       
     <div className="bg-[#E8F0FF] rounded-lg p-1">
-    <div className="bg-red-600 text-white text-center font-bold text-xl py-3">
-Flights / Train or Transport Details
-    </div>
+ 
     
-    <div className="border border-gray-300 rounded-t-none border-t-0 rounded-lg overflow-hidden">
-      <div className="min-h-[300px] p-6 bg-[#FFEBEE]">
+       <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg ">
+Flights / Train or Transport Details
+          </div>
+    
+<div className="border-2 border-[#1e3a8a] rounded-t-none border-t-0 rounded-lg overflow-hidden">
+        <div className="min-h-[300px] p-6 bg-[#FFEBEE]">
       </div>
     </div>
   </div>
 
-      <div className='p-1'>
-  <div className="bg-red-600 text-white text-center font-bold text-xl py-3 mb-1">
+<div className='p-1'>
+  <div className="bg-red-600 text-white text-center font-bold text-xl rounded-t-lg py-3 mb-1">
     Hotel Details
   </div>
-  
-  <div className="overflow-x-auto">
-    <table className="w-full border-collapse border border-gray-300">
-      <thead>
-        <tr className="bg-blue-700">
-          <th className="border border-gray-300 bg-[#2E4D98] px-4 py-2 text-left text-white">City</th>
-          <th className="border border-gray-300  bg-[#2E4D98] px-4 py-2 text-left text-white">Hotel Name</th>
-          <th className="border border-gray-300  bg-[#2E4D98] px-4 py-2 text-left text-white">Room Type</th>
-          <th className="border border-gray-300 bg-[#2E4D98] px-4 py-2 text-left text-white">Nights</th>
+<div className="overflow-x-auto">
+  <table className="w-full border-collapse">
+    <thead>
+      <tr className="bg-[#2E4D98]">
+        <th className="border border-black px-2 py-2 text-left text-white w-1/5">
+          City
+        </th>
+        <th className="border border-black px-6 py-2 text-left text-white w-2/5">
+          Hotel Name
+        </th>
+        <th className="border border-black px-2 py-2 text-left text-white w-1/5">
+          Room Type
+        </th>
+        <th className="border border-black px-4 py-2 text-left text-white w-1/5">
+          Nights
+        </th>
+      </tr>
+    </thead>
+
+    <tbody className="border-2 border-[#1e3a8a] border-t-0 rounded-b-lg">
+      {tour.hotels.map((hotel, index) => (
+        <tr
+          key={index}
+          className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}
+        >
+          <td className="border border-black px-2 py-2">{hotel.city}</td>
+          <td className="border border-black px-6 py-2">{hotel.hotelName}</td>
+          <td className="border border-black px-2 py-2">{hotel.roomType}</td>
+          <td className="border border-black px-4 py-2">{hotel.nights}</td>
         </tr>
-      </thead>
+      ))}
+    </tbody>
+  </table>
+</div>
 
-      <tbody>
-        {tour.hotels.map((hotel, index) => (
-          <tr
-            key={index}
-            className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}
-          >
-            <td className="border border-gray-300 px-4 py-2">{hotel.city}</td>
-            <td className="border border-gray-300 px-4 py-2">{hotel.hotelName}</td>
-            <td className="border border-gray-300 px-4 py-2">{hotel.roomType}</td>
-            <td className="border border-gray-300 px-4 py-2">{hotel.nights}</td>
-          </tr>
-        ))}
-
-    
-      </tbody>
-    </table>
       <div className="bg-[#E8F0FF] rounded-lg mt-1">
-    <div className="bg-red-600 text-white text-center font-bold text-xl py-3">
+    <div className="bg-red-600 text-white text-center font-bold text-xl py-3 rounded-t-lg">
      Remarks
     </div>
     
-    <div className="border border-gray-300 rounded-t-none border-t-0 rounded-lg overflow-hidden">
+    <div className="border-2 border-[#1e3a8a] rounded-t-none border-t-0 rounded-lg overflow-hidden">
       <div className="min-h-[200px] p-6 bg-[#FFEBEE]">
       </div>
     </div>
   </div>
-  </div>
+ 
 </div>  
     </div>
   )}
 
 {activeTab === "bookings-poi" && (
   <div className="bg-[#E8F0FF] rounded-lg p-1">
-    <div className="bg-red-600 text-white text-center font-bold text-xl py-3">
-      Booking Policy
-    </div>
+     <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg mb-1">
+   Booking Policy
+          </div>
       
     <div className="flex flex-col lg:flex-row gap-1 mt-1">
       
@@ -1328,7 +1354,7 @@ Flights / Train or Transport Details
         <div className="bg-[#2E4D98] text-white text-center py-3 rounded-t-lg">
           <h3 className="text-xl font-bold">Booking Policy</h3>
         </div>
-        <div className="flex-1 overflow-x-auto border-2 border-gray-300 rounded-b-lg bg-white">
+        <div className="flex-1 overflow-x-auto border-2 border-[#1e3a8a] rounded-b-lg bg-white">
           <div className="h-full w-full p-4">
             <div className="space-y-2 h-full">
               {tour.booking.map((item, index) => (
@@ -1349,7 +1375,7 @@ Flights / Train or Transport Details
         <div className="bg-[#2E4D98] text-white text-center py-3 rounded-t-lg">
           <h3 className="text-xl font-bold">Amount Details</h3>
         </div>
-        <div className="flex-1 overflow-x-auto border-2 border-gray-300 rounded-b-lg bg-white">
+        <div className="flex-1 overflow-x-auto border-2 border-[#1e3a8a] rounded-b-lg bg-white">
           <div className="h-full w-full p-4">
             <div className="grid gap-2 h-full">
               {/* Card 1 */}
@@ -1386,96 +1412,94 @@ Flights / Train or Transport Details
     </div>
   </div>
 )}
-
 {activeTab === "cancellation" && (
   <div className="bg-[#E8F0FF] rounded-lg p-1">
-    <div className="bg-red-600 text-white text-center font-bold text-xl py-3">
+
+    {/* TOP MAIN HEADER - unchanged */}
+    <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg mb-1">
       Cancellation Policy
     </div>
-    
+
     <div className="flex flex-col lg:flex-row gap-1 mt-1">
-      
-      {/* Left Card - Cancellation Policy - 80% width */}
+
+      {/* LEFT CARD */}
       <div className="min-h-[280px] w-full lg:w-4/5 flex flex-col">
-        <div className="bg-[#E53C42] text-white text-center py-3 rounded-t-lg">
+
+        {/* ✅ 2nd HEADER - DARK BROWN */}
+        <div className="bg-[#A72703] text-white text-center py-3 rounded-t-lg">
           <h3 className="text-xl font-bold">Cancellation Policy</h3>
         </div>
-        <div className="flex-1 overflow-x-auto border-2 border-gray-300 rounded-b-lg bg-white">
+
+        {/* ✅ INNER BG - LIGHT BLUE */}
+        <div className="flex-1 overflow-x-auto border-2 border-[#1e3a8a] rounded-b-lg bg-[#E8F0FF]">
           <div className="h-full w-full p-4">
             <div className="space-y-2 h-full">
+
               {tour.cancellation.map((item, index) => (
-                <div key={index} className="flex items-start gap-3 p-4 bg-red-50 rounded-lg border border-red-200 h-[68px]">
-                  <div className="w-8 h-8 bg-red-100 text-red-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-lg font-bold">
+                <div 
+                  key={index} 
+                  className="flex items-start gap-3 p-4 bg-[#EAD2C0] rounded-lg border border-[#A72703] h-[68px]"
+                >
+                  {/* ✅ NUMBER CIRCLE - DARK BROWN */}
+                  <div className="w-8 h-8 bg-[#A72703] text-white rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-lg font-bold">
                     {index + 1}
                   </div>
-                  <span className="text-gray-700 text-base flex items-center h-full">{item}</span>
+
+                  <span className="text-gray-800 text-base flex items-center h-full">
+                    {item}
+                  </span>
                 </div>
               ))}
+
             </div>
           </div>
         </div>
       </div>
-      
-      {/* Right Card - Cancellation Charges - 20% width */}
+
+      {/* RIGHT CARD - CHARGES */}
       <div className="min-h-[280px] w-full lg:w-1/5 flex flex-col">
-        <div className="bg-[#E53C42] text-white text-center py-3 rounded-t-lg">
-          <h3 className="text-xl font-bold"> Charges</h3>
+
+        {/* ✅ 2nd HEADER - DARK BROWN */}
+        <div className="bg-[#A72703] text-white text-center py-3 rounded-t-lg">
+          <h3 className="text-xl font-bold">Charges</h3>
         </div>
-        <div className="flex-1 overflow-x-auto border-2 border-gray-300 rounded-b-lg bg-white">
+
+        {/* ✅ INNER BG - LIGHT BLUE */}
+        <div className="flex-1 overflow-x-auto border-2 border-[#1e3a8a] rounded-b-lg bg-[#E8F0FF]">
           <div className="h-full w-full p-4">
             <div className="grid gap-2 h-full">
-              {/* Charge Card 1 */}
-              <div className="flex items-center justify-center p-4 bg-white rounded-lg border border-red-200 shadow-sm h-[68px]">
-                <div className="text-center">
-                  <span className="text-xl font-bold text-red-600">30 Days+</span>
+
+              {["30 Days+", "15-30 Days", "7-14 Days", "0-7 Days", "2-5 Days"].map((day, i) => (
+                <div 
+                  key={i}
+                  className="flex items-center justify-center p-4 bg-[#EAD2C0] rounded-lg border border-[#A72703] shadow-sm h-[68px]"
+                >
+                  <span className="text-xl font-bold text-[#A72703]">
+                    {day}
+                  </span>
                 </div>
-              </div>
-              
-              {/* Charge Card 2 */}
-              <div className="flex items-center justify-center p-4 bg-white rounded-lg border border-red-200 shadow-sm h-[68px]">
-                <div className="text-center">
-                  <span className="text-xl font-bold text-red-600">15-30 Days</span>
-                </div>
-              </div>
-              
-              {/* Charge Card 3 */}
-              <div className="flex items-center justify-center p-4 bg-white rounded-lg border border-red-200 shadow-sm h-[68px]">
-                <div className="text-center">
-                  <span className="text-xl font-bold text-red-600">7-14 Days</span>
-                </div>
-              </div>
-              
-              {/* Charge Card 4 */}
-              <div className="flex items-center justify-center p-4 bg-white rounded-lg border border-red-200 shadow-sm h-[68px]">
-                <div className="text-center">
-                  <span className="text-xl font-bold text-red-600">0-7 Days</span>
-                </div>
-              </div>
-              
-              {/* Charge Card 5 */}
-              <div className="flex items-center justify-center p-4 bg-white rounded-lg border border-red-200 shadow-sm h-[68px]">
-                <div className="text-center">
-                  <span className="text-xl font-bold text-red-600">2-5 Days</span>
-                </div>
-              </div>
+              ))}
+
             </div>
           </div>
         </div>
+
       </div>
     </div>
   </div>
 )}
 
+
   {activeTab === "instructions" && (
-    <div className="bg-[#E8F0FF] rounded-lg p-1">
-    <div className="bg-red-600 text-white text-center font-bold text-xl py-3">
+  <div className="bg-[#E8F0FF] rounded-lg p-1">
+<div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg ">
 Instruction
-    </div>
-    
-    <div className="border border-gray-300 rounded-t-none border-t-0 rounded-lg overflow-hidden">
-      <div className="min-h-[300px] p-6 bg-[#FFEBEE]">
-      </div>
-    </div>
+ </div>
+<div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg">
+  <div className="min-h-[300px] p-6 bg-[#FFEBEE]">
+    {/* Your content here */}
+  </div>
+</div>
   </div>
   )}
 
