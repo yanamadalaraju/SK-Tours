@@ -276,6 +276,22 @@ const TourDetails = () => {
       };
     };
 
+     // Process booking POI - extract both item and amount_details
+  const processBooking = (bookingArray: any[]) => {
+    if (bookingArray && bookingArray.length > 0) {
+      return {
+        items: bookingArray.map(item => item.item || ''), // Extract item descriptions
+        amountDetails: bookingArray.map(item => item.amount_details || '0') // Extract amount details
+      };
+    }
+    
+    // Default booking data
+    return {
+      items: ["Standard booking terms apply"],
+      amountDetails: ["0"]
+    };
+  };
+
     // Process hotels data (remove remarks column)
     const processHotels = (hotelsArray: any[], basicDetails: any) => {
       if (hotelsArray && hotelsArray.length > 0) {
@@ -341,22 +357,38 @@ const TourDetails = () => {
     };
 
     // Process cancellation policies
-    const processCancellation = (policiesArray: any[]) => {
-      if (policiesArray && policiesArray.length > 0) {
-        return policiesArray.map(policy => 
+    // Process cancellation policies - extract both policy text and charges
+  const processCancellation = (policiesArray: any[]) => {
+    if (policiesArray && policiesArray.length > 0) {
+      return {
+        policies: policiesArray.map(policy => 
           `${policy.days_min}-${policy.days_max} days before travel: ${policy.charge_percentage}% cancellation charge`
-        );
-      }
+        ),
+        charges: policiesArray.map(policy => policy.charges || '') // Extract charges
+      };
+    }
 
-      // Default cancellation policies
-      return [
-        "30+ days before travel: 90% refund",
-        "15-30 days before travel: 50% refund",
-        "7-14 days before travel: 25% refund",
-        "Less than 7 days: No refund",
-        "Refund processed within 7-10 working days"
-      ];
+    // Default cancellation policies
+    const defaultPolicies = [
+      "30+ days before travel: 90% refund",
+      "15-30 days before travel: 50% refund",
+      "7-14 days before travel: 25% refund",
+      "Less than 7 days: No refund"
+    ];
+    
+    const defaultCharges = [
+      "10%",
+      "25%",
+      "50%",
+      "100%"
+    ];
+    
+    return {
+      policies: defaultPolicies,
+      charges: defaultCharges
     };
+  };
+
 
     return {
       // Basic info
@@ -379,8 +411,8 @@ const TourDetails = () => {
       hotels: processHotels(hotels, basic_details),
       airlines: processTransport(transport, basic_details),
       tourCost: processTourCost(costs, basic_details),
-      booking: booking_poi || [],
-      cancellation: processCancellation(cancellation_policies),
+       booking: processBooking(booking_poi), // Updated to include amountDetails
+      cancellation: processCancellation(cancellation_policies), // Updated to include charges
       instructions: instructions || []
     };
   };
@@ -1085,7 +1117,7 @@ const TourDetails = () => {
   </div>
 )}
               {/* Bookings POI Tab */}
-           {activeTab === "bookings-poi" && (
+             {activeTab === "bookings-poi" && (
   <div className="bg-[#E8F0FF] rounded-lg p-1">
     <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg mb-1">
       Booking Policy
@@ -1100,7 +1132,7 @@ const TourDetails = () => {
         <div className="flex-1 overflow-x-auto border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-white">
           <div className="h-full w-full p-1">
             <div className="space-y-1 h-full">
-              {tour.booking.map((item: string, index: number) => (
+              {tour.booking.items.map((item: string, index: number) => (
                 <div key={index} className="flex items-start gap-3 p-4 bg-blue-50 rounded-lg border border-blue-300 h-[68px]">
                   <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-lg font-bold">
                     {index + 1}
@@ -1121,42 +1153,27 @@ const TourDetails = () => {
         <div className="flex-1 overflow-x-auto border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-white">
           <div className="h-full w-full p-1">
             <div className="grid gap-1 h-full">
-              {/* Card 1 */}
-              <div className="flex items-center justify-center p-4 bg-white rounded-lg border border-blue-300 shadow-sm h-[68px]">
-                <div className="text-center">
-                  <span className="text-xl font-bold text-green-600">₹50,000</span>
+              {/* Dynamic amount details cards */}
+              {tour.booking.amountDetails.map((amount: string, index: number) => (
+                <div key={index} className="flex items-center justify-center p-4 bg-white rounded-lg border border-blue-300 shadow-sm h-[68px]">
+                  <div className="text-center">
+                    <span className="text-xl font-bold text-green-600">
+                      {amount === "Aadhaar Card" || amount === "aadhaar card" 
+                        ? "Aadhaar Card" 
+                        : `₹${parseInt(amount || '0').toLocaleString('en-IN')}`}
+                    </span>
+                  </div>
                 </div>
-              </div>
-              
-              {/* Card 2 */}
-              <div className="flex items-center justify-center p-4 bg-white rounded-lg border border-blue-300 shadow-sm h-[68px]">
-                <div className="text-center">
-                  <span className="text-xl font-bold text-blue-600">₹50,000</span>
-                </div>
-              </div>
-              
-              {/* Card 3 */}
-              <div className="flex items-center justify-center p-4 bg-white rounded-lg border border-blue-300 shadow-sm h-[68px]">
-                <div className="text-center">
-                  <span className="text-xl font-bold text-blue-600">₹1,50,000</span>
-                </div>
-              </div>
-              
-              {/* Card 4 */}
-              <div className="flex items-center justify-center p-4 bg-white rounded-lg border border-blue-300 shadow-sm h-[68px]">
-                <div className="text-center">
-                  <span className="text-xl font-bold text-blue-600">Aadhaar Card</span>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-)}  
+)}
 
- {activeTab === "cancellation" && (
+{activeTab === "cancellation" && (
   <div className="bg-[#E8F0FF] rounded-lg p-1">
     {/* TOP MAIN HEADER */}
     <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg mb-1">
@@ -1175,7 +1192,7 @@ const TourDetails = () => {
         <div className="flex-1 overflow-x-auto border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-[#E8F0FF]">
           <div className="h-full w-full p-1">
             <div className="space-y-1 h-full">
-              {tour.cancellation.map((item: string, index: number) => (
+              {tour.cancellation.policies.map((item: string, index: number) => (
                 <div 
                   key={index} 
                   className="flex items-start gap-3 p-4 bg-[#EAD2C0] rounded-lg border border-[#A72703] h-[68px]"
@@ -1205,13 +1222,13 @@ const TourDetails = () => {
         <div className="flex-1 overflow-x-auto border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-[#E8F0FF]">
           <div className="h-full w-full p-1">
             <div className="grid gap-1 h-full">
-              {["30 Days+", "15-30 Days", "7-14 Days", "0-7 Days", "2-5 Days"].map((day, i) => (
+              {tour.cancellation.charges.map((charge: string, index: number) => (
                 <div 
-                  key={i}
+                  key={index}
                   className="flex items-center justify-center p-4 bg-[#EAD2C0] rounded-lg border border-[#A72703] shadow-sm h-[68px]"
                 >
                   <span className="text-xl font-bold text-[#A72703]">
-                    {day}
+                    {charge}
                   </span>
                 </div>
               ))}
