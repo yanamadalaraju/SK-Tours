@@ -37,7 +37,7 @@ const DayCard = ({ dayNumber, headerColor, bodyColor, dayData }: DayCardProps) =
   }, [dayData?.meals]);
 
   return (
-    <div className="rounded-lg p-3"> 
+    <div className="rounded-lg"> 
       <div className="flex gap-2 mb-1">
         <div className={`${headerColor} text-white font-bold px-4 py-2 rounded-lg text-center min-w-[120px] border border-black`}>
           {dayNumber}
@@ -45,38 +45,52 @@ const DayCard = ({ dayNumber, headerColor, bodyColor, dayData }: DayCardProps) =
         <div className={`${headerColor} text-white font-bold px-4 py-2 rounded-lg text-center flex-1 border border-black`}>
           {dayData?.title || "Day Details"}
         </div>
-        <div className={`${headerColor} text-white border border-black rounded-lg px-4 py-2 flex items-center gap-3`}>
-          <label className="flex items-center gap-1">
-            <span className="text-white">B</span>
-            <input
-              type="checkbox"
-              checked={meals.B}
-              onChange={() => setMeals(prev => ({ ...prev, B: !prev.B }))}
-              className="w-4 h-4"
-            />
-          </label>
-          <label className="flex items-center gap-1">
-            <span className="text-white">L</span>
-            <input
-              type="checkbox"
-              checked={meals.L}
-              onChange={() => setMeals(prev => ({ ...prev, L: !prev.L }))}
-              className="w-4 h-4"
-            />
-          </label>
-          <label className="flex items-center gap-1">
-            <span className="text-white">D</span>
-            <input
-              type="checkbox"
-              checked={meals.D}
-              onChange={() => setMeals(prev => ({ ...prev, D: !prev.D }))}
-              className="w-4 h-4"
-            />
-          </label>
+        <div className={`${headerColor} text-white border border-black rounded-lg px-3 py-1.5 flex items-center gap-3`}>
+          {/* Breakfast - Checkbox first */}
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setMeals(prev => ({ ...prev, B: !prev.B }))}
+              className={`h-4 w-4 rounded-full border flex items-center justify-center transition-colors ${meals.B ? 'bg-[#3B82F6] border-[#3B82F6]' : 'bg-white border-gray-400'}`}
+            >
+              {meals.B && (
+                <div className="h-2 w-2 rounded-full bg-white"></div>
+              )}
+            </button>
+    <span className="text-white text-sm font-bold">B</span> {/* Added font-bold */}
+              </div>
+          
+          {/* Lunch - Checkbox first */}
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setMeals(prev => ({ ...prev, L: !prev.L }))}
+              className={`h-4 w-4 rounded-full border flex items-center justify-center transition-colors ${meals.L ? 'bg-[#3B82F6] border-[#3B82F6]' : 'bg-white border-gray-400'}`}
+            >
+              {meals.L && (
+                <div className="h-2 w-2 rounded-full bg-white"></div>
+              )}
+            </button>
+   <span className="text-white text-sm font-bold">L</span> {/* Added font-bold */}
+             </div>
+          
+          {/* Dinner - Checkbox first */}
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setMeals(prev => ({ ...prev, D: !prev.D }))}
+              className={`h-4 w-4 rounded-full border flex items-center justify-center transition-colors ${meals.D ? 'bg-[#3B82F6] border-[#3B82F6]' : 'bg-white border-gray-400'}`}
+            >
+              {meals.D && (
+                <div className="h-2 w-2 rounded-full bg-white"></div>
+              )}
+            </button>
+ <span className="text-white text-sm font-bold">D</span> {/* Added font-bold */}
+           </div>
         </div>
       </div>
-      {/* Content Area */}
-      <div className={`${bodyColor} min-h-[120px] p-4 rounded-lg border border-black`}>
+      {/* Content Area - Now properly separated from next card */}
+      <div className={`${bodyColor} min-h-[120px] p-4 rounded-lg border border-black mb-0`}>
         <textarea 
           className="w-full h-full min-h-[100px] bg-transparent resize-none focus:outline-none text-gray-800"
           placeholder={dayData?.description || ""}
@@ -87,7 +101,6 @@ const DayCard = ({ dayNumber, headerColor, bodyColor, dayData }: DayCardProps) =
     </div>
   );
 };
-
 const TourDetails = () => {
   const { tourId } = useParams<{ tourId: string }>();
   const navigate = useNavigate();
@@ -712,95 +725,101 @@ const TourDetails = () => {
             </div>
 
             {/* Excel-like Table Layout */}
-            <div className="bg-white rounded-xl shadow-sm mb-1 overflow-hidden border border-black">
-              {/* ===== FIRST ROW: HEADERS ===== */}
-              <div className="grid grid-cols-8 bg-[#E8F0FF] border-b border-black">
-                <div className="border-r border-black bg-[#2E3a8a] px-4 py-3">
-                  <h3 className="font-bold text-white text-center text-lg">Tour Code</h3>
-                </div>  
-                <div className="col-span-6 border-r border-black bg-[#2E3a8a] px-4 py-3">
-                  <h3 className="font-bold text-white text-center text-lg">Tour Name</h3>
-                </div>
-                <div className="px-4 py-3 bg-[#2E3a8a]">
-                  <h3 className="font-bold text-white text-center text-lg">Days</h3>
-                </div>
-              </div>
+        <div className="bg-white rounded-xl shadow-sm mb-1.5 overflow-hidden border border-black">
 
-              {/* ===== SECOND ROW: VALUES ===== */}
-              <div className="grid grid-cols-8 border-black border-black">
-                <div className="border-r border-black px-1 py-3 bg-blue-50">
-                  <p className="text-lg font-bold text-[#2E4D98] text-center tracking-wide">
-                    {tour.code}
-                  </p>
-                </div>
-                <div className="col-span-6 border-r border-black px-4 py-3 bg-gray-50">
-                  <p className="text-lg font-semibold text-gray-900 text-center">
-                    {tour.title}
-                  </p>
-                </div>
-                <div className="px-4 py-3 bg-red-50">
-                  <p className="text-lg font-bold text-[#E53C42] text-center">
-                    {tour.duration}
-                  </p>
-                </div>
-              </div>
+ {/* ===== FIRST ROW: HEADERS ===== */}
+<div className="grid grid-cols-8 bg-[#E8F0FF] border-b border-black">
+  <div className="border-r border-white bg-[#2E3a8a] px-4 py-3">
+    <h3 className="font-bold text-white text-center text-lg">Tour Code</h3>
+  </div>  
 
-              {/* ===== THIRD ROW: TABS ===== */}
-              <div className="grid grid-cols-8 bg-white border-t border-black">
-                {[
-                  "Itinerary",
-                  "Dep Date",
-                  "Tour Cost",
-                  "Cost inc./Cost ex.",
-                  "Flights & Hotels",
-                  "Bookings POI",
-                  "Cancellation",
-                  "Instructions"
-                ].map((label, idx) => (
-                  <button
-                    key={label}
-                    onClick={() => setActiveTab(label.toLowerCase().replace(/\s+/g, '-'))}
-                    className={`px-3 py-4 text-sm font-semibold text-center whitespace-nowrap
-                      ${idx < 7 ? "border-r border-black" : ""} transition 
-                      ${
-                        activeTab === label.toLowerCase().replace(/\s+/g, '-')
-                          ? "bg-[#A72703] text-white"        
-                          : "bg-[#FFE797] text-gray-800" 
-                      }
-                    `}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </div>
+  <div className="col-span-6 border-r border-white bg-[#2E3a8a] px-4 py-3">
+    <h3 className="font-bold text-white text-center text-lg">Tour Name</h3>
+  </div>
+
+  <div className="px-4 py-3 bg-[#2E3a8a]">
+    <h3 className="font-bold text-white text-center text-lg">Days</h3>
+  </div>
+</div>
+
+{/* ===== SECOND ROW: VALUES ===== */}
+<div className="grid grid-cols-8 border-black border-black">
+  <div className="border-r border-black px-1 py-3 bg-blue-50">
+    <p className="text-lg font-bold text-[#2E4D98] text-center tracking-wide">
+      {tour.code}
+    </p>
+  </div>
+
+  <div className="col-span-6 border-r border-black px-4 py-3 bg-gray-50">
+    <p className="text-lg font-semibold text-gray-900 text-center">
+      {tour.title}
+    </p>
+  </div>
+
+  <div className="px-4 py-3 bg-red-50">
+    <p className="text-lg font-bold text-[#E53C42] text-center">
+      {tour.duration}
+    </p>
+  </div>
+</div>
+
+  {/* ===== THIRD ROW: TABS ===== */}
+<div className="grid grid-cols-8 bg-white border-t border-black">
+  {[
+    "Itinerary",
+    "Dep Date",
+    "Tour Cost",
+  "Cost inc./Cost ex.",
+      "Flights & Hotels",
+    "Bookings POI",
+    "Cancellation",
+    "Instructions"
+  ].map((label, idx) => (
+    <button
+      key={label}
+      onClick={() => setActiveTab(label.toLowerCase().replace(/\s+/g, '-'))}
+      className={`px-3 py-4 text-sm font-semibold text-center whitespace-nowrap
+        ${idx < 7 ? "border-r border-black" : ""} transition 
+        ${
+          activeTab === label.toLowerCase().replace(/\s+/g, '-')
+            ? "bg-[#A72703] text-white"        
+        : "bg-[#FFE797] text-gray-800" 
+    }
+      `}
+    >
+      {label}
+    </button>
+  ))}
+</div>
+</div>
 
             <div className="bg-[#2E4D98] rounded-xl shadow-sm p-6">
               {/* Itinerary Tab */}
-              {activeTab === "itinerary" && (
-                <div className="bg-[#C2E2FA] rounded-lg p-1 max-h-[calc(100vh-250px)] overflow-y-auto">
-                  <div className="mx-auto bg-white rounded-lg shadow-lg">
-                    <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg">
-                      Tour Itinerary
-                    </div>
-                    <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg">
-                      <div className="bg-[#FFEBEE]">
-                        <div className="-space-y-5">
-                          {tour.itinerary.slice(0, Math.min(tour.itinerary.length, 5)).map((day: any, index: number) => (
-                            <DayCard 
-                              key={index}
-                              dayNumber={day.day}
-                              headerColor={dayCardColors[index]?.headerColor || "bg-[#A72703]"}
-                              bodyColor={dayCardColors[index]?.bodyColor || "bg-[#FFE797]"}
-                              dayData={day}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
+   {activeTab === "itinerary" && (
+  <div className="bg-[#C2E2FA] rounded-lg p-1 max-h-[calc(100vh-250px)] overflow-y-auto">
+    <div className="mx-auto bg-white rounded-lg shadow-lg">
+      <div className="bg-red-600 text-white text-center font-bold text-2xl py-2 rounded-t-lg">
+        Tour Itinerary
+      </div>
+      <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg">
+        <div className="bg-[#FFEBEE]">
+          {/* Added more spacing between cards */}
+          <div className="space-y-1 p-1"> {/* Changed from space-y-2 p-2 */}
+            {tour.itinerary.slice(0, Math.min(tour.itinerary.length, 5)).map((day: any, index: number) => (
+              <DayCard 
+                key={index}
+                dayNumber={day.day}
+                headerColor={dayCardColors[index]?.headerColor || "bg-[#A72703]"}
+                bodyColor={dayCardColors[index]?.bodyColor || "bg-[#FFE797]"}
+                dayData={day}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
 
               {/* Dep Date Tab */}
               {activeTab === "dep-date" && (
@@ -810,7 +829,7 @@ const TourDetails = () => {
                   </div>
                   
                   <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg">
-                    <div className="min-h-[300px] p-6 bg-[#FFEBEE]">
+                    <div className="min-h-[300px] p-1 bg-[#FFEBEE]">
                       <div className="space-y-4">
                         {tour.departureDescriptions.map((description: string, index: number) => (
                           <div key={index} className="border border-gray-200 rounded-lg p-4 bg-white">
@@ -833,7 +852,7 @@ const TourDetails = () => {
               {/* Tour Cost Tab */}
               {activeTab === "tour-cost" && (
                 <div className="bg-[#E8F0FF] rounded-lg p-1">
-                  <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg mb-2">
+                  <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg mb-1.5">
                     Tour Cost
                   </div>
                   
@@ -842,45 +861,45 @@ const TourDetails = () => {
                       <table className="w-full border-collapse table-fixed">
                         <thead>
                           <tr className="bg-[#2E4D98]">
-                            <th className="border border-black px-4 py-3 text-center font-semibold text-white text-base h-14 w-1/6">
+                            <th className="border border-white px-4 py-3 text-center font-semibold text-white text-base h-12 w-1/6">
                               Passenger
                             </th>
-                            <th className="border border-black px-4 py-3 text-center font-semibold text-white text-base h-14 w-1/6">
+                            <th className="border border-white px-4 py-3 text-center font-semibold text-white text-base h-12 w-1/6">
                               Standard Hotel
                             </th>
-                            <th className="border border-black px-4 py-3 text-center font-semibold text-white text-base h-14 w-1/6">
+                            <th className="border border-white px-4 py-3 text-center font-semibold text-white text-base h-12 w-1/6">
                               Deluxe Hotel
                             </th>
-                            <th className="border border-black px-4 py-3 text-center font-semibold text-white text-base h-14 w-1/6">
+                            <th className="border border-white px-4 py-3 text-center font-semibold text-white text-base h-12 w-1/6">
                               Executive Hotel
                             </th>
-                            <th className="border border-black px-4 py-3 text-center font-semibold text-white text-base h-14 w-1/6">
-                              Chd With Bed
+                            <th className="border border-white px-4 py-3 text-center font-semibold text-white text-base h-12 w-1/6">
+                              Child With Bed
                             </th>
-                            <th className="border border-black px-4 py-3 text-center font-semibold text-white text-base h-14 w-1/6">
-                              Chd No Bed
+                            <th className="border border-white px-4 py-3 text-center font-semibold text-white text-base h-12 w-1/6">
+                              Child No Bed
                             </th>
                           </tr>
                         </thead>
                         <tbody>
                           {tour.tourCost.tableData.map((row: any, index: number) => (
                             <tr key={index} className={index % 2 === 0 ? 'bg-[#FFEBEE]' : 'bg-[#FFEBEE]/80'}>
-                              <td className="border border-black px-4 py-3 text-center font-medium text-gray-700 text-base h-14 w-1/6">
+                              <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center font-medium text-gray-700 text-base h-12 w-1/6">
                                 {row.passenger}
                               </td>
-                              <td className="border border-black px-4 py-3 text-center text-gray-600 text-base h-14 w-1/6">
+                              <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-gray-600 text-base h-12 w-1/6">
                                 {row.standard}
                               </td>
-                              <td className="border border-black px-4 py-3 text-center text-green-600 font-semibold text-base h-14 w-1/6">
+                              <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-green-600 font-semibold text-base h-12 w-1/6">
                                 {row.deluxe}
                               </td>
-                              <td className="border border-black px-4 py-3 text-center text-gray-600 text-base h-14 w-1/6">
+                              <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-gray-600 text-base h-12 w-1/6">
                                 {row.executive}
                               </td>
-                              <td className="border border-black px-4 py-3 text-center text-blue-600 font-medium text-base h-14 w-1/6">
+                              <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-blue-600 font-medium text-base h-12 w-1/6">
                                 {row.childWithBed}
                               </td>
-                              <td className="border border-black px-4 py-3 text-center text-purple-600 font-medium text-base h-14 w-1/6">
+                              <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-purple-600 font-medium text-base h-12 w-1/6">
                                 {row.childNoBed}
                               </td>
                             </tr>
@@ -891,9 +910,9 @@ const TourDetails = () => {
 
                     {/* Remarks Section */}
                     {tour.tourCost.remarks && tour.tourCost.remarks.length > 0 && (
-                      <div className="bg-[#E8F0FF] rounded-lg mt-4">
+                      <div className="bg-[#E8F0FF] rounded-lg mt-1">
                         <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg">
-                          Remarks Provided
+                          Remarks
                         </div>
                         <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg">
                           <div className="min-h-[150px] p-6 bg-[#FFEBEE]">
@@ -962,250 +981,247 @@ const TourDetails = () => {
               )}
 
               {/* Flights & Hotels Tab */}
-              {activeTab === "flights-&-hotels" && (
-                <div className="bg-[#E8F0FF] rounded-lg p-0.2">
-                  {/* Flights Section */}
-                  <div className="bg-[#E8F0FF] rounded-lg p-1 mb-4">
-                    <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg">
-                      Flights / Train or Transport Details
-                    </div>
-                    
-                    <div className="border-2 border-[#1e3a8a] rounded-t-none border-t-0 rounded-lg overflow-hidden">
-                      <div className="min-h-[300px] p-6 bg-[#FFEBEE]">
-                        <div className="space-y-4">
-                          {tour.airlines.tableData.map((flight: any, index: number) => (
-                            <div key={index} className="border border-gray-200 rounded-lg p-4 bg-white">
-                              <div className="flex justify-between items-center mb-2">
-                                <span className="font-bold text-lg">{flight.airline} - {flight.flightNo}</span>
-                                <span className="text-gray-600">{flight.depDate} | {flight.depTime}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <div>
-                                  <p className="font-medium">{flight.from}</p>
-                                  <p className="text-gray-600">Departure</p>
-                                </div>
-                                <div className="text-center">
-                                  <p className="text-gray-600">→</p>
-                                </div>
-                                <div className="text-right">
-                                  <p className="font-medium">{flight.to}</p>
-                                  <p className="text-gray-600">Arrival</p>
-                                </div>
-                              </div>
-                              {flight.description && (
-                                <div className="mt-3 pt-3 border-t border-gray-100">
-                                  <p className="text-sm text-gray-600">{flight.description}</p>
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Hotels Section */}
-                  <div className='p-1'>
-                    <div className="bg-red-600 text-white text-center font-bold text-xl rounded-t-lg py-3 mb-1">
-                      Hotel Details
-                    </div>
-                    
-                    <div className="overflow-x-auto">
-                      <table className="w-full border-collapse">
-                        <thead>
-                          <tr className="bg-[#2E4D98]">
-                            <th className="border border-black px-2 py-2 text-left text-white w-1/4">
-                              City
-                            </th>
-                            <th className="border border-black px-6 py-2 text-left text-white w-1/2">
-                              Hotel Name
-                            </th>
-                            <th className="border border-black px-2 py-2 text-left text-white w-1/4">
-                              Room Type
-                            </th>
-                            <th className="border border-black px-4 py-2 text-left text-white w-1/4">
-                              Nights
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="border-2 border-[#1e3a8a] border-t-0 rounded-b-lg">
-                          {tour.hotels.tableData.map((hotel: any, index: number) => (
-                            <tr
-                              key={index}
-                              className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}
-                            >
-                              <td className="border border-black px-2 py-2">{hotel.city}</td>
-                              <td className="border border-black px-6 py-2">{hotel.hotelName}</td>
-                              <td className="border border-black px-2 py-2">{hotel.roomType}</td>
-                              <td className="border border-black px-4 py-2">{hotel.nights}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-
-                    {/* Combined Remarks Section for Hotels & Flights */}
-                    <div className="bg-[#E8F0FF] rounded-lg mt-4">
-                      <div className="bg-red-600 text-white text-center font-bold text-xl py-3 rounded-t-lg">
-                        Remarks Provided
-                      </div>
-                      
-                      <div className="border-2 border-[#1e3a8a] border-t-0 rounded-lg overflow-hidden">
-                        <div className="min-h-[150px] p-6 bg-[#FFEBEE]">
-                          <ul className="space-y-2">
-                            {/* Combine all remarks from hotels and airlines */}
-                            {[...(tour.hotels.remarks || []), ...(tour.airlines.remarks || [])].map((remark: string, index: number) => (
-                              <li key={index} className="flex items-start gap-2">
-                                <span className="text-gray-700">• {remark}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-                  </div>  
+      {activeTab === "flights-&-hotels" && (
+  <div className="bg-[#E8F0FF] rounded-lg p-0.2">
+    {/* Flights Section */}
+    <div className="bg-[#E8F0FF] rounded-lg p-1 mb-1"> {/* Changed to mb-0 */}
+      <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg">
+        Flights / Train or Transport Details
+      </div>
+      
+      <div className="border-2 border-[#1e3a8a] rounded-t-none border-t-0 rounded-lg overflow-hidden">
+        <div className="min-h-[300px] p-1 bg-[#FFEBEE]">
+          <div className="space-y-4">
+            {tour.airlines.tableData.map((flight: any, index: number) => (
+              <div key={index} className="border border-gray-200 rounded-lg p-4 bg-white">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="font-bold text-lg">{flight.airline} - {flight.flightNo}</span>
+                  <span className="text-gray-600">{flight.depDate} | {flight.depTime}</span>
                 </div>
-              )}
+                <div className="flex justify-between">
+                  <div>
+                    <p className="font-medium">{flight.from}</p>
+                    <p className="text-gray-600">Departure</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-gray-600">→</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-medium">{flight.to}</p>
+                    <p className="text-gray-600">Arrival</p>
+                  </div>
+                </div>
+                {flight.description && (
+                  <div className="mt-3 pt-3 border-t border-gray-100">
+                    <p className="text-sm text-gray-600">{flight.description}</p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
 
+    {/* Hotels Section */}
+    <div className='p-1 -mt-2'> {/* Changed to -mt-2 (negative margin) */}
+      <div className="bg-red-600 text-white text-center font-bold text-xl rounded-t-lg py-3 mb-1">
+        Hotel Details
+      </div>
+      
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="bg-[#2E4D98]">
+              <th className="border border-white px-2 py-2 text-left text-white w-1/5">
+                City
+              </th>
+              <th className="border border-white px-6 py-2 text-left text-white w-1/2">
+                Hotel Name
+              </th>
+              <th className="border border-white px-2 py-2 text-left text-white w-1/5">
+                Room Type
+              </th>
+              <th className="border border-white px-4 py-2 text-left text-white w-1/5">
+                Nights
+              </th>
+            </tr>
+          </thead>
+          <tbody className="border-2 border-[#1e3a8a] border-t-0 rounded-b-lg">
+            {tour.hotels.tableData.map((hotel: any, index: number) => (
+              <tr
+                key={index}
+                className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}
+              >
+                <td className="border border-black px-2 py-2">{hotel.city}</td>
+                <td className="border border-black px-6 py-2">{hotel.hotelName}</td>
+                <td className="border border-black px-2 py-2">{hotel.roomType}</td>
+                <td className="border border-black px-2 py-2">{hotel.nights}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Combined Remarks Section for Hotels & Flights */}
+      <div className="bg-[#E8F0FF] rounded-lg mt-1">
+        <div className="bg-red-600 text-white text-center font-bold text-xl py-3 rounded-t-lg">
+          Remarks
+        </div>
+        
+        <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg overflow-hidden">
+          <div className="min-h-[150px] p-6 bg-[#FFEBEE]">
+            <ul className="space-y-2">
+              {[...(tour.hotels.remarks || []), ...(tour.airlines.remarks || [])].map((remark: string, index: number) => (
+                <li key={index} className="flex items-start gap-2">
+                  <span className="text-gray-700">• {remark}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>  
+  </div>
+)}
               {/* Bookings POI Tab */}
-              {activeTab === "bookings-poi" && (
-                <div className="bg-[#E8F0FF] rounded-lg p-1">
-                  <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg mb-1">
-                    Booking Policy
+           {activeTab === "bookings-poi" && (
+  <div className="bg-[#E8F0FF] rounded-lg p-1">
+    <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg mb-1">
+      Booking Policy
+    </div>
+      
+    <div className="flex flex-col lg:flex-row gap-1 mt-1">
+      {/* Left Card - Booking Policy - 80% width */}
+      <div className="min-h-[280px] w-full lg:w-4/5 flex flex-col">
+        <div className="bg-[#2E4D98] text-white text-center py-3 rounded-t-lg">
+          <h3 className="text-xl font-bold">Booking Policy</h3>
+        </div>
+        <div className="flex-1 overflow-x-auto border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-white">
+          <div className="h-full w-full p-1">
+            <div className="space-y-1 h-full">
+              {tour.booking.map((item: string, index: number) => (
+                <div key={index} className="flex items-start gap-3 p-4 bg-blue-50 rounded-lg border border-blue-300 h-[68px]">
+                  <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-lg font-bold">
+                    {index + 1}
                   </div>
-                    
-                  <div className="flex flex-col lg:flex-row gap-1 mt-1">
-                    {/* Left Card - Booking Policy - 80% width */}
-                    <div className="min-h-[280px] w-full lg:w-4/5 flex flex-col">
-                      <div className="bg-[#2E4D98] text-white text-center py-3 rounded-t-lg">
-                        <h3 className="text-xl font-bold">Booking Policy</h3>
-                      </div>
-                      <div className="flex-1 overflow-x-auto border-2 border-[#1e3a8a] rounded-b-lg bg-white">
-                        <div className="h-full w-full p-4">
-                          <div className="space-y-2 h-full">
-                            {tour.booking.map((item: string, index: number) => (
-                              <div key={index} className="flex items-start gap-3 p-4 bg-blue-50 rounded-lg border border-blue-200 h-[68px]">
-                                <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-lg font-bold">
-                                  {index + 1}
-                                </div>
-                                <span className="text-gray-700 text-base flex items-center h-full">{item}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Right Card - Amount Details - 20% width */}
-                    <div className="min-h-[280px] w-full lg:w-1/5 flex flex-col">
-                      <div className="bg-[#2E4D98] text-white text-center py-3 rounded-t-lg">
-                        <h3 className="text-xl font-bold">Amount Details</h3>
-                      </div>
-                      <div className="flex-1 overflow-x-auto border-2 border-[#1e3a8a] rounded-b-lg bg-white">
-                        <div className="h-full w-full p-4">
-                          <div className="grid gap-2 h-full">
-                            {/* Card 1 */}
-                            <div className="flex items-center justify-center p-4 bg-white rounded-lg border border-gray-200 shadow-sm h-[68px]">
-                              <div className="text-center">
-                                <span className="text-xl font-bold text-green-600">₹50,000</span>
-                              </div>
-                            </div>
-                            
-                            {/* Card 2 */}
-                            <div className="flex items-center justify-center p-4 bg-white rounded-lg border border-gray-200 shadow-sm h-[68px]">
-                              <div className="text-center">
-                                <span className="text-xl font-bold text-blue-600">₹50,000</span>
-                              </div>
-                            </div>
-                            
-                            {/* Card 3 */}
-                            <div className="flex items-center justify-center p-4 bg-white rounded-lg border border-gray-200 shadow-sm h-[68px]">
-                              <div className="text-center">
-                                <span className="text-xl font-bold text-blue-600">₹1,50,000</span>
-                              </div>
-                            </div>
-                            
-                            {/* Card 4 */}
-                            <div className="flex items-center justify-center p-4 bg-white rounded-lg border border-gray-200 shadow-sm h-[68px]">
-                              <div className="text-center">
-                                <span className="text-xl font-bold text-blue-600">Aadhaar Card</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <span className="text-gray-700 text-base flex items-center h-full">{item}</span>
                 </div>
-              )}
-
-              {/* Cancellation Tab */}
-              {activeTab === "cancellation" && (
-                <div className="bg-[#E8F0FF] rounded-lg p-1">
-                  {/* TOP MAIN HEADER */}
-                  <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg mb-1">
-                    Cancellation Policy
-                  </div>
-
-                  <div className="flex flex-col lg:flex-row gap-1 mt-1">
-                    {/* LEFT CARD */}
-                    <div className="min-h-[280px] w-full lg:w-4/5 flex flex-col">
-                      {/* 2nd HEADER - DARK BROWN */}
-                      <div className="bg-[#A72703] text-white text-center py-3 rounded-t-lg">
-                        <h3 className="text-xl font-bold">Cancellation Policy</h3>
-                      </div>
-
-                      {/* INNER BG - LIGHT BLUE */}
-                      <div className="flex-1 overflow-x-auto border-2 border-[#1e3a8a] rounded-b-lg bg-[#E8F0FF]">
-                        <div className="h-full w-full p-4">
-                          <div className="space-y-2 h-full">
-                            {tour.cancellation.map((item: string, index: number) => (
-                              <div 
-                                key={index} 
-                                className="flex items-start gap-3 p-4 bg-[#EAD2C0] rounded-lg border border-[#A72703] h-[68px]"
-                              >
-                                {/* NUMBER CIRCLE - DARK BROWN */}
-                                <div className="w-8 h-8 bg-[#A72703] text-white rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-lg font-bold">
-                                  {index + 1}
-                                </div>
-                                <span className="text-gray-800 text-base flex items-center h-full">
-                                  {item}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* RIGHT CARD - CHARGES */}
-                    <div className="min-h-[280px] w-full lg:w-1/5 flex flex-col">
-                      {/* 2nd HEADER - DARK BROWN */}
-                      <div className="bg-[#A72703] text-white text-center py-3 rounded-t-lg">
-                        <h3 className="text-xl font-bold">Charges</h3>
-                      </div>
-
-                      {/* INNER BG - LIGHT BLUE */}
-                      <div className="flex-1 overflow-x-auto border-2 border-[#1e3a8a] rounded-b-lg bg-[#E8F0FF]">
-                        <div className="h-full w-full p-4">
-                          <div className="grid gap-2 h-full">
-                            {["30 Days+", "15-30 Days", "7-14 Days", "0-7 Days", "2-5 Days"].map((day, i) => (
-                              <div 
-                                key={i}
-                                className="flex items-center justify-center p-4 bg-[#EAD2C0] rounded-lg border border-[#A72703] shadow-sm h-[68px]"
-                              >
-                                <span className="text-xl font-bold text-[#A72703]">
-                                  {day}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Right Card - Amount Details - 20% width */}
+      <div className="min-h-[280px] w-full lg:w-1/5 flex flex-col">
+        <div className="bg-[#2E4D98] text-white text-center py-3 rounded-t-lg">
+          <h3 className="text-xl font-bold">Amount Details</h3>
+        </div>
+        <div className="flex-1 overflow-x-auto border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-white">
+          <div className="h-full w-full p-1">
+            <div className="grid gap-1 h-full">
+              {/* Card 1 */}
+              <div className="flex items-center justify-center p-4 bg-white rounded-lg border border-blue-300 shadow-sm h-[68px]">
+                <div className="text-center">
+                  <span className="text-xl font-bold text-green-600">₹50,000</span>
                 </div>
-              )}
+              </div>
+              
+              {/* Card 2 */}
+              <div className="flex items-center justify-center p-4 bg-white rounded-lg border border-blue-300 shadow-sm h-[68px]">
+                <div className="text-center">
+                  <span className="text-xl font-bold text-blue-600">₹50,000</span>
+                </div>
+              </div>
+              
+              {/* Card 3 */}
+              <div className="flex items-center justify-center p-4 bg-white rounded-lg border border-blue-300 shadow-sm h-[68px]">
+                <div className="text-center">
+                  <span className="text-xl font-bold text-blue-600">₹1,50,000</span>
+                </div>
+              </div>
+              
+              {/* Card 4 */}
+              <div className="flex items-center justify-center p-4 bg-white rounded-lg border border-blue-300 shadow-sm h-[68px]">
+                <div className="text-center">
+                  <span className="text-xl font-bold text-blue-600">Aadhaar Card</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+)}  
+
+ {activeTab === "cancellation" && (
+  <div className="bg-[#E8F0FF] rounded-lg p-1">
+    {/* TOP MAIN HEADER */}
+    <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg mb-1">
+      Cancellation Policy
+    </div>
+
+    <div className="flex flex-col lg:flex-row gap-1 mt-1">
+      {/* LEFT CARD */}
+      <div className="min-h-[280px] w-full lg:w-4/5 flex flex-col">
+        {/* 2nd HEADER - DARK BROWN */}
+        <div className="bg-[#A72703] text-white text-center py-3 rounded-t-lg">
+          <h3 className="text-xl font-bold">Cancellation Policy</h3>
+        </div>
+
+        {/* INNER BG - LIGHT BLUE */}
+        <div className="flex-1 overflow-x-auto border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-[#E8F0FF]">
+          <div className="h-full w-full p-1">
+            <div className="space-y-1 h-full">
+              {tour.cancellation.map((item: string, index: number) => (
+                <div 
+                  key={index} 
+                  className="flex items-start gap-3 p-4 bg-[#EAD2C0] rounded-lg border border-[#A72703] h-[68px]"
+                >
+                  {/* NUMBER CIRCLE - DARK BROWN */}
+                  <div className="w-8 h-8 bg-[#A72703] text-white rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-lg font-bold">
+                    {index + 1}
+                  </div>
+                  <span className="text-gray-800 text-base flex items-center h-full">
+                    {item}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* RIGHT CARD - CHARGES */}
+      <div className="min-h-[280px] w-full lg:w-1/5 flex flex-col">
+        {/* 2nd HEADER - DARK BROWN */}
+        <div className="bg-[#A72703] text-white text-center py-3 rounded-t-lg">
+          <h3 className="text-xl font-bold">Charges</h3>
+        </div>
+
+        {/* INNER BG - LIGHT BLUE */}
+        <div className="flex-1 overflow-x-auto border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-[#E8F0FF]">
+          <div className="h-full w-full p-1">
+            <div className="grid gap-1 h-full">
+              {["30 Days+", "15-30 Days", "7-14 Days", "0-7 Days", "2-5 Days"].map((day, i) => (
+                <div 
+                  key={i}
+                  className="flex items-center justify-center p-4 bg-[#EAD2C0] rounded-lg border border-[#A72703] shadow-sm h-[68px]"
+                >
+                  <span className="text-xl font-bold text-[#A72703]">
+                    {day}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
 
               {/* Instructions Tab */}
               {activeTab === "instructions" && (
@@ -1215,7 +1231,7 @@ const TourDetails = () => {
                   </div>
                   
                   <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg">
-                    <div className="min-h-[300px] p-6 bg-[#FFEBEE]">
+                    <div className="min-h-[300px] p-1 bg-[#FFEBEE]">
                       <div className="space-y-4">
                         <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                           <h4 className="font-bold text-lg text-[#2E4D98] mb-2">Important Instructions</h4>
@@ -1232,27 +1248,39 @@ const TourDetails = () => {
               )}
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex justify-end mt-1">
-              <button className="flex-1 max-w-[150px] bg-green-700 hover:bg-green-800 text-white font-bold py-3 px-4 rounded-l-lg transition-colors border-r border-amber-800 flex items-center justify-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                Download
-              </button>
-              <button className="flex-1 max-w-[150px] bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 transition-colors border-r border-blue-700 flex items-center justify-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-                Email
-              </button>
-              <button className="flex-1 max-w-[150px] bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-r-lg transition-colors flex items-center justify-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Book Now
-              </button>
-            </div>
+ {/* Action Buttons */}
+{/* Action Buttons - Exact Equal Width */}
+<div className="flex justify-end mt-1 gap-0.5">
+  {/* Download Card */}
+  <div className="w-32 border border-green-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+    <button className="w-full bg-green-700 hover:bg-green-800 text-white font-bold py-3 px-3 flex items-center justify-center gap-2 transition-colors text-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+      Download
+    </button>
+  </div>
+
+  {/* Email Card */}
+  <div className="w-32 border border-blue-700 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+    <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-3 flex items-center justify-center gap-2 transition-colors text-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      </svg>
+      Email
+    </button>
+  </div>
+
+  {/* Book Now Card */}
+  <div className="w-32 border border-red-700 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+    <button className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-3 flex items-center justify-center gap-2 transition-colors text-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      Book Now
+    </button>
+  </div>
+</div>
           </main>
         </div>
       </div>
