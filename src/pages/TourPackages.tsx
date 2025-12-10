@@ -6,7 +6,6 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
 
 const stateHeroImages = {
   "Andaman": "https://i.pinimg.com/1200x/67/10/27/671027210a396e38b27e5d0432bd18db.jpg",
@@ -198,12 +197,10 @@ const TourPackages = () => {
         price: `₹${Number(tour.base_price_adult).toLocaleString()}`,
         priceValue: Number(tour.base_price_adult),
         locations: tour.primary_destination_name,
-        dates: "20 Dates Available",
         image: imgUrl,
-        badge: "Special Offer",
-        emi: `EMI from ₹${Math.round(
+        emi: `₹${Math.round(
           Number(tour.base_price_adult) / 12
-        )}/month`,
+        )}`,
         isIndian: true,
         // for world tour filter safety
         locationTags: [tour.primary_destination_name || ""],
@@ -556,54 +553,58 @@ const TourPackages = () => {
                     </div>
 
                     {/* Separate Card with Light Blue Background */}
-                    <div className="group bg-blue-50 rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer border border-blue-100 flex flex-col flex-1">
-                      <div className="relative h-48 overflow-hidden">
-                        <img
-                          src={tour.image}
-                          alt={tour.title}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+     <div className="group bg-blue-50 rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer border border-blue-100 flex flex-col flex-1 min-h-0">
+  {/* Image Section */}
+  <div className="relative h-56 overflow-hidden flex-shrink-0">
+    <img
+      src={tour.image}
+      alt={tour.title}
+      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+    />
+    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+  </div>
 
-                        <Badge className="absolute top-4 left-4 bg-white text-[#2E4D98] font-bold">
-                          {tour.badge}
-                        </Badge>
-                      </div>
+  {/* Content Section */}
+  <div className="p-5 flex-1 flex flex-col min-h-0">
+    <h3 className="font-bold text-lg text-gray-800 line-clamp-2 mb-2">
+      {tour.title}
+    </h3>
 
-                      <div className="p-5 flex-1 flex flex-col">
-                        <h3 className="font-bold text-lg text-gray-800 line-clamp-2 mb-3">
-                          {tour.title}
-                        </h3>
+    {/* Price Details */}
+    <div className="mb-3">
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-sm font-semibold text-gray-700">Tour Cost</span>
+        <p className="text-2xl font-bold text-gray-900">{tour.price}</p>
+      </div>
+      
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-gray-600">EMI per/month</span>
+        <p className="text-sm font-bold text-gray-900">{tour.emi}</p>
+      </div>
+    </div>
 
-                        {/* Price Details - Outside Image */}
-                        <div className="mb-3">
-                          <p className="text-2xl font-bold text-gray-900">{tour.price}</p>
-                          <p className="text-sm text-gray-600">{tour.emi}</p>
-                        </div>
+    <p className="text-sm text-gray-600 mb-3 flex-1 line-clamp-2">{tour.locations}</p>
 
-                        <p className="text-sm text-gray-600 mb-3 flex-1">{tour.locations}</p>
+    <div className="flex items-center justify-between text-sm text-gray-500 mb-0">
+      <span>{tour.dates}</span>
+    </div>
 
-                        <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                          <span>{tour.dates}</span>
-                          <span className="text-green-600 font-semibold">Available</span>
-                        </div>
-
-                        {/* Buttons - Updated with navigation */}
-                        <div className="flex gap-2 mt-auto">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="flex-1 border-[#2E4D98] text-[#2E4D98] hover:bg-[#2E4D98] hover:text-white"
-                            onClick={() => navigate(`/tour/${tour.id}`)}
-                          >
-                            View Tour
-                          </Button>
-                          <Button size="sm" className="flex-1 bg-[#E53C42] hover:bg-[#E53C42] hover:opacity-90 text-white">
-                            Book Now
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
+    {/* Buttons */}
+    <div className="flex gap-2 mt-0">
+      <Button
+        size="sm"
+        variant="outline"
+        className="flex-1 border-[#2E4D98] text-[#2E4D98] hover:bg-[#2E4D98] hover:text-white"
+        onClick={() => navigate(`/tour/${tour.id}`)}
+      >
+        View Tour
+      </Button>
+      <Button size="sm" className="flex-1 bg-[#E53C42] hover:bg-[#E53C42] hover:opacity-90 text-white">
+        Book Now
+      </Button>
+    </div>
+  </div>
+</div>
                   </div>
                 ))}
               </div>
