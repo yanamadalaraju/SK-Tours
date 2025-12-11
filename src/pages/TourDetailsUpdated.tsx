@@ -145,6 +145,8 @@ const TourDetails = () => {
     return `${nights}N/${days}D`;
   };
 
+  // Process API data into frontend format
+ // Process API data into frontend format
 const processTourData = (apiData: any) => {
   const { 
     basic_details, 
@@ -398,46 +400,38 @@ const processTourData = (apiData: any) => {
     };
   };
 
+  // Process cancellation policies
+  const processCancellation = (policiesArray: any[]) => {
+    if (policiesArray && policiesArray.length > 0) {
+      return {
+        policies: policiesArray.map(policy => 
+          `${policy.days_min}-${policy.days_max} days before travel: ${policy.charge_percentage}% cancellation charge`
+        ),
+        charges: policiesArray.map(policy => policy.charges || '') // Extract charges
+      };
+    }
 
-// Process cancellation policies
-const processCancellation = (policiesArray: any[]) => {
-  if (policiesArray && policiesArray.length > 0) {
+    // Default cancellation policies
+    const defaultPolicies = [
+      "30+ days before travel: 90% refund",
+      "15-30 days before travel: 50% refund",
+      "7-14 days before travel: 25% refund",
+      "Less than 7 days: No refund"
+    ];
+    
+    const defaultCharges = [
+      "10%",
+      "25%",
+      "50%",
+      "100%"
+    ];
+    
     return {
-      policies: policiesArray.map(policy => 
-        policy.cancellation_policy || 
-        `${policy.days_min}-${policy.days_max} days before travel: ${policy.charge_percentage}% cancellation charge`
-      ),
-      charges: policiesArray.map(policy => {
-        // Format charges with ₹ symbol if it's a number
-        const charge = policy.charges || '';
-        if (charge && !isNaN(charge)) {
-          return `₹${parseFloat(charge).toLocaleString('en-IN')}`;
-        }
-        return charge || '';
-      })
+      policies: defaultPolicies,
+      charges: defaultCharges
     };
-  }
-
-  // Default cancellation policies
-  const defaultPolicies = [
-    "30+ days before travel: 90% refund",
-    "15-30 days before travel: 50% refund",
-    "7-14 days before travel: 25% refund",
-    "Less than 7 days: No refund"
-  ];
-  
-  const defaultCharges = [
-    "10%",
-    "25%",
-    "50%",
-    "100%"
-  ];
-  
-  return {
-    policies: defaultPolicies,
-    charges: defaultCharges
   };
-};
+
   return {
     // Basic info
     title: basic_details.title,
@@ -1378,6 +1372,7 @@ const processCancellation = (policiesArray: any[]) => {
     </div>
   </div>
 )}
+
 {activeTab === "cancellation" && (
   <div className="bg-[#E8F0FF] rounded-lg p-1">
     {/* TOP MAIN HEADER */}
@@ -1406,7 +1401,7 @@ const processCancellation = (policiesArray: any[]) => {
                   <div className="w-6 h-6 bg-[#A72703] text-white rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-sm font-bold">
                     {index + 1}
                   </div>
-                  <span className="text-gray-800 text-sm flex-1 whitespace-pre-wrap break-words">
+                  <span className="text-gray-800 text-sm flex-1">
                     {item}
                   </span>
                 </div>
@@ -1432,7 +1427,7 @@ const processCancellation = (policiesArray: any[]) => {
                   key={index}
                   className="flex items-center justify-center p-3 bg-[#EAD2C0] rounded-lg border border-[#A72703]"
                 >
-                  <span className="text-sm font-bold text-[#A72703] break-words text-center">
+                  <span className="text-sm font-bold text-[#A72703]">
                     {charge}
                   </span>
                 </div>
@@ -1444,6 +1439,7 @@ const processCancellation = (policiesArray: any[]) => {
     </div>
   </div>
 )}
+
               {/* Instructions Tab */}
             {activeTab === "instructions" && (
   <div className="bg-[#E8F0FF] rounded-lg p-1">
