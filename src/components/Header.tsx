@@ -88,8 +88,12 @@ const Header = () => {
         { label: "Honeymoon Tours", href: "/honeymoon_tour", icon: Heart },
       ],
     },
-    { icon: PlaneTakeoff, label: "Offline Flight Tickets", href: "#offline-flight-tickets" },
-    { icon: Ship, label: "Exhibitions", href: "#exhibitions" },
+{ icon: PlaneTakeoff, label: "Offline flight/hotels", href: "#offline-flight-tickets",
+  dropdown: [
+    { label: "Offline flight rates", href: "#offline-flight-rates" },
+    { label: "Offline hotel rates", href: "#offline-hotel-rates" }
+  ]
+},    { icon: Ship, label: "Exhibitions", href: "#exhibitions" },
     { icon: Compass, label: "MICE", href: "#mice" },
     { icon: PlaneTakeoff, label: "Visa", href: "#visa" },
     {
