@@ -38,65 +38,108 @@ const DayCard = ({ dayNumber, headerColor, bodyColor, dayData }: DayCardProps) =
 
   return (
     <div className="rounded-lg"> 
-      <div className="flex gap-2 mb-1">
-        <div className={`${headerColor} text-white font-bold px-4 py-2 rounded-lg text-center min-w-[120px] border border-black`}>
+      {/* Header Row */}
+      <div className="flex gap-1 mb-1">
+        {/* Day Number - Fixed width */}
+        <div className={`${headerColor} text-white font-bold px-4 py-2 rounded-lg text-center w-[120px] flex-shrink-0 border border-black`}>
           {dayNumber}
         </div>
-        <div className={`${headerColor} text-white font-bold px-4 py-2 rounded-lg text-center flex-1 border border-black`}>
-          {dayData?.title || "Day Details"}
+        
+        {/* Title - Flexible width */}
+        <div className={`${headerColor} text-white font-bold px-4 py-2 rounded-lg flex-1 min-w-0 border border-black`}>
+          <div className="truncate">{dayData?.title || "Day Details"}</div>
         </div>
-        <div className={`${headerColor} text-white border border-black rounded-lg px-3 py-1.5 flex items-center gap-3`}>
-          {/* Breakfast - Checkbox first */}
+        
+        {/* Meal Checkboxes - Fixed width, right aligned */}
+        <div className={`${headerColor} text-white border border-black rounded-lg px-3 py-1.5 flex items-center justify-center gap-3 w-[140px] flex-shrink-0`}>
+          {/* Breakfast - Square checkbox */}
           <div className="flex items-center gap-1">
             <button
               type="button"
               onClick={() => setMeals(prev => ({ ...prev, B: !prev.B }))}
-              className={`h-4 w-4 rounded-full border flex items-center justify-center transition-colors ${meals.B ? 'bg-[#3B82F6] border-[#3B82F6]' : 'bg-white border-gray-400'}`}
+              className={`h-4 w-4 border flex items-center justify-center transition-colors ${meals.B ? 'bg-[#3B82F6] border-[#3B82F6]' : 'bg-white border-gray-400'}`}
+              style={{ borderRadius: '2px' }}
             >
               {meals.B && (
-                <div className="h-2 w-2 rounded-full bg-white"></div>
+                <svg 
+                  className="h-3 w-3 text-white" 
+                  fill="none" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth="2" 
+                  viewBox="0 0 24 24" 
+                  stroke="currentColor"
+                >
+                  <path d="M5 13l4 4L19 7"></path>
+                </svg>
               )}
             </button>
-    <span className="text-white text-sm font-bold">B</span> {/* Added font-bold */}
-              </div>
+            <span className="text-white text-sm font-bold">B</span>
+          </div>
           
-          {/* Lunch - Checkbox first */}
+          {/* Lunch - Square checkbox */}
           <div className="flex items-center gap-1">
             <button
               type="button"
               onClick={() => setMeals(prev => ({ ...prev, L: !prev.L }))}
-              className={`h-4 w-4 rounded-full border flex items-center justify-center transition-colors ${meals.L ? 'bg-[#3B82F6] border-[#3B82F6]' : 'bg-white border-gray-400'}`}
+              className={`h-4 w-4 border flex items-center justify-center transition-colors ${meals.L ? 'bg-[#3B82F6] border-[#3B82F6]' : 'bg-white border-gray-400'}`}
+              style={{ borderRadius: '2px' }}
             >
               {meals.L && (
-                <div className="h-2 w-2 rounded-full bg-white"></div>
+                <svg 
+                  className="h-3 w-3 text-white" 
+                  fill="none" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth="2" 
+                  viewBox="0 0 24 24" 
+                  stroke="currentColor"
+                >
+                  <path d="M5 13l4 4L19 7"></path>
+                </svg>
               )}
             </button>
-   <span className="text-white text-sm font-bold">L</span> {/* Added font-bold */}
-             </div>
+            <span className="text-white text-sm font-bold">L</span>
+          </div>
           
-          {/* Dinner - Checkbox first */}
+          {/* Dinner - Square checkbox */}
           <div className="flex items-center gap-1">
             <button
               type="button"
               onClick={() => setMeals(prev => ({ ...prev, D: !prev.D }))}
-              className={`h-4 w-4 rounded-full border flex items-center justify-center transition-colors ${meals.D ? 'bg-[#3B82F6] border-[#3B82F6]' : 'bg-white border-gray-400'}`}
+              className={`h-4 w-4 border flex items-center justify-center transition-colors ${meals.D ? 'bg-[#3B82F6] border-[#3B82F6]' : 'bg-white border-gray-400'}`}
+              style={{ borderRadius: '2px' }}
             >
               {meals.D && (
-                <div className="h-2 w-2 rounded-full bg-white"></div>
+                <svg 
+                  className="h-3 w-3 text-white" 
+                  fill="none" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth="2" 
+                  viewBox="0 0 24 24" 
+                  stroke="currentColor"
+                >
+                  <path d="M5 13l4 4L19 7"></path>
+                </svg>
               )}
             </button>
- <span className="text-white text-sm font-bold">D</span> {/* Added font-bold */}
-           </div>
+            <span className="text-white text-sm font-bold">D</span>
+          </div>
         </div>
       </div>
-      {/* Content Area - Now properly separated from next card */}
-      <div className={`${bodyColor} min-h-[120px] p-4 rounded-lg border border-black mb-0`}>
-        <textarea 
-          className="w-full h-full min-h-[100px] bg-transparent resize-none focus:outline-none text-gray-800"
-          placeholder={dayData?.description || ""}
-          defaultValue={dayData?.description || ""}
-          readOnly
-        />
+      
+      {/* Content Area - Scrollable with justified text */}
+      <div className={`${bodyColor} rounded-lg border border-black overflow-hidden`}>
+        <div 
+          className="p-2 text-gray-800 whitespace-pre-line overflow-y-auto text-justify"
+          style={{ 
+            minHeight: '120px', 
+            maxHeight: '120px' 
+          }}
+        >
+          {dayData?.description || ""}
+        </div>
       </div>
     </div>
   );
@@ -911,18 +954,16 @@ const processCancellation = (policiesArray: any[]) => {
       Departure Dates
     </div>
     
-    <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg w-full flex flex-col min-h-[300px] max-h-[300px] overflow-hidden">
+    <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg w-full flex flex-col min-h-[280px] max-h-[280px] overflow-hidden">
       {/* Scrollable container with fixed height */}
-      <div className="flex-1 overflow-y-auto p-3 bg-[#FFEBEE] w-full">
+      <div className="flex-1 overflow-y-auto p-2 bg-[#FFEBEE] w-full">
         <div className="space-y-4 w-full">
           {tour.departureDescriptions.map((description: string, index: number) => (
-            <div key={index} className="border border-gray-200 rounded-lg p-4 bg-white w-full">
+            <div key={index} className="border border-gray-200 rounded-lg p-2 bg-white w-full">
               <div className="flex items-start w-full">
-                <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center flex-shrink-0 mr-3 mt-0.5">
-                  {index + 1}
-                </div>
+              
                 <div className="flex-1 min-w-0">
-                  <p className="text-gray-700 break-words whitespace-pre-wrap w-full">
+                  <p className="text-gray-700 break-words whitespace-pre-wrap text-justify w-full">
                     {description}
                   </p>
                 </div>
@@ -1132,24 +1173,24 @@ const processCancellation = (policiesArray: any[]) => {
 
                     {/* Remarks Section */}
                     {tour.tourCost.remarks && tour.tourCost.remarks.length > 0 && (
-                      <div className="bg-[#E8F0FF] rounded-lg mt-1 w-full overflow-x-hidden">
-                        <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
-                          Tour Cost Remarks
-                        </div>
-                        <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-                          <div className="min-h-[150px] max-h-[180px] overflow-y-auto p-6 bg-[#FFEBEE] w-full">
-                            <ul className="space-y-2 w-full">
-                              {tour.tourCost.remarks.map((remark: string, index: number) => (
-                                <li key={index} className="flex items-start gap-2 w-full">
-                                  <span className="text-gray-700 break-all whitespace-pre-wrap w-full max-w-full">
-                                    • {remark}
-                                  </span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        </div>
-                      </div>
+<div className="bg-[#E8F0FF] rounded-lg mt-1 w-full overflow-x-hidden">
+  <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
+    Tour Cost Remarks
+  </div>
+  <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
+    <div className="min-h-[150px] max-h-[100px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+      <ul className="space-y-2 w-full">
+        {tour.tourCost.remarks.map((remark: string, index: number) => (
+          <li key={index} className="flex items-start gap-2 w-full">
+            <span className="text-gray-700 whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
+              {remark}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </div>
+</div>
                     )}
                   </div>
                 </div>
@@ -1163,20 +1204,24 @@ const processCancellation = (policiesArray: any[]) => {
     </div>
     
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-1 w-full">
-      {/* Cost Includes - Individual card with scroll */}
+      {/* Cost Includes */}
       <div className="flex flex-col w-full min-h-[280px] max-h-[320px]">
         <div className="bg-[#2E4D98] text-white text-center py-3 rounded-t-lg w-full">
           <h3 className="text-xl font-bold">Cost Inclusive</h3>
         </div>
         <div className="flex-1 border-2 border-[#1e3a8a] rounded-b-lg bg-[#FFEBEE] w-full overflow-hidden min-h-0">
-          <div className="h-full overflow-y-auto p-4">
-            <ul className="space-y-2 w-full pr-2">
+          <div className="h-full overflow-y-auto p-2">
+            <ul className="space-y-2 w-full">
               {tour.inclusionExclusion.inclusions.map((inclusion: string, index: number) => (
-                <li key={index} className="flex items-start gap-2 w-full">
-                  <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-700 break-words whitespace-pre-wrap w-full">
-                    {inclusion}
-                  </span>
+                <li key={index} className="w-full">
+                  <div className="flex items-start gap-0 w-full">
+                    <div className="flex-shrink-0 mt-0.5">
+                      {/* Optional: Add bullet or checkmark here */}
+                    </div>
+                    <div className="text-gray-700 flex-1 min-w-0 text-justify break-words">
+                      {inclusion}
+                    </div>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -1184,20 +1229,24 @@ const processCancellation = (policiesArray: any[]) => {
         </div>
       </div>
       
-      {/* Cost Excludes - Individual card with scroll */}
+      {/* Cost Excludes */}
       <div className="flex flex-col w-full min-h-[280px] max-h-[320px]">
         <div className="bg-[#2E4D98] text-white text-center py-3 rounded-t-lg w-full">
           <h3 className="text-xl font-bold">Cost Excludes</h3>
         </div>
         <div className="flex-1 border-2 border-[#1e3a8a] rounded-b-lg bg-[#FFEBEE] w-full overflow-hidden min-h-0">
-          <div className="h-full overflow-y-auto p-4">
-            <ul className="space-y-2 w-full pr-2">
+          <div className="h-full overflow-y-auto p-2">
+            <ul className="space-y-2 w-full">
               {tour.inclusionExclusion.exclusions.map((exclusion: string, index: number) => (
-                <li key={index} className="flex items-start gap-2 w-full">
-                  <X className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-700 break-words whitespace-pre-wrap w-full">
-                    {exclusion}
-                  </span>
+                <li key={index} className="w-full">
+                  <div className="flex items-start gap-0 w-full">
+                    <div className="flex-shrink-0 mt-0.5">
+                      {/* Optional: Add bullet or X mark here */}
+                    </div>
+                    <div className="text-gray-700 flex-1 min-w-0 text-justify break-words">
+                      {exclusion}
+                    </div>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -1207,55 +1256,33 @@ const processCancellation = (policiesArray: any[]) => {
     </div>
   </div>
 )}
-
               {/* Flights & Hotels Tab */}
 {activeTab === "flights-&-hotels" && (
   <div className="bg-[#E8F0FF] rounded-lg p-0.2 w-full overflow-x-hidden">
     {/* Flights Section */}
-    <div className="bg-[#E8F0FF] rounded-lg p-1 mb-1 w-full">
-      <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
-        Flights / Train or Transport Details
-      </div>
-      
-      <div className="border-2 border-[#1e3a8a] rounded-t-none border-t-0 rounded-lg overflow-hidden w-full">
-        <div className="min-h-[300px] max-h-[400px] overflow-y-auto p-1 bg-[#FFEBEE] w-full">
-          <div className="space-y-4 w-full">
-            {tour.airlines.tableData.map((flight: any, index: number) => (
-              <div key={index} className="border border-gray-200 rounded-lg p-4 bg-white w-full overflow-hidden">
-                <div className="flex justify-between items-center mb-2 w-full flex-wrap gap-2">
-                  <span className="font-bold text-lg break-all whitespace-pre-wrap max-w-full">
-                    {flight.airline} - {flight.flightNo}
-                  </span>
-                  <span className="text-gray-600 break-all whitespace-pre-wrap max-w-full">
-                    {flight.depDate} | {flight.depTime}
-                  </span>
-                </div>
-                <div className="flex justify-between w-full flex-wrap gap-4">
-                  <div className="min-w-0 max-w-full overflow-hidden">
-                    <p className="font-medium break-all whitespace-pre-wrap">{flight.from}</p>
-                    <p className="text-gray-600">Departure</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-gray-600">→</p>
-                  </div>
-                  <div className="min-w-0 max-w-full overflow-hidden text-right">
-                    <p className="font-medium break-all whitespace-pre-wrap">{flight.to}</p>
-                    <p className="text-gray-600">Arrival</p>
-                  </div>
-                </div>
-                {flight.description && (
-                  <div className="mt-3 pt-3 border-t border-gray-100 w-full">
-                    <p className="text-sm text-gray-600 break-all whitespace-pre-wrap w-full max-w-full">
-                      {flight.description}
-                    </p>
-                  </div>
-                )}
+   <div className="bg-[#E8F0FF] rounded-lg p-1 mb-1 w-full">
+  <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
+    Flights / Train or Transport Details
+  </div>
+  
+  <div className="border-2 border-[#1e3a8a] rounded-t-none border-t-0 rounded-lg overflow-hidden w-full">
+    <div className="min-h-[300px] max-h-[400px] overflow-y-auto p-1 bg-[#FFEBEE] w-full">
+      <div className="space-y-4 w-full">
+        {tour.airlines.tableData.map((flight: any, index: number) => (
+          <div key={index} className="border border-gray-200 rounded-lg p-2 bg-white w-full overflow-hidden">
+            {flight.description && (
+              <div className="mt-0.5 w-full">
+                <p className="text-md text-gray-600 break-words whitespace-pre-wrap text-justify w-full">
+                  {flight.description}
+                </p>
               </div>
-            ))}
+            )}
           </div>
-        </div>
+        ))}
       </div>
     </div>
+  </div>
+</div>
 
     {/* Hotels Section */}
     <div className='p-1 -mt-2 w-full overflow-x-hidden'>
@@ -1298,24 +1325,24 @@ const processCancellation = (policiesArray: any[]) => {
       </div>
 
       {/* Combined Remarks Section */}
-      <div className="bg-[#E8F0FF] rounded-lg mt-1 w-full overflow-x-hidden">
-        <div className="bg-red-600 text-white text-center font-bold text-xl py-3 rounded-t-lg w-full">
-          Remarks
-        </div>
-        
-        <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg overflow-hidden w-full">
-          <div className="min-h-[150px] max-h-[200px] overflow-y-auto p-6 bg-[#FFEBEE] w-full">
-            <ul className="space-y-2 w-full">
-              {[...(tour.hotels.remarks || []), ...(tour.airlines.remarks || [])].map((remark: string, index: number) => (
-                <li key={index} className="flex items-start gap-2 w-full">
-                  <span className="text-gray-700 break-all whitespace-pre-wrap w-full max-w-full">
-                    • {remark}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
+   <div className="bg-[#E8F0FF] rounded-lg mt-1 w-full overflow-x-hidden">
+  <div className="bg-red-600 text-white text-center font-bold text-xl py-3 rounded-t-lg w-full">
+    Remarks
+  </div>
+  
+  <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg overflow-hidden w-full">
+    <div className="min-h-[150px] max-h-[200px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+      <ul className="space-y-2 w-full">
+        {[...(tour.hotels.remarks || []), ...(tour.airlines.remarks || [])].map((remark: string, index: number) => (
+          <li key={index} className="flex items-start gap-1 w-full">
+            <span className="text-gray-700 break-words whitespace-pre-wrap text-justify w-full">
+             {remark}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </div>
       </div>
     </div>  
   </div>
@@ -1335,13 +1362,13 @@ const processCancellation = (policiesArray: any[]) => {
         </div>
         <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-white overflow-hidden">
           <div className="h-full overflow-y-auto">
-            <div className="p-2 space-y-2">
+            <div className="p-1 space-y-1">
               {tour.booking.items.map((item: string, index: number) => (
                 <div key={index} className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg border border-blue-300">
-                  <div className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-sm font-bold">
-                    {index + 1}
-                  </div>
-                  <span className="text-gray-700 text-sm">{item}</span>
+                  
+                  <span className="text-gray-700 text-sm whitespace-normal text-justify w-full">
+                    {item}
+                  </span>
                 </div>
               ))}
             </div>
@@ -1356,7 +1383,7 @@ const processCancellation = (policiesArray: any[]) => {
         </div>
         <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-white overflow-hidden">
           <div className="h-full overflow-y-auto">
-            <div className="p-2 grid gap-2">
+            <div className="p-1 grid gap-1">
               {/* Dynamic amount details cards */}
               {tour.booking.amountDetails.map((amount: string, index: number) => (
                 <div key={index} className="flex items-center justify-center p-3 bg-white rounded-lg border border-blue-300">
@@ -1395,18 +1422,16 @@ const processCancellation = (policiesArray: any[]) => {
 
         {/* INNER BG - LIGHT BLUE */}
         <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-[#E8F0FF] overflow-hidden">
-          <div className="h-full overflow-y-auto p-2">
-            <div className="space-y-2">
+          <div className="h-full overflow-y-auto p-1">
+            <div className="space-y-1">
               {tour.cancellation.policies.map((item: string, index: number) => (
                 <div 
                   key={index} 
                   className="flex items-start gap-3 p-3 bg-[#EAD2C0] rounded-lg border border-[#A72703]"
                 >
                   {/* NUMBER CIRCLE - DARK BROWN */}
-                  <div className="w-6 h-6 bg-[#A72703] text-white rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-sm font-bold">
-                    {index + 1}
-                  </div>
-                  <span className="text-gray-800 text-sm flex-1 whitespace-pre-wrap break-words">
+                 
+                  <span className="text-gray-800 text-sm whitespace-normal text-justify w-full">
                     {item}
                   </span>
                 </div>
@@ -1425,14 +1450,14 @@ const processCancellation = (policiesArray: any[]) => {
 
         {/* INNER BG - LIGHT BLUE */}
         <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-[#E8F0FF] overflow-hidden">
-          <div className="h-full overflow-y-auto p-2">
-            <div className="grid gap-2">
+          <div className="h-full overflow-y-auto p-1">
+            <div className="grid gap-1">
               {tour.cancellation.charges.map((charge: string, index: number) => (
                 <div 
                   key={index}
                   className="flex items-center justify-center p-3 bg-[#EAD2C0] rounded-lg border border-[#A72703]"
                 >
-                  <span className="text-sm font-bold text-[#A72703] break-words text-center">
+                  <span className="text-sm font-bold text-[#A72703] text-center w-full">
                     {charge}
                   </span>
                 </div>
@@ -1445,20 +1470,21 @@ const processCancellation = (policiesArray: any[]) => {
   </div>
 )}
               {/* Instructions Tab */}
-            {activeTab === "instructions" && (
+{activeTab === "instructions" && (
   <div className="bg-[#E8F0FF] rounded-lg p-1">
     <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg">
       Instructions
     </div>
     
     <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg">
-      <div className="min-h-[300px] max-h-[500px] overflow-y-auto p-1 bg-[#FFEBEE]">
-        <div className="space-y-4 p-3">
-          <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <h4 className="font-bold text-lg text-[#2E4D98] mb-2">Important Instructions</h4>
+      <div className="min-h-[300px] max-h-[320px] overflow-y-auto p-1 bg-[#FFEBEE]">
+        <div className="space-y-4 p-0">
+          <div className="p-2 bg-blue-50 rounded-lg border border-blue-200">
             <ul className="space-y-2 text-gray-700">
               {tour.instructions.map((instruction: string, index: number) => (
-                <li key={index}>• {instruction}</li>
+                <li key={index} className="text-justify whitespace-normal">
+                   {instruction}
+                </li>
               ))}
             </ul>
           </div>
