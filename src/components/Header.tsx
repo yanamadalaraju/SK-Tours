@@ -70,7 +70,7 @@ const Header = () => {
       icon: MapPin, label: "Indian Tours",
       dropdown: [
         { label: "Individual Tours", href: "#indian-individual", icon: Users, subDropdown: indianStates },
-        { label: "Group Tours", href: "#indian-group", icon: UsersRound, subDropdown: indianStates },
+        { label: "Group Tours", href: "/tours_indian", icon: UsersRound, subDropdown: indianStates },
      { label: "Ladies Special Tours", href: "/ladies", icon: Sparkles }, 
  { label: "Senior Citizen Tours", href: "/seniorcitizen", icon: Heart },
          { label: "Students Tours", href: "/students_tour", icon: GraduationCap },

@@ -15,6 +15,8 @@ import Seniorcitizen_tour from "./pages/Seniorcitizen_tour";
 import Students_tour from "./pages/Students_tour";
 import Honeymoon_tours from "./pages/Honeymoon_tours";
 import ContactPage from "./pages/Contact";
+import Tour_indain from "./pages/Tour_indain";
+import Tourdetails_indian from "./pages/Tourdetails_indian";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +39,9 @@ const App = () => (
 <Route path="/honeymoon_tour" element= {<Honeymoon_tours />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
+
+          <Route path="/tours_indian" element={<Tour_indain />} />
+          <Route path="/tours_indian_packages/:tourId" element={<Tourdetails_indian />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
