@@ -9,6 +9,13 @@ import Header from '@/components/Header';
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 
+// ⭐⭐ CORRECT PLACEMENT: AFTER IMPORTS, BEFORE INTERFACES ⭐⭐
+const ALL_DEPARTURE_MONTHS = [
+  'January-2026', 'February-2026', 'March-2026', 'April-2026', 
+  'May-2026', 'June-2026', 'July-2026', 'August-2026', 
+  'September-2026', 'October-2026', 'November-2026', 'December-2026'
+];
+
 interface DepartureItem {
   month: string;
   fromDay: string;
@@ -171,7 +178,6 @@ interface DayCardProps {
     meals?: string;
   };
 }
-
 const DayCard = ({ dayNumber, headerColor, bodyColor, dayData }: DayCardProps) => {
   const [meals, setMeals] = useState({ B: false, L: false, D: false });
 
@@ -310,6 +316,8 @@ const Tourdetails_indian = () => {
   const [selectedDepartureMonths, setSelectedDepartureMonths] = useState<string[]>([]);
   const [selectedIndianTours, setSelectedIndianTours] = useState<string[]>([]);
   const [selectedWorldTours, setSelectedWorldTours] = useState<string[]>([]);
+     const [showAllDepartureMonths, setShowAllDepartureMonths] = useState(false);
+  
   
   // Add this state for departure date filtering
   const [selectedMonth, setSelectedMonth] = useState("ALL");
@@ -742,14 +750,13 @@ const Tourdetails_indian = () => {
   }, [tourId]);
 
   // Handle departure month selection
-  const handleDepartureMonthChange = (month: string, checked: boolean) => {
+ const handleDepartureMonthChange = (month: string, checked: boolean) => {
     if (checked) {
       setSelectedDepartureMonths([...selectedDepartureMonths, month]);
     } else {
       setSelectedDepartureMonths(selectedDepartureMonths.filter(m => m !== month));
     }
   };
-
   // Handle Indian tour selection
   const handleIndianTourChange = (tourName: string, checked: boolean) => {
     if (checked) {
@@ -855,133 +862,161 @@ const Tourdetails_indian = () => {
         <div className="flex flex-col lg:flex-row gap-6">
           
           {/* Filters Sidebar */}
-          <aside className="lg:w-80">
-            <div className="bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl shadow-lg p-6 border border-blue-200 sticky top-24">
-              <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
-                <h2 className="text-2xl font-bold text-[#2E4D98]">Indian Tours</h2>
-                <button 
-                  onClick={clearAllFilters}
-                  className="text-sm text-[#E53C42] hover:underline"
-                >
-                  Clear All
-                </button>
-              </div>
-
-              {/* Duration */}
-              <div className="mb-8">
-                <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Duration</h3>
-                <div className="flex justify-between text-sm text-gray-600 mb-3">
-                  <span>{durationRange[0]} days</span>
-                  <span>{durationRange[1]} days</span>
-                </div>
-                <Slider 
-                  value={durationRange} 
-                  onValueChange={setDurationRange}
-                  max={15} 
-                  step={1} 
-                  className="w-full" 
-                />
-              </div>
-
-              {/* Price */}
-              <div className="mb-8">
-                <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Price</h3>
-                <div className="flex justify-between text-sm text-gray-600 mb-3">
-                  <span>₹{priceRange[0].toLocaleString()}</span>
-                  <span>₹{priceRange[1].toLocaleString()}</span>
-                </div>
-                <Slider 
-                  value={priceRange} 
-                  onValueChange={setPriceRange}
-                  min={10000} 
-                  max={200000} 
-                  step={1000} 
-                />
-              </div>
-
-              {/* Indian Tours */}
-              <div className="mb-8">
-                <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
-                  <h2 className="text-2xl font-bold text-[#2E4D98]">Indian Tours</h2>
-                </div>
-                <div className={`${showMoreIndian ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
-                  {[
-                    'Andaman', 'Goa', 'Kerala', 'Himachal', 'Rajasthan', 'Kashmir',
-                    ...(showMoreIndian
-                      ? [     'Andhra Pradesh',
-          'Bihar',
-          'Chhattisgarh',
-          'Dadra & Nagar Haveli',
-          'Daman & Diu',
-          'Delhi',
-          'Gujarat',
-          'Haryana',
-          'Jharkhand',
-          'Karnataka',
-          'Ladakh',
-          'Lakshadweep',
-          'Madhya Pradesh',
-          'Maharashtra',
-          'North East',
-          'Odisha',
-          'Puducherry',
-          'Punjab & Haryana',
-          'Seven Sisters',
-          'Tamil Nadu',
-          'Uttar Pradesh',
-          'Uttarakhand',
-          'West Bengal']
-                      : [])
-                  ].map((place) => (
-                    <label key={place} className="flex items-center gap-3 cursor-pointer">
-                      <Checkbox 
-                        checked={selectedIndianTours.includes(place)}
-                        onCheckedChange={(checked) => handleIndianTourChange(place, checked as boolean)}
-                        className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]" 
-                      />
-                      <span className="text-gray-700">{place}</span>
-                    </label>
-                  ))}
-                </div>
-                <button
-                  onClick={() => setShowMoreIndian(!showMoreIndian)}
-                  className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
-                >
-                  {showMoreIndian ? "Show Less" : "Show More"}
-                </button>
-              </div>
-
-              {/* World Tours */}
-              <div>
-                <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
-                  <h2 className="text-2xl font-bold text-[#2E4D98]">World Tours</h2>
-                </div>
-                <div className={`${showMoreWorld ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
-                  {[
-                    'Dubai', 'Europe', 'Maldives', 'Mauritius', 'Thailand', 'Bali',
-                    ...(showMoreWorld
-                      ? ['Singapore', 'Vietnam', 'Turkey', 'Japan', 'South Korea', 'Australia']
-                      : [])
-                  ].map((place) => (
-                    <label key={place} className="flex items-center gap-3 cursor-pointer">
-                      <Checkbox 
-                        checked={selectedWorldTours.includes(place)}
-                        onCheckedChange={(checked) => handleWorldTourChange(place, checked as boolean)}
-                        className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]" 
-                      />
-                      <span className="text-gray-700">{place}</span>
-                    </label>
-                  ))}
-                </div>
-                <button
-                  onClick={() => setShowMoreWorld(!showMoreWorld)}
-                  className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
-                >
-                  {showMoreWorld ? "Show Less" : "Show More"}
-                </button>
-              </div>
-            </div>
-          </aside>
+     <aside className="lg:w-80">
+                   <div className="bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl shadow-lg p-6 border border-blue-200 sticky top-24">
+                     <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
+                       <h2 className="text-2xl font-bold text-[#2E4D98]">Duration And Price</h2>
+                       <button 
+                         onClick={clearAllFilters}
+                         className="text-sm text-[#E53C42] hover:underline"
+                       >
+                         Clear All
+                       </button>
+                     </div>
+       
+                     {/* Duration */}
+                     <div className="mb-8">
+                       <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Duration</h3>
+                       <div className="flex justify-between text-sm text-gray-600 mb-3">
+                         <span>{durationRange[0]} days</span>
+                         <span>{durationRange[1]} days</span>
+                       </div>
+                       <Slider 
+                         value={durationRange} 
+                         onValueChange={setDurationRange}
+                         max={15} 
+                         step={1} 
+                         className="w-full" 
+                       />
+                     </div>
+       
+                     {/* Price */}
+                     <div className="mb-8">
+                       <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Price</h3>
+                       <div className="flex justify-between text-sm text-gray-600 mb-3">
+                         <span>₹{priceRange[0].toLocaleString()}</span>
+                         <span>₹{priceRange[1].toLocaleString()}</span>
+                       </div>
+                       <Slider 
+                         value={priceRange} 
+                         onValueChange={setPriceRange}
+                         min={10000} 
+                         max={200000} 
+                         step={1000} 
+                       />
+                     </div>
+   
+                     <div className="mb-8">
+         <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Departure date</h3>
+         <div className="space-y-3">
+           {(showAllDepartureMonths ? ALL_DEPARTURE_MONTHS : ALL_DEPARTURE_MONTHS.slice(0, 5))
+             .map((month) => (
+               <label key={month} className="flex items-center gap-3 cursor-pointer">
+                 <Checkbox
+                   checked={selectedDepartureMonths.includes(month)}
+                   onCheckedChange={(checked) => handleDepartureMonthChange(month, checked as boolean)}
+                   className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
+                 />
+                 <span className="text-gray-700">{month}</span>
+               </label>
+             ))}
+         </div>
+         
+         {/* Show More/Less Button */}
+         {ALL_DEPARTURE_MONTHS.length > 5 && (
+           <button
+             onClick={() => setShowAllDepartureMonths(!showAllDepartureMonths)}
+             className="mt-4 text-[#2E4D98] font-medium hover:text-[#1E3A8A] transition-colors"
+           >
+             {showAllDepartureMonths ? 'Show Less' : 'Show More'}
+           </button>
+         )}
+       </div>
+       
+                     {/* Indian Tours */}
+                     <div className="mb-8">
+                       <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
+                         <h2 className="text-2xl font-bold text-[#2E4D98]">Indian Individual Tours
+   </h2>
+                       </div>
+                       <div className={`${showMoreIndian ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
+                         {[
+                           'Andaman', 'Goa', 'Kerala', 'Himachal', 'Rajasthan', 'Kashmir',
+                           ...(showMoreIndian
+                             ? [     'Andhra Pradesh',
+                 'Bihar',
+                 'Chhattisgarh',
+                 'Dadra & Nagar Haveli',
+                 'Daman & Diu',
+                 'Delhi',
+                 'Gujarat',
+                 'Haryana',
+                 'Jharkhand',
+                 'Karnataka',
+                 'Ladakh',
+                 'Lakshadweep',
+                 'Madhya Pradesh',
+                 'Maharashtra',
+                 'North East',
+                 'Odisha',
+                 'Puducherry',
+                 'Punjab & Haryana',
+                 'Seven Sisters',
+                 'Tamil Nadu',
+                 'Uttar Pradesh',
+                 'Uttarakhand',
+                 'West Bengal']
+                             : [])
+                         ].map((place) => (
+                           <label key={place} className="flex items-center gap-3 cursor-pointer">
+                             <Checkbox 
+                               checked={selectedIndianTours.includes(place)}
+                               onCheckedChange={(checked) => handleIndianTourChange(place, checked as boolean)}
+                               className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]" 
+                             />
+                             <span className="text-gray-700">{place}</span>
+                           </label>
+                         ))}
+                       </div>
+                       <button
+                         onClick={() => setShowMoreIndian(!showMoreIndian)}
+                         className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
+                       >
+                         {showMoreIndian ? "Show Less" : "Show More"}
+                       </button>
+                     </div>
+       
+                     {/* World Tours */}
+                     <div>
+                       <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
+                         <h2 className="text-2xl font-bold text-[#2E4D98]">International Individual Tours</h2>
+                       </div>
+                       <div className={`${showMoreWorld ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
+                         {[
+                           'Dubai', 'Europe', 'Maldives', 'Mauritius', 'Thailand', 'Bali',
+                           ...(showMoreWorld
+                             ? ['Singapore', 'Vietnam', 'Turkey', 'Japan', 'South Korea', 'Australia']
+                             : [])
+                         ].map((place) => (
+                           <label key={place} className="flex items-center gap-3 cursor-pointer">
+                             <Checkbox 
+                               checked={selectedWorldTours.includes(place)}
+                               onCheckedChange={(checked) => handleWorldTourChange(place, checked as boolean)}
+                               className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]" 
+                             />
+                             <span className="text-gray-700">{place}</span>
+                           </label>
+                         ))}
+                       </div>
+                       <button
+                         onClick={() => setShowMoreWorld(!showMoreWorld)}
+                         className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
+                       >
+                         {showMoreWorld ? "Show Less" : "Show More"}
+                       </button>
+                     </div>
+                   </div>
+                 </aside>
 
           {/* Main Content */}
           <main className="flex-1">
