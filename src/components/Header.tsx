@@ -1,5 +1,3 @@
-
-
 import {
   Ship, Compass, Phone, UserCircle, Home as HomeIcon, ChevronDown, Sparkles, Heart,
   GraduationCap, Car, Bus, Landmark, Umbrella, CalendarDays, Users, Shield, Star,
@@ -70,7 +68,7 @@ const Header = () => {
       icon: MapPin, label: "Indian Tours",
       dropdown: [
         { label: "Individual Tours", href: "#indian-individual", icon: Users, subDropdown: indianStates },
-        { label: "Group Tours", href: "/tours_indian", icon: UsersRound, subDropdown: indianStates },
+        { label: "Group Tours", href: "#indian-group", icon: UsersRound, subDropdown: indianStates },
      { label: "Ladies Special Tours", href: "/ladies", icon: Sparkles }, 
  { label: "Senior Citizen Tours", href: "/seniorcitizen", icon: Heart },
          { label: "Students Tours", href: "/students_tour", icon: GraduationCap },
@@ -110,7 +108,7 @@ const Header = () => {
         { label: "Weekend Gateways", href: "/Weekendcard", icon: CalendarDays },
       ],
     },
-    { icon: UsersRound, label: "About Us", href: "/about" }, // ✅ Fixed: Changed from "#about" to "/about"
+    { icon: UsersRound, label: "About Us", href: "/about" },
     { icon: Phone, label: "Contact Us", href: "/contact" },
   ];
 
@@ -236,24 +234,26 @@ const Header = () => {
                                       <tr key={rowIndex} className={rowIndex % 2 === 0 ? "bg-blue-50" : "bg-blue-100"}>
                                         {row.map((dest: string, colIndex: number) => {
                                           const isAndaman = dest === "Andaman";
-                                          const href = isAndaman
-                                            ? "/tours-packages"
-                                            : `#${item.label.toLowerCase().replace(/\s/g, "-")}-state-${dest.toLowerCase().replace(/\s+/g, "-")}`;
+                                          const isGroupTour = isGroup;
+                                          // Different routing for group tours
+                                          const href = isGroupTour
+                                            ? `/tours_groups/${encodeURIComponent(dest)}`
+                                            : `/tours-packages/${encodeURIComponent(dest)}`;
+                                          
                                           return (
-// In the Header component, find the table cell with state links and update the href:
-<td key={colIndex} className="w-1/3 px-2 py-2.5 whitespace-nowrap border-r border-gray-400">
-  <a
-    href={`/tours-packages/${encodeURIComponent(dest)}`} // FIXED: Proper routing
-    className={`block w-full text-sm font-medium text-left transition-colors ${isAndaman
-      ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white hover:from-cyan-600 hover:to-blue-700 shadow-lg"
-      : `hover:text-blue-600 ${rowIndex % 2 === 0 ? 'hover:bg-blue-100' : 'hover:bg-blue-200'}`
-    }`}
-    title={dest}
-  >
-    {dest}
-    {isAndaman && <Sparkles className="inline-block w-4 h-4 ml-1 animate-pulse" />}
-  </a>
-</td>
+                                            <td key={colIndex} className="w-1/3 px-2 py-2.5 whitespace-nowrap border-r border-gray-400">
+                                              <a
+                                                href={href}
+                                                className={`block w-full text-sm font-medium text-left transition-colors ${isAndaman
+                                                  ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white hover:from-cyan-600 hover:to-blue-700 shadow-lg"
+                                                  : `hover:text-blue-600 ${rowIndex % 2 === 0 ? 'hover:bg-blue-100' : 'hover:bg-blue-200'}`
+                                                }`}
+                                                title={dest}
+                                              >
+                                                {dest}
+                                                {isAndaman && <Sparkles className="inline-block w-4 h-4 ml-1 animate-pulse" />}
+                                              </a>
+                                            </td>
                                           );
                                         })}
                                         {row.length < 3 && [...Array(3 - row.length)].map((_, colIndex) => (
@@ -367,22 +367,25 @@ const Header = () => {
                                   </button>
                                   {mobileSubmenuOpen[sub.label] && (
                                     <ul className="bg-primary border-t border-blue-600">
-// Update the mobile navigation links:
-{sub.subDropdown.map((dest, j) => {
-  const isAndaman = dest === "Andaman";
-  const href = `/tours-packages/${encodeURIComponent(dest)}`; // FIXED: Proper routing
-  
-  return (
-    <li key={j}>
-      <a
-        href={href}
-        className={`block px-12 py-2 text-sm font-medium ${isAndaman ? "text-cyan-400 font-bold" : "text-gray-300"} hover:text-white`}
-      >
-        {dest} {isAndaman && "(Featured)"}
-      </a>
-    </li>
-  );
-})}                                </ul>
+                                      {sub.subDropdown.map((dest, j) => {
+                                        const isGroupTour = sub.label === "Group Tours";
+                                        const href = isGroupTour
+                                          ? `/tours_groups/${encodeURIComponent(dest)}`
+                                          : `/tours-packages/${encodeURIComponent(dest)}`;
+                                        const isAndaman = dest === "Andaman";
+                                        
+                                        return (
+                                          <li key={j}>
+                                            <a
+                                              href={href}
+                                              className={`block px-12 py-2 text-sm font-medium ${isAndaman ? "text-cyan-400 font-bold" : "text-gray-300"} hover:text-white`}
+                                            >
+                                              {dest} {isAndaman && "(Featured)"}
+                                            </a>
+                                          </li>
+                                        );
+                                      })}
+                                    </ul>
                                   )}
                                 </>
                               )}

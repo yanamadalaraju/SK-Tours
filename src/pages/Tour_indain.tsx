@@ -640,7 +640,7 @@ const Tour_indain = () => {
         size="sm"
         variant="outline"
         className="flex-1 border-[#2E4D98] text-[#2E4D98] hover:bg-[#2E4D98] hover:text-white"
-        onClick={() => navigate(`/tours_indian_packages/${tour.id}`)}
+        onClick={() => navigate(`/tours_groups/${tour.id}`)}
       >
         View Tour
       </Button>

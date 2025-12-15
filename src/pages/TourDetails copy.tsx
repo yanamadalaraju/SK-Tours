@@ -21,8 +21,6 @@ interface DayCardProps {
   };
 }
 
-
-
 const DayCard = ({ dayNumber, headerColor, bodyColor, dayData }: DayCardProps) => {
   const [meals, setMeals] = useState({ B: false, L: false, D: false });
 
@@ -39,7 +37,7 @@ const DayCard = ({ dayNumber, headerColor, bodyColor, dayData }: DayCardProps) =
   }, [dayData?.meals]);
 
   return (
-    <div className="rounded-lg">
+    <div className="rounded-lg"> 
       {/* Header Row */}
       <div className="flex gap-1 mb-1">
         {/* Day Number - Fixed width */}
@@ -134,11 +132,10 @@ const DayCard = ({ dayNumber, headerColor, bodyColor, dayData }: DayCardProps) =
       {/* Content Area - Scrollable with justified text */}
       <div className={`${bodyColor} rounded-lg border border-black overflow-hidden`}>
         <div 
-          className="p-2 text-gray-800 whitespace-pre-line text-justify"
+          className="p-2 text-gray-800 whitespace-pre-line overflow-y-auto text-justify"
           style={{ 
-            height: '150px', // Fixed height
-            overflowY: 'auto',
-            scrollbarWidth: 'thin', // Firefox
+            minHeight: '120px', 
+            maxHeight: '120px' 
           }}
         >
           {dayData?.description || ""}
@@ -965,30 +962,31 @@ const TourDetails = () => {
 
             <div className="bg-[#2E4D98] rounded-xl shadow-sm p-6">
               {/* Itinerary Tab */}
-{activeTab === "itinerary" && (
-  <div className="bg-[#C2E2FA] rounded-lg p-1 h-full">
-    <div className="mx-auto bg-white rounded-lg shadow-lg h-full flex flex-col min-h-0">
-      <div className="bg-red-600 text-white text-center font-bold text-2xl py-2 rounded-t-lg flex-shrink-0">
-        Tour Itinerary
-      </div>
-      <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg flex-1 min-h-0">
-        <div className="bg-[#FFEBEE] h-full overflow-hidden">
-          <div className="space-y-1 p-1 h-full overflow-y-auto">
-            {tour.itinerary.slice(0, Math.min(tour.itinerary.length, 5)).map((day: any, index: number) => (
-              <DayCard 
-                key={index}
-                dayNumber={day.day}
-                headerColor={dayCardColors[index]?.headerColor || "bg-[#A72703]"}
-                bodyColor={dayCardColors[index]?.bodyColor || "bg-[#FFE797]"}
-                dayData={day}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-)}
+              {activeTab === "itinerary" && (
+                <div className="bg-[#C2E2FA] rounded-lg p-1 max-h-[calc(100vh-250px)] overflow-y-auto">
+                  <div className="mx-auto bg-white rounded-lg shadow-lg">
+                    <div className="bg-red-600 text-white text-center font-bold text-2xl py-2 rounded-t-lg">
+                      Tour Itinerary
+                    </div>
+                    <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg">
+                      <div className="bg-[#FFEBEE]">
+                        <div className="space-y-1 p-1">
+                          {tour.itinerary.slice(0, Math.min(tour.itinerary.length, 5)).map((day: any, index: number) => (
+                            <DayCard 
+                              key={index}
+                              dayNumber={day.day}
+                              headerColor={dayCardColors[index]?.headerColor || "bg-[#A72703]"}
+                              bodyColor={dayCardColors[index]?.bodyColor || "bg-[#FFE797]"}
+                              dayData={day}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Dep Date Tab - Different for Group vs Individual */}
               {activeTab === "dep-date" && (
                 tour.departures.type === 'Group' ? (

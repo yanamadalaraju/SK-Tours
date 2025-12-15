@@ -29,7 +29,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/home" element={<Home />} />
-<Route path="/tours-packages/:state?" element={<TourPackages />} />
+<Route path="/tours-packages/:state" element={<TourPackages />} />
           <Route path="/about" element={<AboutPage />} />
 <Route path="/tour/:tourId" element={<TourDetails />} />
           <Route path="/ladies"  element={<Ladiesspecial_tour />} />
@@ -41,7 +41,7 @@ const App = () => (
           <Route path="*" element={<NotFound />} />
 
           <Route path="/tours_indian" element={<Tour_indain />} />
-          <Route path="/tours_indian_packages/:tourId" element={<Tourdetails_indian />} />
+          <Route path="/tours_groups/:state" element={<Tourdetails_indian />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
