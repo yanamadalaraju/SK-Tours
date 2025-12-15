@@ -1505,7 +1505,7 @@ const TourDetails = () => {
               {activeTab === "flights-&-hotels" && (
                 <div className="bg-[#E8F0FF] rounded-lg p-0.2 w-full overflow-x-hidden">
                   {/* Flights Section */}
-                  <div className="bg-[#FFEBEE] rounded-lg p-1 mb-1 w-full">
+                  <div className="bg-[#E8F0FF] rounded-lg p-1 mb-1 w-full">
                     <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
                       Flights / Train or Transport Details
                     </div>
@@ -1605,7 +1605,7 @@ const TourDetails = () => {
                             
                             {/* ===== DESCRIPTION AREA FOR GROUP TOURS ===== */}
                             {tour.airlines.tableData && tour.airlines.tableData.some((flight: any) => flight.description) && (
-                              <div className="mt-4 p-4 bg-[#E8F0FF]  border border-gray-200 rounded-lg">
+                              <div className="mt-4 p-4 bg-white border border-gray-200 rounded-lg">
                                 <h4 className="font-bold text-lg mb-3 text-center text-red-600">Additional Information</h4>
                                 <div className="space-y-4">
                                   {tour.airlines.tableData.map((flight: any, index: number) => (
@@ -1629,11 +1629,12 @@ const TourDetails = () => {
                             {tour.airlines.tableData && tour.airlines.tableData.length > 0 ? (
                               <div className="space-y-4 w-full">
                                 {tour.airlines.tableData.map((flight: any, index: number) => (
-                                  <div key={index} className="border border-gray-200 rounded-lg p-1 bg-white w-full overflow-hidden shadow-sm">
+                                  <div key={index} className="border border-gray-200 rounded-lg p-4 bg-white w-full overflow-hidden shadow-sm">
                                     
                                     {flight.description && (
-                                      <div className="  border-gray-300">
-                                        <p className="text-gray-600 bg-gray-50 p-2 rounded whitespace-pre-wrap">
+                                      <div className="mt-3 pt-3 border-t border-gray-300">
+                                        <p className="font-semibold text-gray-700 mb-2">Additional Information:</p>
+                                        <p className="text-gray-600 bg-gray-50 p-3 rounded whitespace-pre-wrap">
                                           {flight.description}
                                         </p>
                                       </div>
