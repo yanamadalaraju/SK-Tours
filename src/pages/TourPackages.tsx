@@ -6,6 +6,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
+import { BASE_URL } from '@/ApiUrls';
 
 const stateHeroImages = {
   "Andaman": "https://i.pinimg.com/1200x/67/10/27/671027210a396e38b27e5d0432bd18db.jpg",
@@ -99,7 +100,7 @@ const TourPackages = () => {
     const fetchTours = async () => {
       try {
         console.log("Fetching tours from API...");
-        const res = await fetch("http://localhost:5000/api/tours");
+        const res = await fetch(`${BASE_URL}/api/tours`);
         const data = await res.json();
         console.log("Fetched tours:", data);
         console.log("Total tours count:", data.length);
@@ -125,7 +126,7 @@ const TourPackages = () => {
           allTours.map(async (tour) => {
             try {
               const res = await fetch(
-                `http://localhost:5000/api/tours/tour/full/individual/${tour.tour_id}`
+                `${BASE_URL}/api/tours/tour/full/individual/${tour.tour_id}`
               );
               const data = await res.json();
 

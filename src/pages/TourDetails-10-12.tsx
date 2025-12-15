@@ -8,6 +8,7 @@ import { ChevronLeft, ChevronRight, Check, X } from 'lucide-react';
 import Header from '@/components/Header';
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
+import { BASE_URL } from '@/ApiUrls';
 
 // DayCard Component
 interface DayCardProps {
@@ -121,8 +122,6 @@ const TourDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // API URL
-  const API_URL = 'http://localhost:5000/api/tours/tour/full';
 
   // Format price with Indian Rupee symbol
   const formatPrice = (price: string | number) => {
@@ -424,7 +423,7 @@ const TourDetails = () => {
       setError(null);
       
       // Use the new API endpoint
-      const response = await fetch(`${API_URL}/${tourId}`);
+      const response = await fetch(`${BASE_URL}/api/tours/tour/full/${tourId}`);
       
       if (!response.ok) {
         throw new Error(`Failed to fetch tour details: ${response.status}`);

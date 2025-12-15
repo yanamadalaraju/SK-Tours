@@ -8,6 +8,7 @@ import { ChevronLeft, ChevronRight, Check, X } from 'lucide-react';
 import Header from '@/components/Header';
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
+import { BASE_URL } from '@/ApiUrls';
 
 // DayCard Component
 interface DayCardProps {
@@ -169,9 +170,6 @@ const TourDetails = () => {
   // Departure date states for Group tours
   const [selectedMonth, setSelectedMonth] = useState("ALL");
   const [openIndex, setOpenIndex] = useState<number | null>(null);
-
-  // Base API URL
-  const API_BASE_URL = 'http://localhost:5000/api/tours/tour/full';
 
   // Format price with Indian Rupee symbol
   const formatPrice = (price: string | number) => {
@@ -540,11 +538,11 @@ const TourDetails = () => {
       setError(null);
       
       // First try to fetch as Individual tour
-      let response = await fetch(`${API_BASE_URL}/individual/${tourId}`);
+      let response = await fetch(`${BASE_URL}/api/tours/tour/full/individual/${tourId}`);
       
       if (!response.ok) {
         // If not found as Individual, try as Group
-        response = await fetch(`${API_BASE_URL}/group/${tourId}`);
+          response = await fetch(`${BASE_URL}/api/tours/tour/full/group/${tourId}`);
         
         if (!response.ok) {
           throw new Error(`Failed to fetch tour details: ${response.status}`);
