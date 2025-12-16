@@ -987,7 +987,7 @@ const TourDetails = () => {
       <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg flex-1 min-h-0">
         <div className="bg-[#FFEBEE] h-full overflow-hidden">
           <div className="space-y-1 p-1 h-full overflow-y-auto">
-            {tour.itinerary.slice(0, Math.min(tour.itinerary.length, 5)).map((day: any, index: number) => (
+            {tour.itinerary.slice(0, Math.min(tour.itinerary.length, 100)).map((day: any, index: number) => (
               <DayCard 
                 key={index}
                 dayNumber={day.day}
@@ -1767,7 +1767,7 @@ const TourDetails = () => {
                                       ? "Aadhaar Card" 
                                       : amount === "Pan Card" || amount === "pan card"
                                       ? "Pan Card"
-                                      : `₹${parseInt(amount || '0').toLocaleString('en-IN')}`}
+                                      : `₹${parseInt(amount.replace(/[^0-9]/g, '') || '0').toLocaleString('en-IN')}`}
                                   </span>
                                 </div>
                               </div>
