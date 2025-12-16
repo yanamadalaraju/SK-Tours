@@ -172,6 +172,9 @@ const TourDetails = () => {
   const [selectedMonth, setSelectedMonth] = useState("ALL");
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
+  const [selectedCostMonth, setSelectedCostMonth] = useState("");
+const [selectedCostDate, setSelectedCostDate] = useState("");
+
   // State for Group Tour Cost table
   const [groupTourCost, setGroupTourCost] = useState({
     month: "January",
@@ -661,6 +664,29 @@ const TourDetails = () => {
         ? tour.departures.data 
         : tour.departures.data.filter((d: any) => d.month === selectedMonth))
     : [];
+
+    // Build Month → Departures map
+const departuresByMonth = React.useMemo(() => {
+  const map = {};
+  filteredDepartureData.forEach(dep => {
+    if (!map[dep.month]) map[dep.month] = [];
+    map[dep.month].push(dep);
+  });
+  return map;
+}, [filteredDepartureData]);
+
+const availableMonths = Object.keys(departuresByMonth);
+
+// Dates for selected month
+const availableDates =
+  selectedCostMonth && departuresByMonth[selectedCostMonth]
+    ? departuresByMonth[selectedCostMonth]
+    : [];
+
+// Selected departure (used for table)
+const selectedDeparture = availableDates.find(
+  d => d.fromDate === selectedCostDate
+);
 
   // Loading state
   if (loading) {
@@ -1158,55 +1184,59 @@ const TourDetails = () => {
       {tourType === 'Group' && (
         <div className="mb-4">
           {/* Month and Date Selection */}
-          <div className="bg-[#FFE797] p-4 mb-4 border-2 border-black rounded-lg">
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div>
-                <label className="block text-gray-700 font-bold mb-2">Month</label>
-                <select 
-                  className="w-full border-2 border-black rounded-md px-3 py-2 bg-white"
-                  value={groupTourCost.month}
-                  onChange={(e) => setGroupTourCost({...groupTourCost, month: e.target.value})}
-                >
-                  <option>January</option>
-                  <option>February</option>
-                  <option>March</option>
-                  <option>April</option>
-                  <option>May</option>
-                  <option>June</option>
-                  <option>July</option>
-                  <option>August</option>
-                  <option>September</option>
-                  <option>October</option>
-                  <option>November</option>
-                  <option>December</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-gray-700 font-bold mb-2">Date</label>
-                <select 
-                  className="w-full border-2 border-black rounded-md px-3 py-2 bg-white"
-                  value={groupTourCost.date}
-                  onChange={(e) => setGroupTourCost({...groupTourCost, date: e.target.value})}
-                >
-                  <option>Date 1</option>
-                  <option>Date 2</option>
-                  <option>Date 3</option>
-                  <option>Date 4</option>
-                </select>
-              </div>
-            </div>
+          <div className="p-4 mb-4 border-2 border-black rounded-lg">
+           <div className="grid grid-cols-2 gap-4 mb-4">
+  {/* MONTH */}
+  <div>
+    <label className="block text-gray-700 font-bold mb-2">Month</label>
+    <select
+      className="w-full border-2 border-black rounded-md px-3 py-2 bg-white"
+      value={selectedCostMonth}
+      onChange={(e) => {
+        setSelectedCostMonth(e.target.value);
+        setSelectedCostDate(""); // reset date
+      }}
+    >
+      <option value="">Select Month</option>
+      {availableMonths.map(month => (
+        <option key={month} value={month}>
+          {month}
+        </option>
+      ))}
+    </select>
+  </div>
+
+  {/* DATE */}
+  <div>
+    <label className="block text-gray-700 font-bold mb-2">Date</label>
+    <select
+      className="w-full border-2 border-black rounded-md px-3 py-2 bg-white"
+      value={selectedCostDate}
+      onChange={(e) => setSelectedCostDate(e.target.value)}
+      disabled={!selectedCostMonth}
+    >
+      <option value="">Select Date</option>
+      {availableDates.map(dep => (
+        <option key={dep.id} value={dep.fromDate}>
+          {dep.fromDate} – {dep.toDate}
+        </option>
+      ))}
+    </select>
+  </div>
+</div>
+
             
             {/* Tour Cost Table for Group Tours */}
             {/* NOTE: You need to get the data from departure dates based on selection */}
             {/* For now, showing placeholder or first departure's data */}
-            {filteredDepartureData.length > 0 ? (
+            {selectedDeparture? (
               <div className="border-2 border-black overflow-hidden animate-fadeIn">
                 {/* HEADER */}
                 <div className="grid grid-cols-4 bg-[#0A1D4A] text-white font-semibold text-center">
-                  <div className="p-2 border-r-2 border-white">Particulars - Tour Cost</div>
-                  <div className="p-2 border-r-2 border-white">3 Star</div>
-                  <div className="p-2 border-r-2 border-white">4 Star</div>
-                  <div className="p-2">5 Star</div>
+                  <div className="p-2 border-r-2 border-white">Particulars</div>
+                  <div className="p-2 border-r-2 border-white">Gross Rate</div>
+                  <div className="p-2 border-r-2 border-white">Part Payment Discount</div>
+                  <div className="p-2">Full Payment Discount</div>
                 </div>
 
                 {/* ROWS - Using first departure data */}
