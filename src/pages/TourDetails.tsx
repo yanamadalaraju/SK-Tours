@@ -568,6 +568,16 @@ const [selectedCostDate, setSelectedCostDate] = useState("");
       };
     };
 
+
+      // ADD THIS NEW FUNCTION to process additional remarks
+  const processAdditionalRemarks = (basicDetails: any) => {
+    const remarks = [];
+    if (basicDetails.emi_remarks) remarks.push(basicDetails.emi_remarks);
+    if (basicDetails.booking_poi_remarks) remarks.push(basicDetails.booking_poi_remarks);
+    if (basicDetails.cancellation_remarks) remarks.push(basicDetails.cancellation_remarks);
+    return remarks;
+  };
+
     return {
       // Basic info
       title: basic_details.title,
@@ -594,7 +604,17 @@ const [selectedCostDate, setSelectedCostDate] = useState("");
       booking: processBooking(booking_poi),
       cancellation: processCancellation(cancellation_policies),
       instructions: instructions || [],
-      tourType: tour_type || 'Individual'
+      tourType: tour_type || 'Individual',
+
+       // ADD THIS: Additional remarks from basic_details
+    additionalRemarks: processAdditionalRemarks(basic_details),
+
+       // ADD THESE: Individual remarks for specific sections
+    bookingRemarks: basic_details.booking_poi_remarks ? [basic_details.booking_poi_remarks] : [],
+    cancellationRemarks: basic_details.cancellation_remarks ? [basic_details.cancellation_remarks] : [],
+    emiRemarks: basic_details.emi_remarks ? [basic_details.emi_remarks] : []
+
+      
     };
   };
 
@@ -1221,6 +1241,7 @@ const selectedDeparture = availableDates.find(
 
               {/* Tour Cost Tab */}
               {/* Tour Cost Tab */}
+{/* Tour Cost Tab */}
 {activeTab === "tour-cost" && (
   <div className="bg-[#E8F0FF] rounded-lg p-1">
     <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg mb-1.5">
@@ -1229,55 +1250,52 @@ const selectedDeparture = availableDates.find(
     
     <div className="border rounded-b-lg rounded-t overflow-hidden -mt-1">
       {/* Group Tour Cost Section - Show only for Group tours */}
-      {tourType === 'Group' && (
+      {tourType === 'Group' ? (
         <div className="mb-4">
           {/* Month and Date Selection */}
           <div className="p-4 mb-4 border-2 border-black rounded-lg">
-           <div className="grid grid-cols-2 gap-4 mb-4">
-  {/* MONTH */}
-  <div>
-    <label className="block text-gray-700 font-bold mb-2">Month</label>
-    <select
-      className="w-full border-2 border-black rounded-md px-3 py-2 bg-white"
-      value={selectedCostMonth}
-      onChange={(e) => {
-        setSelectedCostMonth(e.target.value);
-        setSelectedCostDate(""); // reset date
-      }}
-    >
-      <option value="">Select Month</option>
-      {availableMonths.map(month => (
-        <option key={month} value={month}>
-          {month}
-        </option>
-      ))}
-    </select>
-  </div>
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              {/* MONTH */}
+              <div>
+                <label className="block text-gray-700 font-bold mb-2">Month</label>
+                <select
+                  className="w-full border-2 border-black rounded-md px-3 py-2 bg-white"
+                  value={selectedCostMonth}
+                  onChange={(e) => {
+                    setSelectedCostMonth(e.target.value);
+                    setSelectedCostDate(""); // reset date
+                  }}
+                >
+                  <option value="">Select Month</option>
+                  {availableMonths.map(month => (
+                    <option key={month} value={month}>
+                      {month}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-  {/* DATE */}
-  <div>
-    <label className="block text-gray-700 font-bold mb-2">Date</label>
-    <select
-      className="w-full border-2 border-black rounded-md px-3 py-2 bg-white"
-      value={selectedCostDate}
-      onChange={(e) => setSelectedCostDate(e.target.value)}
-      disabled={!selectedCostMonth}
-    >
-      <option value="">Select Date</option>
-      {availableDates.map(dep => (
-        <option key={dep.id} value={dep.fromDate}>
-          {dep.fromDate} – {dep.toDate}
-        </option>
-      ))}
-    </select>
-  </div>
-</div>
-
+              {/* DATE */}
+              <div>
+                <label className="block text-gray-700 font-bold mb-2">Date</label>
+                <select
+                  className="w-full border-2 border-black rounded-md px-3 py-2 bg-white"
+                  value={selectedCostDate}
+                  onChange={(e) => setSelectedCostDate(e.target.value)}
+                  disabled={!selectedCostMonth}
+                >
+                  <option value="">Select Date</option>
+                  {availableDates.map(dep => (
+                    <option key={dep.id} value={dep.fromDate}>
+                      {dep.fromDate} – {dep.toDate}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
             
             {/* Tour Cost Table for Group Tours */}
-            {/* NOTE: You need to get the data from departure dates based on selection */}
-            {/* For now, showing placeholder or first departure's data */}
-            {selectedDeparture? (
+            {selectedDeparture ? (
               <div className="border-2 border-black overflow-hidden animate-fadeIn">
                 {/* HEADER */}
                 <div className="grid grid-cols-4 bg-[#0A1D4A] text-white font-semibold text-center">
@@ -1287,37 +1305,43 @@ const selectedDeparture = availableDates.find(
                   <div className="p-2">Full Payment Discount</div>
                 </div>
 
-                {/* ROWS - Using first departure data */}
+                {/* ROWS */}
                 {[
-                  { particular: "Per pax on Twin Basis", 
-                    star3: filteredDepartureData[0].threeStar.twin, 
-                    star4: filteredDepartureData[0].fourStar.twin, 
-                    star5: filteredDepartureData[0].fiveStar.twin 
+                  { 
+                    particular: "Per pax on Twin Basis", 
+                    star3: selectedDeparture.threeStar.twin, 
+                    star4: selectedDeparture.fourStar.twin, 
+                    star5: selectedDeparture.fiveStar.twin 
                   },
-                  { particular: "Per pax on Triple Basis", 
-                    star3: filteredDepartureData[0].threeStar.triple, 
-                    star4: filteredDepartureData[0].fourStar.triple, 
-                    star5: filteredDepartureData[0].fiveStar.triple 
+                  { 
+                    particular: "Per pax on Triple Basis", 
+                    star3: selectedDeparture.threeStar.triple, 
+                    star4: selectedDeparture.fourStar.triple, 
+                    star5: selectedDeparture.fiveStar.triple 
                   },
-                  { particular: "Child with Bed", 
-                    star3: filteredDepartureData[0].threeStar.childWithBed, 
-                    star4: filteredDepartureData[0].fourStar.childWithBed, 
-                    star5: filteredDepartureData[0].fiveStar.childWithBed 
+                  { 
+                    particular: "Child with Bed", 
+                    star3: selectedDeparture.threeStar.childWithBed, 
+                    star4: selectedDeparture.fourStar.childWithBed, 
+                    star5: selectedDeparture.fiveStar.childWithBed 
                   },
-                  { particular: "Child without Bed", 
-                    star3: filteredDepartureData[0].threeStar.childWithoutBed, 
-                    star4: filteredDepartureData[0].fourStar.childWithoutBed, 
-                    star5: filteredDepartureData[0].fiveStar.childWithoutBed 
+                  { 
+                    particular: "Child without Bed", 
+                    star3: selectedDeparture.threeStar.childWithoutBed, 
+                    star4: selectedDeparture.fourStar.childWithoutBed, 
+                    star5: selectedDeparture.fiveStar.childWithoutBed 
                   },
-                  { particular: "Infant", 
-                    star3: filteredDepartureData[0].threeStar.infant, 
-                    star4: filteredDepartureData[0].fourStar.infant, 
-                    star5: filteredDepartureData[0].fiveStar.infant 
+                  { 
+                    particular: "Infant", 
+                    star3: selectedDeparture.threeStar.infant, 
+                    star4: selectedDeparture.fourStar.infant, 
+                    star5: selectedDeparture.fiveStar.infant 
                   },
-                  { particular: "Per pax Single Occupancy", 
-                    star3: filteredDepartureData[0].threeStar.single, 
-                    star4: filteredDepartureData[0].fourStar.single, 
-                    star5: filteredDepartureData[0].fiveStar.single 
+                  { 
+                    particular: "Per pax Single Occupancy", 
+                    star3: selectedDeparture.threeStar.single, 
+                    star4: selectedDeparture.fourStar.single, 
+                    star5: selectedDeparture.fiveStar.single 
                   },
                 ].map((row, i) => (
                   <div
@@ -1343,80 +1367,80 @@ const selectedDeparture = availableDates.find(
               </div>
             ) : (
               <div className="text-center p-4 border-2 border-dashed border-gray-300 rounded-lg">
-                <p className="text-gray-500">No departure data available for selected filters</p>
-                <p className="text-gray-400 text-sm mt-2">Please select a departure date from the "Dep Date" tab first</p>
+                <p className="text-gray-500">Please select a month and date to view tour cost</p>
+                <p className="text-gray-400 text-sm mt-2">Departure dates are available in the "Dep Date" tab</p>
               </div>
             )}
           </div>
         </div>
+      ) : (
+        // Individual Tour Cost Section - Show Passenger Table
+        <div>
+          {/* Passenger Table - ONLY for Individual tours */}
+          <div className="overflow-x-auto border shadow-sm">
+            <table className="w-full border-collapse table-fixed">
+              <thead>
+                <tr className="bg-[#2E4D98]">
+                  <th className="border border-white px-4 py-3 text-center font-semibold text-white text-base h-12 w-1/6">
+                    Passenger
+                  </th>
+                  <th className="border border-white px-4 py-3 text-center font-semibold text-white text-base h-12 w-1/6">
+                    Standard Hotel
+                  </th>
+                  <th className="border border-white px-4 py-3 text-center font-semibold text-white text-base h-12 w-1/6">
+                    Deluxe Hotel
+                  </th>
+                  <th className="border border-white px-4 py-3 text-center font-semibold text-white text-base h-12 w-1/6">
+                    Executive Hotel
+                  </th>
+                  <th className="border border-white px-4 py-3 text-center font-semibold text-white text-base h-12 w-1/6">
+                    Child With Bed
+                  </th>
+                  <th className="border border-white px-4 py-3 text-center font-semibold text-white text-base h-12 w-1/6">
+                    Child No Bed
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {tour.tourCost.tableData.length > 0 ? (
+                  tour.tourCost.tableData.map((row: any, index: number) => (
+                    <tr key={index} className={index % 2 === 0 ? 'bg-[#FFEBEE]' : 'bg-[#FFEBEE]/80'}>
+                      <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center font-medium text-gray-700 text-base h-12 w-1/6">
+                        {row.passenger}
+                      </td>
+                      <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-gray-600 text-base h-12 w-1/6">
+                        {row.standard}
+                      </td>
+                      <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-green-600 font-semibold text-base h-12 w-1/6">
+                        {row.deluxe}
+                      </td>
+                      <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-gray-600 text-base h-12 w-1/6">
+                        {row.executive}
+                      </td>
+                      <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-blue-600 font-medium text-base h-12 w-1/6">
+                        {row.childWithBed}
+                      </td>
+                      <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-purple-600 font-medium text-base h-12 w-1/6">
+                        {row.childNoBed}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr className="bg-[#FFEBEE]">
+                    <td colSpan={6} className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-gray-500">
+                      No cost information available
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
       )}
 
-      {/* Rest of your existing Tour Cost Tab code remains the same... */}
-      {/* Passenger Table */}
-      <div className="overflow-x-auto border shadow-sm">
-        <table className="w-full border-collapse table-fixed">
-          <thead>
-            <tr className="bg-[#2E4D98]">
-              <th className="border border-white px-4 py-3 text-center font-semibold text-white text-base h-12 w-1/6">
-                Passenger
-              </th>
-              <th className="border border-white px-4 py-3 text-center font-semibold text-white text-base h-12 w-1/6">
-                Standard Hotel
-              </th>
-              <th className="border border-white px-4 py-3 text-center font-semibold text-white text-base h-12 w-1/6">
-                Deluxe Hotel
-              </th>
-              <th className="border border-white px-4 py-3 text-center font-semibold text-white text-base h-12 w-1/6">
-                Executive Hotel
-              </th>
-              <th className="border border-white px-4 py-3 text-center font-semibold text-white text-base h-12 w-1/6">
-                Child With Bed
-              </th>
-              <th className="border border-white px-4 py-3 text-center font-semibold text-white text-base h-12 w-1/6">
-                Child No Bed
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {tour.tourCost.tableData.length > 0 ? (
-              tour.tourCost.tableData.map((row: any, index: number) => (
-                <tr key={index} className={index % 2 === 0 ? 'bg-[#FFEBEE]' : 'bg-[#FFEBEE]/80'}>
-                  <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center font-medium text-gray-700 text-base h-12 w-1/6">
-                    {row.passenger}
-                  </td>
-                  <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-gray-600 text-base h-12 w-1/6">
-                    {row.standard}
-                  </td>
-                  <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-green-600 font-semibold text-base h-12 w-1/6">
-                    {row.deluxe}
-                  </td>
-                  <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-gray-600 text-base h-12 w-1/6">
-                    {row.executive}
-                  </td>
-                  <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-blue-600 font-medium text-base h-12 w-1/6">
-                    {row.childWithBed}
-                  </td>
-                  <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-purple-600 font-medium text-base h-12 w-1/6">
-                    {row.childNoBed}
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr className="bg-[#FFEBEE]">
-                <td colSpan={6} className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-gray-500">
-                  {tourType === 'Group' 
-                    ? 'Cost details available in departure dates section'
-                    : 'No cost information available'}
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Optional Tour Section (only if has data) */}
+      {/* Optional Tour Section (show for both types if has data) */}
       {tour.optionalTours && tour.optionalTours.length > 0 && (
-        <div className='mb-1 mt-1'>
+        <div className='mb-1 mt-4'>
           <div className="bg-red-600 text-white text-center font-bold text-xl rounded-t-lg py-3 mb-1">
             Optional Tour
           </div>
@@ -1449,9 +1473,9 @@ const selectedDeparture = availableDates.find(
         </div>
       )}
 
-      {/* EMI Options Section (only if has data) */}
+      {/* EMI Options Section (show for both types if has data) */}
       {tour.emiOptions && tour.emiOptions.options && tour.emiOptions.options.length > 0 && (
-        <div className='mb-1 mt-1'>
+        <div className='mb-1 mt-4'>
           <div className="bg-red-600 text-white text-center font-bold text-xl rounded-t-lg py-3 mb-1">
             EMI Options
           </div>
@@ -1496,59 +1520,59 @@ const selectedDeparture = availableDates.find(
         </div>
       )}
 
-<div className="flex gap-1 mt-1 w-full">
-  {/* Tour Cost Remarks - Always show */}
-  <div className="bg-[#E8F0FF] rounded-lg w-1/2 overflow-x-hidden">
-    <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
-      Tour Cost Remarks
-    </div>
-    <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-      <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-        {tour.tourCost.remarks && tour.tourCost.remarks.length > 0 ? (
-          <ul className="space-y-2 w-full">
-            {tour.tourCost.remarks.map((remark: string, index: number) => (
-              <li key={index} className="flex items-start gap-2 w-full">
-                <span className="text-gray-700 whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
-                  {remark}
-                </span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <div className="flex items-center justify-center h-full">
-            <span className="text-gray-500 italic">No remarks available</span>
+      <div className="flex gap-1 mt-4 w-full">
+        {/* Tour Cost Remarks */}
+        <div className="bg-[#E8F0FF] rounded-lg w-1/2 overflow-x-hidden">
+          <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
+            Tour Cost Remarks
           </div>
-        )}
-      </div>
-    </div>
-  </div>
+          <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
+            <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+              {tour.tourCost.remarks && tour.tourCost.remarks.length > 0 ? (
+                <ul className="space-y-2 w-full">
+                  {tour.tourCost.remarks.map((remark: string, index: number) => (
+                    <li key={index} className="flex items-start gap-2 w-full">
+                      <span className="text-gray-700 whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
+                        {remark}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <span className="text-gray-500 italic">No remarks available</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
 
-  {/* Additional Remarks - Always show */}
-  <div className="bg-[#E8F0FF] rounded-lg w-1/2 overflow-x-hidden">
-    <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
-      Tour Cost EMI
-    </div>
-    <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-      <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-        {tour.additionalRemarks && tour.additionalRemarks.length > 0 ? (
-          <ul className="space-y-2 w-full">
-            {tour.additionalRemarks.map((remark: string, index: number) => (
-              <li key={index} className="flex items-start gap-2 w-full">
-                <span className="text-gray-700 whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
-                  {remark}
-                </span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <div className="flex items-center justify-center h-full">
-            <span className="text-gray-500 italic">No remarks available</span>
+        {/* Additional Remarks */}
+        <div className="bg-[#E8F0FF] rounded-lg w-1/2 overflow-x-hidden">
+          <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
+            Tour Cost EMI
           </div>
-        )}
+          <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
+            <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+              {tour.additionalRemarks && tour.additionalRemarks.length > 0 ? (
+                <ul className="space-y-2 w-full">
+                  {tour.additionalRemarks.map((remark: string, index: number) => (
+                    <li key={index} className="flex items-start gap-2 w-full">
+                      <span className="text-gray-700 whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
+                        {remark}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <span className="text-gray-500 italic">No remarks available</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
-</div>
     </div>
   </div>
 )}
@@ -1852,166 +1876,171 @@ const selectedDeparture = availableDates.find(
               )}
 
               {/* Bookings POI Tab */}
-              {activeTab === "bookings-poi" && (
-                <div className="bg-[#E8F0FF] rounded-lg p-1">
-                  <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg mb-1">
-                    Booking Policy
-                  </div>
-                    
-                  <div className="flex flex-col lg:flex-row gap-1 mt-1 h-[320px]">
-                    {/* Left Card - Booking Policy - 80% width */}
-                    <div className="h-full w-full lg:w-4/5 flex flex-col">
-                      <div className="bg-[#2E4D98] text-white text-center py-3 rounded-t-lg">
-                        <h3 className="text-xl font-bold">Booking Policy</h3>
-                      </div>
-                      <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-white overflow-hidden">
-                        <div className="h-full overflow-y-auto">
-                          <div className="p-1 space-y-1">
-                            {tour.booking.items.map((item: string, index: number) => (
-                              <div key={index} className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg border border-blue-300">
-                                <span className="text-gray-700 text-sm whitespace-normal text-justify w-full">
-                                  {item}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Right Card - Amount Details - 20% width */}
-                    <div className="h-full w-full lg:w-1/5 flex flex-col">
-                      <div className="bg-[#2E4D98] text-white text-center py-3 rounded-t-lg">
-                        <h3 className="text-xl font-bold">Amount Details</h3>
-                      </div>
-                      <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-white overflow-hidden">
-                        <div className="h-full overflow-y-auto">
-                          <div className="p-1 grid gap-1">
-                            {tour.booking.amountDetails.map((amount: string, index: number) => (
-                              <div key={index} className="flex items-center justify-center p-3 bg-white rounded-lg border border-blue-300">
-                                <div className="text-center w-full">
-                                  <span className="text-sm font-bold text-green-600">
-                                    {amount === "Aadhaar Card" || amount === "aadhaar card" 
-                                      ? "Aadhaar Card" 
-                                      : amount === "Pan Card" || amount === "pan card"
-                                      ? "Pan Card"
-                                      : `₹${parseInt(amount.replace(/[^0-9]/g, '') || '0').toLocaleString('en-IN')}`}
-                                  </span>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                    <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
-    <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
-     Booking Policy Remarks
+              {/* Bookings POI Tab */}
+{activeTab === "bookings-poi" && (
+  <div className="bg-[#E8F0FF] rounded-lg p-1">
+    <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg mb-1">
+      Booking Policy
     </div>
-    <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-      <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-        {tour.additionalRemarks && tour.additionalRemarks.length > 0 ? (
-          <ul className="space-y-2 w-full">
-            {tour.additionalRemarks.map((remark: string, index: number) => (
-              <li key={index} className="flex items-start gap-2 w-full">
-                <span className="text-gray-700 whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
-                  {remark}
-                </span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <div className="flex items-center justify-center h-full">
-            <span className="text-gray-500 italic">No remarks available</span>
+      
+    <div className="flex flex-col lg:flex-row gap-1 mt-1 h-[320px]">
+      {/* Left Card - Booking Policy - 80% width */}
+      <div className="h-full w-full lg:w-4/5 flex flex-col">
+        <div className="bg-[#2E4D98] text-white text-center py-3 rounded-t-lg">
+          <h3 className="text-xl font-bold">Booking Policy</h3>
+        </div>
+        <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-white overflow-hidden">
+          <div className="h-full overflow-y-auto">
+            <div className="p-1 space-y-1">
+              {tour.booking.items.map((item: string, index: number) => (
+                <div key={index} className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg border border-blue-300">
+                  <span className="text-gray-700 text-sm whitespace-normal text-justify w-full">
+                    {item}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
-        )}
+        </div>
+      </div>
+      
+      {/* Right Card - Amount Details - 20% width */}
+      <div className="h-full w-full lg:w-1/5 flex flex-col">
+        <div className="bg-[#2E4D98] text-white text-center py-3 rounded-t-lg">
+          <h3 className="text-xl font-bold">Amount Details</h3>
+        </div>
+        <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-white overflow-hidden">
+          <div className="h-full overflow-y-auto">
+            <div className="p-1 grid gap-1">
+              {tour.booking.amountDetails.map((amount: string, index: number) => (
+                <div key={index} className="flex items-center justify-center p-3 bg-white rounded-lg border border-blue-300">
+                  <div className="text-center w-full">
+                    <span className="text-sm font-bold text-green-600">
+                      {amount === "Aadhaar Card" || amount === "aadhaar card" 
+                        ? "Aadhaar Card" 
+                        : amount === "Pan Card" || amount === "pan card"
+                        ? "Pan Card"
+                        : `₹${parseInt(amount.replace(/[^0-9]/g, '') || '0').toLocaleString('en-IN')}`}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    {/* Booking Policy Remarks Section */}
+    <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
+      <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
+        Booking Policy Remarks
+      </div>
+      <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
+        <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+          {tour.bookingRemarks && tour.bookingRemarks.length > 0 ? (
+            <ul className="space-y-2 w-full">
+              {tour.bookingRemarks.map((remark: string, index: number) => (
+                <li key={index} className="flex items-start gap-2 w-full">
+                  <span className="text-gray-700 whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
+                    {remark}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <span className="text-gray-500 italic">No booking policy remarks available</span>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   </div>
-                </div>
-              )}
-              
+)}
 
               {/* Cancellation Tab */}
-              {activeTab === "cancellation" && (
-                <div className="bg-[#E8F0FF] rounded-lg p-1">
-                  <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg mb-1">
-                    Cancellation Policy
-                  </div>
-
-                  <div className="flex flex-col lg:flex-row gap-1 mt-1 h-[320px]">
-                    <div className="h-full w-full lg:w-4/5 flex flex-col">
-                      <div className="bg-[#A72703] text-white text-center py-3 rounded-t-lg">
-                        <h3 className="text-xl font-bold">Cancellation Policy</h3>
-                      </div>
-                      <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-[#E8F0FF] overflow-hidden">
-                        <div className="h-full overflow-y-auto p-1">
-                          <div className="space-y-1">
-                            {tour.cancellation.policies.map((item: string, index: number) => (
-                              <div 
-                                key={index} 
-                                className="flex items-start gap-3 p-3 bg-[#EAD2C0] rounded-lg border border-[#A72703]"
-                              >
-                                <span className="text-gray-800 text-sm whitespace-normal text-justify w-full">
-                                  {item}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                      
-                    </div>
-
-                    <div className="h-full w-full lg:w-1/5 flex flex-col">
-                      <div className="bg-[#A72703] text-white text-center py-3 rounded-t-lg">
-                        <h3 className="text-xl font-bold">Charges</h3>
-                      </div>
-                      <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-[#E8F0FF] overflow-hidden">
-                        <div className="h-full overflow-y-auto p-1">
-                          <div className="grid gap-1">
-                            {tour.cancellation.charges.map((charge: string, index: number) => (
-                              <div 
-                                key={index}
-                                className="flex items-center justify-center p-3 bg-[#EAD2C0] rounded-lg border border-[#A72703]"
-                              >
-                                <span className="text-sm font-bold text-[#A72703] text-center w-full">
-                                  {charge}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                                      <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
-    <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
-   Cancellation Policy Remarks
+             {/* Cancellation Tab */}
+{activeTab === "cancellation" && (
+  <div className="bg-[#E8F0FF] rounded-lg p-1">
+    <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg mb-1">
+      Cancellation Policy
     </div>
-    <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-      <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-        {tour.additionalRemarks && tour.additionalRemarks.length > 0 ? (
-          <ul className="space-y-2 w-full">
-            {tour.additionalRemarks.map((remark: string, index: number) => (
-              <li key={index} className="flex items-start gap-2 w-full">
-                <span className="text-gray-700 whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
-                  {remark}
-                </span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <div className="flex items-center justify-center h-full">
-            <span className="text-gray-500 italic">No remarks available</span>
+
+    <div className="flex flex-col lg:flex-row gap-1 mt-1 h-[320px]">
+      <div className="h-full w-full lg:w-4/5 flex flex-col">
+        <div className="bg-[#A72703] text-white text-center py-3 rounded-t-lg">
+          <h3 className="text-xl font-bold">Cancellation Policy</h3>
+        </div>
+        <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-[#E8F0FF] overflow-hidden">
+          <div className="h-full overflow-y-auto p-1">
+            <div className="space-y-1">
+              {tour.cancellation.policies.map((item: string, index: number) => (
+                <div 
+                  key={index} 
+                  className="flex items-start gap-3 p-3 bg-[#EAD2C0] rounded-lg border border-[#A72703]"
+                >
+                  <span className="text-gray-800 text-sm whitespace-normal text-justify w-full">
+                    {item}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
-        )}
+        </div>
+        
+      </div>
+
+      <div className="h-full w-full lg:w-1/5 flex flex-col">
+        <div className="bg-[#A72703] text-white text-center py-3 rounded-t-lg">
+          <h3 className="text-xl font-bold">Charges</h3>
+        </div>
+        <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-[#E8F0FF] overflow-hidden">
+          <div className="h-full overflow-y-auto p-1">
+            <div className="grid gap-1">
+              {tour.cancellation.charges.map((charge: string, index: number) => (
+                <div 
+                  key={index}
+                  className="flex items-center justify-center p-3 bg-[#EAD2C0] rounded-lg border border-[#A72703]"
+                >
+                  <span className="text-sm font-bold text-[#A72703] text-center w-full">
+                    {charge}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    {/* Cancellation Policy Remarks Section */}
+    <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
+      <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
+        Cancellation Policy Remarks
+      </div>
+      <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
+        <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+          {tour.cancellationRemarks && tour.cancellationRemarks.length > 0 ? (
+            <ul className="space-y-2 w-full">
+              {tour.cancellationRemarks.map((remark: string, index: number) => (
+                <li key={index} className="flex items-start gap-2 w-full">
+                  <span className="text-gray-700 whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
+                    {remark}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <span className="text-gray-500 italic">No cancellation policy remarks available</span>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   </div>
-                </div>
-              )}
+)}
 
               {/* Instructions Tab */}
               {activeTab === "instructions" && (
