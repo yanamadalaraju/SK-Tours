@@ -42,7 +42,7 @@ const DayCard = ({ dayNumber, headerColor, bodyColor, dayData }: DayCardProps) =
       {/* Header Row */}
       <div className="flex gap-1 mb-1">
         {/* Day Number - Fixed width */}
-        <div className={`${headerColor} text-white font-bold px-4 py-2 rounded-lg text-center w-[120px] flex-shrink-0 border border-black`}>
+        <div className={`${headerColor} text-white font-bold px-4 py-2 rounded-lg text-start w-[120px] flex-shrink-0 border border-black`}>
           {dayNumber}
         </div>
         
@@ -55,76 +55,124 @@ const DayCard = ({ dayNumber, headerColor, bodyColor, dayData }: DayCardProps) =
         <div className={`${headerColor} text-white border border-black rounded-lg px-3 py-1.5 flex items-center justify-center gap-3 w-[140px] flex-shrink-0`}>
           {/* Breakfast - Square checkbox */}
           <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => setMeals(prev => ({ ...prev, B: !prev.B }))}
-              className={`h-4 w-4 border flex items-center justify-center transition-colors ${meals.B ? 'bg-[#3B82F6] border-[#3B82F6]' : 'bg-white border-gray-400'}`}
+            <div
+              className={`h-4 w-4 border flex items-center justify-center transition-colors ${
+                meals.B 
+                  ? 'bg-white border-gray-400' 
+                  : 'bg-white border-gray-400'
+              }`}
               style={{ borderRadius: '2px' }}
             >
-              {meals.B && (
+              {meals.B ? (
+                // Dark blue checkmark ✓ for active - LARGER
                 <svg 
-                  className="h-3 w-3 text-white" 
+                  className="h-4 w-4 text-blue-700" 
                   fill="none" 
                   strokeLinecap="round" 
                   strokeLinejoin="round" 
-                  strokeWidth="2" 
+                  strokeWidth="3" 
                   viewBox="0 0 24 24" 
                   stroke="currentColor"
                 >
                   <path d="M5 13l4 4L19 7"></path>
                 </svg>
+              ) : (
+                // Red X mark ✗ for inactive/wrong - LARGER
+                <svg 
+                  className="h-4 w-4 text-red-600" 
+                  fill="none" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth="3" 
+                  viewBox="0 0 24 24" 
+                  stroke="currentColor"
+                >
+                  <path d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
               )}
-            </button>
+            </div>
             <span className="text-white text-sm font-bold">B</span>
           </div>
           
           {/* Lunch - Square checkbox */}
           <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => setMeals(prev => ({ ...prev, L: !prev.L }))}
-              className={`h-4 w-4 border flex items-center justify-center transition-colors ${meals.L ? 'bg-[#3B82F6] border-[#3B82F6]' : 'bg-white border-gray-400'}`}
+            <div
+              className={`h-4 w-4 border flex items-center justify-center transition-colors ${
+                meals.L 
+                  ? 'bg-white border-gray-400' 
+                  : 'bg-white border-gray-400'
+              }`}
               style={{ borderRadius: '2px' }}
             >
-              {meals.L && (
+              {meals.L ? (
+                // Dark blue checkmark ✓ for active - LARGER
                 <svg 
-                  className="h-3 w-3 text-white" 
+                  className="h-4 w-4 text-blue-700" 
                   fill="none" 
                   strokeLinecap="round" 
                   strokeLinejoin="round" 
-                  strokeWidth="2" 
+                  strokeWidth="3" 
                   viewBox="0 0 24 24" 
                   stroke="currentColor"
                 >
                   <path d="M5 13l4 4L19 7"></path>
                 </svg>
+              ) : (
+                // Red X mark ✗ for inactive/wrong - LARGER
+                <svg 
+                  className="h-4 w-4 text-red-600" 
+                  fill="none" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth="3" 
+                  viewBox="0 0 24 24" 
+                  stroke="currentColor"
+                >
+                  <path d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
               )}
-            </button>
+            </div>
             <span className="text-white text-sm font-bold">L</span>
           </div>
           
           {/* Dinner - Square checkbox */}
           <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => setMeals(prev => ({ ...prev, D: !prev.D }))}
-              className={`h-4 w-4 border flex items-center justify-center transition-colors ${meals.D ? 'bg-[#3B82F6] border-[#3B82F6]' : 'bg-white border-gray-400'}`}
+            <div
+              className={`h-4 w-4 border flex items-center justify-center transition-colors ${
+                meals.D 
+                  ? 'bg-white border-gray-400' 
+                  : 'bg-white border-gray-400'
+              }`}
               style={{ borderRadius: '2px' }}
             >
-              {meals.D && (
+              {meals.D ? (
+                // Dark blue checkmark ✓ for active - LARGER
                 <svg 
-                  className="h-3 w-3 text-white" 
+                  className="h-4 w-4 text-blue-700" 
                   fill="none" 
                   strokeLinecap="round" 
                   strokeLinejoin="round" 
-                  strokeWidth="2" 
+                  strokeWidth="3" 
                   viewBox="0 0 24 24" 
                   stroke="currentColor"
                 >
                   <path d="M5 13l4 4L19 7"></path>
                 </svg>
+              ) : (
+                // Red X mark ✗ for inactive/wrong - LARGER
+                <svg 
+                  className="h-4 w-4 text-red-600" 
+                  fill="none" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth="3" 
+                  viewBox="0 0 24 24" 
+                  stroke="currentColor"
+                >
+                  <path d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
               )}
-            </button>
+            </div>
             <span className="text-white text-sm font-bold">D</span>
           </div>
         </div>
@@ -939,15 +987,15 @@ const selectedDeparture = availableDates.find(
               {/* ===== FIRST ROW: HEADERS ===== */}
               <div className="grid grid-cols-8 bg-[#E8F0FF] border-b border-black">
                 <div className="border-r border-white bg-[#2E3a8a] px-4 py-3">
-                  <h3 className="font-bold text-white text-center text-lg">Tour Code</h3>
+                  <h3 className="font-bold text-white text-start text-lg">Tour Code</h3>
                 </div>  
 
                 <div className="col-span-6 border-r border-white bg-[#2E3a8a] px-4 py-3">
-                  <h3 className="font-bold text-white text-center text-lg">Tour Name</h3>
+                  <h3 className="font-bold text-white text-start text-lg">Tour Name</h3>
                 </div>
 
                 <div className="px-4 py-3 bg-[#2E3a8a]">
-                  <h3 className="font-bold text-white text-center text-lg">Days</h3>
+                  <h3 className="font-bold text-white text-start text-lg">Days</h3>
                 </div>
               </div>
 
@@ -1002,7 +1050,7 @@ const selectedDeparture = availableDates.find(
               </div>
             </div>
 
-            <div className="bg-[#2E4D98] rounded-xl shadow-sm p-6">
+            <div className="bg-[#2E4D98] rounded-md shadow-sm p-4">
               {/* Itinerary Tab */}
 {activeTab === "itinerary" && (
   <div className="bg-[#C2E2FA] rounded-lg p-1 h-full">
@@ -1448,27 +1496,59 @@ const selectedDeparture = availableDates.find(
         </div>
       )}
 
-      {/* Remarks Section */}
-      {tour.tourCost.remarks && tour.tourCost.remarks.length > 0 && (
-        <div className="bg-[#E8F0FF] rounded-lg mt-1 w-full overflow-x-hidden">
-          <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
-            Tour Cost Remarks
+<div className="flex gap-1 mt-1 w-full">
+  {/* Tour Cost Remarks - Always show */}
+  <div className="bg-[#E8F0FF] rounded-lg w-1/2 overflow-x-hidden">
+    <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
+      Tour Cost Remarks
+    </div>
+    <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
+      <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+        {tour.tourCost.remarks && tour.tourCost.remarks.length > 0 ? (
+          <ul className="space-y-2 w-full">
+            {tour.tourCost.remarks.map((remark: string, index: number) => (
+              <li key={index} className="flex items-start gap-2 w-full">
+                <span className="text-gray-700 whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
+                  {remark}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="flex items-center justify-center h-full">
+            <span className="text-gray-500 italic">No remarks available</span>
           </div>
-          <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-            <div className="min-h-[150px] max-h-[100px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-              <ul className="space-y-2 w-full">
-                {tour.tourCost.remarks.map((remark: string, index: number) => (
-                  <li key={index} className="flex items-start gap-2 w-full">
-                    <span className="text-gray-700 whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
-                      {remark}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+        )}
+      </div>
+    </div>
+  </div>
+
+  {/* Additional Remarks - Always show */}
+  <div className="bg-[#E8F0FF] rounded-lg w-1/2 overflow-x-hidden">
+    <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
+      Tour Cost EMI
+    </div>
+    <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
+      <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+        {tour.additionalRemarks && tour.additionalRemarks.length > 0 ? (
+          <ul className="space-y-2 w-full">
+            {tour.additionalRemarks.map((remark: string, index: number) => (
+              <li key={index} className="flex items-start gap-2 w-full">
+                <span className="text-gray-700 whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
+                  {remark}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="flex items-center justify-center h-full">
+            <span className="text-gray-500 italic">No remarks available</span>
           </div>
-        </div>
-      )}
+        )}
+      </div>
+    </div>
+  </div>
+</div>
     </div>
   </div>
 )}
@@ -1682,74 +1762,92 @@ const selectedDeparture = availableDates.find(
 
 
                   {/* Hotels Section */}
-                  <div className='p-1 -mt-2 w-full overflow-x-hidden'>
-                    <div className="bg-red-600 text-white text-center font-bold text-xl rounded-t-lg py-3 mb-1 w-full">
-                      Hotel Details
-                    </div>
-                    
-                    <div className="overflow-x-auto w-full">
-                      {tour.hotels.tableData.length > 0 ? (
-                        <table className="w-full border-collapse min-w-max">
-                          <thead>
-                            <tr className="bg-[#2E4D98]">
-                              <th className="border border-white px-2 py-2 text-left text-white w-[20%]">
-                                City
-                              </th>
-                              <th className="border border-white px-2 py-2 text-left text-white w-[40%]">
-                                Hotel Name
-                              </th>
-                              <th className="border border-white px-2 py-2 text-left text-white w-[20%]">
-                                Room Type
-                              </th>
-                              <th className="border border-white px-2 py-2 text-left text-white w-[20%]">
-                                Nights
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody className="border-2 border-[#1e3a8a] border-t-0">
-                            {tour.hotels.tableData.map((hotel: any, index: number) => (
-                              <tr
-                                key={index}
-                                className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}
-                              >
-                                <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap">{hotel.city}</td>
-                                <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap">{hotel.hotelName}</td>
-                                <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap">{hotel.roomType}</td>
-                                <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap">{hotel.nights}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      ) : (
-                        <div className="border-2 border-[#1e3a8a] p-4 bg-white rounded-lg">
-                          <p className="text-gray-500 text-center">No hotel information available</p>
-                        </div>
-                      )}
-                    </div>
+                <div className='p-1 -mt-2 w-full overflow-x-hidden'>
+  <div className="bg-red-600 text-white text-center font-bold text-xl rounded-t-lg py-3 mb-1 w-full">
+    Hotel Details
+  </div>
+  
+  <div className="overflow-x-auto w-full">
+    {tour.hotels.tableData.length > 0 ? (
+      <table className="w-full border-collapse min-w-max">
+        <thead>
+          <tr className="bg-[#2E4D98]">
+            <th className="border border-white px-2 py-2 text-left text-white w-[14.28%]">
+              City
+            </th>
+            <th className="border border-white px-2 py-2 text-left text-white w-[14.28%]">
+              Hotel Name
+            </th>
+            <th className="border border-white px-2 py-2 text-left text-white w-[14.28%]">
+              Standard
+            </th>
+            <th className="border border-white px-2 py-2 text-left text-white w-[14.28%]">
+              Deluxe 
+            </th>
+            <th className="border border-white px-2 py-2 text-left text-white w-[14.28%]">
+              Executive 
+            </th>
+            <th className="border border-white px-2 py-2 text-left text-white w-[14.28%]">
+              Room Type
+            </th>
+            <th className="border border-white px-2 py-2 text-left text-white w-[14.28%]">
+              Nights
+            </th>
+          </tr>
+        </thead>
+        <tbody className="border-2 border-[#1e3a8a] border-t-0">
+          {tour.hotels.tableData.map((hotel: any, index: number) => (
+            <tr
+              key={index}
+              className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}
+            >
+              <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap">{hotel.city}</td>
+              <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap">{hotel.hotelName}</td>
+              <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap">
+                {hotel.standard || hotel.standardPrice || "N/A"}
+              </td>
+              <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap">
+                {hotel.deluxe || hotel.deluxePrice || "N/A"}
+              </td>
+              <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap">
+                {hotel.executive || hotel.executivePrice || "N/A"}
+              </td>
+              <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap">{hotel.roomType}</td>
+              <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap">{hotel.nights}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    ) : (
+      <div className="border-2 border-[#1e3a8a] p-4 bg-white rounded-lg">
+        <p className="text-gray-500 text-center">No hotel information available</p>
+      </div>
+    )}
+  </div>
 
-                    {/* Combined Remarks Section */}
-                    {(tour.hotels.remarks.length > 0 || tour.airlines.remarks.length > 0) && (
-                      <div className="bg-[#E8F0FF] rounded-lg mt-1 w-full overflow-x-hidden">
-                        <div className="bg-red-600 text-white text-center font-bold text-xl py-3 rounded-t-lg w-full">
-                          Remarks
-                        </div>
-                        
-                        <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg overflow-hidden w-full">
-                          <div className="min-h-[150px] max-h-[200px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-                            <ul className="space-y-2 w-full">
-                              {[...tour.hotels.remarks, ...tour.airlines.remarks].map((remark: string, index: number) => (
-                                <li key={index} className="flex items-start gap-1 w-full">
-                                  <span className="text-gray-700 break-words whitespace-pre-wrap text-justify w-full">
-                                    {remark}
-                                  </span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>  
+  {/* Combined Remarks Section */}
+  {(tour.hotels.remarks.length > 0 || tour.airlines.remarks.length > 0) && (
+    <div className="bg-[#E8F0FF] rounded-lg mt-1 w-full overflow-x-hidden">
+      <div className="bg-red-600 text-white text-center font-bold text-xl py-3 rounded-t-lg w-full">
+        Hotel Remarks
+      </div>
+      
+      <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg overflow-hidden w-full">
+        <div className="min-h-[150px] max-h-[200px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+          <ul className="space-y-2 w-full">
+            {[...tour.hotels.remarks, ...tour.airlines.remarks].map((remark: string, index: number) => (
+              <li key={index} className="flex items-start gap-1 w-full">
+                <span className="text-gray-700 break-words whitespace-pre-wrap text-justify w-full">
+                  {remark}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  )}
+</div>
                 </div>
               )}
 
@@ -1807,8 +1905,33 @@ const selectedDeparture = availableDates.find(
                       </div>
                     </div>
                   </div>
+                    <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
+    <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
+     Booking Policy Remarks
+    </div>
+    <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
+      <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+        {tour.additionalRemarks && tour.additionalRemarks.length > 0 ? (
+          <ul className="space-y-2 w-full">
+            {tour.additionalRemarks.map((remark: string, index: number) => (
+              <li key={index} className="flex items-start gap-2 w-full">
+                <span className="text-gray-700 whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
+                  {remark}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="flex items-center justify-center h-full">
+            <span className="text-gray-500 italic">No remarks available</span>
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
                 </div>
               )}
+              
 
               {/* Cancellation Tab */}
               {activeTab === "cancellation" && (
@@ -1838,6 +1961,7 @@ const selectedDeparture = availableDates.find(
                           </div>
                         </div>
                       </div>
+                      
                     </div>
 
                     <div className="h-full w-full lg:w-1/5 flex flex-col">
@@ -1862,6 +1986,30 @@ const selectedDeparture = availableDates.find(
                       </div>
                     </div>
                   </div>
+                                      <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
+    <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
+   Cancellation Policy Remarks
+    </div>
+    <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
+      <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+        {tour.additionalRemarks && tour.additionalRemarks.length > 0 ? (
+          <ul className="space-y-2 w-full">
+            {tour.additionalRemarks.map((remark: string, index: number) => (
+              <li key={index} className="flex items-start gap-2 w-full">
+                <span className="text-gray-700 whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
+                  {remark}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="flex items-center justify-center h-full">
+            <span className="text-gray-500 italic">No remarks available</span>
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
                 </div>
               )}
 
