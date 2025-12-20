@@ -97,7 +97,7 @@ interface Tour {
   dates?: string;
 }
 
-const Students_tour = () => {
+const LadiesTour = () => {
   const navigate = useNavigate();
   const { state } = useParams(); // Get state from URL params
   const [viewMode] = useState<'grid' | 'list'>('grid');
@@ -202,7 +202,7 @@ const Students_tour = () => {
       (tour) =>
         tour.primary_destination_name?.toLowerCase() ===
           selectedState.toLowerCase() &&
-        tour.tour_type?.toLowerCase() === "students"
+        tour.tour_type?.toLowerCase() === "ladiesspecial"
     );
   };
 
@@ -664,4 +664,4 @@ const Students_tour = () => {
   );
 };
 
-export default Students_tour;
+export default LadiesTour;

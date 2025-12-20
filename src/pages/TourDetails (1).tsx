@@ -503,54 +503,47 @@ const [selectedCostDate, setSelectedCostDate] = useState("");
     };
 
     // Process hotels data
-   // Process hotels data
-const processHotels = (hotelsArray: any[], basicDetails: any) => {
-  if (hotelsArray && hotelsArray.length > 0) {
-    return {
-      tableData: hotelsArray.map(hotel => ({
-        city: hotel.city,
-        hotelName: hotel.hotel_name,
-        roomType: hotel.room_type,
-        nights: `${hotel.nights} Night${hotel.nights > 1 ? 's' : ''}`,
-        // Add these new fields with formatted prices
-        standard: hotel.hotel_standard ? formatPrice(hotel.hotel_standard) : "N/A",
-        deluxe: hotel.hotel_deluxe ? formatPrice(hotel.hotel_deluxe) : "N/A",
-        executive: hotel.hotel_executive ? formatPrice(hotel.hotel_executive) : "N/A"
-      })),
-      remarks: basicDetails.hotel_remarks ? [basicDetails.hotel_remarks] : []
+    const processHotels = (hotelsArray: any[], basicDetails: any) => {
+      if (hotelsArray && hotelsArray.length > 0) {
+        return {
+          tableData: hotelsArray.map(hotel => ({
+            city: hotel.city,
+            hotelName: hotel.hotel_name,
+            roomType: hotel.room_type,
+            nights: `${hotel.nights} Night${hotel.nights > 1 ? 's' : ''}`
+          })),
+          remarks: basicDetails.hotel_remarks ? [basicDetails.hotel_remarks] : []
+        };
+      }
+      return {
+        tableData: [],
+        remarks: basicDetails.hotel_remarks ? [basicDetails.hotel_remarks] : []
+      };
     };
-  }
-  return {
-    tableData: [],
-    remarks: basicDetails.hotel_remarks ? [basicDetails.hotel_remarks] : []
-  };
-};
 
     // Process transport data
-  // Process transport data
-const processTransport = (transportArray: any[], basicDetails: any) => {
-  if (transportArray && transportArray.length > 0) {
-    return {
-      tableData: transportArray.map(transport => ({
-        airline: transport.airline || transport.carrier || '',
-        flightNo: transport.flight_no || transport.number_code || '-',
-        from: transport.from_city || '',
-        to: transport.to_city || '',
-        depDate: transport.from_date ? new Date(transport.from_date).toLocaleDateString() : '',
-        depTime: transport.from_time || '',
-        arrDate: transport.to_date ? new Date(transport.to_date).toLocaleDateString() : '',
-        arrTime: transport.to_time || '',
-        via: transport.via || '', // Add this line to include via
-        description: transport.description || ''
-      })),
-      remarks: basicDetails.transport_remarks ? [basicDetails.transport_remarks] : []
+    const processTransport = (transportArray: any[], basicDetails: any) => {
+      if (transportArray && transportArray.length > 0) {
+        return {
+          tableData: transportArray.map(transport => ({
+            airline: transport.airline || transport.carrier || '',
+            flightNo: transport.flight_no || transport.number_code || '-',
+            from: transport.from_city || '',
+            to: transport.to_city || '',
+            depDate: transport.from_date ? new Date(transport.from_date).toLocaleDateString() : '',
+            depTime: transport.from_time || '',
+            arrDate: transport.to_date ? new Date(transport.to_date).toLocaleDateString() : '',
+            arrTime: transport.to_time || '',
+            description: transport.description || ''
+          })),
+          remarks: basicDetails.transport_remarks ? [basicDetails.transport_remarks] : []
+        };
+      }
+      return {
+        tableData: [],
+        remarks: basicDetails.transport_remarks ? [basicDetails.transport_remarks] : []
+      };
     };
-  }
-  return {
-    tableData: [],
-    remarks: basicDetails.transport_remarks ? [basicDetails.transport_remarks] : []
-  };
-};
 
     // Process cancellation policies
     const processCancellation = (policiesArray: any[]) => {
@@ -1527,60 +1520,59 @@ const selectedDeparture = availableDates.find(
         </div>
       )}
 
-     {/* Tour Cost Remarks Section - Show for both Group and Individual tours */}
-<div className="flex gap-1 mt-4 w-full">
-  {/* Tour Cost Remarks */}
-  <div className="bg-[#E8F0FF] rounded-lg w-1/2 overflow-x-hidden">
-    <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
-      Tour Cost Remarks
-    </div>
-    <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-      <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-        {tour.tourCost.remarks && tour.tourCost.remarks.length > 0 ? (
-          <ul className="space-y-2 w-full">
-            {tour.tourCost.remarks.map((remark: string, index: number) => (
-              <li key={index} className="flex items-start gap-2 w-full">
-                <span className="text-gray-700 whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
-                  {remark}
-                </span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <div className="flex items-center justify-center h-full">
-            <span className="text-gray-500 italic">No tour cost remarks available</span>
+      <div className="flex gap-1 mt-4 w-full">
+        {/* Tour Cost Remarks */}
+        <div className="bg-[#E8F0FF] rounded-lg w-1/2 overflow-x-hidden">
+          <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
+            Tour Cost Remarks
           </div>
-        )}
-      </div>
-    </div>
-  </div>
+          <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
+            <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+              {tour.tourCost.remarks && tour.tourCost.remarks.length > 0 ? (
+                <ul className="space-y-2 w-full">
+                  {tour.tourCost.remarks.map((remark: string, index: number) => (
+                    <li key={index} className="flex items-start gap-2 w-full">
+                      <span className="text-gray-700 whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
+                        {remark}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <span className="text-gray-500 italic">No remarks available</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
 
-  {/* Tour Cost EMI Remarks */}
-  <div className="bg-[#E8F0FF] rounded-lg w-1/2 overflow-x-hidden">
-    <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
-      Tour Cost EMI
-    </div>
-    <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-      <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-        {tour.emiRemarks && tour.emiRemarks.length > 0 ? (
-          <ul className="space-y-2 w-full">
-            {tour.emiRemarks.map((remark: string, index: number) => (
-              <li key={index} className="flex items-start gap-2 w-full">
-                <span className="text-gray-700 whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
-                  {remark}
-                </span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <div className="flex items-center justify-center h-full">
-            <span className="text-gray-500 italic">No EMI remarks available</span>
+        {/* Additional Remarks */}
+        <div className="bg-[#E8F0FF] rounded-lg w-1/2 overflow-x-hidden">
+          <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
+            Tour Cost EMI
           </div>
-        )}
+          <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
+            <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+              {tour.additionalRemarks && tour.additionalRemarks.length > 0 ? (
+                <ul className="space-y-2 w-full">
+                  {tour.additionalRemarks.map((remark: string, index: number) => (
+                    <li key={index} className="flex items-start gap-2 w-full">
+                      <span className="text-gray-700 whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
+                        {remark}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <span className="text-gray-500 italic">No remarks available</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
-</div>
     </div>
   </div>
 )}

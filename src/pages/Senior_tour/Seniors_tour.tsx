@@ -8,12 +8,7 @@ import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { BASE_URL } from '@/ApiUrls';
 
-// Define proper type for state images and descriptions
-interface StateData {
-  [key: string]: string;
-}
-
-const stateHeroImages: StateData = {
+const stateHeroImages: Record<string, string> = {
   "Andaman": "https://i.pinimg.com/1200x/67/10/27/671027210a396e38b27e5d0432bd18db.jpg",
   "Andhra Pradesh": "https://images.unsplash.com/photo-1587132135057-bc3c3dcfd4d9?w=1200&q=80",
   "Bihar": "https://images.unsplash.com/photo-1587132135056-bc3c3dcfd4d8?w=1200&q=80",
@@ -46,7 +41,7 @@ const stateHeroImages: StateData = {
 };
 
 // Get state-specific descriptions
-const stateDescriptions: StateData = {
+const stateDescriptions: Record<string, string> = {
   "Andaman": "Where Time Slows Down, Beauty Takes Over, and Blue Waters Meet Endless Adventures!",
   "Andhra Pradesh": "Discover the Spiritual Heartland and Coastal Beauty of Andhra Pradesh!",
   "Bihar": "Explore Ancient Heritage and Spiritual Enlightenment in the Land of Buddha!",
@@ -78,7 +73,6 @@ const stateDescriptions: StateData = {
   "West Bengal": "Cultural Capital - From Himalayan Hills to Sundarbans Delta!",
 };
 
-// Define Tour interface
 interface Tour {
   id: any;
   code: any;
@@ -93,11 +87,11 @@ interface Tour {
   isIndian: boolean;
   locationTags: any[];
   tourType: any;
-  state?: string;
-  dates?: string;
+  state: string; // Add state property
+  dates?: string; // Add optional dates property
 }
 
-const Students_tour = () => {
+const SeniorsTour = () => {
   const navigate = useNavigate();
   const { state } = useParams(); // Get state from URL params
   const [viewMode] = useState<'grid' | 'list'>('grid');
@@ -198,11 +192,12 @@ const Students_tour = () => {
   const getCurrentStateTours = () => {
     if (!selectedState) return allTours;
 
+    // Filter by state AND tour_type = "Senior" (case-insensitive)
     return allTours.filter(
       (tour) =>
         tour.primary_destination_name?.toLowerCase() ===
           selectedState.toLowerCase() &&
-        tour.tour_type?.toLowerCase() === "students"
+        tour.tour_type?.toLowerCase() === "senior"
     );
   };
 
@@ -229,7 +224,7 @@ const Students_tour = () => {
         isIndian: true,
         locationTags: [tour.primary_destination_name || ""],
         tourType: tour.tour_type,
-        state: tour.primary_destination_name, // Add state property
+        state: tour.primary_destination_name || "", // Add state property
       };
     });
   };
@@ -238,9 +233,9 @@ const Students_tour = () => {
   useEffect(() => {
     console.log("All tours:", allTours); // Debug: Check what tours we have
     
-    // Start from state-filtered raw tours (already filtered for ladies tours)
+    // Start from state-filtered raw tours (already filtered for senior tours)
     const currentStateTours = getCurrentStateTours();
-    console.log("Filtered tours (ladies only):", currentStateTours); // Debug
+    console.log("Filtered tours (senior only):", currentStateTours); // Debug
     
     let result = formatTours(currentStateTours);
     console.log("Formatted tours:", result); // Debug
@@ -354,7 +349,7 @@ const Students_tour = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p>Loading ladies tours...</p>
+        <p>Loading senior tours...</p>
       </div>
     );
   }
@@ -370,7 +365,7 @@ const Students_tour = () => {
           <aside className="lg:w-80">
             <div className="bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl shadow-lg p-6 border border-blue-200 sticky top-24">
               <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
-                <h2 className="text-2xl font-bold text-[#2E4D98]">Ladies Special Tours</h2>
+                <h2 className="text-2xl font-bold text-[#2E4D98]">Senior Tours</h2>
                 <button 
                   onClick={clearAllFilters}
                   className="text-sm text-[#E53C42] hover:underline"
@@ -511,12 +506,12 @@ const Students_tour = () => {
               {/* Hero Content */}
               <div className="relative p-8 min-h-[200px] flex items-center">
                 <div className="text-white">
-                  <h1 className="text-3xl font-bold mb-2">{selectedState} Ladies Special Tour Packages</h1>
+                  <h1 className="text-3xl font-bold mb-2">{selectedState} Senior Citizen Tour Packages</h1>
                   <p className="text-base opacity-90 max-w-2xl">
                     {heroDescription}
                   </p>
                   <p className="text-sm opacity-80 mt-2">
-                    Showing {filteredTours.length} ladies special tour packages for {selectedState}
+                    Showing {filteredTours.length} senior citizen tour packages for {selectedState}
                   </p>
                 </div>
               </div>
@@ -525,9 +520,9 @@ const Students_tour = () => {
             {/* Main Content Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
               <div>
-                <h2 className="text-3xl font-bold text-gray-800">{selectedState} Ladies Holiday Packages</h2>
+                <h2 className="text-3xl font-bold text-gray-800">{selectedState} Senior Holiday Packages</h2>
                 <p className="text-gray-600 mt-1">
-                  Showing {filteredTours.length} of {currentTours.length} ladies tours • Best prices guaranteed
+                  Showing {filteredTours.length} of {currentTours.length} senior tours • Best prices guaranteed
                 </p>
               </div>
 
@@ -556,7 +551,7 @@ const Students_tour = () => {
             {/* 3 Cards Per Row */}
             {filteredTours.length === 0 ? (
               <div className="text-center py-12">
-                <h3 className="text-xl font-semibold text-gray-600">No ladies special tours found for the selected filters</h3>
+                <h3 className="text-xl font-semibold text-gray-600">No senior citizen tours found for the selected filters</h3>
                 <p className="text-gray-500 mt-2">
                   Try adjusting your filters or clear all filters to see more options
                 </p>
@@ -664,4 +659,4 @@ const Students_tour = () => {
   );
 };
 
-export default Students_tour;
+export default SeniorsTour;

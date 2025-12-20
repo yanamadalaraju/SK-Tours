@@ -17,6 +17,8 @@ import Honeymoon_tours from "./pages/Honeymoon_tours";
 import ContactPage from "./pages/Contact";
 import Tour_indain from "./pages/Tour_indain";
 import Tourdetails_indian from "./pages/Tourdetails_indian";
+import Ladies_tour from "./pages/Ladies_tour/Ladies_tour";
+import Seniors_tour from "./pages/Senior_tour/Seniors_tour";
 
 const queryClient = new QueryClient();
 
@@ -34,14 +36,16 @@ const App = () => (
 <Route path="/tour/:tourId" element={<TourDetails />} />
           <Route path="/ladies"  element={<Ladiesspecial_tour />} />
           <Route path="/seniorcitizen" element={<Seniorcitizen_tour />} />
-<Route path="/students_tour" element={<Students_tour />} />
+<Route path="/students_tours/:state" element={<Students_tour />} />
 <Route path="/contact" element={<ContactPage />} />
-<Route path="/honeymoon_tour" element= {<Honeymoon_tours />} />
+<Route path="/honeymoon_tours/:state" element= {<Honeymoon_tours />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
 
           <Route path="/tours_indian" element={<Tour_indain />} />
           <Route path="/tours_groups/:state" element={<Tourdetails_indian />} />
+          <Route path="/ladies_tours/:state" element={<Ladies_tour />} />
+          <Route path="/senior_tours/:state" element={<Seniors_tour />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
