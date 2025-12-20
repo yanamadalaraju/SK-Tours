@@ -11,7 +11,7 @@ import TourPackages from "./pages/TourPackages";
 import AboutPage from "./pages/AboutPage";
 import TourDetails from "./pages/TourDetails";
 import Ladiesspecial_tour from "./pages/Ladiesspecial_tour";
-import Seniorcitizen_tour from "./pages/Seniorcitizen_tour";
+
 import Students_tour from "./pages/Students_tour";
 import Honeymoon_tours from "./pages/Honeymoon_tours";
 import ContactPage from "./pages/Contact";
@@ -35,7 +35,6 @@ const App = () => (
           <Route path="/about" element={<AboutPage />} />
 <Route path="/tour/:tourId" element={<TourDetails />} />
           <Route path="/ladies"  element={<Ladiesspecial_tour />} />
-          <Route path="/seniorcitizen" element={<Seniorcitizen_tour />} />
 <Route path="/students_tours/:state" element={<Students_tour />} />
 <Route path="/contact" element={<ContactPage />} />
 <Route path="/honeymoon_tours/:state" element= {<Honeymoon_tours />} />

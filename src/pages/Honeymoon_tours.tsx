@@ -8,12 +8,7 @@ import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { BASE_URL } from '@/ApiUrls';
 
-// Define proper type for state images and descriptions
-interface StateData {
-  [key: string]: string;
-}
-
-const stateHeroImages: StateData = {
+const stateHeroImages = {
   "Andaman": "https://i.pinimg.com/1200x/67/10/27/671027210a396e38b27e5d0432bd18db.jpg",
   "Andhra Pradesh": "https://images.unsplash.com/photo-1587132135057-bc3c3dcfd4d9?w=1200&q=80",
   "Bihar": "https://images.unsplash.com/photo-1587132135056-bc3c3dcfd4d8?w=1200&q=80",
@@ -34,7 +29,7 @@ const stateHeroImages: StateData = {
   "Madhya Pradesh": "https://images.unsplash.com/photo-1587132135065-bc3c3dcfd4e2?w=1200&q=80",
   "Maharashtra": "https://images.unsplash.com/photo-1587132135066-bc3c3dcfd4e3?w=1200&q=80",
   "North East": "https://images.unsplash.com/photo-1587132135067-bc3c3dcfd4e4?w=1200&q=80",
-  "Odisha": "https://images.unsplash.com/photo-1587132135068-bc3c3dcfd4e5?w=1200&q=80",
+  "Odisha": "https://images.unsplash.com/ photo-1587132135068-bc3c3dcfd4e5?w=1200&q=80",
   "Puducherry": "https://images.unsplash.com/photo-1587132135069-bc3c3dcfd4e6?w=1200&q=80",
   "Punjab & Haryana": "https://images.unsplash.com/photo-1587132135070-bc3c3dcfd4e7?w=1200&q=80",
   "Rajasthan": "https://images.unsplash.com/photo-1587132135071-bc3c3dcfd4e8?w=1200&q=80",
@@ -46,7 +41,7 @@ const stateHeroImages: StateData = {
 };
 
 // Get state-specific descriptions
-const stateDescriptions: StateData = {
+const stateDescriptions = {
   "Andaman": "Where Time Slows Down, Beauty Takes Over, and Blue Waters Meet Endless Adventures!",
   "Andhra Pradesh": "Discover the Spiritual Heartland and Coastal Beauty of Andhra Pradesh!",
   "Bihar": "Explore Ancient Heritage and Spiritual Enlightenment in the Land of Buddha!",
@@ -78,26 +73,7 @@ const stateDescriptions: StateData = {
   "West Bengal": "Cultural Capital - From Himalayan Hills to Sundarbans Delta!",
 };
 
-// Define Tour interface
-interface Tour {
-  id: any;
-  code: any;
-  title: any;
-  duration: string;
-  days: any;
-  price: string;
-  priceValue: number;
-  locations: any;
-  image: string;
-  emi: string;
-  isIndian: boolean;
-  locationTags: any[];
-  tourType: any;
-  state?: string;
-  dates?: string;
-}
-
-const Honeymoon_tours = () => {
+const TourPackages = () => {
   const navigate = useNavigate();
   const { state } = useParams(); // Get state from URL params
   const [viewMode] = useState<'grid' | 'list'>('grid');
@@ -106,12 +82,13 @@ const Honeymoon_tours = () => {
   const [sortType, setSortType] = useState("recommended");
 
   // Filter states
-  const [durationRange, setDurationRange] = useState([0, 11]);
-  const [priceRange, setPriceRange] = useState([0, 153000]);
+  const [durationRange, setDurationRange] = useState([0, 30]);
+  const [priceRange, setPriceRange] = useState([0, 500000]);
   const [selectedDepartureMonths, setSelectedDepartureMonths] = useState<string[]>([]);
   const [selectedIndianTours, setSelectedIndianTours] = useState<string[]>([]);
   const [selectedWorldTours, setSelectedWorldTours] = useState<string[]>([]);
-  const [filteredTours, setFilteredTours] = useState<Tour[]>([]);
+  const [filteredTours, setFilteredTours] = useState<any[]>([]);
+  const [formattedTours, setFormattedTours] = useState<any[]>([]); // NEW: Store all formatted tours
   const [selectedState, setSelectedState] = useState<string>(state || "Andaman");
 
   const [allTours, setAllTours] = useState<any[]>([]);
@@ -122,11 +99,12 @@ const Honeymoon_tours = () => {
   useEffect(() => {
     const fetchTours = async () => {
       try {
+        console.log("Fetching tours from API...");
         const res = await fetch(`${BASE_URL}/api/tours`);
         const data = await res.json();
-      
+        console.log("Fetched tours:", data);
+        console.log("Total tours count:", data.length);
         setAllTours(data);
-        console.log("data", data);
       } catch (err) {
         console.error("Error fetching tours:", err);
       } finally {
@@ -143,11 +121,12 @@ const Honeymoon_tours = () => {
 
     const fetchImagesForTours = async () => {
       try {
+        console.log("Fetching images for", allTours.length, "tours");
         const results = await Promise.all(
           allTours.map(async (tour) => {
             try {
               const res = await fetch(
-                `${BASE_URL}/api/tours/tour/full/group/${tour.tour_id}`
+                `${BASE_URL}/api/tours/tour/full/honeymoon/${tour.tour_id}`
               );
               const data = await res.json();
 
@@ -177,6 +156,7 @@ const Honeymoon_tours = () => {
           }
         });
 
+        console.log("Tour images map:", imageMap);
         setTourImages(imageMap);
       } catch (err) {
         console.error("Error building tour images map:", err);
@@ -190,71 +170,132 @@ const Honeymoon_tours = () => {
   useEffect(() => {
     if (state) {
       const decodedState = decodeURIComponent(state);
+      console.log("Decoded state from URL:", decodedState);
       setSelectedState(decodedState);
     }
   }, [state]);
 
-  // ---------- Helper: get tours for selected state (raw API shape) ----------
+  // Function to get tours for current state
   const getCurrentStateTours = () => {
-    if (!selectedState) return allTours;
+    if (!selectedState) {
+      console.log("No selected state, returning all tours");
+      return allTours;
+    }
 
-    return allTours.filter(
-      (tour) =>
-        tour.primary_destination_name?.toLowerCase() ===
-          selectedState.toLowerCase() &&
-        tour.tour_type?.toLowerCase() === "students"
-    );
+    console.log("Filtering tours for state:", selectedState);
+    console.log("Total tours to filter:", allTours.length);
+    
+    // Debug log each tour
+    allTours.forEach((tour, index) => {
+      console.log(`Tour ${index + 1}:`, {
+        id: tour.tour_id,
+        state: tour.primary_destination_name,
+        type: tour.tour_type,
+        title: tour.title
+      });
+    });
+
+    // Filter by state AND tour_type = "individual" (case-insensitive)
+    const filtered = allTours.filter((tour) => {
+      const stateMatch = tour.primary_destination_name?.toLowerCase() === selectedState.toLowerCase();
+      const typeMatch = tour.tour_type?.toLowerCase() === "honeymoon";
+      
+      console.log(`Tour ${tour.tour_id}: stateMatch=${stateMatch}, typeMatch=${typeMatch}`);
+      
+      return stateMatch && typeMatch;
+    });
+
+    console.log("Filtered tours count:", filtered.length);
+    console.log("Filtered tour IDs:", filtered.map(t => t.tour_id));
+    return filtered;
   };
 
-  // ---------- Helper: format raw tours into UI-friendly shape (with images) ----------
-  const formatTours = (tours: any[]): Tour[] => {
+  // Function to format tours
+  const formatTours = (tours: any[]) => {
+    console.log("Formatting", tours.length, "tours");
+    
     return tours.map((tour) => {
+      console.log("Formatting tour:", {
+        id: tour.tour_id,
+        code: tour.tour_code,
+        type: tour.tour_type,
+        price: tour.base_price_adult
+      });
+      
       const imgUrl =
         tourImages[tour.tour_id] ||
         "https://via.placeholder.com/800x600?text=Tour+Image";
 
+      const priceValue = Number(tour.base_price_adult) || 0;
+      const days = tour.duration_days || 1;
+      
       return {
         id: tour.tour_id,
-        code: tour.tour_code,
-        title: tour.title,
-        duration: `${tour.duration_days - 1}N/${tour.duration_days}D`,
-        days: tour.duration_days,
-        price: `₹${Number(tour.base_price_adult).toLocaleString()}`,
-        priceValue: Number(tour.base_price_adult),
-        locations: tour.primary_destination_name,
+        code: tour.tour_code || `TOUR${tour.tour_id}`,
+        title: tour.title || "Untitled Tour",
+        duration: `${days - 1}N/${days}D`,
+        days: days,
+        price: `₹${priceValue.toLocaleString()}`,
+        priceValue: priceValue,
+        locations: tour.primary_destination_name || "Unknown Location",
         image: imgUrl,
-        emi: `₹${Math.round(
-          Number(tour.base_price_adult) / 12
-        )}`,
+        emi: `₹${Math.round(priceValue / 12)}`,
         isIndian: true,
         locationTags: [tour.primary_destination_name || ""],
         tourType: tour.tour_type,
-        state: tour.primary_destination_name, // Add state property
+        rawTourType: tour.tour_type,
       };
     });
   };
 
-  // ---------- Main filter + sort effect (SINGLE SOURCE OF TRUTH) ----------
+  // ---------- Format tours when data changes ----------
   useEffect(() => {
-    console.log("All tours:", allTours); // Debug: Check what tours we have
+    if (allTours.length === 0) {
+      console.log("No tours to format yet");
+      return;
+    }
+
+    console.log("=== FORMATTING TOURS ===");
+    console.log("All tours available:", allTours.length);
+    console.log("Selected state:", selectedState);
     
-    // Start from state-filtered raw tours (already filtered for ladies tours)
     const currentStateTours = getCurrentStateTours();
-    console.log("Filtered tours (ladies only):", currentStateTours); // Debug
+    console.log("Tours for current state:", currentStateTours.length);
     
-    let result = formatTours(currentStateTours);
-    console.log("Formatted tours:", result); // Debug
+    const formatted = formatTours(currentStateTours);
+    console.log("Formatted tours (all individual tours for this state):", formatted);
+    
+    setFormattedTours(formatted);
+  }, [allTours, tourImages, selectedState]);
+
+  // ---------- Apply filters to formatted tours ----------
+  useEffect(() => {
+    console.log("=== APPLYING FILTERS ===");
+    console.log("Starting with formatted tours:", formattedTours.length);
+    console.log("Formatted tour IDs:", formattedTours.map(t => t.id));
+    
+    if (formattedTours.length === 0) {
+      setFilteredTours([]);
+      return;
+    }
+
+    let result = [...formattedTours];
+    console.log("Initial tours count:", result.length);
 
     // Duration filter
+    console.log("Duration range:", durationRange);
     result = result.filter(
       (tour) => tour.days >= durationRange[0] && tour.days <= durationRange[1]
     );
+    console.log("After duration filter:", result.length);
 
     // Price filter
+    console.log("Price range:", priceRange);
     result = result.filter(
       (tour) =>
         tour.priceValue >= priceRange[0] && tour.priceValue <= priceRange[1]
     );
+    console.log("After price filter:", result.length);
 
     // Departure month filter (placeholder logic)
     if (selectedDepartureMonths.length > 0) {
@@ -263,6 +304,7 @@ const Honeymoon_tours = () => {
 
     // Indian tours filter
     if (selectedIndianTours.length > 0) {
+      console.log("Selected Indian tours:", selectedIndianTours);
       result = result.filter((tour) => {
         if (!tour.isIndian) return false;
 
@@ -274,10 +316,12 @@ const Honeymoon_tours = () => {
           return false;
         });
       });
+      console.log("After Indian tours filter:", result.length);
     }
 
     // World tours filter (won't really match for isIndian=true, but safe)
     if (selectedWorldTours.length > 0) {
+      console.log("Selected World tours:", selectedWorldTours);
       result = result.filter((tour) => {
         if (tour.isIndian) return false;
         return selectedWorldTours.some((selectedLocation) =>
@@ -286,9 +330,11 @@ const Honeymoon_tours = () => {
           )
         );
       });
+      console.log("After world tours filter:", result.length);
     }
 
     // Sorting
+    console.log("Sort type:", sortType);
     if (sortType === "price-low") {
       result.sort((a, b) => a.priceValue - b.priceValue);
     } else if (sortType === "price-high") {
@@ -297,12 +343,11 @@ const Honeymoon_tours = () => {
       result.sort((a, b) => a.days - b.days);
     }
 
-    console.log("Final filtered tours:", result); // Debug
+    console.log("Final filtered tours count:", result.length);
+    console.log("Final filtered tour IDs:", result.map(t => t.id));
     setFilteredTours(result);
   }, [
-    allTours,
-    tourImages,
-    selectedState,
+    formattedTours,
     durationRange,
     priceRange,
     selectedDepartureMonths,
@@ -339,22 +384,21 @@ const Honeymoon_tours = () => {
   };
 
   const clearAllFilters = () => {
-    setDurationRange([0, 11]);
-    setPriceRange([0, 153000]);
+    setDurationRange([0, 30]);
+    setPriceRange([0, 500000]);
     setSelectedDepartureMonths([]);
     setSelectedIndianTours([]);
     setSelectedWorldTours([]);
     setSortType("recommended");
   };
 
-  const currentTours = getCurrentStateTours();
-  const heroImage = stateHeroImages[selectedState] || stateHeroImages["Andaman"];
-  const heroDescription = stateDescriptions[selectedState] || stateDescriptions["Andaman"];
+  const heroImage = stateHeroImages[selectedState as keyof typeof stateHeroImages] || stateHeroImages.default;
+  const heroDescription = stateDescriptions[selectedState as keyof typeof stateDescriptions] || stateDescriptions.default;
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p>Loading ladies tours...</p>
+        <p>Loading tours...</p>
       </div>
     );
   }
@@ -370,7 +414,7 @@ const Honeymoon_tours = () => {
           <aside className="lg:w-80">
             <div className="bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl shadow-lg p-6 border border-blue-200 sticky top-24">
               <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
-                <h2 className="text-2xl font-bold text-[#2E4D98]">Ladies Special Tours</h2>
+                <h2 className="text-2xl font-bold text-[#2E4D98]">Indian Tours</h2>
                 <button 
                   onClick={clearAllFilters}
                   className="text-sm text-[#E53C42] hover:underline"
@@ -389,7 +433,7 @@ const Honeymoon_tours = () => {
                 <Slider 
                   value={durationRange} 
                   onValueChange={setDurationRange}
-                  max={15} 
+                  max={30} 
                   step={1} 
                   className="w-full" 
                 />
@@ -405,8 +449,8 @@ const Honeymoon_tours = () => {
                 <Slider 
                   value={priceRange} 
                   onValueChange={setPriceRange}
-                  min={10000} 
-                  max={200000} 
+                  min={0} 
+                  max={500000} 
                   step={1000} 
                 />
               </div>
@@ -511,12 +555,13 @@ const Honeymoon_tours = () => {
               {/* Hero Content */}
               <div className="relative p-8 min-h-[200px] flex items-center">
                 <div className="text-white">
-                  <h1 className="text-3xl font-bold mb-2">{selectedState} Ladies Special Tour Packages</h1>
+                  <h1 className="text-3xl font-bold mb-2">{selectedState} Honeymoon Tour Packages</h1>
                   <p className="text-base opacity-90 max-w-2xl">
                     {heroDescription}
                   </p>
                   <p className="text-sm opacity-80 mt-2">
-                    Showing {filteredTours.length} ladies special tour packages for {selectedState}
+                    Showing {filteredTours.length} Honeymoon tour packages for {selectedState}
+                    <span className="ml-2 text-xs">(Total available: {formattedTours.length})</span>
                   </p>
                 </div>
               </div>
@@ -525,13 +570,13 @@ const Honeymoon_tours = () => {
             {/* Main Content Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
               <div>
-                <h2 className="text-3xl font-bold text-gray-800">{selectedState} Ladies Holiday Packages</h2>
+                <h2 className="text-3xl font-bold text-gray-800">{selectedState} Honeymoon Holiday Packages</h2>
                 <p className="text-gray-600 mt-1">
-                  Showing {filteredTours.length} of {currentTours.length} ladies tours • Best prices guaranteed
+                  Showing {filteredTours.length} of {formattedTours.length} Honeymoon tours • Best prices guaranteed
                 </p>
               </div>
 
-              <div className="flex items-center gap-4">
+              {/* <div className="flex items-center gap-4">
                 <Tabs defaultValue="grid">
                   <TabsList className="grid grid-cols-2">
                     <TabsTrigger value="grid">Grid</TabsTrigger>
@@ -550,15 +595,15 @@ const Honeymoon_tours = () => {
                     <SelectItem value="duration">Duration</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
+              </div> */}
             </div>
 
             {/* 3 Cards Per Row */}
             {filteredTours.length === 0 ? (
               <div className="text-center py-12">
-                <h3 className="text-xl font-semibold text-gray-600">No ladies special tours found for the selected filters</h3>
+                <h3 className="text-xl font-semibold text-gray-600">No Honeymoon tours found for the selected filters</h3>
                 <p className="text-gray-500 mt-2">
-                  Try adjusting your filters or clear all filters to see more options
+                  Total available tours for {selectedState}: {formattedTours.length}
                 </p>
                 <Button
                   onClick={clearAllFilters}
@@ -664,4 +709,4 @@ const Honeymoon_tours = () => {
   );
 };
 
-export default Honeymoon_tours;
+export default TourPackages;

@@ -8,12 +8,7 @@ import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { BASE_URL } from '@/ApiUrls';
 
-// Define proper type for state images and descriptions
-interface StateData {
-  [key: string]: string;
-}
-
-const stateHeroImages: StateData = {
+const stateHeroImages = {
   "Andaman": "https://i.pinimg.com/1200x/67/10/27/671027210a396e38b27e5d0432bd18db.jpg",
   "Andhra Pradesh": "https://images.unsplash.com/photo-1587132135057-bc3c3dcfd4d9?w=1200&q=80",
   "Bihar": "https://images.unsplash.com/photo-1587132135056-bc3c3dcfd4d8?w=1200&q=80",
@@ -34,7 +29,7 @@ const stateHeroImages: StateData = {
   "Madhya Pradesh": "https://images.unsplash.com/photo-1587132135065-bc3c3dcfd4e2?w=1200&q=80",
   "Maharashtra": "https://images.unsplash.com/photo-1587132135066-bc3c3dcfd4e3?w=1200&q=80",
   "North East": "https://images.unsplash.com/photo-1587132135067-bc3c3dcfd4e4?w=1200&q=80",
-  "Odisha": "https://images.unsplash.com/photo-1587132135068-bc3c3dcfd4e5?w=1200&q=80",
+  "Odisha": "https://images.unsplash.com/ photo-1587132135068-bc3c3dcfd4e5?w=1200&q=80",
   "Puducherry": "https://images.unsplash.com/photo-1587132135069-bc3c3dcfd4e6?w=1200&q=80",
   "Punjab & Haryana": "https://images.unsplash.com/photo-1587132135070-bc3c3dcfd4e7?w=1200&q=80",
   "Rajasthan": "https://images.unsplash.com/photo-1587132135071-bc3c3dcfd4e8?w=1200&q=80",
@@ -46,7 +41,7 @@ const stateHeroImages: StateData = {
 };
 
 // Get state-specific descriptions
-const stateDescriptions: StateData = {
+const stateDescriptions = {
   "Andaman": "Where Time Slows Down, Beauty Takes Over, and Blue Waters Meet Endless Adventures!",
   "Andhra Pradesh": "Discover the Spiritual Heartland and Coastal Beauty of Andhra Pradesh!",
   "Bihar": "Explore Ancient Heritage and Spiritual Enlightenment in the Land of Buddha!",
@@ -78,26 +73,7 @@ const stateDescriptions: StateData = {
   "West Bengal": "Cultural Capital - From Himalayan Hills to Sundarbans Delta!",
 };
 
-// Define Tour interface
-interface Tour {
-  id: any;
-  code: any;
-  title: any;
-  duration: string;
-  days: any;
-  price: string;
-  priceValue: number;
-  locations: any;
-  image: string;
-  emi: string;
-  isIndian: boolean;
-  locationTags: any[];
-  tourType: any;
-  state?: string;
-  dates?: string;
-}
-
-const Students_tour = () => {
+const TourPackages = () => {
   const navigate = useNavigate();
   const { state } = useParams(); // Get state from URL params
   const [viewMode] = useState<'grid' | 'list'>('grid');
@@ -106,12 +82,12 @@ const Students_tour = () => {
   const [sortType, setSortType] = useState("recommended");
 
   // Filter states
-  const [durationRange, setDurationRange] = useState([0, 11]);
-  const [priceRange, setPriceRange] = useState([0, 153000]);
+  const [durationRange, setDurationRange] = useState([0, 15]);
+  const [priceRange, setPriceRange] = useState([0, 200000]);
   const [selectedDepartureMonths, setSelectedDepartureMonths] = useState<string[]>([]);
   const [selectedIndianTours, setSelectedIndianTours] = useState<string[]>([]);
   const [selectedWorldTours, setSelectedWorldTours] = useState<string[]>([]);
-  const [filteredTours, setFilteredTours] = useState<Tour[]>([]);
+  const [filteredTours, setFilteredTours] = useState<any[]>([]);
   const [selectedState, setSelectedState] = useState<string>(state || "Andaman");
 
   const [allTours, setAllTours] = useState<any[]>([]);
@@ -126,7 +102,7 @@ const Students_tour = () => {
         const data = await res.json();
       
         setAllTours(data);
-        console.log("data", data);
+        console.log("All tours from API:", data);
       } catch (err) {
         console.error("Error fetching tours:", err);
       } finally {
@@ -147,7 +123,7 @@ const Students_tour = () => {
           allTours.map(async (tour) => {
             try {
               const res = await fetch(
-                `${BASE_URL}/api/tours/tour/full/group/${tour.tour_id}`
+                `${BASE_URL}/api/tours/tour/full/student/${tour.tour_id}`
               );
               const data = await res.json();
 
@@ -194,20 +170,38 @@ const Students_tour = () => {
     }
   }, [state]);
 
-  // ---------- Helper: get tours for selected state (raw API shape) ----------
+  // ---------- FIXED: Helper to get tours for selected state (raw API shape) ----------
   const getCurrentStateTours = () => {
-    if (!selectedState) return allTours;
+    if (!selectedState || !allTours.length) return [];
 
-    return allTours.filter(
-      (tour) =>
-        tour.primary_destination_name?.toLowerCase() ===
-          selectedState.toLowerCase() &&
-        tour.tour_type?.toLowerCase() === "students"
-    );
+    console.log("Selected state:", selectedState);
+    console.log("Total tours:", allTours.length);
+
+    // Filter by state AND tour_type = "ladiesspecial" (case-insensitive)
+    const filtered = allTours.filter((tour) => {
+      const stateMatch = tour.primary_destination_name?.toLowerCase() === selectedState.toLowerCase();
+      const typeMatch = tour.tour_type?.toLowerCase() === "student";
+      
+      if (stateMatch && typeMatch) {
+        console.log("Matched tour:", {
+          id: tour.tour_id,
+          title: tour.title,
+          state: tour.primary_destination_name,
+          tour_type: tour.tour_type
+        });
+      }
+      
+      return stateMatch && typeMatch;
+    });
+
+    console.log(`Found ${filtered.length}Students tours for ${selectedState}:`, filtered);
+    return filtered;
   };
 
   // ---------- Helper: format raw tours into UI-friendly shape (with images) ----------
-  const formatTours = (tours: any[]): Tour[] => {
+  const formatTours = (tours: any[]) => {
+    console.log("Formatting tours:", tours);
+    
     return tours.map((tour) => {
       const imgUrl =
         tourImages[tour.tour_id] ||
@@ -229,32 +223,36 @@ const Students_tour = () => {
         isIndian: true,
         locationTags: [tour.primary_destination_name || ""],
         tourType: tour.tour_type,
-        state: tour.primary_destination_name, // Add state property
       };
     });
   };
 
   // ---------- Main filter + sort effect (SINGLE SOURCE OF TRUTH) ----------
   useEffect(() => {
-    console.log("All tours:", allTours); // Debug: Check what tours we have
+    console.log("All tours:", allTours);
+    console.log("Selected state:", selectedState);
     
-    // Start from state-filtered raw tours (already filtered for ladies tours)
+    // Start from state-filtered raw tours (already filtered for ladiesspecial)
     const currentStateTours = getCurrentStateTours();
-    console.log("Filtered tours (ladies only):", currentStateTours); // Debug
+    console.log("Raw filtered tours (ladiesspecial only):", currentStateTours);
     
     let result = formatTours(currentStateTours);
-    console.log("Formatted tours:", result); // Debug
+    console.log("Formatted tours:", result);
 
     // Duration filter
-    result = result.filter(
-      (tour) => tour.days >= durationRange[0] && tour.days <= durationRange[1]
-    );
+    if (durationRange[0] > 0 || durationRange[1] < 15) {
+      result = result.filter(
+        (tour) => tour.days >= durationRange[0] && tour.days <= durationRange[1]
+      );
+    }
 
     // Price filter
-    result = result.filter(
-      (tour) =>
-        tour.priceValue >= priceRange[0] && tour.priceValue <= priceRange[1]
-    );
+    if (priceRange[0] > 0 || priceRange[1] < 200000) {
+      result = result.filter(
+        (tour) =>
+          tour.priceValue >= priceRange[0] && tour.priceValue <= priceRange[1]
+      );
+    }
 
     // Departure month filter (placeholder logic)
     if (selectedDepartureMonths.length > 0) {
@@ -264,14 +262,11 @@ const Students_tour = () => {
     // Indian tours filter
     if (selectedIndianTours.length > 0) {
       result = result.filter((tour) => {
-        if (!tour.isIndian) return false;
-
         return selectedIndianTours.some((sel) => {
-          if (tour.state === sel) return true;
-          if (tour.title.toLowerCase().includes(sel.toLowerCase())) return true;
-          if (tour.locations.toLowerCase().includes(sel.toLowerCase()))
-            return true;
-          return false;
+          const selLower = sel.toLowerCase();
+          return tour.locations?.toLowerCase() === selLower || 
+                 tour.title?.toLowerCase().includes(selLower) ||
+                 tour.locations?.toLowerCase().includes(selLower);
         });
       });
     }
@@ -297,7 +292,8 @@ const Students_tour = () => {
       result.sort((a, b) => a.days - b.days);
     }
 
-    console.log("Final filtered tours:", result); // Debug
+    console.log("Final filtered tours count:", result.length);
+    console.log("Final filtered tours:", result);
     setFilteredTours(result);
   }, [
     allTours,
@@ -339,8 +335,8 @@ const Students_tour = () => {
   };
 
   const clearAllFilters = () => {
-    setDurationRange([0, 11]);
-    setPriceRange([0, 153000]);
+    setDurationRange([0, 15]);
+    setPriceRange([0, 200000]);
     setSelectedDepartureMonths([]);
     setSelectedIndianTours([]);
     setSelectedWorldTours([]);
@@ -348,13 +344,13 @@ const Students_tour = () => {
   };
 
   const currentTours = getCurrentStateTours();
-  const heroImage = stateHeroImages[selectedState] || stateHeroImages["Andaman"];
-  const heroDescription = stateDescriptions[selectedState] || stateDescriptions["Andaman"];
+  const heroImage = stateHeroImages[selectedState as keyof typeof stateHeroImages] || stateHeroImages.Andaman;
+  const heroDescription = stateDescriptions[selectedState as keyof typeof stateDescriptions] || stateDescriptions.Andaman;
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p>Loading ladies tours...</p>
+        <p>Loading tours...</p>
       </div>
     );
   }
@@ -370,7 +366,7 @@ const Students_tour = () => {
           <aside className="lg:w-80">
             <div className="bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl shadow-lg p-6 border border-blue-200 sticky top-24">
               <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
-                <h2 className="text-2xl font-bold text-[#2E4D98]">Ladies Special Tours</h2>
+                <h2 className="text-2xl font-bold text-[#2E4D98]">Indian Tours</h2>
                 <button 
                   onClick={clearAllFilters}
                   className="text-sm text-[#E53C42] hover:underline"
@@ -405,7 +401,7 @@ const Students_tour = () => {
                 <Slider 
                   value={priceRange} 
                   onValueChange={setPriceRange}
-                  min={10000} 
+                  min={0} 
                   max={200000} 
                   step={1000} 
                 />
@@ -511,12 +507,12 @@ const Students_tour = () => {
               {/* Hero Content */}
               <div className="relative p-8 min-h-[200px] flex items-center">
                 <div className="text-white">
-                  <h1 className="text-3xl font-bold mb-2">{selectedState} Ladies Special Tour Packages</h1>
+                  <h1 className="text-3xl font-bold mb-2">{selectedState} Students Tour Packages</h1>
                   <p className="text-base opacity-90 max-w-2xl">
                     {heroDescription}
                   </p>
                   <p className="text-sm opacity-80 mt-2">
-                    Showing {filteredTours.length} ladies special tour packages for {selectedState}
+                    Showing {filteredTours.length} Students tour packages for {selectedState}
                   </p>
                 </div>
               </div>
@@ -525,13 +521,13 @@ const Students_tour = () => {
             {/* Main Content Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
               <div>
-                <h2 className="text-3xl font-bold text-gray-800">{selectedState} Ladies Holiday Packages</h2>
+                <h2 className="text-3xl font-bold text-gray-800">{selectedState} Students Holiday Packages</h2>
                 <p className="text-gray-600 mt-1">
-                  Showing {filteredTours.length} of {currentTours.length} ladies tours • Best prices guaranteed
+                  Showing {filteredTours.length} of {currentTours.length} Students tours • Best prices guaranteed
                 </p>
               </div>
 
-              <div className="flex items-center gap-4">
+              {/* <div className="flex items-center gap-4">
                 <Tabs defaultValue="grid">
                   <TabsList className="grid grid-cols-2">
                     <TabsTrigger value="grid">Grid</TabsTrigger>
@@ -550,13 +546,13 @@ const Students_tour = () => {
                     <SelectItem value="duration">Duration</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
+              </div> */}
             </div>
 
             {/* 3 Cards Per Row */}
             {filteredTours.length === 0 ? (
               <div className="text-center py-12">
-                <h3 className="text-xl font-semibold text-gray-600">No ladies special tours found for the selected filters</h3>
+                <h3 className="text-xl font-semibold text-gray-600">NoStudents tours found for the selected filters</h3>
                 <p className="text-gray-500 mt-2">
                   Try adjusting your filters or clear all filters to see more options
                 </p>
@@ -569,8 +565,8 @@ const Students_tour = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredTours.map((tour, index) => (
-                  <div key={index} className="flex flex-col">
+                {filteredTours.map((tour) => (
+                  <div key={tour.id} className="flex flex-col">
                     {/* Separate Top Block - Excel-like box design */}
                     <div className="bg-white border-2 border-gray-300 rounded-lg p-3 mb-3 shadow-sm">
                       <div className="grid grid-cols-3 gap-0 border border-gray-400 rounded overflow-hidden">
@@ -600,6 +596,7 @@ const Students_tour = () => {
                           alt={tour.title}
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                         />
+                  
                         <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
                       </div>
 
@@ -664,4 +661,4 @@ const Students_tour = () => {
   );
 };
 
-export default Students_tour;
+export default TourPackages;

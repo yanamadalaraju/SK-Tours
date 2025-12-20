@@ -507,7 +507,7 @@ const getCurrentStateTours = () => {
                 </p>
               </div>
 
-              <div className="flex items-center gap-4">
+              {/* <div className="flex items-center gap-4">
                 <Tabs defaultValue="grid">
                   <TabsList className="grid grid-cols-2">
                     <TabsTrigger value="grid">Grid</TabsTrigger>
@@ -526,7 +526,7 @@ const getCurrentStateTours = () => {
                     <SelectItem value="duration">Duration</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
+              </div> */}
             </div>
 
             {/* 3 Cards Per Row */}
