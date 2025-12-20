@@ -414,7 +414,7 @@ const TourPackages = () => {
           <aside className="lg:w-80">
             <div className="bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl shadow-lg p-6 border border-blue-200 sticky top-24">
               <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
-                <h2 className="text-2xl font-bold text-[#2E4D98]">Indian Tours</h2>
+                <h2 className="text-2xl font-bold text-[#2E4D98]">Individual Tours</h2>
                 <button 
                   onClick={clearAllFilters}
                   className="text-sm text-[#E53C42] hover:underline"

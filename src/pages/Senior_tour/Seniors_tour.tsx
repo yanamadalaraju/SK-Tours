@@ -80,6 +80,7 @@ const TourPackages = () => {
   const [showMoreIndian, setShowMoreIndian] = useState(false);
   const [showMoreWorld, setShowMoreWorld] = useState(false);
   const [sortType, setSortType] = useState("recommended");
+     const [showAllDepartureMonths, setShowAllDepartureMonths] = useState(false);
 
   // Filter states
   const [durationRange, setDurationRange] = useState([0, 15]);
@@ -366,7 +367,7 @@ const TourPackages = () => {
           <aside className="lg:w-80">
             <div className="bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl shadow-lg p-6 border border-blue-200 sticky top-24">
               <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
-                <h2 className="text-2xl font-bold text-[#2E4D98]">Indian Tours</h2>
+                <h2 className="text-2xl font-bold text-[#2E4D98]">Senior CTZ Tours</h2>
                 <button 
                   onClick={clearAllFilters}
                   className="text-sm text-[#E53C42] hover:underline"
@@ -407,6 +408,38 @@ const TourPackages = () => {
                 />
               </div>
 
+<div className="mb-8">
+  <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Departure Months</h3>
+  <div className="space-y-3">
+    {[
+      'January 2025', 'February 2025', 'March 2025', 'April 2025', 
+      'May 2025', 'June 2025', 'July 2025', 'August 2025',
+      'September 2025', 'October 2025', 'November 2025', 'December 2025'
+    ]
+      .slice(0, showAllDepartureMonths ? 12 : 6) // Show 6 by default, 12 when expanded
+      .map((month) => (
+        <label key={month} className="flex items-center gap-3 cursor-pointer">
+          <Checkbox
+            checked={selectedDepartureMonths.includes(month)}
+            onCheckedChange={(checked) => 
+              handleDepartureMonthChange(month, checked as boolean)
+            }
+            className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
+          />
+          <span className="text-gray-700">{month}</span>
+        </label>
+      ))}
+  </div>
+  
+  {/* Show More/Less Button */}
+  <button
+    onClick={() => setShowAllDepartureMonths(!showAllDepartureMonths)}
+    className="mt-4 text-[#2E4D98] font-medium hover:text-[#1E3A8A] transition-colors"
+  >
+    {showAllDepartureMonths ? 'Show Less' : 'Show More'}
+  </button>
+</div>
+      
               {/* Indian Tours */}
               <div className="mb-8">
                 <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
