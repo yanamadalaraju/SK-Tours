@@ -1,88 +1,97 @@
-import React, { useState, useEffect, useRef } from "react";
-import { ChevronLeft, ChevronRight, MapPin, Star, Users, Calendar } from "lucide-react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { ChevronLeft, ChevronRight, MapPin } from "lucide-react";
 import "./DomesticToursSection.css";
+import { BASE_URL } from "../../ApiUrls";
 
-const domesticTours = [
-  {
-    id: 1,
-    name: "Kashmir Great Lakes",
-    location: "Kashmir",
-    duration: "8 Days",
-    price: "₹25,999",
-    image: "https://images.pexels.com/photos/674010/pexels-photo-674010.jpeg?auto=compress&cs=tinysrgb&w=1200",
-    travelers: 1250,
-    tourId: "DOMI00001",
-          emi: "₹2,166" // Add this
+interface Tour {
+  id: number;
+  tour_id: string;
+  name: string;
+  location: string;
+  duration: string;
+  price: string;
+  image: string;
+  travelers: number;
+  emi: string;
+  tour_type: 'individual' | 'Group';
+  status: number;
+  display_order: number;
+}
 
-  },
-  {
-    id: 2,
-    name: "Leh Ladakh Bike Trip",
-    location: "Ladakh",
-    duration: "10 Days",
-    price: "₹35,999",
-    image: "https://images.pexels.com/photos/672358/pexels-photo-672358.jpeg?auto=compress&cs=tinysrgb&w=1200",
-    travelers: 890,
-    tourId: "DOMI00002",
-          emi: "₹2,166" // Add this
-
-  },
-  {
-    id: 3,
-    name: "Goa Beach Holiday",
-    location: "Goa",
-    duration: "5 Days",
-    price: "₹18,999",
-    image: "https://images.pexels.com/photos/2525903/pexels-photo-2525903.jpeg?auto=compress&cs=tinysrgb&w=1200",
-    travelers: 2100,
-    tourId: "DOMI00003",
-          emi: "₹2,166" // Add this
-
-  },
-  {
-    id: 4,
-    name: "Kerala Backwaters",
-    location: "Kerala",
-    duration: "6 Days",
-    price: "₹22,999",
-    image: "https://images.pexels.com/photos/460376/pexels-photo-460376.jpeg?auto=compress&cs=tinysrgb&w=1200",
-    travelers: 1560,
-    tourId: "DOMI00004",
-          emi: "₹2,166" // Add this
-
-  },
-  {
-    id: 5,
-    name: "Rajasthan Cultural Tour",
-    location: "Rajasthan",
-    duration: "7 Days",
-    price: "₹28,999",
-    image: "https://images.pexels.com/photos/358319/pexels-photo-358319.jpeg?auto=compress&cs=tinysrgb&w=1200",
-    travelers: 1340,
-    tourId: "DOMI00005",
-      emi: "₹2,166" // Add this
-  },
-  {
-    id: 6,
-    name: "Himachal Trekking",
-    location: "Himachal",
-    duration: "6 Days",
-    price: "₹19,999",
-    image: "https://images.pexels.com/photos/417074/pexels-photo-417074.jpeg?auto=compress&cs=tinysrgb&w=1200",
-    travelers: 980,
-    tourId: "DOMI00006",
-          emi: "₹2,166" // Add this
-
-  }
-];
-
-const DomesticToursSection: React.FC = () => {
+const TourCarousel: React.FC<{ 
+  title: string; 
+  subtitle: string;
+  tourType: 'individual' | 'Group';
+}> = ({ title, subtitle, tourType }) => {
+  const [tours, setTours] = useState<Tour[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  
   const [visibleCards, setVisibleCards] = useState(4);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number>();
   const scrollPositionRef = useRef(0);
   const isManualScrollingRef = useRef(false);
+
+  useEffect(() => {
+    const fetchTours = async () => {
+      try {
+        setLoading(true);
+        setError('');
+
+        // Use the correct API endpoint based on your API structure
+        const endpoint = tourType === 'individual' 
+          ? `${BASE_URL}/api/tours/tour/full/all-individual`
+          : `${BASE_URL}/api/tours/tour/full/all-group`;
+
+        const res = await fetch(endpoint);
+        const data = await res.json();
+
+        if (!data.success) {
+          throw new Error(data.error || 'Failed to fetch tours');
+        }
+
+        // Process the API data
+        const processedTours = data.data.map((tourData: any, index: number) => {
+          const tour = tourData.basic_details;
+          const images = tourData.images || [];
+          
+          // Calculate EMI: price / 12 (round to nearest integer)
+          const basePrice = parseFloat(tour.base_price_adult) || 0;
+          const emiValue = basePrice > 0 ? Math.round(basePrice / 12) : 0;
+          
+          // Get first image URL, or use placeholder
+          const firstImage = images.length > 0 ? images[0].url : 'https://via.placeholder.com/400x250';
+          
+          return {
+            id: tour.tour_id,
+            tour_id: tour.tour_code,
+            name: tour.title,
+            location: `Destination ${tour.primary_destination_id}`, // You might want to fetch destination name separately
+            duration: `${tour.duration_days} Days`,
+            price: `₹${Number(tour.base_price_adult).toLocaleString('en-IN')}`,
+            image: firstImage,
+            travelers: 0,
+            emi: emiValue > 0 ? `₹${emiValue.toLocaleString('en-IN')}/month` : 'N/A',
+            tour_type: tour.tour_type,
+            status: tour.status || 1,
+            display_order: index + 1,
+          };
+        }).filter((t: Tour) => Number(t.status) === 1);
+
+        setTours(processedTours);
+      } catch (err: any) {
+        console.error('Error fetching tours:', err);
+        setError(err.message || 'Failed to load tours');
+        setTours([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTours();
+  }, [tourType]);
 
   // Update visible cards based on screen size
   useEffect(() => {
@@ -101,74 +110,66 @@ const DomesticToursSection: React.FC = () => {
     return () => window.removeEventListener('resize', updateVisibleCards);
   }, []);
 
+  // Animation function
+  const animateScroll = useCallback(() => {
+    if (!scrollContainerRef.current || tours.length === 0) return;
+    
+    const scrollContainer = scrollContainerRef.current;
+    const scrollWidth = scrollContainer.scrollWidth / 2;
+    
+    scrollPositionRef.current += 0.8;
+    
+    // Reset to start when reaching the duplicated section
+    if (scrollPositionRef.current >= scrollWidth) {
+      scrollPositionRef.current = 0;
+    }
+    
+    scrollContainer.scrollLeft = scrollPositionRef.current;
+    
+    // Continue animation
+    if (isAutoPlaying && !isManualScrollingRef.current) {
+      animationRef.current = requestAnimationFrame(animateScroll);
+    }
+  }, [isAutoPlaying, tours.length]);
+
   // Continuous smooth scrolling animation
   useEffect(() => {
-    if (!isAutoPlaying || !scrollContainerRef.current || isManualScrollingRef.current) return;
-
-    const scrollContainer = scrollContainerRef.current;
-    const scrollWidth = scrollContainer.scrollWidth / 2; // Since we duplicated the cards
-    const clientWidth = scrollContainer.clientWidth;
-
-    const animateScroll = () => {
-      scrollPositionRef.current += 0.8; // Adjust speed here (higher = faster)
-      
-      // Reset to start when reaching the duplicated section
-      if (scrollPositionRef.current >= scrollWidth) {
-        scrollPositionRef.current = 0;
-      }
-      
-      scrollContainer.scrollLeft = scrollPositionRef.current;
-      animationRef.current = requestAnimationFrame(animateScroll);
-    };
-
+    if (!isAutoPlaying || !scrollContainerRef.current || tours.length === 0) return;
+    
+    // Stop any existing animation
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+    }
+    
+    // Reset scroll position
+    scrollPositionRef.current = scrollContainerRef.current.scrollLeft;
+    
+    // Start new animation
     animationRef.current = requestAnimationFrame(animateScroll);
-
+    
     return () => {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [isAutoPlaying]);
+  }, [isAutoPlaying, tours, animateScroll]);
 
   const nextSlide = () => {
-    if (scrollContainerRef.current) {
+    if (scrollContainerRef.current && tours.length > 0) {
       isManualScrollingRef.current = true;
       setIsAutoPlaying(false);
       
       const scrollContainer = scrollContainerRef.current;
-      const cardWidth = scrollContainer.scrollWidth / (domesticTours.length * 2);
-      const scrollAmount = cardWidth * visibleCards;
-      const newScrollPosition = scrollContainer.scrollLeft + scrollAmount;
+      const scrollWidth = scrollContainer.scrollWidth;
+      const itemCount = tours.length;
+      const itemWidth = scrollWidth / (itemCount * 2);
+      const scrollAmount = itemWidth * visibleCards;
       
-      scrollContainer.scrollTo({
-        left: newScrollPosition,
-        behavior: 'smooth'
-      });
-
-      // Update the scroll position reference
-      scrollPositionRef.current = newScrollPosition;
-
-      // Resume auto-play after a delay
-      setTimeout(() => {
-        isManualScrollingRef.current = false;
-        setIsAutoPlaying(true);
-      }, 3000); // Resume after 3 seconds
-    }
-  };
-
-  const prevSlide = () => {
-    if (scrollContainerRef.current) {
-      isManualScrollingRef.current = true;
-      setIsAutoPlaying(false);
+      let newScrollPosition = scrollContainer.scrollLeft + scrollAmount;
       
-      const scrollContainer = scrollContainerRef.current;
-      const cardWidth = scrollContainer.scrollWidth / (domesticTours.length * 2);
-      const scrollAmount = cardWidth * visibleCards;
-      let newScrollPosition = scrollContainer.scrollLeft - scrollAmount;
-      
-      // Handle going backwards past the start
-      if (newScrollPosition < 0) {
-        newScrollPosition = scrollContainer.scrollWidth / 2 - scrollAmount;
+      // If we're near the end of the duplicated set, reset to beginning
+      if (newScrollPosition > scrollWidth - scrollContainer.clientWidth) {
+        newScrollPosition = 0;
       }
       
       scrollContainer.scrollTo({
@@ -176,32 +177,236 @@ const DomesticToursSection: React.FC = () => {
         behavior: 'smooth'
       });
 
-      // Update the scroll position reference
       scrollPositionRef.current = newScrollPosition;
 
-      // Resume auto-play after a delay
       setTimeout(() => {
         isManualScrollingRef.current = false;
         setIsAutoPlaying(true);
-      }, 3000); // Resume after 3 seconds
+      }, 3000);
     }
   };
 
-  // Stop auto-play when hovering on any card
+  const prevSlide = () => {
+    if (scrollContainerRef.current && tours.length > 0) {
+      isManualScrollingRef.current = true;
+      setIsAutoPlaying(false);
+      
+      const scrollContainer = scrollContainerRef.current;
+      const scrollWidth = scrollContainer.scrollWidth;
+      const itemCount = tours.length;
+      const itemWidth = scrollWidth / (itemCount * 2);
+      const scrollAmount = itemWidth * visibleCards;
+      
+      let newScrollPosition = scrollContainer.scrollLeft - scrollAmount;
+      
+      // If we're going past the start, jump to near the end
+      if (newScrollPosition < 0) {
+        const maxScroll = scrollWidth / 2 - scrollContainer.clientWidth;
+        newScrollPosition = maxScroll + (itemWidth * visibleCards * (tours.length - 1));
+      }
+      
+      scrollContainer.scrollTo({
+        left: newScrollPosition,
+        behavior: 'smooth'
+      });
+
+      scrollPositionRef.current = newScrollPosition;
+
+      setTimeout(() => {
+        isManualScrollingRef.current = false;
+        setIsAutoPlaying(true);
+      }, 3000);
+    }
+  };
+
   const handleCardMouseEnter = () => {
     setIsAutoPlaying(false);
   };
 
-  // Resume auto-play when leaving card
   const handleCardMouseLeave = () => {
     if (!isManualScrollingRef.current) {
-      setIsAutoPlaying(true);
+      setTimeout(() => {
+        setIsAutoPlaying(true);
+      }, 100);
     }
   };
 
+  if (loading) {
+    return (
+      <div className="rounded-2xl shadow-lg p-6 mb-12 border border-gray-100 relative overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50">
+        <div className="text-center py-8">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-600 border-t-transparent mb-4"></div>
+          <p className="text-gray-600">Loading {tourType} tours...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error && tours.length === 0) {
+    return (
+      <div className="rounded-2xl shadow-lg p-6 mb-12 border border-gray-100 relative overflow-hidden bg-gradient-to-br from-red-50 to-pink-50">
+        <div className="text-center py-8">
+          <p className="text-red-600 mb-2">{error}</p>
+          <p className="text-gray-600">Showing sample data</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div 
+      className="rounded-2xl shadow-lg p-6 mb-12 border border-gray-100 relative overflow-hidden"
+      style={{
+        background: 'radial-gradient(circle at center, #5a92edff 0%, #4c70e7ff 30%, #0F1F5C 70%, #0A1128 100%)',
+      }}
+    >
+      <div 
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'radial-gradient(circle at center, rgba(59, 130, 246, 0.3) 0%, transparent 50%)',
+        }}
+      />
+      
+      <div className="relative z-10">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h3 className="text-xl font-bold text-white drop-shadow-lg">
+              {title}
+            </h3>
+            <p className="text-white/80 text-sm drop-shadow">
+              {subtitle}
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={prevSlide}
+                className="bg-blue-600 hover:bg-blue-700 text-white w-8 h-8 rounded-full flex items-center justify-center shadow transition-all duration-300 hover:scale-110 active:scale-95 border border-white/20"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button
+                onClick={nextSlide}
+                className="bg-blue-600 hover:bg-blue-700 text-white w-8 h-8 rounded-full flex items-center justify-center shadow transition-all duration-300 hover:scale-110 active:scale-95 border border-white/20"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="relative">
+          {tours.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-white">No {tourType} tours available</p>
+            </div>
+          ) : (
+            <>
+              <div 
+                ref={scrollContainerRef}
+                className="flex gap-4 overflow-x-auto scrollbar-hide"
+                style={{ 
+                  scrollBehavior: 'auto',
+                  cursor: 'grab',
+                }}
+                onMouseDown={() => {
+                  setIsAutoPlaying(false);
+                  isManualScrollingRef.current = true;
+                }}
+                onMouseUp={() => {
+                  isManualScrollingRef.current = false;
+                  setIsAutoPlaying(true);
+                }}
+                onMouseLeave={() => {
+                  if (!isManualScrollingRef.current) {
+                    setIsAutoPlaying(true);
+                  }
+                }}
+              >
+                {[...tours, ...tours].map((tour, index) => (
+                  <div
+                    key={`${tour.id}-${index}-${tourType}`}
+                    className="flex-shrink-0"
+                    style={{ 
+                      width: `calc(${100 / Math.min(visibleCards, tours.length)}% - 16px)`,
+                      minWidth: '280px'
+                    }}
+                    onMouseEnter={handleCardMouseEnter}
+                    onMouseLeave={handleCardMouseLeave}
+                  >
+                    <div className="group cursor-pointer bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 h-full border border-gray-100 flex flex-col">
+                      <div className="relative h-48 overflow-hidden flex-shrink-0">
+                        <img
+                          src={tour.image}
+                          alt={tour.name}
+                          className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
+                          onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = 'https://via.placeholder.com/400x250';
+                          }}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                        <div className="absolute top-2 left-2 z-10">
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold text-white bg-black/60 backdrop-blur-sm">
+                            {tour.tour_id}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="p-4 flex flex-col flex-grow">
+                        <div className="flex items-start justify-between mb-2">
+                          <h3 className="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-300 flex-1 pr-2 line-clamp-2">
+                            {tour.name}
+                          </h3>
+                        </div>
+                        
+                        <div className="flex items-center gap-1 text-gray-600 mb-2">
+                          <MapPin className="h-3 w-3" />
+                          <span className="text-xs">{tour.location}</span>
+                        </div>
+                        
+                        <div className="mb-3 mt-auto">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-sm font-semibold text-gray-700">Tour Cost</span>
+                            <p className="text-2xl font-bold text-gray-900">{tour.price}</p>
+                          </div>
+                          
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-600">EMI per/month</span>
+                            <p className="text-sm font-bold text-gray-900">
+                              {tour.emi}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <button className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-3 rounded-lg transition-all duration-300 transform hover:scale-105 active:scale-95 mt-auto">
+                          View Packages
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex justify-center items-center mt-6 gap-2">
+                <div className={`w-3 h-3 rounded-full ${
+                  isAutoPlaying ? 'bg-green-400 animate-pulse' : 'bg-red-400'
+                }`} />
+                <span className="text-xs text-white drop-shadow-lg">
+                  {isAutoPlaying ? 'Auto-scrolling' : 'Paused'}
+                </span>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const DomesticToursSection: React.FC = () => {
   return (
     <section className="py-0 bg-gradient-to-br from-sky-200 via-sky-200 to-sky-200">
-      {/* Full Width Header Strip */}
       <div className="w-full bg-gradient-to-r from-[#0F1F5C] via-[#1F3F93] to-[#0F1F5C] py-8 mb-10 shadow-lg">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
@@ -225,283 +430,18 @@ const DomesticToursSection: React.FC = () => {
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Carousel Container with Gradient Background */}
-        <div 
-          className="rounded-2xl shadow-lg p-6 mb-12 border border-gray-100 relative overflow-hidden"
-          style={{
-            background: 'radial-gradient(circle at center, #5a92edff 0%, #4c70e7ff 30%, #0F1F5C 70%, #0A1128 100%)',
-          }}
-        >
-          {/* Additional Light Center Overlay */}
-          <div 
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              background: 'radial-gradient(circle at center, rgba(59, 130, 246, 0.3) 0%, transparent 50%)',
-            }}
-          />
-          
-          {/* Content */}
-          <div className="relative z-10">
-            {/* Carousel Header */}
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h3 className="text-xl font-bold text-white drop-shadow-lg">
-                  Domestic Individual Tours
-                </h3>
-                <p className="text-white/80 text-sm drop-shadow">
-                  Handpicked Indian experiences
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={prevSlide}
-                    className="bg-blue-600 hover:bg-blue-700 text-white w-8 h-8 rounded-full flex items-center justify-center shadow transition-all duration-300 hover:scale-110 active:scale-95 border border-white/20"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={nextSlide}
-                    className="bg-blue-600 hover:bg-blue-700 text-white w-8 h-8 rounded-full flex items-center justify-center shadow transition-all duration-300 hover:scale-110 active:scale-95 border border-white/20"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Carousel Content */}
-            <div className="relative">
-              {/* Cards Container with Continuous Scroll */}
-              <div 
-                ref={scrollContainerRef}
-                className="flex gap-4 overflow-x-auto scrollbar-hide"
-                style={{ 
-                  scrollBehavior: 'auto',
-                }}
-              >
-         {[...domesticTours, ...domesticTours].map((tour, index) => (
-  <div
-    key={`${tour.id}-${index}`}
-    className="flex-shrink-0"
-    style={{ width: `calc(${100 / visibleCards}% - 16px)` }}
-    onMouseEnter={handleCardMouseEnter}
-    onMouseLeave={handleCardMouseLeave}
-  >
-    <div className="group cursor-pointer bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 h-full border border-gray-100">
-      {/* Tour Image */}
-      <div className="relative h-48 overflow-hidden">
-        <img
-          src={tour.image}
-          alt={tour.name}
-          className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
+        <TourCarousel 
+          title="Domestic Individual Tours"
+          subtitle="Handpicked Indian experiences"
+          tourType="individual"
         />
-        
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-        
-        {/* Tour ID Badge */}
-        <div className="absolute top-2 left-2 z-10">
-          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold text-white bg-black/60 backdrop-blur-sm">
-            {tour.tourId}
-          </span>
-        </div>
-      </div>
 
-      {/* Tour Content */}
-      <div className="p-4">
-        <div className="flex items-start justify-between mb-2">
-          <h3 className="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-300 flex-1 pr-2 line-clamp-2">
-            {tour.name}
-          </h3>
-        </div>
-        
-        <div className="flex items-center gap-1 text-gray-600 mb-2">
-          <MapPin className="h-3 w-3" />
-          <span className="text-xs">{tour.location}</span>
-        </div>
-        
-        {/* Price Details - Added below location */}
-        <div className="mb-3">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-sm font-semibold text-gray-700">Tour Cost</span>
-            <p className="text-2xl font-bold text-gray-900">{tour.price}</p>
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-600">EMI per/month</span>
-            <p className="text-sm font-bold text-gray-900">
-              {tour.emi || `₹${Math.round(parseInt(tour.price.replace('₹', '').replace(',', '')) / 12)}`}
-            </p>
-          </div>
-        </div>
-        
-        <button className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-3 rounded-lg transition-all duration-300 transform hover:scale-105">
-          View Packages
-        </button>
-      </div>
-    </div>
-  </div>
-))}
-              </div>
-
-              {/* Auto-play Status Indicator */}
-              <div className="flex justify-center items-center mt-6 gap-2">
-                <div className={`w-2 h-2 rounded-full ${
-                  isAutoPlaying ? 'bg-green-400 animate-pulse' : 'bg-red-400'
-                }`} />
-                <span className="text-xs text-white drop-shadow-lg">
-                  {isAutoPlaying ? 'Auto-scrolling' : 'Paused'}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Compact Bottom CTA */}
-        <div className="text-center">
-          <button className="inline-flex mb-6 items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-xl shadow transition-all duration-300 transform hover:scale-105 border border-white/20">
-            <MapPin className="h-4 w-4" />
-            View All Tours
-            <ChevronRight className="h-4 w-4" />
-          </button>
-        </div>
-      </div>
-       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Carousel Container with Gradient Background */}
-        <div 
-          className="rounded-2xl shadow-lg p-6 mb-12 border border-gray-100 relative overflow-hidden"
-          style={{
-            background: 'radial-gradient(circle at center, #5a92edff 0%, #4c70e7ff 30%, #0F1F5C 70%, #0A1128 100%)',
-          }}
-        >
-          {/* Additional Light Center Overlay */}
-          <div 
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              background: 'radial-gradient(circle at center, rgba(59, 130, 246, 0.3) 0%, transparent 50%)',
-            }}
-          />
-          
-          {/* Content */}
-          <div className="relative z-10">
-            {/* Carousel Header */}
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h3 className="text-xl font-bold text-white drop-shadow-lg">
-                  Domestic Individual  Group Tours
-                </h3>
-                <p className="text-white/80 text-sm drop-shadow">
-                  Handpicked Indian experiences
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={prevSlide}
-                    className="bg-blue-600 hover:bg-blue-700 text-white w-8 h-8 rounded-full flex items-center justify-center shadow transition-all duration-300 hover:scale-110 active:scale-95 border border-white/20"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={nextSlide}
-                    className="bg-blue-600 hover:bg-blue-700 text-white w-8 h-8 rounded-full flex items-center justify-center shadow transition-all duration-300 hover:scale-110 active:scale-95 border border-white/20"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Carousel Content */}
-            <div className="relative">
-              {/* Cards Container with Continuous Scroll */}
-              <div 
-                ref={scrollContainerRef}
-                className="flex gap-4 overflow-x-auto scrollbar-hide"
-                style={{ 
-                  scrollBehavior: 'auto',
-                }}
-              >
-         {[...domesticTours, ...domesticTours].map((tour, index) => (
-  <div
-    key={`${tour.id}-${index}`}
-    className="flex-shrink-0"
-    style={{ width: `calc(${100 / visibleCards}% - 16px)` }}
-    onMouseEnter={handleCardMouseEnter}
-    onMouseLeave={handleCardMouseLeave}
-  >
-    <div className="group cursor-pointer bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 h-full border border-gray-100">
-      {/* Tour Image */}
-      <div className="relative h-48 overflow-hidden">
-        <img
-          src={tour.image}
-          alt={tour.name}
-          className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
+        <TourCarousel 
+          title="Domestic Group Tours"
+          subtitle="Shared adventures with fellow travelers"
+          tourType="Group"
         />
-        
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-        
-        {/* Tour ID Badge */}
-        <div className="absolute top-2 left-2 z-10">
-          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold text-white bg-black/60 backdrop-blur-sm">
-            {tour.tourId}
-          </span>
-        </div>
-      </div>
 
-      {/* Tour Content */}
-      <div className="p-4">
-        <div className="flex items-start justify-between mb-2">
-          <h3 className="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-300 flex-1 pr-2 line-clamp-2">
-            {tour.name}
-          </h3>
-        </div>
-        
-        <div className="flex items-center gap-1 text-gray-600 mb-2">
-          <MapPin className="h-3 w-3" />
-          <span className="text-xs">{tour.location}</span>
-        </div>
-        
-        {/* Price Details - Added below location */}
-        <div className="mb-3">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-sm font-semibold text-gray-700">Tour Cost</span>
-            <p className="text-2xl font-bold text-gray-900">{tour.price}</p>
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-600">EMI per/month</span>
-            <p className="text-sm font-bold text-gray-900">
-              {tour.emi || `₹${Math.round(parseInt(tour.price.replace('₹', '').replace(',', '')) / 12)}`}
-            </p>
-          </div>
-        </div>
-        
-        <button className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-3 rounded-lg transition-all duration-300 transform hover:scale-105">
-          View Packages
-        </button>
-      </div>
-    </div>
-  </div>
-))}
-              </div>
-
-              {/* Auto-play Status Indicator */}
-              <div className="flex justify-center items-center mt-6 gap-2">
-                <div className={`w-2 h-2 rounded-full ${
-                  isAutoPlaying ? 'bg-green-400 animate-pulse' : 'bg-red-400'
-                }`} />
-                <span className="text-xs text-white drop-shadow-lg">
-                  {isAutoPlaying ? 'Auto-scrolling' : 'Paused'}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Compact Bottom CTA */}
         <div className="text-center">
           <button className="inline-flex mb-6 items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-xl shadow transition-all duration-300 transform hover:scale-105 border border-white/20">
             <MapPin className="h-4 w-4" />
@@ -511,8 +451,6 @@ const DomesticToursSection: React.FC = () => {
         </div>
       </div>
     </section>
-
-    
   );
 };
 
