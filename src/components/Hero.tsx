@@ -5042,6 +5042,7 @@
 
 
 
+import { BASE_URL } from "@/ApiUrls";
 import { useState, useEffect, useRef } from "react";
 
 const Hero = () => {
@@ -5059,7 +5060,7 @@ const Hero = () => {
         setLoading(true);
         setError(null);
         
-        const response = await fetch('http://localhost:5000/api/videos');
+        const response = await fetch(`${BASE_URL}/api/videos`);
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
