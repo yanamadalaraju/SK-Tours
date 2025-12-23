@@ -1,7 +1,18 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight, MapPin } from "lucide-react";
 import "./DomesticToursSection.css";
 import { BASE_URL } from "../../ApiUrls";
+
+interface Destination {
+  destination_id: number;
+  name: string;
+  short_desc: string | null;
+  created_at: string;
+  country_name: string;
+  country_id: number;
+  is_domestic: number;
+}
 
 interface Tour {
   id: number;
@@ -16,6 +27,9 @@ interface Tour {
   tour_type: 'individual' | 'Group';
   status: number;
   display_order: number;
+  primary_destination_id?: number; // Add this field
+  state?: string;
+  destination_name?: string;
 }
 
 const TourCarousel: React.FC<{ 
@@ -23,9 +37,13 @@ const TourCarousel: React.FC<{
   subtitle: string;
   tourType: 'individual' | 'Group';
 }> = ({ title, subtitle, tourType }) => {
+  const navigate = useNavigate();
   const [tours, setTours] = useState<Tour[]>([]);
+  const [filteredTours, setFilteredTours] = useState<Tour[]>([]);
+  const [destinations, setDestinations] = useState<Destination[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [destinationsLoading, setDestinationsLoading] = useState(true);
   
   const [visibleCards, setVisibleCards] = useState(4);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
@@ -34,6 +52,42 @@ const TourCarousel: React.FC<{
   const scrollPositionRef = useRef(0);
   const isManualScrollingRef = useRef(false);
 
+  // Fetch destinations data
+  useEffect(() => {
+    const fetchDestinations = async () => {
+      try {
+        setDestinationsLoading(true);
+        const response = await fetch(`${BASE_URL}/api/destinations/`);
+        const data = await response.json();
+        
+        if (data && Array.isArray(data)) {
+          setDestinations(data);
+        } else {
+          console.error('Invalid destinations data format:', data);
+          setDestinations([]);
+        }
+      } catch (err: any) {
+        console.error('Error fetching destinations:', err);
+        setDestinations([]);
+      } finally {
+        setDestinationsLoading(false);
+      }
+    };
+
+    fetchDestinations();
+  }, []);
+
+  // Function to get destination name by ID
+  const getDestinationNameById = (destinationId: number): string => {
+    if (!destinations || destinations.length === 0) {
+      return `Destination ${destinationId}`;
+    }
+    
+    const destination = destinations.find(dest => dest.destination_id === destinationId);
+    return destination ? destination.name : `Destination ${destinationId}`;
+  };
+
+  // Fetch tours data
   useEffect(() => {
     const fetchTours = async () => {
       try {
@@ -64,34 +118,84 @@ const TourCarousel: React.FC<{
           // Get first image URL, or use placeholder
           const firstImage = images.length > 0 ? images[0].url : 'https://via.placeholder.com/400x250';
           
+          // Get destination name from destinations data
+          const primaryDestinationId = tour.primary_destination_id;
+          const destinationName = getDestinationNameById(primaryDestinationId);
+          
           return {
             id: tour.tour_id,
             tour_id: tour.tour_code,
             name: tour.title,
-            location: `Destination ${tour.primary_destination_id}`, // You might want to fetch destination name separately
+            location: destinationName, // Use actual destination name
             duration: `${tour.duration_days} Days`,
             price: `₹${Number(tour.base_price_adult).toLocaleString('en-IN')}`,
             image: firstImage,
             travelers: 0,
             emi: emiValue > 0 ? `₹${emiValue.toLocaleString('en-IN')}/month` : 'N/A',
             tour_type: tour.tour_type,
-            status: tour.status || 1,
+            status: tour.status || 0,
             display_order: index + 1,
+            primary_destination_id: primaryDestinationId,
+            state: destinationName, // Use destination name as state for navigation
+            destination_name: destinationName
           };
-        }).filter((t: Tour) => Number(t.status) === 1);
+        });
 
-        setTours(processedTours);
+        // Sort tours: status 1 first, then by display_order
+        const sortedTours = processedTours.sort((a: Tour, b: Tour) => {
+          // First sort by status (1 comes before 0)
+          if (b.status !== a.status) {
+            return b.status - a.status;
+          }
+          // Then sort by display_order
+          return a.display_order - b.display_order;
+        });
+
+        setTours(sortedTours);
+        
+        // Filter tours to only show those with status === 1
+        const activeTours = sortedTours.filter((t: Tour) => Number(t.status) === 1);
+        setFilteredTours(activeTours);
+        
       } catch (err: any) {
         console.error('Error fetching tours:', err);
         setError(err.message || 'Failed to load tours');
         setTours([]);
+        setFilteredTours([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchTours();
-  }, [tourType]);
+    // Only fetch tours if destinations are loaded (or at least the API call is complete)
+    if (!destinationsLoading) {
+      fetchTours();
+    }
+  }, [tourType, destinationsLoading, destinations]);
+
+  // Function to handle View Packages button click
+  const handleViewPackages = (tour: Tour) => {
+    // Use the actual destination name as state
+    const tourState = tour.state || tour.destination_name || 'Unknown';
+    
+    // Navigate to respective route based on tour type
+    const route = tourType === 'individual' 
+      ? `/tours-packages/${encodeURIComponent(tourState)}`
+      : `/tours_groups/${encodeURIComponent(tourState)}`;
+    
+    // Pass state as prop using navigation state
+    navigate(route, { 
+      state: { 
+        fromTour: true,
+        tourState: tourState,
+        tourType: tourType,
+        tourName: tour.name,
+        tourId: tour.id,
+        primary_destination_id: tour.primary_destination_id,
+        tourData: tour
+      }
+    });
+  };
 
   // Update visible cards based on screen size
   useEffect(() => {
@@ -112,7 +216,7 @@ const TourCarousel: React.FC<{
 
   // Animation function
   const animateScroll = useCallback(() => {
-    if (!scrollContainerRef.current || tours.length === 0) return;
+    if (!scrollContainerRef.current || filteredTours.length === 0) return;
     
     const scrollContainer = scrollContainerRef.current;
     const scrollWidth = scrollContainer.scrollWidth / 2;
@@ -130,11 +234,11 @@ const TourCarousel: React.FC<{
     if (isAutoPlaying && !isManualScrollingRef.current) {
       animationRef.current = requestAnimationFrame(animateScroll);
     }
-  }, [isAutoPlaying, tours.length]);
+  }, [isAutoPlaying, filteredTours.length]);
 
   // Continuous smooth scrolling animation
   useEffect(() => {
-    if (!isAutoPlaying || !scrollContainerRef.current || tours.length === 0) return;
+    if (!isAutoPlaying || !scrollContainerRef.current || filteredTours.length === 0) return;
     
     // Stop any existing animation
     if (animationRef.current) {
@@ -152,16 +256,16 @@ const TourCarousel: React.FC<{
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [isAutoPlaying, tours, animateScroll]);
+  }, [isAutoPlaying, filteredTours, animateScroll]);
 
   const nextSlide = () => {
-    if (scrollContainerRef.current && tours.length > 0) {
+    if (scrollContainerRef.current && filteredTours.length > 0) {
       isManualScrollingRef.current = true;
       setIsAutoPlaying(false);
       
       const scrollContainer = scrollContainerRef.current;
       const scrollWidth = scrollContainer.scrollWidth;
-      const itemCount = tours.length;
+      const itemCount = filteredTours.length;
       const itemWidth = scrollWidth / (itemCount * 2);
       const scrollAmount = itemWidth * visibleCards;
       
@@ -187,13 +291,13 @@ const TourCarousel: React.FC<{
   };
 
   const prevSlide = () => {
-    if (scrollContainerRef.current && tours.length > 0) {
+    if (scrollContainerRef.current && filteredTours.length > 0) {
       isManualScrollingRef.current = true;
       setIsAutoPlaying(false);
       
       const scrollContainer = scrollContainerRef.current;
       const scrollWidth = scrollContainer.scrollWidth;
-      const itemCount = tours.length;
+      const itemCount = filteredTours.length;
       const itemWidth = scrollWidth / (itemCount * 2);
       const scrollAmount = itemWidth * visibleCards;
       
@@ -202,7 +306,7 @@ const TourCarousel: React.FC<{
       // If we're going past the start, jump to near the end
       if (newScrollPosition < 0) {
         const maxScroll = scrollWidth / 2 - scrollContainer.clientWidth;
-        newScrollPosition = maxScroll + (itemWidth * visibleCards * (tours.length - 1));
+        newScrollPosition = maxScroll + (itemWidth * visibleCards * (filteredTours.length - 1));
       }
       
       scrollContainer.scrollTo({
@@ -231,7 +335,7 @@ const TourCarousel: React.FC<{
     }
   };
 
-  if (loading) {
+  if (loading || destinationsLoading) {
     return (
       <div className="rounded-2xl shadow-lg p-6 mb-12 border border-gray-100 relative overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50">
         <div className="text-center py-8">
@@ -248,6 +352,18 @@ const TourCarousel: React.FC<{
         <div className="text-center py-8">
           <p className="text-red-600 mb-2">{error}</p>
           <p className="text-gray-600">Showing sample data</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show message if no active tours (status === 1)
+  if (filteredTours.length === 0 && tours.length > 0) {
+    return (
+      <div className="rounded-2xl shadow-lg p-6 mb-12 border border-gray-100 relative overflow-hidden bg-gradient-to-br from-yellow-50 to-orange-50">
+        <div className="text-center py-8">
+          <p className="text-yellow-600 mb-2">No active {tourType} tours available</p>
+          <p className="text-gray-600">All tours are currently inactive (status: 0)</p>
         </div>
       </div>
     );
@@ -296,7 +412,7 @@ const TourCarousel: React.FC<{
         </div>
 
         <div className="relative">
-          {tours.length === 0 ? (
+          {filteredTours.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-white">No {tourType} tours available</p>
             </div>
@@ -323,13 +439,16 @@ const TourCarousel: React.FC<{
                   }
                 }}
               >
-                {[...tours, ...tours].map((tour, index) => (
+                {[...filteredTours, ...filteredTours].map((tour, index) => (
                   <div
                     key={`${tour.id}-${index}-${tourType}`}
                     className="flex-shrink-0"
                     style={{ 
-                      width: `calc(${100 / Math.min(visibleCards, tours.length)}% - 16px)`,
-                      minWidth: '280px'
+                      width: filteredTours.length <= 2 
+                        ? '280px'
+                        : `calc(${100 / Math.min(visibleCards, filteredTours.length)}% - 16px)`,
+                      minWidth: '280px',
+                      maxWidth: filteredTours.length <= 2 ? '320px' : 'none'
                     }}
                     onMouseEnter={handleCardMouseEnter}
                     onMouseLeave={handleCardMouseLeave}
@@ -379,7 +498,10 @@ const TourCarousel: React.FC<{
                           </div>
                         </div>
                         
-                        <button className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-3 rounded-lg transition-all duration-300 transform hover:scale-105 active:scale-95 mt-auto">
+                        <button 
+                          onClick={() => handleViewPackages(tour)}
+                          className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-3 rounded-lg transition-all duration-300 transform hover:scale-105 active:scale-95 mt-auto"
+                        >
                           View Packages
                         </button>
                       </div>
@@ -417,8 +539,8 @@ const DomesticToursSection: React.FC = () => {
                 color: "white",
                 letterSpacing: "-2px",
                 textShadow: `
-                  2px 2px 0 #1F3F93,
-                  -2px -2px 0 #1F3F93,
+                  2px 2px 0 #1F3F5C,
+                  -2px -2px 0 #1F3F5C,
                   0 0 18px rgba(255,255,255,0.65)
                 `,
               }}
