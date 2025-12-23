@@ -27,7 +27,7 @@ interface Tour {
   tour_type: 'individual' | 'Group';
   status: number;
   display_order: number;
-  primary_destination_id?: number; // Add this field
+  primary_destination_id?: number;
   state?: string;
   destination_name?: string;
 }
@@ -51,6 +51,8 @@ const TourCarousel: React.FC<{
   const animationRef = useRef<number>();
   const scrollPositionRef = useRef(0);
   const isManualScrollingRef = useRef(false);
+  const [cardWidth, setCardWidth] = useState<string>('280px');
+  const [shouldDuplicate, setShouldDuplicate] = useState<boolean>(true);
 
   // Fetch destinations data
   useEffect(() => {
@@ -126,7 +128,7 @@ const TourCarousel: React.FC<{
             id: tour.tour_id,
             tour_id: tour.tour_code,
             name: tour.title,
-            location: destinationName, // Use actual destination name
+            location: destinationName,
             duration: `${tour.duration_days} Days`,
             price: `₹${Number(tour.base_price_adult).toLocaleString('en-IN')}`,
             image: firstImage,
@@ -136,18 +138,16 @@ const TourCarousel: React.FC<{
             status: tour.status || 0,
             display_order: index + 1,
             primary_destination_id: primaryDestinationId,
-            state: destinationName, // Use destination name as state for navigation
+            state: destinationName,
             destination_name: destinationName
           };
         });
 
         // Sort tours: status 1 first, then by display_order
         const sortedTours = processedTours.sort((a: Tour, b: Tour) => {
-          // First sort by status (1 comes before 0)
           if (b.status !== a.status) {
             return b.status - a.status;
           }
-          // Then sort by display_order
           return a.display_order - b.display_order;
         });
 
@@ -157,17 +157,20 @@ const TourCarousel: React.FC<{
         const activeTours = sortedTours.filter((t: Tour) => Number(t.status) === 1);
         setFilteredTours(activeTours);
         
+        // Don't duplicate if we have 3 or fewer tours
+        setShouldDuplicate(activeTours.length > 3);
+        
       } catch (err: any) {
         console.error('Error fetching tours:', err);
         setError(err.message || 'Failed to load tours');
         setTours([]);
         setFilteredTours([]);
+        setShouldDuplicate(true);
       } finally {
         setLoading(false);
       }
     };
 
-    // Only fetch tours if destinations are loaded (or at least the API call is complete)
     if (!destinationsLoading) {
       fetchTours();
     }
@@ -175,15 +178,12 @@ const TourCarousel: React.FC<{
 
   // Function to handle View Packages button click
   const handleViewPackages = (tour: Tour) => {
-    // Use the actual destination name as state
     const tourState = tour.state || tour.destination_name || 'Unknown';
     
-    // Navigate to respective route based on tour type
     const route = tourType === 'individual' 
       ? `/tours-packages/${encodeURIComponent(tourState)}`
       : `/tours_groups/${encodeURIComponent(tourState)}`;
     
-    // Pass state as prop using navigation state
     navigate(route, { 
       state: { 
         fromTour: true,
@@ -197,58 +197,55 @@ const TourCarousel: React.FC<{
     });
   };
 
-  // Update visible cards based on screen size
+  // Update visible cards and card width based on screen size
   useEffect(() => {
-    const updateVisibleCards = () => {
+    const updateCardSizes = () => {
       if (window.innerWidth < 768) {
         setVisibleCards(1);
+        setCardWidth('280px');
       } else if (window.innerWidth < 1024) {
         setVisibleCards(2);
+        setCardWidth('280px');
       } else {
         setVisibleCards(4);
+        setCardWidth('280px');
       }
     };
 
-    updateVisibleCards();
-    window.addEventListener('resize', updateVisibleCards);
-    return () => window.removeEventListener('resize', updateVisibleCards);
+    updateCardSizes();
+    window.addEventListener('resize', updateCardSizes);
+    return () => window.removeEventListener('resize', updateCardSizes);
   }, []);
 
-  // Animation function
+  // Animation function - only animate if we have enough tours
   const animateScroll = useCallback(() => {
-    if (!scrollContainerRef.current || filteredTours.length === 0) return;
+    if (!scrollContainerRef.current || filteredTours.length === 0 || !shouldDuplicate) return;
     
     const scrollContainer = scrollContainerRef.current;
     const scrollWidth = scrollContainer.scrollWidth / 2;
     
     scrollPositionRef.current += 0.8;
     
-    // Reset to start when reaching the duplicated section
     if (scrollPositionRef.current >= scrollWidth) {
       scrollPositionRef.current = 0;
     }
     
     scrollContainer.scrollLeft = scrollPositionRef.current;
     
-    // Continue animation
-    if (isAutoPlaying && !isManualScrollingRef.current) {
+    if (isAutoPlaying && !isManualScrollingRef.current && shouldDuplicate) {
       animationRef.current = requestAnimationFrame(animateScroll);
     }
-  }, [isAutoPlaying, filteredTours.length]);
+  }, [isAutoPlaying, filteredTours.length, shouldDuplicate]);
 
   // Continuous smooth scrolling animation
   useEffect(() => {
-    if (!isAutoPlaying || !scrollContainerRef.current || filteredTours.length === 0) return;
+    if (!isAutoPlaying || !scrollContainerRef.current || filteredTours.length === 0 || !shouldDuplicate) return;
     
-    // Stop any existing animation
     if (animationRef.current) {
       cancelAnimationFrame(animationRef.current);
     }
     
-    // Reset scroll position
     scrollPositionRef.current = scrollContainerRef.current.scrollLeft;
-    
-    // Start new animation
     animationRef.current = requestAnimationFrame(animateScroll);
     
     return () => {
@@ -256,7 +253,7 @@ const TourCarousel: React.FC<{
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [isAutoPlaying, filteredTours, animateScroll]);
+  }, [isAutoPlaying, filteredTours, animateScroll, shouldDuplicate]);
 
   const nextSlide = () => {
     if (scrollContainerRef.current && filteredTours.length > 0) {
@@ -264,16 +261,27 @@ const TourCarousel: React.FC<{
       setIsAutoPlaying(false);
       
       const scrollContainer = scrollContainerRef.current;
-      const scrollWidth = scrollContainer.scrollWidth;
-      const itemCount = filteredTours.length;
-      const itemWidth = scrollWidth / (itemCount * 2);
-      const scrollAmount = itemWidth * visibleCards;
+      const cardElement = scrollContainer.querySelector('.tour-card');
+      const cardWidth = cardElement ? cardElement.clientWidth + 16 : 296;
+      
+      // Only scroll multiple cards if we have duplication enabled
+      const scrollAmount = shouldDuplicate 
+        ? cardWidth * Math.min(visibleCards, 3)
+        : cardWidth;
       
       let newScrollPosition = scrollContainer.scrollLeft + scrollAmount;
       
-      // If we're near the end of the duplicated set, reset to beginning
-      if (newScrollPosition > scrollWidth - scrollContainer.clientWidth) {
-        newScrollPosition = 0;
+      if (shouldDuplicate) {
+        const maxScroll = scrollContainer.scrollWidth - scrollContainer.clientWidth;
+        if (newScrollPosition >= maxScroll - 100) {
+          newScrollPosition = 0;
+        }
+      } else {
+        // For non-duplicated, just scroll within bounds
+        const maxScroll = scrollContainer.scrollWidth - scrollContainer.clientWidth;
+        if (newScrollPosition > maxScroll) {
+          newScrollPosition = 0;
+        }
       }
       
       scrollContainer.scrollTo({
@@ -285,7 +293,7 @@ const TourCarousel: React.FC<{
 
       setTimeout(() => {
         isManualScrollingRef.current = false;
-        setIsAutoPlaying(true);
+        setIsAutoPlaying(shouldDuplicate); // Only auto-play if we have duplication
       }, 3000);
     }
   };
@@ -296,17 +304,20 @@ const TourCarousel: React.FC<{
       setIsAutoPlaying(false);
       
       const scrollContainer = scrollContainerRef.current;
-      const scrollWidth = scrollContainer.scrollWidth;
-      const itemCount = filteredTours.length;
-      const itemWidth = scrollWidth / (itemCount * 2);
-      const scrollAmount = itemWidth * visibleCards;
+      const cardElement = scrollContainer.querySelector('.tour-card');
+      const cardWidth = cardElement ? cardElement.clientWidth + 16 : 296;
+      const scrollAmount = shouldDuplicate 
+        ? cardWidth * Math.min(visibleCards, 3)
+        : cardWidth;
       
       let newScrollPosition = scrollContainer.scrollLeft - scrollAmount;
       
-      // If we're going past the start, jump to near the end
       if (newScrollPosition < 0) {
-        const maxScroll = scrollWidth / 2 - scrollContainer.clientWidth;
-        newScrollPosition = maxScroll + (itemWidth * visibleCards * (filteredTours.length - 1));
+        if (shouldDuplicate) {
+          newScrollPosition = scrollContainer.scrollWidth - scrollContainer.clientWidth;
+        } else {
+          newScrollPosition = 0;
+        }
       }
       
       scrollContainer.scrollTo({
@@ -318,20 +329,33 @@ const TourCarousel: React.FC<{
 
       setTimeout(() => {
         isManualScrollingRef.current = false;
-        setIsAutoPlaying(true);
+        setIsAutoPlaying(shouldDuplicate);
       }, 3000);
     }
   };
 
   const handleCardMouseEnter = () => {
-    setIsAutoPlaying(false);
+    if (shouldDuplicate) {
+      setIsAutoPlaying(false);
+    }
   };
 
   const handleCardMouseLeave = () => {
-    if (!isManualScrollingRef.current) {
+    if (!isManualScrollingRef.current && shouldDuplicate) {
       setTimeout(() => {
         setIsAutoPlaying(true);
       }, 100);
+    }
+  };
+
+  // Calculate which tours to display
+  const getToursToDisplay = () => {
+    if (filteredTours.length === 0) return [];
+    
+    if (shouldDuplicate) {
+      return [...filteredTours, ...filteredTours];
+    } else {
+      return filteredTours;
     }
   };
 
@@ -357,7 +381,6 @@ const TourCarousel: React.FC<{
     );
   }
 
-  // Show message if no active tours (status === 1)
   if (filteredTours.length === 0 && tours.length > 0) {
     return (
       <div className="rounded-2xl shadow-lg p-6 mb-12 border border-gray-100 relative overflow-hidden bg-gradient-to-br from-yellow-50 to-orange-50">
@@ -368,6 +391,8 @@ const TourCarousel: React.FC<{
       </div>
     );
   }
+
+  const toursToDisplay = getToursToDisplay();
 
   return (
     <div 
@@ -393,22 +418,24 @@ const TourCarousel: React.FC<{
               {subtitle}
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={prevSlide}
-                className="bg-blue-600 hover:bg-blue-700 text-white w-8 h-8 rounded-full flex items-center justify-center shadow transition-all duration-300 hover:scale-110 active:scale-95 border border-white/20"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-              <button
-                onClick={nextSlide}
-                className="bg-blue-600 hover:bg-blue-700 text-white w-8 h-8 rounded-full flex items-center justify-center shadow transition-all duration-300 hover:scale-110 active:scale-95 border border-white/20"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
+          {filteredTours.length > 1 && (
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={prevSlide}
+                  className="bg-blue-600 hover:bg-blue-700 text-white w-8 h-8 rounded-full flex items-center justify-center shadow transition-all duration-300 hover:scale-110 active:scale-95 border border-white/20"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={nextSlide}
+                  className="bg-blue-600 hover:bg-blue-700 text-white w-8 h-8 rounded-full flex items-center justify-center shadow transition-all duration-300 hover:scale-110 active:scale-95 border border-white/20"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         <div className="relative">
@@ -420,40 +447,47 @@ const TourCarousel: React.FC<{
             <>
               <div 
                 ref={scrollContainerRef}
-                className="flex gap-4 overflow-x-auto scrollbar-hide"
+                className="flex gap-4 overflow-x-auto scrollbar-hide px-1"
                 style={{ 
                   scrollBehavior: 'auto',
                   cursor: 'grab',
+                  // Only add padding if we have multiple tours
+                  paddingLeft: filteredTours.length > 1 ? 'calc((100% - min(100%, 1200px)) / 2)' : '0',
+                  paddingRight: filteredTours.length > 1 ? 'calc((100% - min(100%, 1200px)) / 2)' : '0',
+                  // Center single card
+                  justifyContent: filteredTours.length === 1 ? 'center' : 'flex-start'
                 }}
                 onMouseDown={() => {
-                  setIsAutoPlaying(false);
-                  isManualScrollingRef.current = true;
+                  if (shouldDuplicate) {
+                    setIsAutoPlaying(false);
+                    isManualScrollingRef.current = true;
+                  }
                 }}
                 onMouseUp={() => {
-                  isManualScrollingRef.current = false;
-                  setIsAutoPlaying(true);
+                  if (shouldDuplicate) {
+                    isManualScrollingRef.current = false;
+                    setIsAutoPlaying(true);
+                  }
                 }}
                 onMouseLeave={() => {
-                  if (!isManualScrollingRef.current) {
+                  if (!isManualScrollingRef.current && shouldDuplicate) {
                     setIsAutoPlaying(true);
                   }
                 }}
               >
-                {[...filteredTours, ...filteredTours].map((tour, index) => (
+                {toursToDisplay.map((tour, index) => (
                   <div
                     key={`${tour.id}-${index}-${tourType}`}
-                    className="flex-shrink-0"
+                    className="flex-shrink-0 tour-card"
                     style={{ 
-                      width: filteredTours.length <= 2 
-                        ? '280px'
-                        : `calc(${100 / Math.min(visibleCards, filteredTours.length)}% - 16px)`,
-                      minWidth: '280px',
-                      maxWidth: filteredTours.length <= 2 ? '320px' : 'none'
+                      width: cardWidth,
+                      minWidth: cardWidth,
+                      maxWidth: cardWidth
                     }}
                     onMouseEnter={handleCardMouseEnter}
                     onMouseLeave={handleCardMouseLeave}
                   >
-                    <div className="group cursor-pointer bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 h-full border border-gray-100 flex flex-col">
+                    <div className="group cursor-pointer bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 h-full border border-gray-100 flex flex-col w-full">
                       <div className="relative h-48 overflow-hidden flex-shrink-0">
                         <img
                           src={tour.image}
@@ -472,25 +506,25 @@ const TourCarousel: React.FC<{
                         </div>
                       </div>
 
-                      <div className="p-4 flex flex-col flex-grow">
-                        <div className="flex items-start justify-between mb-2">
+                      <div className="p-4 flex flex-col flex-grow w-full">
+                        <div className="flex items-start justify-between mb-2 w-full">
                           <h3 className="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-300 flex-1 pr-2 line-clamp-2">
                             {tour.name}
                           </h3>
                         </div>
                         
-                        <div className="flex items-center gap-1 text-gray-600 mb-2">
+                        <div className="flex items-center gap-1 text-gray-600 mb-2 w-full">
                           <MapPin className="h-3 w-3" />
                           <span className="text-xs">{tour.location}</span>
                         </div>
                         
-                        <div className="mb-3 mt-auto">
-                          <div className="flex items-center justify-between mb-1">
+                        <div className="mb-3 mt-auto w-full">
+                          <div className="flex items-center justify-between mb-1 w-full">
                             <span className="text-sm font-semibold text-gray-700">Tour Cost</span>
                             <p className="text-2xl font-bold text-gray-900">{tour.price}</p>
                           </div>
                           
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-center justify-between w-full">
                             <span className="text-sm text-gray-600">EMI per/month</span>
                             <p className="text-sm font-bold text-gray-900">
                               {tour.emi}
@@ -510,14 +544,16 @@ const TourCarousel: React.FC<{
                 ))}
               </div>
 
-              <div className="flex justify-center items-center mt-6 gap-2">
-                <div className={`w-3 h-3 rounded-full ${
-                  isAutoPlaying ? 'bg-green-400 animate-pulse' : 'bg-red-400'
-                }`} />
-                <span className="text-xs text-white drop-shadow-lg">
-                  {isAutoPlaying ? 'Auto-scrolling' : 'Paused'}
-                </span>
-              </div>
+              {shouldDuplicate && filteredTours.length > 0 && (
+                <div className="flex justify-center items-center mt-6 gap-2">
+                  <div className={`w-3 h-3 rounded-full ${
+                    isAutoPlaying ? 'bg-green-400 animate-pulse' : 'bg-red-400'
+                  }`} />
+                  <span className="text-xs text-white drop-shadow-lg">
+                    {isAutoPlaying ? 'Auto-scrolling' : 'Paused'}
+                  </span>
+                </div>
+              )}
             </>
           )}
         </div>
