@@ -1148,8 +1148,8 @@ const Footer = () => {
     { label: "About Us", href: "#about" },
     { label: "Contact Us", href: "#contact" },
     { label: "Careers", href: "#careers" },
-    { label: "Terms & Conditions", href: "#terms" },
-    { label: "Privacy Policy", href: "#privacy" },
+    { label: "Terms & Conditions", href: "/terms_conditions" },
+    { label: "Privacy Policy", href: "/privacy_policy" },
   ];
 
   // Association logos data

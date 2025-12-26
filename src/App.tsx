@@ -19,6 +19,8 @@ import Tour_indain from "./pages/Tour_indain";
 import Tourdetails_indian from "./pages/Tourdetails_indian";
 import Ladies_tour from "./pages/Ladies_tour/Ladies_tour";
 import Seniors_tour from "./pages/Senior_tour/Seniors_tour";
+import Terms_conditions from "./pages/Terms_Conditions/Terms_conditions";
+import Privacy_policy from "./pages/Privacy_policy/Privacy_policy";
 
 const queryClient = new QueryClient();
 
@@ -45,6 +47,10 @@ const App = () => (
           <Route path="/tours_groups/:state" element={<Tourdetails_indian />} />
           <Route path="/ladies_tours/:state" element={<Ladies_tour />} />
           <Route path="/senior_tours/:state" element={<Seniors_tour />} />
+
+
+          <Route path="/terms_conditions" element={<Terms_conditions />} />
+<Route path="/privacy_policy" element={<Privacy_policy />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
