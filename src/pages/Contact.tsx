@@ -9,17 +9,11 @@ import {
   MessageCircle,
   Globe,
   User,
-  Calendar,
-  ChevronRight,
   Shield,
   Headphones,
   Building,
-  Instagram,
-  Facebook,
-  Twitter,
-  Linkedin,
-  Youtube,
-  ChevronDown
+  ChevronDown,
+  AlertCircle
 } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -37,26 +31,78 @@ const ContactPage = () => {
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
+
+  // Fixed: Use import.meta.env for Vite/React apps
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     setIsSubmitting(true);
-    
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    setIsSubmitting(false);
-    setIsSubmitted(true);
-    setTimeout(() => setIsSubmitted(false), 5000);
-    setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      destination: '',
-      travelDate: '',
-      travelers: '',
-      message: ''
-    });
+
+    // Client-side validation
+    if (!formData.name || !formData.email || !formData.phone || !formData.message) {
+      setError('Please fill all required fields (Name, Email, Phone, Message)');
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError('Please enter a valid email address');
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/contact`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to submit form');
+      }
+
+      // Success
+      setIsSubmitting(false);
+      setIsSubmitted(true);
+      
+      // Reset form
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        destination: '',
+        travelDate: '',
+        travelers: '',
+        message: ''
+      });
+
+      // Hide success message after 5 seconds
+      setTimeout(() => setIsSubmitted(false), 5000);
+
+    } catch (err) {
+      setIsSubmitting(false);
+      
+      // Network error or server down
+      if (err instanceof TypeError && err.message.includes('fetch')) {
+        setError('Unable to connect to server. Please check if the backend is running.');
+      } else {
+        setError(err instanceof Error ? err.message : 'An error occurred. Please try again.');
+      }
+      
+      // Auto-hide error after 5 seconds
+      setTimeout(() => setError(null), 5000);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -64,18 +110,43 @@ const ContactPage = () => {
       ...formData,
       [e.target.name]: e.target.value
     });
+    // Clear error when user starts typing
+    if (error) setError(null);
   };
 
   const toggleFaq = (index: number) => {
     setActiveFaq(activeFaq === index ? null : index);
   };
 
+  const faqData = [
+    {
+      q: 'How soon will I get a response after submitting the form?',
+      a: 'We typically respond within 2 hours during business hours (9 AM - 7 PM), and within 6 hours for after-hours submissions. For urgent inquiries, please call our emergency support line.'
+    },
+    {
+      q: 'Do you offer emergency travel support?',
+      a: 'Yes, we provide 24/7 emergency support via WhatsApp and dedicated phone lines. Our support team can assist with last-minute changes, travel emergencies, and urgent queries anytime, anywhere.'
+    },
+    {
+      q: 'Can I customize a tour package according to my preferences?',
+      a: 'Absolutely. We specialize in creating fully customized itineraries based on your preferences, budget, travel dates, and special requirements. Our travel experts will work with you to design the perfect journey.'
+    },
+    {
+      q: 'What destinations do you specialize in?',
+      a: 'We cover comprehensive domestic tours across all Indian states and international destinations including Southeast Asia, Europe, Middle East, Australia, New Zealand, and specialized packages for Africa and America.'
+    },
+    {
+      q: 'How do I make payments for bookings?',
+      a: 'We offer multiple secure payment options including bank transfer, credit/debit cards, UPI, and secure online payment gateways. Corporate clients can also avail invoice-based payment systems.'
+    }
+  ];
+
   return (
     <>
       <Header />
       
       <div className="min-h-screen bg-white">
-        {/* Hero Section - Clean and Professional */}
+        {/* Hero Section */}
         <section className="relative pt-32 pb-20 overflow-hidden bg-gradient-to-br from-blue-900 via-blue-800 to-cyan-900">
           <div className="absolute inset-0">
             <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1544551763-46a013bb70d5?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80')] opacity-10 bg-cover bg-center"></div>
@@ -115,7 +186,22 @@ const ContactPage = () => {
           </div>
         )}
 
-        {/* Contact Information - Elegant Layout */}
+        {/* Error Message */}
+        {error && (
+          <div className="fixed top-24 right-8 z-50 animate-slide-in">
+            <div className="bg-gradient-to-r from-red-500 to-orange-600 text-white rounded-lg p-6 shadow-2xl border border-red-400 max-w-md">
+              <div className="flex items-center gap-4">
+                <AlertCircle className="w-8 h-8 flex-shrink-0" />
+                <div>
+                  <h3 className="text-lg font-bold mb-1">Submission Failed</h3>
+                  <p className="text-sm opacity-90">{error}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Contact Information */}
         <section className="py-20 border-b border-gray-100">
           <div className="max-w-6xl mx-auto px-4">
             <div className="grid md:grid-cols-3 gap-8 mb-16">
@@ -197,6 +283,8 @@ const ContactPage = () => {
                         value={formData.name}
                         onChange={handleChange}
                         required
+                        minLength={2}
+                        maxLength={100}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
                         placeholder="Enter your full name"
                       />
@@ -257,6 +345,8 @@ const ContactPage = () => {
                         <option value="europe">Europe</option>
                         <option value="asia">Southeast Asia</option>
                         <option value="middle-east">Middle East</option>
+                        <option value="usa">USA & Canada</option>
+                        <option value="australia">Australia & NZ</option>
                       </select>
                     </div>
                     
@@ -269,6 +359,7 @@ const ContactPage = () => {
                         name="travelDate"
                         value={formData.travelDate}
                         onChange={handleChange}
+                        min={new Date().toISOString().split('T')[0]}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
                       />
                     </div>
@@ -289,6 +380,7 @@ const ContactPage = () => {
                         <option value="3-4">3-4 Travelers</option>
                         <option value="5-10">5-10 Travelers</option>
                         <option value="10+">10+ Travelers</option>
+                        <option value="corporate">Corporate Group</option>
                       </select>
                     </div>
                   </div>
@@ -309,10 +401,15 @@ const ContactPage = () => {
                       value={formData.message}
                       onChange={handleChange}
                       required
+                      minLength={10}
+                      maxLength={2000}
                       rows={6}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors resize-none"
                       placeholder="Please describe your travel requirements, preferred activities, budget range, and any special requests..."
                     ></textarea>
+                    <div className="text-right text-sm text-gray-500 mt-1">
+                      {formData.message.length}/2000 characters
+                    </div>
                   </div>
                 </div>
 
@@ -337,7 +434,7 @@ const ContactPage = () => {
                     {isSubmitting ? (
                       <>
                         <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        Processing...
+                        Submitting...
                       </>
                     ) : (
                       <>
@@ -352,7 +449,7 @@ const ContactPage = () => {
           </div>
         </section>
 
-        {/* Office Information - Clean Layout */}
+        {/* Office Information */}
         <section className="py-20 bg-gray-50">
           <div className="max-w-6xl mx-auto px-4">
             <div className="grid lg:grid-cols-2 gap-12">
@@ -444,7 +541,7 @@ const ContactPage = () => {
           </div>
         </section>
 
-        {/* FAQ Section - Elegant Accordion */}
+        {/* FAQ Section */}
         <section className="py-20 bg-white border-t border-gray-100">
           <div className="max-w-4xl mx-auto px-4">
             <div className="text-center mb-12">
@@ -457,28 +554,7 @@ const ContactPage = () => {
             </div>
             
             <div className="space-y-4">
-              {[
-                {
-                  q: 'How soon will I get a response after submitting the form?',
-                  a: 'We typically respond within 2 hours during business hours (9 AM - 7 PM), and within 6 hours for after-hours submissions. For urgent inquiries, please call our emergency support line.'
-                },
-                {
-                  q: 'Do you offer emergency travel support?',
-                  a: 'Yes, we provide 24/7 emergency support via WhatsApp and dedicated phone lines. Our support team can assist with last-minute changes, travel emergencies, and urgent queries anytime, anywhere.'
-                },
-                {
-                  q: 'Can I customize a tour package according to my preferences?',
-                  a: 'Absolutely. We specialize in creating fully customized itineraries based on your preferences, budget, travel dates, and special requirements. Our travel experts will work with you to design the perfect journey.'
-                },
-                {
-                  q: 'What destinations do you specialize in?',
-                  a: 'We cover comprehensive domestic tours across all Indian states and international destinations including Southeast Asia, Europe, Middle East, Australia, New Zealand, and specialized packages for Africa and America.'
-                },
-                {
-                  q: 'How do I make payments for bookings?',
-                  a: 'We offer multiple secure payment options including bank transfer, credit/debit cards, UPI, and secure online payment gateways. Corporate clients can also avail invoice-based payment systems.'
-                }
-              ].map((faq, index) => (
+              {faqData.map((faq, index) => (
                 <div 
                   key={index} 
                   className="border border-gray-200 rounded-lg overflow-hidden hover:border-blue-300 transition-colors"
@@ -503,7 +579,6 @@ const ContactPage = () => {
           </div>
         </section>
 
-      
       </div>
       
       <Footer />
