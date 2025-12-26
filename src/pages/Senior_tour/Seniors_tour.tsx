@@ -668,9 +668,17 @@ const TourPackages = () => {
                           >
                             View Tour
                           </Button>
-                          <Button size="sm" className="flex-1 bg-[#E53C42] hover:bg-[#E53C42] hover:opacity-90 text-white">
-                            Book Now
-                          </Button>
+                          <Button 
+                              size="sm" 
+                              className="flex-1 bg-[#E53C42] hover:bg-[#E53C42] hover:opacity-90 text-white"
+                              onClick={() => {
+                                 // Save tour data to localStorage as backup
+                                localStorage.setItem('selectedTour', JSON.stringify(tour));
+                                 // Navigate to checkout page with tour data
+                                navigate('/checkout', { state: { tour } });
+                              }}>
+                                Book Now
+                            </Button>
                         </div>
                       </div>
                     </div>

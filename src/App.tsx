@@ -21,6 +21,11 @@ import Ladies_tour from "./pages/Ladies_tour/Ladies_tour";
 import Seniors_tour from "./pages/Senior_tour/Seniors_tour";
 import Terms_conditions from "./pages/Terms_Conditions/Terms_conditions";
 import Privacy_policy from "./pages/Privacy_policy/Privacy_policy";
+import CheckOutPage from "./pages/CheckOutPage"
+import CheckoutPage from "./pages/CheckOutPage";
+import PaymentResult from "./pages/PaymentResult";
+
+
 
 const queryClient = new QueryClient();
 
@@ -34,6 +39,8 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/home" element={<Home />} />
 <Route path="/tours-packages/:state" element={<TourPackages />} />
+<Route path="/checkout" element={<CheckoutPage />} />
+<Route path="/payment-result" element={<PaymentResult />} />
           <Route path="/about" element={<AboutPage />} />
 <Route path="/tour/:tourId" element={<TourDetails />} />
           <Route path="/ladies"  element={<Ladiesspecial_tour />} />
