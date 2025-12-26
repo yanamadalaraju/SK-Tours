@@ -651,7 +651,7 @@ const Terms_conditions = () => {
                         <td className="border border-gray-300 px-4 py-2">100%</td>
                       </tr>
                       <tr>
-                        <td className="border border-gray-300 px-4 py-2 font-semibold" colSpan="2">On Tour</td>
+                        <td className="border border-gray-300 px-4 py-2 font-semibold">On Tour</td>
                         <td className="border border-gray-300 px-4 py-2 font-semibold">100%</td>
                         <td className="border border-gray-300 px-4 py-2 font-semibold">100%</td>
                       </tr>

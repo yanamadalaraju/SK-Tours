@@ -344,6 +344,13 @@ const TourPackages = () => {
     setSortType("recommended");
   };
 
+     useEffect(() => {
+      if (state) {
+        const decodedState = decodeURIComponent(state);
+        setSelectedState(decodedState);
+      }
+    }, [state]);
+
   const currentTours = getCurrentStateTours();
   const heroImage = stateHeroImages[selectedState as keyof typeof stateHeroImages] || stateHeroImages.Andaman;
   const heroDescription = stateDescriptions[selectedState as keyof typeof stateDescriptions] || stateDescriptions.Andaman;
@@ -445,45 +452,62 @@ const TourPackages = () => {
                 <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
                   <h2 className="text-2xl font-bold text-[#2E4D98]">Indian Tours</h2>
                 </div>
-                <div className={`${showMoreIndian ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
-                  {[
-                    'Andaman', 'Goa', 'Kerala', 'Himachal', 'Rajasthan', 'Kashmir',
-                    ...(showMoreIndian
-                      ? [     'Andhra Pradesh',
-              'Bihar',
-              'Chhattisgarh',
-              'Dadra & Nagar Haveli',
-              'Daman & Diu',
-              'Delhi',
-              'Gujarat',
-              'Haryana',
-              'Jharkhand',
-              'Karnataka',
-              'Ladakh',
-              'Lakshadweep',
-              'Madhya Pradesh',
-              'Maharashtra',
-              'North East',
-              'Odisha',
-              'Puducherry',
-              'Punjab & Haryana',
-              'Seven Sisters',
-              'Tamil Nadu',
-              'Uttar Pradesh',
-              'Uttarakhand',
-              'West Bengal']
-                      : [])
-                  ].map((place) => (
-                    <label key={place} className="flex items-center gap-3 cursor-pointer">
-                      <Checkbox 
-                        checked={selectedIndianTours.includes(place)}
-                        onCheckedChange={(checked) => handleIndianTourChange(place, checked as boolean)}
-                        className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]" 
-                      />
-                      <span className="text-gray-700">{place}</span>
-                    </label>
-                  ))}
-                </div>
+              <div className={`${showMoreIndian ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
+                   {[
+                     'Andaman', 'Goa', 'Kerala', 'Himachal', 'Rajasthan', 'Kashmir',
+                     ...(showMoreIndian
+                       ? [     'Andhra Pradesh',
+                               'Bihar',
+                               'Chhattisgarh',
+                               'Dadra & Nagar Haveli',
+                               'Daman & Diu',
+                               'Delhi',
+                               'Gujarat',
+                               'Haryana',
+                               'Jharkhand',
+                               'Karnataka',
+                               'Ladakh',
+                               'Lakshadweep',
+                               'Madhya Pradesh',
+                               'Maharashtra',
+                               'North East',
+                               'Odisha',
+                               'Puducherry',
+                               'Punjab & Haryana',
+                               'Seven Sisters',
+                               'Tamil Nadu',
+                               'Uttar Pradesh',
+                               'Uttarakhand',
+                               'West Bengal']
+                       : [])
+                   ].map((place) => {
+                     const isCurrentState = selectedState === place;
+                     
+                     return (
+                       <div key={place} className="flex items-center gap-3 cursor-pointer">
+                         <Checkbox 
+                           checked={isCurrentState}
+                           onCheckedChange={(checked) => {
+                             if (checked) {
+                               clearAllFilters();
+                               navigate(`/students_tours/${encodeURIComponent(place)}`);
+                             }
+                           }}
+                           className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]" 
+                         />
+                         <span 
+                           className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${isCurrentState ? 'font-bold text-[#2E4D98]' : ''}`}
+                           onClick={() => {
+                             clearAllFilters();
+                             navigate(`/students_tours/${encodeURIComponent(place)}`);
+                           }}
+                         >
+                           {place}
+                         </span>
+                       </div>
+                     );
+                   })}
+                 </div>
                 <button
                   onClick={() => setShowMoreIndian(!showMoreIndian)}
                   className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
