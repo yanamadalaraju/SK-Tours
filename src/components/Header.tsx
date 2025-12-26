@@ -90,12 +90,12 @@ const Header = () => {
     {
       icon: Globe, label: "International Tours",
       dropdown: [
-        { label: "Individual Tours", href: "#intl-individual", icon: Users, subDropdown: internationalDestinations },
-        { label: "Group Tours", href: "#intl-group", icon: UsersRound, subDropdown: internationalDestinations },
-        { label: "Ladies Special Tours", href: "#intl-ladies", icon: Sparkles, subDropdown: internationalDestinations },
-        { label: "Senior Citizen Tours", href: "#intl-senior", icon: Heart, subDropdown: internationalDestinations },
-        { label: "Students Tours", href: "/students_tours", icon: GraduationCap },
-        { label: "Honeymoon Tours", href: "/honeymoon_tour", icon: Heart },
+        { label: "Individual Tours", href: "/alert", icon: Users, subDropdown: internationalDestinations },
+        { label: "Group Tours", href: "/alert", icon: UsersRound, subDropdown: internationalDestinations },
+        { label: "Ladies Special Tours", href: "/alert", icon: Sparkles, subDropdown: internationalDestinations },
+        { label: "Senior Citizen Tours", href: "/alert", icon: Heart, subDropdown: internationalDestinations },
+        { label: "Students Tours", href: "/alert", icon: GraduationCap },
+        { label: "Honeymoon Tours", href: "/alert", icon: Heart },
       ],
     },
     { 
@@ -103,25 +103,25 @@ const Header = () => {
       label: "Offline Flight/Hotels", 
       href: "#offline-flight-tickets",
       dropdown: [
-        { label: "Offline Flight Rates", href: "#offline-flight-rates" },
-        { label: "Offline Hotel Rates", href: "#offline-hotel-rates" }
+        { label: "Offline Flight Rates", href: "/alert" },
+        { label: "Offline Hotel Rates", href: "/alert" }
       ]
     },
-    { icon: Ship, label: "Exhibitions", href: "#exhibitions" },
-    { icon: Compass, label: "MICE", href: "#mice" },
-    { icon: PlaneTakeoff, label: "Visa", href: "#visa" },
+    { icon: Ship, label: "Exhibitions", href: "/alert" },
+    { icon: Compass, label: "MICE", href: "/alert" },
+    { icon: PlaneTakeoff, label: "Visa", href: "/alert" },
     {
       icon: Star, label: "Others",
       dropdown: [
-        { label: "Bungalow / Villa", href: "#bungalow-villa", icon: HomeIcon },
-        { label: "Bus", href: "#bus", icon: Bus },
-        { label: "Car", href: "#car", icon: Car },
-        { label: "Cruise", href: "#cruise", icon: Ship },
-        { label: "Festivals", href: "#festivals", icon: Sparkles },
-        { label: "Insurances", href: "#insurances", icon: Umbrella },
-        { label: "Passport", href: "#passport", icon: Landmark },
-        { label: "Sports", href: "#sports", icon: Shield },
-        { label: "Weekend Gateways", href: "/Weekendcard", icon: CalendarDays },
+        { label: "Bungalow / Villa", href: "/alert", icon: HomeIcon },
+        { label: "Bus", href: "/alert", icon: Bus },
+        { label: "Car", href: "/alert", icon: Car },
+        { label: "Cruise", href: "/alert", icon: Ship },
+        { label: "Festivals", href: "/alert", icon: Sparkles },
+        { label: "Insurances", href: "/alert", icon: Umbrella },
+        { label: "Passport", href: "/alert", icon: Landmark },
+        { label: "Sports", href: "/alert", icon: Shield },
+        { label: "Weekend Gateways", href: "/alert", icon: CalendarDays },
       ],
     },
     { icon: UsersRound, label: "About Us", href: "/about" },
@@ -313,7 +313,10 @@ const Header = () => {
                                           
                                           // Different routing for different tour types
                                           let href = "";
-                                          if (isIndividualTour) {
+                                          if (isIntl) {
+                                            // All International Tours destinations go to /alert
+                                            href = "/alert";
+                                          } else if (isIndividualTour) {
                                             href = `/tours-packages/${encodeURIComponent(dest)}`;
                                           } else if (isGroupTour) {
                                             href = `/tours_groups/${encodeURIComponent(dest)}`;
@@ -463,7 +466,10 @@ const Header = () => {
                                         const isHoneymoonTour = sub.label === "Honeymoon Tours";
                                         
                                         let href = "";
-                                        if (isIndividualTour) {
+                                        if (item.label === "International Tours") {
+                                          // All International Tours destinations go to /alert
+                                          href = "/alert";
+                                        } else if (isIndividualTour) {
                                           href = `/tours-packages/${encodeURIComponent(dest)}`;
                                         } else if (isGroupTour) {
                                           href = `/tours_groups/${encodeURIComponent(dest)}`;

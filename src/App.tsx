@@ -24,6 +24,7 @@ import Privacy_policy from "./pages/Privacy_policy/Privacy_policy";
 import CheckOutPage from "./pages/CheckOutPage"
 import CheckoutPage from "./pages/CheckOutPage";
 import PaymentResult from "./pages/PaymentResult";
+import Alert from "./pages/Alertfolder/Alert";
 
 
 
@@ -58,6 +59,7 @@ const App = () => (
 
           <Route path="/terms_conditions" element={<Terms_conditions />} />
 <Route path="/privacy_policy" element={<Privacy_policy />} />
+<Route path="/alert" element={<Alert />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
