@@ -88,12 +88,14 @@ const TourPackages = () => {
   const [selectedIndianTours, setSelectedIndianTours] = useState<string[]>([]);
   const [selectedWorldTours, setSelectedWorldTours] = useState<string[]>([]);
   const [filteredTours, setFilteredTours] = useState<any[]>([]);
+  const [formattedTours, setFormattedTours] = useState<any[]>([]); // NEW: Store all formatted tours
   const [selectedState, setSelectedState] = useState<string>(state || "Andaman");
-     const [showAllDepartureMonths, setShowAllDepartureMonths] = useState(false);
+  const [showAllDepartureMonths, setShowAllDepartureMonths] = useState(false);
 
   const [allTours, setAllTours] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [tourImages, setTourImages] = useState<Record<number | string, string>>({});
+  const [tourEmiData, setTourEmiData] = useState<Record<number | string, any>>({}); // NEW: Store EMI data for groups
 
   // ---------- Fetch base tours ----------
   useEffect(() => {
@@ -101,9 +103,8 @@ const TourPackages = () => {
       try {
         const res = await fetch(`${BASE_URL}/api/tours`);
         const data = await res.json();
-      
         setAllTours(data);
-        console.log("data",data)
+        console.log("data", data);
       } catch (err) {
         console.error("Error fetching tours:", err);
       } finally {
@@ -114,27 +115,35 @@ const TourPackages = () => {
     fetchTours();
   }, []);
 
-  // ---------- Fetch images for each tour ----------
+  // ---------- Fetch full tour details including EMI for each group tour ----------
   useEffect(() => {
     if (!allTours || allTours.length === 0) return;
 
-    const fetchImagesForTours = async () => {
+    const fetchTourDetails = async () => {
       try {
+        console.log("Fetching tour details for", allTours.length, "tours");
         const results = await Promise.all(
           allTours.map(async (tour) => {
             try {
+              // Note: Changed from /full/individual/ to /full/group/ for group tours
               const res = await fetch(
                 `${BASE_URL}/api/tours/tour/full/group/${tour.tour_id}`
               );
               const data = await res.json();
 
+              // Get cover image
               const images = data.images || [];
               const cover =
                 images.find((img: any) => img.is_cover === 1) || images[0];
 
+              // Get EMI price from basic_details for group tours
+              const emiPrice = data.basic_details?.emi_price || "0";
+              
               return {
                 tourId: tour.tour_id,
                 imageUrl: cover?.url || "",
+                emiPrice: emiPrice,
+                basicDetails: data.basic_details || {}
               };
             } catch (err) {
               console.error(
@@ -142,25 +151,42 @@ const TourPackages = () => {
                 tour.tour_id,
                 err
               );
-              return { tourId: tour.tour_id, imageUrl: "" };
+              return { 
+                tourId: tour.tour_id, 
+                imageUrl: "", 
+                emiPrice: "0",
+                basicDetails: {}
+              };
             }
           })
         );
 
         const imageMap: Record<number | string, string> = {};
+        const emiMap: Record<number | string, any> = {};
+
         results.forEach((r) => {
           if (r.imageUrl) {
             imageMap[r.tourId] = r.imageUrl;
           }
+          if (r.emiPrice || r.basicDetails) {
+            emiMap[r.tourId] = {
+              emiPrice: r.emiPrice,
+              basicDetails: r.basicDetails
+            };
+          }
         });
 
+        console.log("Tour images map:", imageMap);
+        console.log("Tour EMI data map (for groups):", emiMap);
+        
         setTourImages(imageMap);
+        setTourEmiData(emiMap);
       } catch (err) {
-        console.error("Error building tour images map:", err);
+        console.error("Error building tour details map:", err);
       }
     };
 
-    fetchImagesForTours();
+    fetchTourDetails();
   }, [allTours]);
 
   // ---------- Decode state from URL ----------
@@ -171,67 +197,132 @@ const TourPackages = () => {
     }
   }, [state]);
 
-  // ---------- Helper: get tours for selected state (raw API shape) ----------
-const getCurrentStateTours = () => {
-  if (!selectedState) return allTours;
+  // Function to get tours for current state
+  const getCurrentStateTours = () => {
+    if (!selectedState) {
+      console.log("No selected state, returning all tours");
+      return allTours;
+    }
 
-  // Filter by state AND tour_type = "Group" (case-insensitive)
-  return allTours.filter(
-    (tour) =>
-      tour.primary_destination_name?.toLowerCase() ===
-        selectedState.toLowerCase() &&
-      tour.tour_type?.toLowerCase() === "group" // Changed to lowercase comparison
-  );
-};
+    console.log("Filtering tours for state:", selectedState);
+    console.log("Total tours to filter:", allTours.length);
+    
+    // Filter by state AND tour_type = "group" (case-insensitive)
+    const filtered = allTours.filter((tour) => {
+      const stateMatch = tour.primary_destination_name?.toLowerCase() === selectedState.toLowerCase();
+      const typeMatch = tour.tour_type?.toLowerCase() === "group";
+      
+      console.log(`Tour ${tour.tour_id}: stateMatch=${stateMatch}, typeMatch=${typeMatch}`);
+      
+      return stateMatch && typeMatch;
+    });
 
-  // ---------- Helper: format raw tours into UI-friendly shape (with images) ----------
+    console.log("Filtered group tours count:", filtered.length);
+    console.log("Filtered group tour IDs:", filtered.map(t => t.tour_id));
+    return filtered;
+  };
+
+  // Function to format tours with dynamic EMI
   const formatTours = (tours: any[]) => {
+    console.log("Formatting", tours.length, "group tours");
+    
     return tours.map((tour) => {
+      console.log("Formatting tour:", {
+        id: tour.tour_id,
+        code: tour.tour_code,
+        type: tour.tour_type,
+        price: tour.base_price_adult
+      });
+      
       const imgUrl =
         tourImages[tour.tour_id] ||
         "https://via.placeholder.com/800x600?text=Tour+Image";
 
+      const priceValue = Number(tour.base_price_adult) || 0;
+      const days = tour.duration_days || 1;
+      
+      // Get EMI price from stored data (already fetched for groups)
+      const emiData = tourEmiData[tour.tour_id];
+      const emiPrice = emiData?.emiPrice || "0";
+      
+      // Format EMI price (remove the /12 calculation and use dynamic value)
+      const formattedEmi = emiPrice !== "0" ? `₹${parseFloat(emiPrice).toLocaleString()}` : "₹0";
+
       return {
         id: tour.tour_id,
-        code: tour.tour_code,
-        title: tour.title,
-        duration: `${tour.duration_days - 1}N/${tour.duration_days}D`,
-        days: tour.duration_days,
-        price: `₹${Number(tour.base_price_adult).toLocaleString()}`,
-        priceValue: Number(tour.base_price_adult),
-        locations: tour.primary_destination_name,
+        code: tour.tour_code || `TOUR${tour.tour_id}`,
+        title: tour.title || "Untitled Tour",
+        duration: `${days - 1}N/${days}D`,
+        days: days,
+        price: `₹${priceValue.toLocaleString()}`,
+        priceValue: priceValue,
+        locations: tour.primary_destination_name || "Unknown Location",
         image: imgUrl,
-        emi: `₹${Math.round(
-          Number(tour.base_price_adult) / 12
-        )}`,
+        emi: formattedEmi, // Use dynamic EMI price from API for groups
+        emiPriceValue: parseFloat(emiPrice) || 0,
         isIndian: true,
         locationTags: [tour.primary_destination_name || ""],
-        tourType: tour.tour_type, // Add tour type for debugging
+        tourType: tour.tour_type,
+        rawTourType: tour.tour_type,
       };
     });
   };
 
-  // ---------- Main filter + sort effect (SINGLE SOURCE OF TRUTH) ----------
+  // ---------- Format tours when data changes ----------
   useEffect(() => {
-    console.log("All tours:", allTours); // Debug: Check what tours we have
+    if (allTours.length === 0) {
+      console.log("No tours to format yet");
+      return;
+    }
+
+    // Only format if we have EMI data and images loaded for groups
+    if (Object.keys(tourEmiData).length === 0 || Object.keys(tourImages).length === 0) {
+      console.log("Waiting for group tour details to load...");
+      return;
+    }
+
+    console.log("=== FORMATTING GROUP TOURS ===");
+    console.log("All tours available:", allTours.length);
+    console.log("Selected state:", selectedState);
+    console.log("Tour EMI data available for:", Object.keys(tourEmiData).length, "tours");
     
-    // Start from state-filtered raw tours (already filtered for individual tours)
     const currentStateTours = getCurrentStateTours();
-    console.log("Filtered tours (individual only):", currentStateTours); // Debug
+    console.log("Group tours for current state:", currentStateTours.length);
     
-    let result = formatTours(currentStateTours);
-    console.log("Formatted tours:", result); // Debug
+    const formatted = formatTours(currentStateTours);
+    console.log("Formatted group tours:", formatted);
+    
+    setFormattedTours(formatted);
+  }, [allTours, tourImages, tourEmiData, selectedState]);
+
+  // ---------- Apply filters to formatted tours ----------
+  useEffect(() => {
+    console.log("=== APPLYING FILTERS ===");
+    console.log("Starting with formatted tours:", formattedTours.length);
+    console.log("Formatted tour IDs:", formattedTours.map(t => t.id));
+    
+    if (formattedTours.length === 0) {
+      setFilteredTours([]);
+      return;
+    }
+
+    let result = [...formattedTours];
+    console.log("Initial tours count:", result.length);
 
     // Duration filter
+    console.log("Duration range:", durationRange);
     result = result.filter(
       (tour) => tour.days >= durationRange[0] && tour.days <= durationRange[1]
     );
+    console.log("After duration filter:", result.length);
 
     // Price filter
+    console.log("Price range:", priceRange);
     result = result.filter(
       (tour) =>
         tour.priceValue >= priceRange[0] && tour.priceValue <= priceRange[1]
     );
+    console.log("After price filter:", result.length);
 
     // Departure month filter (placeholder logic)
     if (selectedDepartureMonths.length > 0) {
@@ -240,6 +331,7 @@ const getCurrentStateTours = () => {
 
     // Indian tours filter
     if (selectedIndianTours.length > 0) {
+      console.log("Selected Indian tours:", selectedIndianTours);
       result = result.filter((tour) => {
         if (!tour.isIndian) return false;
 
@@ -251,10 +343,12 @@ const getCurrentStateTours = () => {
           return false;
         });
       });
+      console.log("After Indian tours filter:", result.length);
     }
 
     // World tours filter (won't really match for isIndian=true, but safe)
     if (selectedWorldTours.length > 0) {
+      console.log("Selected World tours:", selectedWorldTours);
       result = result.filter((tour) => {
         if (tour.isIndian) return false;
         return selectedWorldTours.some((selectedLocation) =>
@@ -263,9 +357,11 @@ const getCurrentStateTours = () => {
           )
         );
       });
+      console.log("After world tours filter:", result.length);
     }
 
     // Sorting
+    console.log("Sort type:", sortType);
     if (sortType === "price-low") {
       result.sort((a, b) => a.priceValue - b.priceValue);
     } else if (sortType === "price-high") {
@@ -274,12 +370,11 @@ const getCurrentStateTours = () => {
       result.sort((a, b) => a.days - b.days);
     }
 
-    console.log("Final filtered tours:", result); // Debug
+    console.log("Final filtered group tours count:", result.length);
+    console.log("Final filtered group tour IDs:", result.map(t => t.id));
     setFilteredTours(result);
   }, [
-    allTours,
-    tourImages,
-    selectedState,
+    formattedTours,
     durationRange,
     priceRange,
     selectedDepartureMonths,
@@ -315,6 +410,13 @@ const getCurrentStateTours = () => {
     }
   };
 
+  useEffect(() => {
+    if (state) {
+      const decodedState = decodeURIComponent(state);
+      setSelectedState(decodedState);
+    }
+  }, [state]);
+
   const clearAllFilters = () => {
     setDurationRange([0, 11]);
     setPriceRange([0, 153000]);
@@ -324,20 +426,14 @@ const getCurrentStateTours = () => {
     setSortType("recommended");
   };
 
-    useEffect(() => {
-    if (state) {
-      const decodedState = decodeURIComponent(state);
-      setSelectedState(decodedState);
-    }
-  }, [state]);
   const currentTours = getCurrentStateTours();
-const heroImage =
-  stateHeroImages[selectedState as keyof typeof stateHeroImages] ??
-  '/img/default.jpg';
+  const heroImage =
+    stateHeroImages[selectedState as keyof typeof stateHeroImages] ??
+    '/img/default.jpg';
 
-const heroDescription =
-  stateDescriptions[selectedState as keyof typeof stateDescriptions] ??
-  'Explore the beauty of India';
+  const heroDescription =
+    stateDescriptions[selectedState as keyof typeof stateDescriptions] ??
+    'Explore the beauty of India';
 
   if (loading) {
     return (
@@ -399,102 +495,99 @@ const heroDescription =
                 />
               </div>
 
-
-
-           {/* Departure Months */}
-<div className="mb-8">
-  <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Departure Months</h3>
-  <div className="space-y-3">
-    {[
-      'January 2025', 'February 2025', 'March 2025', 'April 2025', 
-      'May 2025', 'June 2025', 'July 2025', 'August 2025',
-      'September 2025', 'October 2025', 'November 2025', 'December 2025'
-    ]
-      .slice(0, showAllDepartureMonths ? 12 : 6) // Show 6 by default, 12 when expanded
-      .map((month) => (
-        <label key={month} className="flex items-center gap-3 cursor-pointer">
-          <Checkbox
-            checked={selectedDepartureMonths.includes(month)}
-            onCheckedChange={(checked) => 
-              handleDepartureMonthChange(month, checked as boolean)
-            }
-            className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
-          />
-          <span className="text-gray-700">{month}</span>
-        </label>
-      ))}
-  </div>
-  
-  {/* Show More/Less Button */}
-  <button
-    onClick={() => setShowAllDepartureMonths(!showAllDepartureMonths)}
-    className="mt-4 text-[#2E4D98] font-medium hover:text-[#1E3A8A] transition-colors"
-  >
-    {showAllDepartureMonths ? 'Show Less' : 'Show More'}
-  </button>
-</div>
-       
+              {/* Departure Months */}
+              <div className="mb-8">
+                <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Departure Months</h3>
+                <div className="space-y-3">
+                  {[
+                    'January 2025', 'February 2025', 'March 2025', 'April 2025', 
+                    'May 2025', 'June 2025', 'July 2025', 'August 2025',
+                    'September 2025', 'October 2025', 'November 2025', 'December 2025'
+                  ]
+                    .slice(0, showAllDepartureMonths ? 12 : 6)
+                    .map((month) => (
+                      <label key={month} className="flex items-center gap-3 cursor-pointer">
+                        <Checkbox
+                          checked={selectedDepartureMonths.includes(month)}
+                          onCheckedChange={(checked) => 
+                            handleDepartureMonthChange(month, checked as boolean)
+                          }
+                          className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
+                        />
+                        <span className="text-gray-700">{month}</span>
+                      </label>
+                    ))}
+                </div>
+                
+                <button
+                  onClick={() => setShowAllDepartureMonths(!showAllDepartureMonths)}
+                  className="mt-4 text-[#2E4D98] font-medium hover:text-[#1E3A8A] transition-colors"
+                >
+                  {showAllDepartureMonths ? 'Show Less' : 'Show More'}
+                </button>
+              </div>
+             
               {/* Indian Tours */}
               <div className="mb-8">
                 <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
                   <h2 className="text-2xl font-bold text-[#2E4D98]">Indian Tours</h2>
                 </div>
-              <div className={`${showMoreIndian ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
-                {[
-                  'Andaman', 'Goa', 'Kerala', 'Himachal', 'Rajasthan', 'Kashmir',
-                  ...(showMoreIndian
-                    ? [     'Andhra Pradesh',
-                            'Bihar',
-                            'Chhattisgarh',
-                            'Dadra & Nagar Haveli',
-                            'Daman & Diu',
-                            'Delhi',
-                            'Gujarat',
-                            'Haryana',
-                            'Jharkhand',
-                            'Karnataka',
-                            'Ladakh',
-                            'Lakshadweep',
-                            'Madhya Pradesh',
-                            'Maharashtra',
-                            'North East',
-                            'Odisha',
-                            'Puducherry',
-                            'Punjab & Haryana',
-                            'Seven Sisters',
-                            'Tamil Nadu',
-                            'Uttar Pradesh',
-                            'Uttarakhand',
-                            'West Bengal']
-                    : [])
-                ].map((place) => {
-                  const isCurrentState = selectedState === place;
-                  
-                  return (
-                    <div key={place} className="flex items-center gap-3 cursor-pointer">
-                      <Checkbox 
-                        checked={isCurrentState}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
+                <div className={`${showMoreIndian ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
+                  {[
+                    'Andaman', 'Goa', 'Kerala', 'Himachal', 'Rajasthan', 'Kashmir',
+                    ...(showMoreIndian
+                      ? [     'Andhra Pradesh',
+                              'Bihar',
+                              'Chhattisgarh',
+                              'Dadra & Nagar Haveli',
+                              'Daman & Diu',
+                              'Delhi',
+                              'Gujarat',
+                              'Haryana',
+                              'Jharkhand',
+                              'Karnataka',
+                              'Ladakh',
+                              'Lakshadweep',
+                              'Madhya Pradesh',
+                              'Maharashtra',
+                              'North East',
+                              'Odisha',
+                              'Puducherry',
+                              'Punjab & Haryana',
+                              'Seven Sisters',
+                              'Tamil Nadu',
+                              'Uttar Pradesh',
+                              'Uttarakhand',
+                              'West Bengal']
+                      : [])
+                  ].map((place) => {
+                    const isCurrentState = selectedState === place;
+                    
+                    return (
+                      <div key={place} className="flex items-center gap-3 cursor-pointer">
+                        <Checkbox 
+                          checked={isCurrentState}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              clearAllFilters();
+                              navigate(`/tours_groups/${encodeURIComponent(place)}`);
+                            }
+                          }}
+                          className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]" 
+                        />
+                        <span 
+                          className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${isCurrentState ? 'font-bold text-[#2E4D98]' : ''}`}
+                          onClick={() => {
                             clearAllFilters();
                             navigate(`/tours_groups/${encodeURIComponent(place)}`);
-                          }
-                        }}
-                        className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]" 
-                      />
-                      <span 
-                        className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${isCurrentState ? 'font-bold text-[#2E4D98]' : ''}`}
-                        onClick={() => {
-                          clearAllFilters();
-                          navigate(`/tours_groups/${encodeURIComponent(place)}`);
-                        }}
-                      >
-                        {place}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
+                          }}
+                        >
+                          {place}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
                 <button
                   onClick={() => setShowMoreIndian(!showMoreIndian)}
                   className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
@@ -551,12 +644,13 @@ const heroDescription =
               {/* Hero Content */}
               <div className="relative p-8 min-h-[200px] flex items-center">
                 <div className="text-white">
-                  <h1 className="text-3xl font-bold mb-2">{selectedState}  Tour Packages</h1>
+                  <h1 className="text-3xl font-bold mb-2">{selectedState} Tour Packages</h1>
                   <p className="text-base opacity-90 max-w-2xl">
                     {heroDescription}
                   </p>
                   <p className="text-sm opacity-80 mt-2">
-                    Showing {filteredTours.length} tour packages for {selectedState}
+                    Showing {filteredTours.length} group tour packages for {selectedState}
+                    <span className="ml-2 text-xs">(Total available: {formattedTours.length})</span>
                   </p>
                 </div>
               </div>
@@ -565,40 +659,19 @@ const heroDescription =
             {/* Main Content Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
               <div>
-                <h2 className="text-3xl font-bold text-gray-800">{selectedState}  Holiday Packages</h2>
+                <h2 className="text-3xl font-bold text-gray-800">{selectedState} Holiday Packages</h2>
                 <p className="text-gray-600 mt-1">
-                  Showing {filteredTours.length} of {currentTours.length} individual tours • Best prices guaranteed
+                  Showing {filteredTours.length} of {formattedTours.length} group tours • Best prices guaranteed
                 </p>
               </div>
-
-              {/* <div className="flex items-center gap-4">
-                <Tabs defaultValue="grid">
-                  <TabsList className="grid grid-cols-2">
-                    <TabsTrigger value="grid">Grid</TabsTrigger>
-                    <TabsTrigger value="list">List</TabsTrigger>
-                  </TabsList>
-                </Tabs>
-
-                <Select value={sortType} onValueChange={setSortType}>
-                  <SelectTrigger className="w-48">
-                    <SelectValue placeholder="Sort by" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="recommended">Recommended</SelectItem>
-                    <SelectItem value="price-low">Price: Low to High</SelectItem>
-                    <SelectItem value="price-high">Price: High to Low</SelectItem>
-                    <SelectItem value="duration">Duration</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div> */}
             </div>
 
             {/* 3 Cards Per Row */}
             {filteredTours.length === 0 ? (
               <div className="text-center py-12">
-                <h3 className="text-xl font-semibold text-gray-600">No individual tours found for the selected filters</h3>
+                <h3 className="text-xl font-semibold text-gray-600">No group tours found for the selected filters</h3>
                 <p className="text-gray-500 mt-2">
-                  Try adjusting your filters or clear all filters to see more options
+                  Total available group tours for {selectedState}: {formattedTours.length}
                 </p>
                 <Button
                   onClick={clearAllFilters}
@@ -678,18 +751,18 @@ const heroDescription =
                           >
                             View Tour
                           </Button>
-                           <Button 
-                              size="sm" 
-                              className="flex-1 bg-[#E53C42] hover:bg-[#E53C42] hover:opacity-90 text-white"
-                              onClick={() => {
-                                                        // Save tour data to localStorage as backup
-                                 localStorage.setItem('selectedTour', JSON.stringify(tour));
-                                                        // Navigate to checkout page with tour data
-                                  navigate('/checkout', { state: { tour } });
-                                                      }}
-                                                    >
-                                    Book Now
-                              </Button>
+                          <Button 
+                            size="sm" 
+                            className="flex-1 bg-[#E53C42] hover:bg-[#E53C42] hover:opacity-90 text-white"
+                            onClick={() => {
+                              // Save tour data to localStorage as backup
+                              localStorage.setItem('selectedTour', JSON.stringify(tour));
+                              // Navigate to checkout page with tour data
+                              navigate('/checkout', { state: { tour } });
+                            }}
+                          >
+                            Book Now
+                          </Button>
                         </div>
                       </div>
                     </div>

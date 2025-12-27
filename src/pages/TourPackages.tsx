@@ -17,7 +17,7 @@ const stateHeroImages = {
   "Daman & Diu": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&q=80",
   "Delhi": "https://images.unsplash.com/photo-1587132135057-bc3c3dcfd4d9?w=1200&q=80",
   "Goa": "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=1200&q=80",
-  "Gujarat": "https://images.unsplash.com/photo-1587132135058-bc3c3dcfd4db?w=1200&q=80",
+  "Gujarat": "https://images.unsplash.com/phone-1587132135058-bc3c3dcfd4db?w=1200&q=80",
   "Haryana": "https://images.unsplash.com/photo-1587132135059-bc3c3dcfd4dc?w=1200&q=80",
   "Himachal Pradesh": "https://images.unsplash.com/photo-1587132135060-bc3c3dcfd4dd?w=1200&q=80",
   "Jammu & Kashmir": "https://images.unsplash.com/photo-1587132135061-bc3c3dcfd4de?w=1200&q=80",
@@ -93,6 +93,7 @@ const TourPackages = () => {
   const [allTours, setAllTours] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [tourImages, setTourImages] = useState<Record<number | string, string>>({});
+  const [tourEmiData, setTourEmiData] = useState<Record<number | string, any>>({}); // NEW: Store EMI data
 
   // ---------- Fetch base tours ----------
   useEffect(() => {
@@ -114,13 +115,13 @@ const TourPackages = () => {
     fetchTours();
   }, []);
 
-  // ---------- Fetch images for each tour ----------
+  // ---------- Fetch full tour details including EMI for each tour ----------
   useEffect(() => {
     if (!allTours || allTours.length === 0) return;
 
-    const fetchImagesForTours = async () => {
+    const fetchTourDetails = async () => {
       try {
-        console.log("Fetching images for", allTours.length, "tours");
+        console.log("Fetching tour details for", allTours.length, "tours");
         const results = await Promise.all(
           allTours.map(async (tour) => {
             try {
@@ -129,13 +130,19 @@ const TourPackages = () => {
               );
               const data = await res.json();
 
+              // Get cover image
               const images = data.images || [];
               const cover =
                 images.find((img: any) => img.is_cover === 1) || images[0];
 
+              // Get EMI price from basic_details
+              const emiPrice = data.basic_details?.emi_price || "0";
+              
               return {
                 tourId: tour.tour_id,
                 imageUrl: cover?.url || "",
+                emiPrice: emiPrice,
+                basicDetails: data.basic_details || {}
               };
             } catch (err) {
               console.error(
@@ -143,26 +150,42 @@ const TourPackages = () => {
                 tour.tour_id,
                 err
               );
-              return { tourId: tour.tour_id, imageUrl: "" };
+              return { 
+                tourId: tour.tour_id, 
+                imageUrl: "", 
+                emiPrice: "0",
+                basicDetails: {}
+              };
             }
           })
         );
 
         const imageMap: Record<number | string, string> = {};
+        const emiMap: Record<number | string, any> = {};
+
         results.forEach((r) => {
           if (r.imageUrl) {
             imageMap[r.tourId] = r.imageUrl;
           }
+          if (r.emiPrice || r.basicDetails) {
+            emiMap[r.tourId] = {
+              emiPrice: r.emiPrice,
+              basicDetails: r.basicDetails
+            };
+          }
         });
 
         console.log("Tour images map:", imageMap);
+        console.log("Tour EMI data map:", emiMap);
+        
         setTourImages(imageMap);
+        setTourEmiData(emiMap);
       } catch (err) {
-        console.error("Error building tour images map:", err);
+        console.error("Error building tour details map:", err);
       }
     };
 
-    fetchImagesForTours();
+    fetchTourDetails();
   }, [allTours]);
 
   // ---------- Decode state from URL ----------
@@ -228,6 +251,13 @@ const TourPackages = () => {
       const priceValue = Number(tour.base_price_adult) || 0;
       const days = tour.duration_days || 1;
       
+      // Get EMI price from stored data (already fetched)
+      const emiData = tourEmiData[tour.tour_id];
+      const emiPrice = emiData?.emiPrice || "0";
+      
+      // Format EMI price (remove the /12 calculation and use dynamic value)
+      const formattedEmi = emiPrice !== "0" ? `₹${parseFloat(emiPrice).toLocaleString()}` : "₹0";
+
       return {
         id: tour.tour_id,
         code: tour.tour_code || `TOUR${tour.tour_id}`,
@@ -238,7 +268,8 @@ const TourPackages = () => {
         priceValue: priceValue,
         locations: tour.primary_destination_name || "Unknown Location",
         image: imgUrl,
-        emi: `₹${Math.round(priceValue / 12)}`,
+        emi: formattedEmi, // Use dynamic EMI price from API
+        emiPriceValue: parseFloat(emiPrice) || 0, // Store numeric value for filtering if needed
         isIndian: true,
         locationTags: [tour.primary_destination_name || ""],
         tourType: tour.tour_type,
@@ -254,9 +285,16 @@ const TourPackages = () => {
       return;
     }
 
+    // Only format if we have EMI data and images loaded
+    if (Object.keys(tourEmiData).length === 0 || Object.keys(tourImages).length === 0) {
+      console.log("Waiting for tour details to load...");
+      return;
+    }
+
     console.log("=== FORMATTING TOURS ===");
     console.log("All tours available:", allTours.length);
     console.log("Selected state:", selectedState);
+    console.log("Tour EMI data available for:", Object.keys(tourEmiData).length, "tours");
     
     const currentStateTours = getCurrentStateTours();
     console.log("Tours for current state:", currentStateTours.length);
@@ -265,7 +303,7 @@ const TourPackages = () => {
     console.log("Formatted tours (all individual tours for this state):", formatted);
     
     setFormattedTours(formatted);
-  }, [allTours, tourImages, selectedState]);
+  }, [allTours, tourImages, tourEmiData, selectedState]);
 
   // ---------- Apply filters to formatted tours ----------
   useEffect(() => {
@@ -603,27 +641,6 @@ const heroDescription =
                   Showing {filteredTours.length} of {formattedTours.length} individual tours • Best prices guaranteed
                 </p>
               </div>
-
-              {/* <div className="flex items-center gap-4">
-                <Tabs defaultValue="grid">
-                  <TabsList className="grid grid-cols-2">
-                    <TabsTrigger value="grid">Grid</TabsTrigger>
-                    <TabsTrigger value="list">List</TabsTrigger>
-                  </TabsList>
-                </Tabs>
-
-                <Select value={sortType} onValueChange={setSortType}>
-                  <SelectTrigger className="w-48">
-                    <SelectValue placeholder="Sort by" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="recommended">Recommended</SelectItem>
-                    <SelectItem value="price-low">Price: Low to High</SelectItem>
-                    <SelectItem value="price-high">Price: High to Low</SelectItem>
-                    <SelectItem value="duration">Duration</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div> */}
             </div>
 
             {/* 3 Cards Per Row */}

@@ -88,12 +88,13 @@ const TourPackages = () => {
   const [selectedIndianTours, setSelectedIndianTours] = useState<string[]>([]);
   const [selectedWorldTours, setSelectedWorldTours] = useState<string[]>([]);
   const [filteredTours, setFilteredTours] = useState<any[]>([]);
-  const [formattedTours, setFormattedTours] = useState<any[]>([]); // NEW: Store all formatted tours
+  const [formattedTours, setFormattedTours] = useState<any[]>([]); // Store all formatted tours
   const [selectedState, setSelectedState] = useState<string>(state || "Andaman");
 
   const [allTours, setAllTours] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [tourImages, setTourImages] = useState<Record<number | string, string>>({});
+  const [tourEmiData, setTourEmiData] = useState<Record<number | string, any>>({}); // NEW: Store EMI data for honeymoon
 
   // ---------- Fetch base tours ----------
   useEffect(() => {
@@ -115,55 +116,78 @@ const TourPackages = () => {
     fetchTours();
   }, []);
 
-  // ---------- Fetch images for each tour ----------
+  // ---------- Fetch full tour details including EMI for each honeymoon tour ----------
   useEffect(() => {
     if (!allTours || allTours.length === 0) return;
 
-    const fetchImagesForTours = async () => {
+    const fetchTourDetails = async () => {
       try {
-        console.log("Fetching images for", allTours.length, "tours");
+        console.log("Fetching honeymoon tour details for", allTours.length, "tours");
         const results = await Promise.all(
           allTours.map(async (tour) => {
             try {
+              // Note: Using /full/honeymoon/ for honeymoon tours
               const res = await fetch(
                 `${BASE_URL}/api/tours/tour/full/honeymoon/${tour.tour_id}`
               );
               const data = await res.json();
 
+              // Get cover image
               const images = data.images || [];
               const cover =
                 images.find((img: any) => img.is_cover === 1) || images[0];
 
+              // Get EMI price from basic_details for honeymoon tours
+              const emiPrice = data.basic_details?.emi_price || "0";
+              
               return {
                 tourId: tour.tour_id,
                 imageUrl: cover?.url || "",
+                emiPrice: emiPrice,
+                basicDetails: data.basic_details || {}
               };
             } catch (err) {
               console.error(
-                "Error fetching tour details for",
+                "Error fetching honeymoon tour details for",
                 tour.tour_id,
                 err
               );
-              return { tourId: tour.tour_id, imageUrl: "" };
+              return { 
+                tourId: tour.tour_id, 
+                imageUrl: "", 
+                emiPrice: "0",
+                basicDetails: {}
+              };
             }
           })
         );
 
         const imageMap: Record<number | string, string> = {};
+        const emiMap: Record<number | string, any> = {};
+
         results.forEach((r) => {
           if (r.imageUrl) {
             imageMap[r.tourId] = r.imageUrl;
           }
+          if (r.emiPrice || r.basicDetails) {
+            emiMap[r.tourId] = {
+              emiPrice: r.emiPrice,
+              basicDetails: r.basicDetails
+            };
+          }
         });
 
-        console.log("Tour images map:", imageMap);
+        console.log("Honeymoon tour images map:", imageMap);
+        console.log("Honeymoon tour EMI data map:", emiMap);
+        
         setTourImages(imageMap);
+        setTourEmiData(emiMap);
       } catch (err) {
-        console.error("Error building tour images map:", err);
+        console.error("Error building honeymoon tour details map:", err);
       }
     };
 
-    fetchImagesForTours();
+    fetchTourDetails();
   }, [allTours]);
 
   // ---------- Decode state from URL ----------
@@ -182,7 +206,7 @@ const TourPackages = () => {
       return allTours;
     }
 
-    console.log("Filtering tours for state:", selectedState);
+    console.log("Filtering honeymoon tours for state:", selectedState);
     console.log("Total tours to filter:", allTours.length);
     
     // Debug log each tour
@@ -195,7 +219,7 @@ const TourPackages = () => {
       });
     });
 
-    // Filter by state AND tour_type = "individual" (case-insensitive)
+    // Filter by state AND tour_type = "honeymoon" (case-insensitive)
     const filtered = allTours.filter((tour) => {
       const stateMatch = tour.primary_destination_name?.toLowerCase() === selectedState.toLowerCase();
       const typeMatch = tour.tour_type?.toLowerCase() === "honeymoon";
@@ -205,17 +229,17 @@ const TourPackages = () => {
       return stateMatch && typeMatch;
     });
 
-    console.log("Filtered tours count:", filtered.length);
-    console.log("Filtered tour IDs:", filtered.map(t => t.tour_id));
+    console.log("Filtered honeymoon tours count:", filtered.length);
+    console.log("Filtered honeymoon tour IDs:", filtered.map(t => t.tour_id));
     return filtered;
   };
 
   // Function to format tours
   const formatTours = (tours: any[]) => {
-    console.log("Formatting", tours.length, "tours");
+    console.log("Formatting", tours.length, "honeymoon tours");
     
     return tours.map((tour) => {
-      console.log("Formatting tour:", {
+      console.log("Formatting honeymoon tour:", {
         id: tour.tour_id,
         code: tour.tour_code,
         type: tour.tour_type,
@@ -229,6 +253,13 @@ const TourPackages = () => {
       const priceValue = Number(tour.base_price_adult) || 0;
       const days = tour.duration_days || 1;
       
+      // Get EMI price from stored data (already fetched for honeymoon)
+      const emiData = tourEmiData[tour.tour_id];
+      const emiPrice = emiData?.emiPrice || "0";
+      
+      // Format EMI price (remove the /12 calculation and use dynamic value)
+      const formattedEmi = emiPrice !== "0" ? `₹${parseFloat(emiPrice).toLocaleString()}` : "₹0";
+
       return {
         id: tour.tour_id,
         code: tour.tour_code || `TOUR${tour.tour_id}`,
@@ -239,7 +270,8 @@ const TourPackages = () => {
         priceValue: priceValue,
         locations: tour.primary_destination_name || "Unknown Location",
         image: imgUrl,
-        emi: `₹${Math.round(priceValue / 12)}`,
+        emi: formattedEmi, // Use dynamic EMI price from API for honeymoon
+        emiPriceValue: parseFloat(emiPrice) || 0,
         isIndian: true,
         locationTags: [tour.primary_destination_name || ""],
         tourType: tour.tour_type,
@@ -255,23 +287,30 @@ const TourPackages = () => {
       return;
     }
 
-    console.log("=== FORMATTING TOURS ===");
+    // Only format if we have EMI data and images loaded for honeymoon
+    if (Object.keys(tourEmiData).length === 0 || Object.keys(tourImages).length === 0) {
+      console.log("Waiting for honeymoon tour details to load...");
+      return;
+    }
+
+    console.log("=== FORMATTING HONEYMOON TOURS ===");
     console.log("All tours available:", allTours.length);
     console.log("Selected state:", selectedState);
+    console.log("Honeymoon tour EMI data available for:", Object.keys(tourEmiData).length, "tours");
     
     const currentStateTours = getCurrentStateTours();
-    console.log("Tours for current state:", currentStateTours.length);
+    console.log("Honeymoon tours for current state:", currentStateTours.length);
     
     const formatted = formatTours(currentStateTours);
-    console.log("Formatted tours (all individual tours for this state):", formatted);
+    console.log("Formatted honeymoon tours:", formatted);
     
     setFormattedTours(formatted);
-  }, [allTours, tourImages, selectedState]);
+  }, [allTours, tourImages, tourEmiData, selectedState]);
 
   // ---------- Apply filters to formatted tours ----------
   useEffect(() => {
     console.log("=== APPLYING FILTERS ===");
-    console.log("Starting with formatted tours:", formattedTours.length);
+    console.log("Starting with formatted honeymoon tours:", formattedTours.length);
     console.log("Formatted tour IDs:", formattedTours.map(t => t.id));
     
     if (formattedTours.length === 0) {
@@ -280,7 +319,7 @@ const TourPackages = () => {
     }
 
     let result = [...formattedTours];
-    console.log("Initial tours count:", result.length);
+    console.log("Initial honeymoon tours count:", result.length);
 
     // Duration filter
     console.log("Duration range:", durationRange);
@@ -343,8 +382,8 @@ const TourPackages = () => {
       result.sort((a, b) => a.days - b.days);
     }
 
-    console.log("Final filtered tours count:", result.length);
-    console.log("Final filtered tour IDs:", result.map(t => t.id));
+    console.log("Final filtered honeymoon tours count:", result.length);
+    console.log("Final filtered honeymoon tour IDs:", result.map(t => t.id));
     setFilteredTours(result);
   }, [
     formattedTours,
@@ -391,20 +430,21 @@ const TourPackages = () => {
     setSelectedWorldTours([]);
     setSortType("recommended");
   };
-    useEffect(() => {
-        if (state) {
-          const decodedState = decodeURIComponent(state);
-          setSelectedState(decodedState);
-        }
-      }, [state]);
 
-const heroImage =
-  stateHeroImages[selectedState as keyof typeof stateHeroImages] ??
-  '/img/default.jpg';
+  useEffect(() => {
+    if (state) {
+      const decodedState = decodeURIComponent(state);
+      setSelectedState(decodedState);
+    }
+  }, [state]);
 
-const heroDescription =
-  stateDescriptions[selectedState as keyof typeof stateDescriptions] ??
-  'Explore the beauty of India';
+  const heroImage =
+    stateHeroImages[selectedState as keyof typeof stateHeroImages] ??
+    '/img/default.jpg';
+
+  const heroDescription =
+    stateDescriptions[selectedState as keyof typeof stateDescriptions] ??
+    'Explore the beauty of India';
 
   if (loading) {
     return (
@@ -471,62 +511,62 @@ const heroDescription =
                 <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
                   <h2 className="text-2xl font-bold text-[#2E4D98]">Indian Tours</h2>
                 </div>
-                 <div className={`${showMoreIndian ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
-                                            {[
-                                              'Andaman', 'Goa', 'Kerala', 'Himachal', 'Rajasthan', 'Kashmir',
-                                              ...(showMoreIndian
-                                                ? [     'Andhra Pradesh',
-                                                        'Bihar',
-                                                        'Chhattisgarh',
-                                                        'Dadra & Nagar Haveli',
-                                                        'Daman & Diu',
-                                                        'Delhi',
-                                                        'Gujarat',
-                                                        'Haryana',
-                                                        'Jharkhand',
-                                                        'Karnataka',
-                                                        'Ladakh',
-                                                        'Lakshadweep',
-                                                        'Madhya Pradesh',
-                                                        'Maharashtra',
-                                                        'North East',
-                                                        'Odisha',
-                                                        'Puducherry',
-                                                        'Punjab & Haryana',
-                                                        'Seven Sisters',
-                                                        'Tamil Nadu',
-                                                        'Uttar Pradesh',
-                                                        'Uttarakhand',
-                                                        'West Bengal']
-                                                : [])
-                                            ].map((place) => {
-                                              const isCurrentState = selectedState === place;
-                                              
-                                              return (
-                                                <div key={place} className="flex items-center gap-3 cursor-pointer">
-                                                  <Checkbox 
-                                                    checked={isCurrentState}
-                                                    onCheckedChange={(checked) => {
-                                                      if (checked) {
-                                                        clearAllFilters();
-                                                        navigate(`/honeymoon_tours/${encodeURIComponent(place)}`);
-                                                      }
-                                                    }}
-                                                    className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]" 
-                                                  />
-                                                  <span 
-                                                    className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${isCurrentState ? 'font-bold text-[#2E4D98]' : ''}`}
-                                                    onClick={() => {
-                                                      clearAllFilters();
-                                                      navigate(`/honeymoon_tours/${encodeURIComponent(place)}`);
-                                                    }}
-                                                  >
-                                                    {place}
-                                                  </span>
-                                                </div>
-                                              );
-                                            })}
-                                          </div>
+                <div className={`${showMoreIndian ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
+                  {[
+                    'Andaman', 'Goa', 'Kerala', 'Himachal', 'Rajasthan', 'Kashmir',
+                    ...(showMoreIndian
+                      ? [     'Andhra Pradesh',
+                              'Bihar',
+                              'Chhattisgarh',
+                              'Dadra & Nagar Haveli',
+                              'Daman & Diu',
+                              'Delhi',
+                              'Gujarat',
+                              'Haryana',
+                              'Jharkhand',
+                              'Karnataka',
+                              'Ladakh',
+                              'Lakshadweep',
+                              'Madhya Pradesh',
+                              'Maharashtra',
+                              'North East',
+                              'Odisha',
+                              'Puducherry',
+                              'Punjab & Haryana',
+                              'Seven Sisters',
+                              'Tamil Nadu',
+                              'Uttar Pradesh',
+                              'Uttarakhand',
+                              'West Bengal']
+                      : [])
+                  ].map((place) => {
+                    const isCurrentState = selectedState === place;
+                    
+                    return (
+                      <div key={place} className="flex items-center gap-3 cursor-pointer">
+                        <Checkbox 
+                          checked={isCurrentState}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              clearAllFilters();
+                              navigate(`/honeymoon_tours/${encodeURIComponent(place)}`);
+                            }
+                          }}
+                          className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]" 
+                        />
+                        <span 
+                          className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${isCurrentState ? 'font-bold text-[#2E4D98]' : ''}`}
+                          onClick={() => {
+                            clearAllFilters();
+                            navigate(`/honeymoon_tours/${encodeURIComponent(place)}`);
+                          }}
+                        >
+                          {place}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
                 <button
                   onClick={() => setShowMoreIndian(!showMoreIndian)}
                   className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
@@ -603,27 +643,6 @@ const heroDescription =
                   Showing {filteredTours.length} of {formattedTours.length} Honeymoon tours • Best prices guaranteed
                 </p>
               </div>
-
-              {/* <div className="flex items-center gap-4">
-                <Tabs defaultValue="grid">
-                  <TabsList className="grid grid-cols-2">
-                    <TabsTrigger value="grid">Grid</TabsTrigger>
-                    <TabsTrigger value="list">List</TabsTrigger>
-                  </TabsList>
-                </Tabs>
-
-                <Select value={sortType} onValueChange={setSortType}>
-                  <SelectTrigger className="w-48">
-                    <SelectValue placeholder="Sort by" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="recommended">Recommended</SelectItem>
-                    <SelectItem value="price-low">Price: Low to High</SelectItem>
-                    <SelectItem value="price-high">Price: High to Low</SelectItem>
-                    <SelectItem value="duration">Duration</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div> */}
             </div>
 
             {/* 3 Cards Per Row */}
@@ -631,7 +650,7 @@ const heroDescription =
               <div className="text-center py-12">
                 <h3 className="text-xl font-semibold text-gray-600">No Honeymoon tours found for the selected filters</h3>
                 <p className="text-gray-500 mt-2">
-                  Total available tours for {selectedState}: {formattedTours.length}
+                  Total available honeymoon tours for {selectedState}: {formattedTours.length}
                 </p>
                 <Button
                   onClick={clearAllFilters}
@@ -712,16 +731,17 @@ const heroDescription =
                             View Tour
                           </Button>
                           <Button 
-                             size="sm" 
-                             className="flex-1 bg-[#E53C42] hover:bg-[#E53C42] hover:opacity-90 text-white"
-                              onClick={() => {
-                                // Save tour data to localStorage as backup
-                                localStorage.setItem('selectedTour', JSON.stringify(tour));
-                                // Navigate to checkout page with tour data
-                                navigate('/checkout', { state: { tour } });
-                              }}>
-                                Book Now
-                            </Button>
+                            size="sm" 
+                            className="flex-1 bg-[#E53C42] hover:bg-[#E53C42] hover:opacity-90 text-white"
+                            onClick={() => {
+                              // Save tour data to localStorage as backup
+                              localStorage.setItem('selectedTour', JSON.stringify(tour));
+                              // Navigate to checkout page with tour data
+                              navigate('/checkout', { state: { tour } });
+                            }}
+                          >
+                            Book Now
+                          </Button>
                         </div>
                       </div>
                     </div>
