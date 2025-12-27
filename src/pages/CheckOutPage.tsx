@@ -343,17 +343,17 @@ const parsePrice = (priceString) => {
                 </div>
                 
                 {/* Payment Method */}
-                <div>
+                {/* <div>
                   <h2 className="text-xl font-semibold text-gray-800 mb-4">Payment Method</h2>
                   <RadioGroup 
                     value={formData.paymentMethod} 
                     onValueChange={handleRadioChange}
                     className="space-y-3"
                   >
-                    {/* <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2">
                       <RadioGroupItem value="card" id="card" />
                       <Label htmlFor="card" className="cursor-pointer">Credit/Debit Card</Label>
-                    </div> */}
+                    </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="netbanking" id="netbanking" />
                       <Label htmlFor="netbanking" className="cursor-pointer">Net Banking</Label>
@@ -362,12 +362,12 @@ const parsePrice = (priceString) => {
                       <RadioGroupItem value="upi" id="upi" />
                       <Label htmlFor="upi" className="cursor-pointer">UPI</Label>
                     </div>
-                    {/* <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2">
                       <RadioGroupItem value="wallet" id="wallet" />
                       <Label htmlFor="wallet" className="cursor-pointer">Wallet</Label>
-                    </div> */}
+                    </div>
                   </RadioGroup>
-                </div>
+                </div> */}
                 
                 {/* Terms and Conditions */}
                 {/* <div className="flex items-center space-x-2">
