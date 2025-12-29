@@ -25,8 +25,8 @@ import CheckOutPage from "./pages/CheckOutPage"
 import CheckoutPage from "./pages/CheckOutPage";
 import PaymentResult from "./pages/PaymentResult";
 import Alert from "./pages/Alertfolder/Alert";
-
-
+import Cancellation_policy from "./pages/Cancellation_policy/Cancellation_policy";
+import Cancellation_Refund from "./pages/Cancellation_policy/Cancellation_Refund";
 
 const queryClient = new QueryClient();
 
@@ -60,6 +60,8 @@ const App = () => (
           <Route path="/terms_conditions" element={<Terms_conditions />} />
 <Route path="/privacy_policy" element={<Privacy_policy />} />
 <Route path="/alert" element={<Alert />} />
+<Route path="/cancellation_policy" element={<Cancellation_policy />} />
+<Route path="/cancellation_refund" element={<Cancellation_Refund />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>

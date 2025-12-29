@@ -1152,6 +1152,7 @@ const Footer = () => {
     { label: "Careers", href: "/careers" },
     { label: "Terms & Conditions", href: "/terms_conditions" },
     { label: "Privacy Policy", href: "/privacy_policy" },
+       { label: "Cancellation Policy", href: "/cancellation_refund" },
   ];
 
   const associationLogos = [
