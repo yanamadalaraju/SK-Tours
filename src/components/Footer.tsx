@@ -1143,7 +1143,7 @@ const Footer = () => {
     { label: "MICE", href: "/mice" },
     { label: "Flights", href: "/flights" },
     { label: "Hotels", href: "/hotels" },
-    { label: "Visa Services", href: "/visa" },
+    // { label: "Visa Services", href: "/visa" },
   ];
 
   const company = [

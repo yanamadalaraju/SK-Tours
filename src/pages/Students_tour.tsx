@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { BASE_URL } from '@/ApiUrls';
+import Footer from '@/components/Footer';
 
 const stateHeroImages = {
   "Andaman": "https://i.pinimg.com/1200x/67/10/27/671027210a396e38b27e5d0432bd18db.jpg",
@@ -436,6 +437,8 @@ const TourPackages = () => {
   }
 
   return (
+    <>
+
     <div className="min-h-screen bg-[#E53C42] bg-opacity-10">
       <Header />
 
@@ -774,6 +777,8 @@ const TourPackages = () => {
         </div>
       </div>
     </div>
+        <Footer />
+    </>
   );
 };
 

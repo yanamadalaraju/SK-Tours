@@ -109,7 +109,7 @@ const Header = () => {
     },
     { icon: Ship, label: "Exhibitions", href: "/alert" },
     { icon: Compass, label: "MICE", href: "/alert" },
-    { icon: PlaneTakeoff, label: "Visa", href: "/alert" },
+    // { icon: PlaneTakeoff, label: "Visa", href: "/alert" },
     {
       icon: Star, label: "Others",
       dropdown: [

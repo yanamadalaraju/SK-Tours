@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -444,6 +445,7 @@ const TourPackages = () => {
   }
 
   return (
+    <>
     <div className="min-h-screen bg-[#E53C42] bg-opacity-10">
       <Header />
 
@@ -782,7 +784,10 @@ const TourPackages = () => {
           </main>
         </div>
       </div>
+      
     </div>
+    <Footer />
+    </>
   );
 };
 
