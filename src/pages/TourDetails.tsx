@@ -9,8 +9,50 @@ import Header from '@/components/Header';
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { BASE_URL } from '@/ApiUrls';
+import Footer from '@/components/Footer';
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import TourPdfDocument from './TourPdfDocument'; 
+import { Download } from 'lucide-react'; 
 
-// DayCard Component
+// Add this interface near the top
+interface DepartureData {
+  id?: any;
+  month: string;
+  fromDay: string;
+  fromDate: string;
+  toDay: string;
+  toDate: string;
+  status: any;
+  price: number;
+  threeStar: {
+    twin: string;
+    triple: string;
+    childWithBed: string;
+    childWithoutBed: string;
+    infant: string;
+    single: string;
+  };
+  fourStar: {
+    twin: string;
+    triple: string;
+    childWithBed: string;
+    childWithoutBed: string;
+    infant: string;
+    single: string;
+  };
+  fiveStar: {
+    twin: string;
+    triple: string;
+    childWithBed: string;
+    childWithoutBed: string;
+    infant: string;
+    single: string;
+  };
+}
+
+
+
+
 interface DayCardProps {
   dayNumber: string;
   headerColor: string;
@@ -25,6 +67,9 @@ interface DayCardProps {
 const DayCard = ({ dayNumber, headerColor, bodyColor, dayData }: DayCardProps) => {
   const [meals, setMeals] = useState({ B: false, L: false, D: false });
 
+
+
+
   // Parse meals from dayData
   useEffect(() => {
     if (dayData?.meals) {
@@ -38,6 +83,7 @@ const DayCard = ({ dayNumber, headerColor, bodyColor, dayData }: DayCardProps) =
   }, [dayData?.meals]);
 
   return (
+  
     <div className="rounded-lg">
       {/* Header Row */}
       <div className="flex gap-1 mb-1">
@@ -201,7 +247,8 @@ const TourDetails = () => {
   const [activeTab, setActiveTab] = useState("itinerary");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
-  // Filter states
+// Add these state variables near your other state declarations
+const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [showMoreIndian, setShowMoreIndian] = useState(false);
   const [showMoreWorld, setShowMoreWorld] = useState(false);
   const [durationRange, setDurationRange] = useState([5, 11]);
@@ -245,6 +292,14 @@ const [selectedCostDate, setSelectedCostDate] = useState("");
     return `₹${numPrice.toLocaleString('en-IN')}`;
   };
 
+
+  const handleDownloadPdf = () => {
+  setIsGeneratingPdf(true);
+  
+  setTimeout(() => {
+    setIsGeneratingPdf(false);
+  }, 1000);
+};
   // Calculate EMI (assuming 6 months)
   const calculateEMI = (price: string | number) => {
     if (!price) return 'EMI from ₹0/month';
@@ -478,24 +533,23 @@ const [selectedCostDate, setSelectedCostDate] = useState("");
       return [];
     };
 
-    // Process EMI Options
-    const processEMIOptions = (emiOptionsArray: any[]) => {
-      if (emiOptionsArray && emiOptionsArray.length > 0) {
-        return {
-          loanAmount: formatPrice(emiOptionsArray[0]?.loan_amount || '0'),
-          options: emiOptionsArray.map((option: any) => ({
-            particulars: option.particulars || 'Per Month Payment',
-            months: option.months || 0,
-            emi: formatPrice(option.emi)
-          }))
-        };
-      }
-      return {
-        loanAmount: formatPrice(0),
-        options: []
-      };
+const processEMIOptions = (emiOptionsArray: any[]) => {
+  if (emiOptionsArray && emiOptionsArray.length > 0) {
+    return {
+      loanAmount: "Variable", // Changed from fixed first loan amount
+      options: emiOptionsArray.map((option: any) => ({
+        particulars: option.particulars || 'Per Month Payment',
+        loanAmount: formatPrice(option.loan_amount || '0'), // Add loan amount per option
+        months: option.months || 0,
+        emi: formatPrice(option.emi)
+      }))
     };
-
+  }
+  return {
+    loanAmount: "N/A",
+    options: []
+  };
+};
     // Process booking POI
     const processBooking = (bookingArray: any[]) => {
       if (bookingArray && bookingArray.length > 0) {
@@ -660,6 +714,7 @@ const processTransport = (transportArray: any[], basicDetails: any) => {
           
           if (response.ok) {
             data = await response.json();
+            
             if (data.success) {
               foundTourType = endpoint.type;
               break;
@@ -842,6 +897,7 @@ const selectedDeparture = availableDates.find(
   ];
 
   return (
+    <>
     <div className="min-h-screen bg-[#FFEBEE]">
       <Header />
       
@@ -1574,55 +1630,55 @@ const selectedDeparture = availableDates.find(
         </div>
       )}
 
-      {/* EMI Options Section (show for both types if has data) */}
-      {tour.emiOptions && tour.emiOptions.options && tour.emiOptions.options.length > 0 && (
-        <div className='mb-1 mt-4'>
-          <div className="bg-red-600 text-white text-center font-bold text-xl rounded-t-lg py-3 mb-1">
-            EMI Options
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-[#2E4D98]">
-                  <th className="border border-white px-4 py-3 text-left font-semibold text-white w-[55%]">
-                    Particulars
-                  </th>
-                  <th className="border border-white px-4 py-3 text-center font-semibold text-white w-[15%]">
-                    Loan Amount
-                  </th>
-                  <th className="border border-white px-4 py-3 text-center font-semibold text-white w-[15%]">
-                    Months
-                  </th>
-                  <th className="border border-white px-4 py-3 text-center font-semibold text-white w-[15%]">
-                    EMI
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="border-2 border-[#1e3a8a] border-t-0">
-                {tour.emiOptions.options.map((emi: any, index: number) => (
-                  <tr key={index} className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}>
-                    <td className="border border-black px-4 py-2 font-bold text-base">
-                      {emi.particulars}
-                    </td>
-                    <td className="border border-black px-4 py-2 border-l-0 text-center">
-                      {tour.emiOptions.loanAmount}
-                    </td>
-                    <td className="border border-black px-4 py-2 border-l-0 text-center">
-                      {emi.months}
-                    </td>
-                    <td className="border border-black px-4 py-2 border-l-0 text-center">
-                      {emi.emi}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+    {/* EMI Options Section (show for both types if has data) */}
+{tour.emiOptions && tour.emiOptions.options && tour.emiOptions.options.length > 0 && (
+  <div className='mb-1 mt-4'>
+    <div className="bg-red-600 text-white text-center font-bold text-xl rounded-t-lg py-3 mb-1">
+      EMI Options
+    </div>
+    <div className="overflow-x-auto">
+      <table className="w-full border-collapse">
+        <thead>
+          <tr className="bg-[#2E4D98]">
+            <th className="border border-white px-4 py-3 text-left font-semibold text-white w-[40%]">
+              Particulars
+            </th>
+            <th className="border border-white px-4 py-3 text-center font-semibold text-white w-[20%]">
+              Loan Amount
+            </th>
+            <th className="border border-white px-4 py-3 text-center font-semibold text-white w-[20%]">
+              Months
+            </th>
+            <th className="border border-white px-4 py-3 text-center font-semibold text-white w-[20%]">
+              EMI
+            </th>
+          </tr>
+        </thead>
+        <tbody className="border-2 border-[#1e3a8a] border-t-0">
+          {tour.emiOptions.options.map((emi: any, index: number) => (
+            <tr key={index} className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}>
+              <td className="border border-black px-4 py-2 font-bold text-base">
+                {emi.particulars}
+              </td>
+              <td className="border border-black px-4 py-2 border-l-0 text-center">
+                {emi.loanAmount} {/* Changed from tour.emiOptions.loanAmount */}
+              </td>
+              <td className="border border-black px-4 py-2 border-l-0 text-center">
+                {emi.months}
+              </td>
+              <td className="border border-black px-4 py-2 border-l-0 text-center">
+                {emi.emi}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+)}
 
      {/* Tour Cost Remarks Section - Show for both Group and Individual tours */}
-<div className="flex gap-1 mt-4 w-full">
+<div className="flex gap-1 mt-1 w-full">
   {/* Tour Cost Remarks */}
   <div className="bg-[#E8F0FF] rounded-lg w-1/2 overflow-x-hidden">
     <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
@@ -2171,37 +2227,93 @@ const selectedDeparture = availableDates.find(
 
             {/* Action Buttons */}
             <div className="flex justify-end mt-1 gap-0.5">
-              <div className="w-32 border border-green-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                <button className="w-full bg-green-700 hover:bg-green-800 text-white font-bold py-3 px-3 flex items-center justify-center gap-2 transition-colors text-sm">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  Download
-                </button>
-              </div>
+        <div className="w-32 border border-green-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+  <PDFDownloadLink
+    document={
+      <TourPdfDocument 
+        tour={tour || {}}
+        tourType={tourType}
+        isGroupTour={isGroupTour}
+        selectedCostMonth={selectedCostMonth}
+        selectedCostDate={selectedCostDate}
+    selectedDeparture={selectedDeparture}  // ← This must be passed
+        currentImageIndex={currentImageIndex}
+        tourImages={tour?.images || []}
+      />
+    }
+    fileName={`tour_${tour?.code || 'details'}_${new Date().toISOString().split('T')[0]}.pdf`}
+    onClick={handleDownloadPdf}
+    className="w-full"
+  >
+    {({ blob, url, loading, error }) => (
+      <button
+        className={`w-full ${loading || isGeneratingPdf ? 'bg-green-900' : 'bg-green-700 hover:bg-green-800'} text-white font-bold py-3 px-3 flex items-center justify-center gap-2 transition-colors text-sm`}
+        disabled={loading || isGeneratingPdf}
+      >
+        {loading || isGeneratingPdf ? (
+          <>
+            <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Generating...
+          </>
+        ) : (
+          <>
+            <Download className="h-4 w-4" />
+            Download
+          </>
+        )}
+      </button>
+    )}
+  </PDFDownloadLink>
+</div>
 
-              <div className="w-32 border border-blue-700 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+              {/* <div className="w-32 border border-blue-700 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                 <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-3 flex items-center justify-center gap-2 transition-colors text-sm">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
                   Email
                 </button>
-              </div>
+              </div> */}
 
               <div className="w-32 border border-red-700 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                <button className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-3 flex items-center justify-center gap-2 transition-colors text-sm">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Book Now
-                </button>
+    <button
+  className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-3 flex items-center justify-center gap-2 transition-colors text-sm"
+  onClick={() => {
+    // Save tour data to localStorage as backup
+    localStorage.setItem('selectedTour', JSON.stringify(tour));
+
+    // Navigate to checkout page with tour data
+    navigate('/checkout', { state: { tour } });
+  }}
+>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    className="h-4 w-4"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+    />
+  </svg>
+  Book Now
+</button>
+
               </div>
             </div>
           </main>
         </div>
       </div>
     </div>
+    <Footer />
+    </>
   );
 };
 

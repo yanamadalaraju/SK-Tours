@@ -29,10 +29,14 @@ const Header = () => {
   const [showIndianSeniorStates, setShowIndianSeniorStates] = useState(false);
   const [showIndianStudentStates, setShowIndianStudentStates] = useState(false);
   const [showIndianHoneymoonStates, setShowIndianHoneymoonStates] = useState(false);
+  
   const [showIntlIndividualStates, setShowIntlIndividualStates] = useState(false);
   const [showIntlGroupStates, setShowIntlGroupStates] = useState(false);
   const [showIntlLadiesStates, setShowIntlLadiesStates] = useState(false);
   const [showIntlSeniorStates, setShowIntlSeniorStates] = useState(false);
+  const [showIntlStudentStates, setShowIntlStudentStates] = useState(false);
+  const [showIntlHoneymoonStates, setShowIntlHoneymoonStates] = useState(false);
+  
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileSubmenuOpen, setMobileSubmenuOpen] = useState<Record<string, boolean>>({});
   
@@ -43,10 +47,13 @@ const Header = () => {
   const indianSeniorTimer = useRef<NodeJS.Timeout | null>(null);
   const indianStudentTimer = useRef<NodeJS.Timeout | null>(null);
   const indianHoneymoonTimer = useRef<NodeJS.Timeout | null>(null);
+  
   const intlIndividualTimer = useRef<NodeJS.Timeout | null>(null);
   const intlGroupTimer = useRef<NodeJS.Timeout | null>(null);
   const intlLadiesTimer = useRef<NodeJS.Timeout | null>(null);
   const intlSeniorTimer = useRef<NodeJS.Timeout | null>(null);
+  const intlStudentTimer = useRef<NodeJS.Timeout | null>(null);
+  const intlHoneymoonTimer = useRef<NodeJS.Timeout | null>(null);
 
   const toggleMobileMenu = () => setMobileMenuOpen(prev => !prev);
   const toggleMobileSubmenu = (label: string) => {
@@ -90,12 +97,12 @@ const Header = () => {
     {
       icon: Globe, label: "International Tours",
       dropdown: [
-        { label: "Individual Tours", href: "/alert", icon: Users, subDropdown: internationalDestinations },
-        { label: "Group Tours", href: "/alert", icon: UsersRound, subDropdown: internationalDestinations },
-        { label: "Ladies Special Tours", href: "/alert", icon: Sparkles, subDropdown: internationalDestinations },
-        { label: "Senior Citizen Tours", href: "/alert", icon: Heart, subDropdown: internationalDestinations },
-        { label: "Students Tours", href: "/alert", icon: GraduationCap },
-        { label: "Honeymoon Tours", href: "/alert", icon: Heart },
+        { label: "Individual Tours", href: "#international-tours-packages", icon: Users, subDropdown: internationalDestinations },
+        { label: "Group Tours", href: "#international-tours_groups", icon: UsersRound, subDropdown: internationalDestinations },
+        { label: "Ladies Special Tours", href: "#international-ladies_tours", icon: Sparkles, subDropdown: internationalDestinations },
+        { label: "Senior Citizen Tours", href: "#international-senior_tours", icon: UsersRound, subDropdown: internationalDestinations },
+        { label: "Students Tours", href: "#international-students_tours", icon: GraduationCap, subDropdown: internationalDestinations },
+        { label: "Honeymoon Tours", href: "#international-honeymoon_tours", icon: Heart, subDropdown: internationalDestinations },
       ],
     },
     { 
@@ -109,7 +116,6 @@ const Header = () => {
     },
     { icon: Ship, label: "Exhibitions", href: "/alert" },
     { icon: Compass, label: "MICE", href: "/alert" },
-    // { icon: PlaneTakeoff, label: "Visa", href: "/alert" },
     {
       icon: Star, label: "Others",
       dropdown: [
@@ -127,6 +133,51 @@ const Header = () => {
     { icon: UsersRound, label: "About Us", href: "/about" },
     { icon: Phone, label: "Contact Us", href: "/contact" },
   ];
+
+  // Helper function to generate href for destinations
+  const getDestinationHref = (
+    isIndian: boolean,
+    isIndividualTour: boolean,
+    isGroupTour: boolean,
+    isLadiesTour: boolean,
+    isSeniorTour: boolean,
+    isStudentTour: boolean,
+    isHoneymoonTour: boolean,
+    destination: string
+  ) => {
+    if (isIndian) {
+      // Indian tours routing
+      if (isIndividualTour) {
+        return `/tours-packages/${encodeURIComponent(destination)}`;
+      } else if (isGroupTour) {
+        return `/tours_groups/${encodeURIComponent(destination)}`;
+      } else if (isLadiesTour) {
+        return `/ladies_tours/${encodeURIComponent(destination)}`;
+      } else if (isSeniorTour) {
+        return `/senior_tours/${encodeURIComponent(destination)}`;
+      } else if (isStudentTour) {
+        return `/students_tours/${encodeURIComponent(destination)}`;
+      } else if (isHoneymoonTour) {
+        return `/honeymoon_tours/${encodeURIComponent(destination)}`;
+      }
+    } else {
+      // International tours routing
+      if (isIndividualTour) {
+        return `/international-tours-packages/${encodeURIComponent(destination)}`;
+      } else if (isGroupTour) {
+        return `/international-tours_groups/${encodeURIComponent(destination)}`;
+      } else if (isLadiesTour) {
+        return `/international-ladies_tours/${encodeURIComponent(destination)}`;
+      } else if (isSeniorTour) {
+        return `/international-senior_tours/${encodeURIComponent(destination)}`;
+      } else if (isStudentTour) {
+        return `/international-students_tours/${encodeURIComponent(destination)}`;
+      } else if (isHoneymoonTour) {
+        return `/international-honeymoon_tours/${encodeURIComponent(destination)}`;
+      }
+    }
+    return "#";
+  };
 
   return (
     <header className="bg-primary text-primary-foreground sticky top-0 z-50 shadow-xl border-b-2 border-blue-400 w-full">
@@ -272,6 +323,22 @@ const Header = () => {
                           enterStatesHandler = h.enter;
                           leaveStatesHandler = h.leave;
                           topOffset = "top-[-10rem]";
+                        } else if (isIntl && isStudent) {
+                          showThisStates = showIntlStudentStates;
+                          const h = createHoverHandlers(setShowIntlStudentStates, intlStudentTimer);
+                          enterHandler = h.enter;
+                          leaveHandler = h.leave;
+                          enterStatesHandler = h.enter;
+                          leaveStatesHandler = h.leave;
+                          topOffset = "top-[-13rem]";
+                        } else if (isIntl && isHoneymoon) {
+                          showThisStates = showIntlHoneymoonStates;
+                          const h = createHoverHandlers(setShowIntlHoneymoonStates, intlHoneymoonTimer);
+                          enterHandler = h.enter;
+                          leaveHandler = h.leave;
+                          enterStatesHandler = h.enter;
+                          leaveStatesHandler = h.leave;
+                          topOffset = "top-[-16rem]";
                         }
 
                         return (
@@ -311,24 +378,17 @@ const Header = () => {
                                           const isStudentTour = isStudent;
                                           const isHoneymoonTour = isHoneymoon;
                                           
-                                          // Different routing for different tour types
-                                          let href = "";
-                                          if (isIntl) {
-                                            // All International Tours destinations go to /alert
-                                            href = "/alert";
-                                          } else if (isIndividualTour) {
-                                            href = `/tours-packages/${encodeURIComponent(dest)}`;
-                                          } else if (isGroupTour) {
-                                            href = `/tours_groups/${encodeURIComponent(dest)}`;
-                                          } else if (isLadiesTour) {
-                                            href = `/ladies_tours/${encodeURIComponent(dest)}`;
-                                          } else if (isSeniorTour) {
-                                            href = `/senior_tours/${encodeURIComponent(dest)}`;
-                                          } else if (isStudentTour) {
-                                            href = `/students_tours/${encodeURIComponent(dest)}`;
-                                          } else if (isHoneymoonTour) {
-                                            href = `/honeymoon_tours/${encodeURIComponent(dest)}`;
-                                          }
+                                          // Generate href using the helper function
+                                          const href = getDestinationHref(
+                                            isIndian,
+                                            isIndividualTour,
+                                            isGroupTour,
+                                            isLadiesTour,
+                                            isSeniorTour,
+                                            isStudentTour,
+                                            isHoneymoonTour,
+                                            dest
+                                          );
                                           
                                           return (
                                             <td key={colIndex} className="w-1/3 px-2 py-2.5 whitespace-nowrap border-r border-gray-400">
@@ -458,6 +518,7 @@ const Header = () => {
                                   {mobileSubmenuOpen[sub.label] && (
                                     <ul className="bg-primary border-t border-blue-600">
                                       {sub.subDropdown.map((dest, j) => {
+                                        const isIndian = item.label === "Indian Tours";
                                         const isIndividualTour = sub.label === "Individual Tours";
                                         const isGroupTour = sub.label === "Group Tours";
                                         const isLadiesTour = sub.label === "Ladies Special Tours";
@@ -465,23 +526,17 @@ const Header = () => {
                                         const isStudentTour = sub.label === "Students Tours";
                                         const isHoneymoonTour = sub.label === "Honeymoon Tours";
                                         
-                                        let href = "";
-                                        if (item.label === "International Tours") {
-                                          // All International Tours destinations go to /alert
-                                          href = "/alert";
-                                        } else if (isIndividualTour) {
-                                          href = `/tours-packages/${encodeURIComponent(dest)}`;
-                                        } else if (isGroupTour) {
-                                          href = `/tours_groups/${encodeURIComponent(dest)}`;
-                                        } else if (isLadiesTour) {
-                                          href = `/ladies_tours/${encodeURIComponent(dest)}`;
-                                        } else if (isSeniorTour) {
-                                          href = `/senior_tours/${encodeURIComponent(dest)}`;
-                                        } else if (isStudentTour) {
-                                          href = `/students_tours/${encodeURIComponent(dest)}`;
-                                        } else if (isHoneymoonTour) {
-                                          href = `/honeymoon_tours/${encodeURIComponent(dest)}`;
-                                        }
+                                        // Generate href using the helper function
+                                        const href = getDestinationHref(
+                                          isIndian,
+                                          isIndividualTour,
+                                          isGroupTour,
+                                          isLadiesTour,
+                                          isSeniorTour,
+                                          isStudentTour,
+                                          isHoneymoonTour,
+                                          dest
+                                        );
                                         
                                         const isAndaman = dest === "Andaman";
                                         

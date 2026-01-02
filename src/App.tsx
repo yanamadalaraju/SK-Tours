@@ -27,6 +27,14 @@ import PaymentResult from "./pages/PaymentResult";
 import Alert from "./pages/Alertfolder/Alert";
 import Cancellation_policy from "./pages/Cancellation_policy/Cancellation_policy";
 import Cancellation_Refund from "./pages/Cancellation_policy/Cancellation_Refund";
+import International_tours_packages from "./pages/International_Tours/International_tours_packages/International_tours_packages"
+import TourPdfDocument from "./pages/TourPdfDocument";
+import International_group from "./pages/International_Tours/International_group/International_group";
+import International_ladies from "./pages/International_Tours/International_ladies/International_ladies";
+import International_students from "./pages/International_Tours/International_students/International_students";
+import International_honeymoon from "./pages/International_Tours/International_honyemoon/International_honeymoon";
+import International_senior from "./pages/International_Tours/International_senior/International_senior";
+import International_Tourdetails from "./pages/International_Tours/International_details/International_Tourdetails";
 
 const queryClient = new QueryClient();
 
@@ -62,6 +70,16 @@ const App = () => (
 <Route path="/alert" element={<Alert />} />
 <Route path="/cancellation_policy" element={<Cancellation_policy />} />
 <Route path="/cancellation_refund" element={<Cancellation_Refund />} />
+
+<Route path="/international-tours-packages/:state" element={<International_tours_packages />} />
+<Route path="/tourpdfdocument" element={<TourPdfDocument />} />
+<Route path="/international-tours_groups/:state" element={<International_group />} />
+<Route path="/international-ladies_tours/:state" element={<International_ladies />} />
+<Route path="/international-senior_tours/:state" element={<International_students />} />
+<Route path="/international-honeymoon_tours/:state" element={<International_honeymoon />} />
+<Route path="/international-senior_tours/:state" element={<International_senior />} />
+<Route path="/international_tour_details/:tourId" element={<International_Tourdetails />} />
+
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
