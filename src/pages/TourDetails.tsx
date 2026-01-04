@@ -269,6 +269,7 @@ const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   const [selectedCostMonth, setSelectedCostMonth] = useState("");
 const [selectedCostDate, setSelectedCostDate] = useState("");
+  const [autoScrollInterval, setAutoScrollInterval] = useState<NodeJS.Timeout | null>(null);
 
   // State for Group Tour Cost table
   const [groupTourCost, setGroupTourCost] = useState({
@@ -375,6 +376,8 @@ const [selectedCostDate, setSelectedCostDate] = useState("");
       return fallbackImages;
     };
 
+
+   
     // Process departure data based on tour type
     const processDepartures = (departuresArray: any[], tourType: string) => {
       if (!departuresArray || departuresArray.length === 0) {
@@ -564,20 +567,16 @@ const processEMIOptions = (emiOptionsArray: any[]) => {
       };
     };
 
-    // Process hotels data
-   // Process hotels data
 const processHotels = (hotelsArray: any[], basicDetails: any) => {
   if (hotelsArray && hotelsArray.length > 0) {
     return {
       tableData: hotelsArray.map(hotel => ({
         city: hotel.city,
-        hotelName: hotel.hotel_name,
-        roomType: hotel.room_type,
         nights: `${hotel.nights} Night${hotel.nights > 1 ? 's' : ''}`,
         // Add these new fields with formatted prices
-        standard: hotel.hotel_standard ? formatPrice(hotel.hotel_standard) : "N/A",
-        deluxe: hotel.hotel_deluxe ? formatPrice(hotel.hotel_deluxe) : "N/A",
-        executive: hotel.hotel_executive ? formatPrice(hotel.hotel_executive) : "N/A"
+        standard: hotel.standard_hotel_name || "N/A",
+        deluxe: hotel.deluxe_hotel_name || "N/A", 
+        executive: hotel.executive_hotel_name || "N/A",
       })),
       remarks: basicDetails.hotel_remarks ? [basicDetails.hotel_remarks] : []
     };
@@ -588,8 +587,6 @@ const processHotels = (hotelsArray: any[], basicDetails: any) => {
   };
 };
 
-    // Process transport data
-  // Process transport data
 const processTransport = (transportArray: any[], basicDetails: any) => {
   if (transportArray && transportArray.length > 0) {
     return {
@@ -789,6 +786,39 @@ const processTransport = (transportArray: any[], basicDetails: any) => {
     setSelectedMonth("ALL");
     setOpenIndex(null);
   };
+
+   
+    useEffect(() => {
+  // Only set up auto-scroll if there are multiple images
+  if (tour?.images && tour.images.length > 1) {
+    const interval = setInterval(() => {
+      nextImage();
+    }, 5000); // 5 seconds
+    
+    setAutoScrollInterval(interval);
+    
+    // Cleanup interval on component unmount
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }
+}, [tour?.images]);
+
+const resetAutoScroll = () => {
+  if (autoScrollInterval) {
+    clearInterval(autoScrollInterval);
+  }
+  
+  if (tour?.images && tour.images.length > 1) {
+    const interval = setInterval(() => {
+      nextImage();
+    }, 5000); // 5 seconds
+    
+    setAutoScrollInterval(interval);
+  }
+};
 
   // Image carousel functions
   const nextImage = () => {
@@ -1036,65 +1066,74 @@ const selectedDeparture = availableDates.find(
           {/* Main Content */}
           <main className="flex-1">
             {/* Hero Section with Image Carousel */}
-            <div className="relative rounded-2xl overflow-hidden mb-1">
-              <div className="relative h-96 lg:h-[500px] overflow-hidden">
-                <img 
-                  src={tour.images[currentImageIndex]} 
-                  alt={tour.title} 
-                  className="w-full h-full object-cover transition-transform duration-500 ease-in-out"
-                />
-                
-                {/* Navigation Arrows */}
-                {tour.images.length > 1 && (
-                  <>
-                    <button 
-                      onClick={prevImage}
-                      className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all duration-200"
-                    >
-                      <ChevronLeft className="w-6 h-6" />
-                    </button>
-                    <button 
-                      onClick={nextImage}
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all duration-200"
-                    >
-                      <ChevronRight className="w-6 h-6" />
-                    </button>
-                  </>
-                )}
-                
-                {/* Image Counter */}
-                {tour.images.length > 1 && (
-                  <div className="absolute top-4 right-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
-                    {currentImageIndex + 1} / {tour.images.length}
-                  </div>
-                )}
-              </div>
+      <div className="relative rounded-2xl overflow-hidden mb-1">
+  <div className="relative h-96 lg:h-[500px] overflow-hidden">
+    <img 
+      src={tour.images[currentImageIndex]} 
+      alt={tour.title} 
+      className="w-full h-full object-cover transition-transform duration-500 ease-in-out"
+    />
+    
+    {/* Navigation Arrows */}
+    {tour.images.length > 1 && (
+      <>
+        <button 
+          onClick={() => {
+            prevImage();
+            resetAutoScroll(); // Reset timer when manually navigating
+          }}
+          className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all duration-200"
+        >
+          <ChevronLeft className="w-6 h-6" />
+        </button>
+        <button 
+          onClick={() => {
+            nextImage();
+            resetAutoScroll(); // Reset timer when manually navigating
+          }}
+          className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all duration-200"
+        >
+          <ChevronRight className="w-6 h-6" />
+        </button>
+      </>
+    )}
+    
+    {/* Image Counter */}
+    {tour.images.length > 1 && (
+      <div className="absolute top-4 right-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
+        {currentImageIndex + 1} / {tour.images.length}
+      </div>
+    )}
+  </div>
 
-              {/* Thumbnail Gallery */}
-              {tour.images.length > 1 && (
-                <div className="bg-gradient-to-r from-blue-100 to-blue-100 p-4 border-t">
-                  <div className="flex justify-center gap-2">
-                    {tour.images.map((image: string, index: number) => (
-                      <button
-                        key={index}
-                        onClick={() => goToImage(index)}
-                        className={`w-16 h-16 lg:w-20 lg:h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
-                          index === currentImageIndex 
-                            ? 'border-[#2E4D98] ring-2 ring-[#2E4D98] ring-opacity-50 scale-105' 
-                            : 'border-transparent hover:border-gray-300'
-                        }`}
-                      >
-                        <img 
-                          src={image} 
-                          alt={`Thumbnail ${index + 1}`}
-                          className="w-full h-full object-cover"
-                        />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+  {/* Thumbnail Gallery */}
+  {tour.images.length > 1 && (
+    <div className="bg-gradient-to-r from-blue-100 to-blue-100 p-4 border-t">
+      <div className="flex justify-center gap-2">
+        {tour.images.map((image: string, index: number) => (
+          <button
+            key={index}
+            onClick={() => {
+              goToImage(index);
+              resetAutoScroll(); // Reset timer when clicking thumbnail
+            }}
+            className={`w-16 h-16 lg:w-20 lg:h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
+              index === currentImageIndex 
+                ? 'border-[#2E4D98] ring-2 ring-[#2E4D98] ring-opacity-50 scale-105' 
+                : 'border-transparent hover:border-gray-300'
+            }`}
+          >
+            <img 
+              src={image} 
+              alt={`Thumbnail ${index + 1}`}
+              className="w-full h-full object-cover"
+            />
+          </button>
+        ))}
+      </div>
+    </div>
+  )}
+</div>
 
             {/* Excel-like Table Layout */}
             <div className="bg-white rounded-xl shadow-sm mb-1.5 overflow-hidden border border-black">
@@ -1594,10 +1633,34 @@ const selectedDeparture = availableDates.find(
           </div>
         </div>
       )}
+        <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
+    <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
+      Tour Cost Remarks
+    </div>
+    <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
+      <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+        {tour.tourCost.remarks && tour.tourCost.remarks.length > 0 ? (
+          <ul className="space-y-2 w-full">
+            {tour.tourCost.remarks.map((remark: string, index: number) => (
+              <li key={index} className="flex items-start gap-2 w-full">
+                <span className="text-gray-700 whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
+                  {remark}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="flex items-center justify-center h-full">
+            <span className="text-gray-500 italic">No tour cost remarks available</span>
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
 
       {/* Optional Tour Section (show for both types if has data) */}
       {tour.optionalTours && tour.optionalTours.length > 0 && (
-        <div className='mb-1 mt-4'>
+        <div className='mt-1'>
           <div className="bg-red-600 text-white text-center font-bold text-xl rounded-t-lg py-3 mb-1">
             Optional Tour
           </div>
@@ -1630,9 +1693,24 @@ const selectedDeparture = availableDates.find(
         </div>
       )}
 
+         <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
+    <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
+    Optinal Tour Remarks
+    </div>
+    <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
+      <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+     
+          <div className="flex items-center justify-center h-full">
+            <span className="text-gray-500 italic">No Optinal Tour Remarks available</span>
+          </div>
+       
+      </div>
+    </div>
+  </div>
+
     {/* EMI Options Section (show for both types if has data) */}
 {tour.emiOptions && tour.emiOptions.options && tour.emiOptions.options.length > 0 && (
-  <div className='mb-1 mt-4'>
+  <div className='mb-1 mt-1'>
     <div className="bg-red-600 text-white text-center font-bold text-xl rounded-t-lg py-3 mb-1">
       EMI Options
     </div>
@@ -1677,36 +1755,10 @@ const selectedDeparture = availableDates.find(
   </div>
 )}
 
-     {/* Tour Cost Remarks Section - Show for both Group and Individual tours */}
-<div className="flex gap-1 mt-1 w-full">
-  {/* Tour Cost Remarks */}
-  <div className="bg-[#E8F0FF] rounded-lg w-1/2 overflow-x-hidden">
-    <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
-      Tour Cost Remarks
-    </div>
-    <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-      <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-        {tour.tourCost.remarks && tour.tourCost.remarks.length > 0 ? (
-          <ul className="space-y-2 w-full">
-            {tour.tourCost.remarks.map((remark: string, index: number) => (
-              <li key={index} className="flex items-start gap-2 w-full">
-                <span className="text-gray-700 whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
-                  {remark}
-                </span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <div className="flex items-center justify-center h-full">
-            <span className="text-gray-500 italic">No tour cost remarks available</span>
-          </div>
-        )}
-      </div>
-    </div>
-  </div>
+
 
   {/* Tour Cost EMI Remarks */}
-  <div className="bg-[#E8F0FF] rounded-lg w-1/2 overflow-x-hidden">
+  <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
     <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
       Tour Cost EMI
     </div>
@@ -1732,7 +1784,6 @@ const selectedDeparture = availableDates.find(
   </div>
 </div>
     </div>
-  </div>
 )}
 
               {/* Cost In/Cost Ex Tab */}
@@ -1942,7 +1993,7 @@ const selectedDeparture = availableDates.find(
                   </div>
 
 
-                  {/* Hotels Section */}
+ {/* Hotels Section */}
                 <div className='p-1 -mt-2 w-full overflow-x-hidden'>
   <div className="bg-red-600 text-white text-center font-bold text-xl rounded-t-lg py-3 mb-1 w-full">
     Hotel Details
@@ -1957,7 +2008,7 @@ const selectedDeparture = availableDates.find(
               City
             </th>
             <th className="border border-white px-2 py-2 text-left text-white w-[14.28%]">
-              Hotel Name
+                Nights
             </th>
             <th className="border border-white px-2 py-2 text-left text-white w-[14.28%]">
               Standard
@@ -1968,12 +2019,6 @@ const selectedDeparture = availableDates.find(
             <th className="border border-white px-2 py-2 text-left text-white w-[14.28%]">
               Executive 
             </th>
-            <th className="border border-white px-2 py-2 text-left text-white w-[14.28%]">
-              Room Type
-            </th>
-            <th className="border border-white px-2 py-2 text-left text-white w-[14.28%]">
-              Nights
-            </th>
           </tr>
         </thead>
         <tbody className="border-2 border-[#1e3a8a] border-t-0">
@@ -1983,18 +2028,16 @@ const selectedDeparture = availableDates.find(
               className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}
             >
               <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap">{hotel.city}</td>
-              <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap">{hotel.hotelName}</td>
-              <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap">
-                {hotel.standard || hotel.standardPrice || "N/A"}
-              </td>
-              <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap">
-                {hotel.deluxe || hotel.deluxePrice || "N/A"}
-              </td>
-              <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap">
-                {hotel.executive || hotel.executivePrice || "N/A"}
-              </td>
-              <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap">{hotel.roomType}</td>
               <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap">{hotel.nights}</td>
+              <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap">
+                {hotel.standard}
+              </td>
+              <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap">
+                {hotel.deluxe}
+              </td>
+              <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap">
+                {hotel.executive}
+              </td>
             </tr>
           ))}
         </tbody>
@@ -2031,6 +2074,7 @@ const selectedDeparture = availableDates.find(
 </div>
                 </div>
               )}
+            
 
               {/* Bookings POI Tab */}
               {/* Bookings POI Tab */}
@@ -2073,11 +2117,7 @@ const selectedDeparture = availableDates.find(
                 <div key={index} className="flex items-center justify-center p-3 bg-white rounded-lg border border-blue-300">
                   <div className="text-center w-full">
                     <span className="text-sm font-bold text-green-600">
-                      {amount === "Aadhaar Card" || amount === "aadhaar card" 
-                        ? "Aadhaar Card" 
-                        : amount === "Pan Card" || amount === "pan card"
-                        ? "Pan Card"
-                        : `₹${parseInt(amount.replace(/[^0-9]/g, '') || '0').toLocaleString('en-IN')}`}
+                 {amount}
                     </span>
                   </div>
                 </div>
