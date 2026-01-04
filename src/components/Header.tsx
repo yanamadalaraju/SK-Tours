@@ -90,12 +90,12 @@ const Header = () => {
     {
       icon: Globe, label: "International Tours",
       dropdown: [
-        { label: "Individual Tours", href: "/alert", icon: Users, subDropdown: internationalDestinations },
-        { label: "Group Tours", href: "/alert", icon: UsersRound, subDropdown: internationalDestinations },
-        { label: "Ladies Special Tours", href: "/alert", icon: Sparkles, subDropdown: internationalDestinations },
-        { label: "Senior Citizen Tours", href: "/alert", icon: Heart, subDropdown: internationalDestinations },
-        { label: "Students Tours", href: "/alert", icon: GraduationCap },
-        { label: "Honeymoon Tours", href: "/alert", icon: Heart },
+        { label: "Individual Tours", href: "#international-individual", icon: Users, subDropdown: internationalDestinations },
+        { label: "Group Tours", href: "#international-group", icon: UsersRound, subDropdown: internationalDestinations },
+        { label: "Ladies Special Tours", href: "#international-ladies-special", icon: Sparkles, subDropdown: internationalDestinations },
+        { label: "Senior Citizen Tours", href: "#international-senior-citizens", icon: Heart, subDropdown: internationalDestinations },
+        { label: "Students Tours", href: "#international-students-tours", icon: GraduationCap },
+        { label: "Honeymoon Tours", href: "#international-honeymoon-tours", icon: Heart },
       ],
     },
     { 
@@ -313,10 +313,23 @@ const Header = () => {
                                           
                                           // Different routing for different tour types
                                           let href = "";
-                                          if (isIntl) {
-                                            // All International Tours destinations go to /alert
-                                            href = "/alert";
-                                          } else if (isIndividualTour) {
+                                           if (isIntl) {
+                                            // International Tours with intl- prefix
+                                            if (isIndividualTour) {
+                                              href = `/intl-tours-packages/${encodeURIComponent(dest)}`;
+                                            } else if (isGroupTour) {
+                                              href = `/intl-tours_groups/${encodeURIComponent(dest)}`;
+                                            } else if (isLadiesTour) {
+                                              href = `/intl-ladies_tours/${encodeURIComponent(dest)}`;
+                                            } else if (isSeniorTour) {
+                                              href = `/intl-senior_tours/${encodeURIComponent(dest)}`;
+                                            } else if (isStudentTour) {
+                                              href = `/intl-students_tours/${encodeURIComponent(dest)}`;
+                                            } else if (isHoneymoonTour) {
+                                              href = `/intl-honeymoon_tours/${encodeURIComponent(dest)}`;
+                                            }
+                                          }
+                                         else if (isIndividualTour) {
                                             href = `/tours-packages/${encodeURIComponent(dest)}`;
                                           } else if (isGroupTour) {
                                             href = `/tours_groups/${encodeURIComponent(dest)}`;
@@ -468,7 +481,19 @@ const Header = () => {
                                         let href = "";
                                         if (item.label === "International Tours") {
                                           // All International Tours destinations go to /alert
-                                          href = "/alert";
+                                           if (isIndividualTour) {
+                                            href = `/intl-tours-packages/${encodeURIComponent(dest)}`;
+                                          } else if (isGroupTour) {
+                                            href = `/intl-tours_groups/${encodeURIComponent(dest)}`;
+                                          } else if (isLadiesTour) {
+                                            href = `/intl-ladies_tours/${encodeURIComponent(dest)}`;
+                                          } else if (isSeniorTour) {
+                                            href = `/intl-senior_tours/${encodeURIComponent(dest)}`;
+                                          } else if (isStudentTour) {
+                                            href = `/intl-students_tours/${encodeURIComponent(dest)}`;
+                                          } else if (isHoneymoonTour) {
+                                            href = `/intl-honeymoon_tours/${encodeURIComponent(dest)}`;
+                                          } 
                                         } else if (isIndividualTour) {
                                           href = `/tours-packages/${encodeURIComponent(dest)}`;
                                         } else if (isGroupTour) {
