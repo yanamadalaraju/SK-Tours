@@ -29,10 +29,14 @@ const Header = () => {
   const [showIndianSeniorStates, setShowIndianSeniorStates] = useState(false);
   const [showIndianStudentStates, setShowIndianStudentStates] = useState(false);
   const [showIndianHoneymoonStates, setShowIndianHoneymoonStates] = useState(false);
+  
   const [showIntlIndividualStates, setShowIntlIndividualStates] = useState(false);
   const [showIntlGroupStates, setShowIntlGroupStates] = useState(false);
   const [showIntlLadiesStates, setShowIntlLadiesStates] = useState(false);
   const [showIntlSeniorStates, setShowIntlSeniorStates] = useState(false);
+  const [showIntlStudentStates, setShowIntlStudentStates] = useState(false);
+  const [showIntlHoneymoonStates, setShowIntlHoneymoonStates] = useState(false);
+  
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileSubmenuOpen, setMobileSubmenuOpen] = useState<Record<string, boolean>>({});
   
@@ -43,10 +47,13 @@ const Header = () => {
   const indianSeniorTimer = useRef<NodeJS.Timeout | null>(null);
   const indianStudentTimer = useRef<NodeJS.Timeout | null>(null);
   const indianHoneymoonTimer = useRef<NodeJS.Timeout | null>(null);
+  
   const intlIndividualTimer = useRef<NodeJS.Timeout | null>(null);
   const intlGroupTimer = useRef<NodeJS.Timeout | null>(null);
   const intlLadiesTimer = useRef<NodeJS.Timeout | null>(null);
   const intlSeniorTimer = useRef<NodeJS.Timeout | null>(null);
+  const intlStudentTimer = useRef<NodeJS.Timeout | null>(null);
+  const intlHoneymoonTimer = useRef<NodeJS.Timeout | null>(null);
 
   const toggleMobileMenu = () => setMobileMenuOpen(prev => !prev);
   const toggleMobileSubmenu = (label: string) => {
@@ -109,7 +116,6 @@ const Header = () => {
     },
     { icon: Ship, label: "Exhibitions", href: "/alert" },
     { icon: Compass, label: "MICE", href: "/alert" },
-    // { icon: PlaneTakeoff, label: "Visa", href: "/alert" },
     {
       icon: Star, label: "Others",
       dropdown: [
@@ -127,6 +133,51 @@ const Header = () => {
     { icon: UsersRound, label: "About Us", href: "/about" },
     { icon: Phone, label: "Contact Us", href: "/contact" },
   ];
+
+  // Helper function to generate href for destinations
+  const getDestinationHref = (
+    isIndian: boolean,
+    isIndividualTour: boolean,
+    isGroupTour: boolean,
+    isLadiesTour: boolean,
+    isSeniorTour: boolean,
+    isStudentTour: boolean,
+    isHoneymoonTour: boolean,
+    destination: string
+  ) => {
+    if (isIndian) {
+      // Indian tours routing
+      if (isIndividualTour) {
+        return `/tours-packages/${encodeURIComponent(destination)}`;
+      } else if (isGroupTour) {
+        return `/tours_groups/${encodeURIComponent(destination)}`;
+      } else if (isLadiesTour) {
+        return `/ladies_tours/${encodeURIComponent(destination)}`;
+      } else if (isSeniorTour) {
+        return `/senior_tours/${encodeURIComponent(destination)}`;
+      } else if (isStudentTour) {
+        return `/students_tours/${encodeURIComponent(destination)}`;
+      } else if (isHoneymoonTour) {
+        return `/honeymoon_tours/${encodeURIComponent(destination)}`;
+      }
+    } else {
+      // International tours routing
+      if (isIndividualTour) {
+        return `/international-tours-packages/${encodeURIComponent(destination)}`;
+      } else if (isGroupTour) {
+        return `/international-tours_groups/${encodeURIComponent(destination)}`;
+      } else if (isLadiesTour) {
+        return `/international-ladies_tours/${encodeURIComponent(destination)}`;
+      } else if (isSeniorTour) {
+        return `/international-senior_tours/${encodeURIComponent(destination)}`;
+      } else if (isStudentTour) {
+        return `/international-students_tours/${encodeURIComponent(destination)}`;
+      } else if (isHoneymoonTour) {
+        return `/international-honeymoon_tours/${encodeURIComponent(destination)}`;
+      }
+    }
+    return "#";
+  };
 
   return (
     <header className="bg-primary text-primary-foreground sticky top-0 z-50 shadow-xl border-b-2 border-blue-400 w-full">
@@ -272,6 +323,22 @@ const Header = () => {
                           enterStatesHandler = h.enter;
                           leaveStatesHandler = h.leave;
                           topOffset = "top-[-10rem]";
+                        } else if (isIntl && isStudent) {
+                          showThisStates = showIntlStudentStates;
+                          const h = createHoverHandlers(setShowIntlStudentStates, intlStudentTimer);
+                          enterHandler = h.enter;
+                          leaveHandler = h.leave;
+                          enterStatesHandler = h.enter;
+                          leaveStatesHandler = h.leave;
+                          topOffset = "top-[-13rem]";
+                        } else if (isIntl && isHoneymoon) {
+                          showThisStates = showIntlHoneymoonStates;
+                          const h = createHoverHandlers(setShowIntlHoneymoonStates, intlHoneymoonTimer);
+                          enterHandler = h.enter;
+                          leaveHandler = h.leave;
+                          enterStatesHandler = h.enter;
+                          leaveStatesHandler = h.leave;
+                          topOffset = "top-[-16rem]";
                         }
 
                         return (
@@ -471,6 +538,7 @@ const Header = () => {
                                   {mobileSubmenuOpen[sub.label] && (
                                     <ul className="bg-primary border-t border-blue-600">
                                       {sub.subDropdown.map((dest, j) => {
+                                        const isIndian = item.label === "Indian Tours";
                                         const isIndividualTour = sub.label === "Individual Tours";
                                         const isGroupTour = sub.label === "Group Tours";
                                         const isLadiesTour = sub.label === "Ladies Special Tours";

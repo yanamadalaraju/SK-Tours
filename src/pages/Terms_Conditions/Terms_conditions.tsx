@@ -103,7 +103,7 @@ const Terms_conditions = () => {
                     <p>
                       Travel preferences, itinerary specifications, stipulations for reservations, and 
                       data indispensable for the processing of airline tickets, lodging accommodations, 
-                      tour packages, visa applications, Meetings, Incentives, Conferences, and Exhibitions 
+                      tour packages, Meetings, Incentives, Conferences, and Exhibitions 
                       (MICE) services, and kindred travel arrangements.
                     </p>
                   </div>
@@ -170,10 +170,7 @@ const Terms_conditions = () => {
               <div className="space-y-4 text-gray-700 ml-12 text-justify leading-relaxed">
                 <p className="font-semibold">Customers are solely responsible for:</p>
                 <div className="space-y-2 ml-4">
-                  <div className="flex">
-                    <span className="font-semibold text-gray-800 mr-3">•</span>
-                    <span>Valid passport and visas</span>
-                  </div>
+               
                   <div className="flex">
                     <span className="font-semibold text-gray-800 mr-3">•</span>
                     <span>Health certificates and travel insurance</span>
@@ -198,7 +195,7 @@ const Terms_conditions = () => {
               <div className="space-y-3 text-gray-700 ml-12 text-justify leading-relaxed">
                 <p>
                   Passport data or other travel instruments, collected solely when compulsory for airline 
-                  reservations, hotel registration, visa procurement, or as mandated by applicable statutes 
+                  reservations, hotel registration or as mandated by applicable statutes 
                   and regulatory bodies.
                 </p>
               </div>
@@ -212,7 +209,7 @@ const Terms_conditions = () => {
               </h3>
               <div className="space-y-4 text-gray-700 ml-12 text-justify leading-relaxed">
                 <p>
-                  S K Tours & Travels acts solely as a facilitation and service provider for visa and 
+                  S K Tours & Travels acts solely as a facilitation and service provider for 
                   travel-related documentation. While all reasonable care and precautions are taken in 
                   handling passports and related documents, S K Tours & Travels shall not be held liable 
                   or responsible for any loss, damage, delay, or deterioration of passports arising due 
@@ -226,7 +223,7 @@ const Terms_conditions = () => {
                   </div>
                   <div className="flex">
                     <span className="font-semibold text-gray-800 mr-3">•</span>
-                    <span>While in transit to or from embassies, consulates, visa centres, airlines, or other authorities</span>
+                    <span>While in transit to or from embassies, consulates, airlines, or other authorities</span>
                   </div>
                   <div className="flex">
                     <span className="font-semibold text-gray-800 mr-3">•</span>
@@ -254,86 +251,12 @@ const Terms_conditions = () => {
               </div>
             </div>
 
-            {/* Section 8 */}
-            <div>
-              <h3 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                <span className="text-gray-800 font-bold mr-4">8)</span>
-                Submission of Documents for Visa
-              </h3>
-              <div className="space-y-4 text-gray-700 ml-12 text-justify leading-relaxed">
-                <h4 className="text-xl font-semibold text-gray-800 mb-3">Visa Documentation Disclaimer & Customer Responsibility</h4>
-                <p>
-                  S K Tours & Travels acts solely as a facilitator for visa application and related travel 
-                  services. The customer is solely responsible for the accuracy, authenticity, completeness, 
-                  and legality of all documents, information, and declarations submitted for visa processing.
-                </p>
-                
-                <h4 className="text-xl font-semibold text-gray-800 mt-4 mb-3">Authenticity of Documents</h4>
-                <p>The customer expressly confirms and undertakes that:</p>
-                <div className="space-y-2 ml-4 mt-2">
-                  <div className="flex">
-                    <span className="font-semibold text-gray-800 mr-3">•</span>
-                    <span>All documents provided are genuine, true, complete, and legally valid.</span>
-                  </div>
-                  <div className="flex">
-                    <span className="font-semibold text-gray-800 mr-3">•</span>
-                    <span>No document submitted is forged, fabricated, altered, misleading, or obtained through unlawful means</span>
-                  </div>
-                  <div className="flex">
-                    <span className="font-semibold text-gray-800 mr-3">•</span>
-                    <span>All information supplied is accurate and consistent with records held by issuing authorities</span>
-                  </div>
-                </div>
-                <p className="mt-3">
-                  S K Tours & Travels shall not be obligated to independently verify the authenticity of 
-                  documents submitted by the customer and shall not be liable for any consequences arising 
-                  from the submission of false, forged, incomplete, or misleading documents.
-                </p>
-                
-                <h4 className="text-xl font-semibold text-gray-800 mt-4 mb-3">Requirement of Original Documents</h4>
-                <p>
-                  The customer agrees to submit original documents wherever required by the relevant 
-                  embassy, consulate, visa application centre, airline, or authority. Failure to provide 
-                  original documents when required may result in rejection, delay, or cancellation of the 
-                  visa application, for which S K Tours & Travels shall bear no responsibility. No visa 
-                  fees will be refunded if the passport is submitted in the consulate.
-                </p>
-                
-                <h4 className="text-xl font-semibold text-gray-800 mt-4 mb-3">Passport Handling Disclaimer</h4>
-                <p>
-                  S K Tours & Travels functions exclusively as a facilitator and service vendor for visa 
-                  and travel documentation. Although commercially reasonable efforts are employed in the 
-                  management of passports and associated documents, S K Tours & Travels assumes no liability 
-                  or responsibility for any loss, damage, delay, or deterioration of passports proximately 
-                  caused by events outside its reasonable control.
-                </p>
-                <p className="mt-3">
-                  This disclaimer encompasses, but is not limited to, loss or damage occurring during 
-                  conveyance via courier or delivery services, while en route to or from embassies, 
-                  consulates, visa application centres, airlines, or other governmental authorities, as 
-                  a result of theft, fire, acts of God, inclement weather including but not limited to 
-                  heavy rainfall or flooding, or other force majeure events, during secure storage within 
-                  office premises, lockers, or storage facilities, due to accidental damage, ordinary 
-                  wear and tear, or unforeseen incidents arising during handling or processing.
-                </p>
-                <p className="mt-3">
-                  In the exigent circumstance of a passport being lost, damaged, or rendered unusable 
-                  during transit or processing, the sole responsibility for procuring a replacement 
-                  passport or reissue of travel documents shall vest exclusively with the customer. Any 
-                  costs, delays, or consequential damages arising therefrom shall not be the liability 
-                  of S K Tours & Travels.
-                </p>
-                <p className="mt-3">
-                  By tendering a passport to S K Tours & Travels, the customer acknowledges and accepts 
-                  this risk and agrees to be bound by the aforementioned terms and conditions.
-                </p>
-              </div>
-            </div>
+     
 
             {/* Section 9 */}
             <div>
               <h3 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                <span className="text-gray-800 font-bold mr-4">9)</span>
+                <span className="text-gray-800 font-bold mr-4">8)</span>
                 Liability & Consequences
               </h3>
               <div className="space-y-4 text-gray-700 ml-12 text-justify leading-relaxed">
@@ -363,54 +286,20 @@ const Terms_conditions = () => {
             </div>
 
             {/* Section 10 */}
-            <div>
-              <h3 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                <span className="text-gray-800 font-bold mr-4">10)</span>
-                Visa Rules
-              </h3>
-              <div className="space-y-4 text-gray-700 ml-12 text-justify leading-relaxed">
-                <p>
-                  The grant or denial of a visa is at the sole discretion of the consular officer. The 
-                  immigration authority's determination shall be final and binding. S K Tours & Travels 
-                  assumes no responsibility for the adjudication of visa applications.
-                </p>
-                <p>
-                  In the event of visa refusal or non-issuance, all visa fees and service charges are 
-                  non-refundable. Furthermore, VFS charges, demand draft charges, courier fees, Urgent 
-                  Visa Fees, lounge access fees, document verification and uploading fees levied by the 
-                  consulate, or any other assessable charges, in addition to visa fees and service charges, 
-                  shall be the exclusive and non-recoverable responsibility of the applicant.
-                </p>
-              </div>
-            </div>
+          
 
             {/* Section 11 */}
-            <div>
-              <h3 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                <span className="text-gray-800 font-bold mr-4">11)</span>
-                Visa Rejections
-              </h3>
-              <div className="space-y-3 text-gray-700 ml-12 text-justify leading-relaxed">
-                <p>
-                  In the event that the customer, whether traveling individually or as part of a group, 
-                  utilizes our services for visa application processing, and the visa is subsequently 
-                  denied for any reason, thereby resulting in the cancellation of confirmed hotel 
-                  reservations, flight tickets, or tour bookings, the customer shall be liable for all 
-                  applicable cancellation charges and fees, which shall be governed by our established 
-                  cancellation policy.
-                </p>
-              </div>
-            </div>
+      
 
             {/* Section 12 */}
             <div>
               <h3 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                <span className="text-gray-800 font-bold mr-4">12)</span>
+                <span className="text-gray-800 font-bold mr-4">9)</span>
                 Right to Refuse Service
               </h3>
               <div className="space-y-3 text-gray-700 ml-12 text-justify leading-relaxed">
                 <p>
-                  S K Tours & Travels reserves the right to refuse, suspend, or cancel visa services 
+                  S K Tours & Travels reserves the right to refuse, suspend, or cancel
                   without refund if, at any stage, the documents provided are found or reasonably 
                   suspected to be false, forged, or misleading.
                 </p>
@@ -420,7 +309,7 @@ const Terms_conditions = () => {
             {/* Section 13 */}
             <div>
               <h3 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                <span className="text-gray-800 font-bold mr-4">13)</span>
+                <span className="text-gray-800 font-bold mr-4">10)</span>
                 Group Departure Rules
               </h3>
               <div className="space-y-4 text-gray-700 ml-12 text-justify leading-relaxed">
@@ -450,7 +339,7 @@ const Terms_conditions = () => {
             {/* Section 14 */}
             <div>
               <h3 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                <span className="text-gray-800 font-bold mr-4">14)</span>
+                <span className="text-gray-800 font-bold mr-4">11)</span>
                 Insurance
               </h3>
               <div className="space-y-4 text-gray-700 ml-12 text-justify leading-relaxed">
@@ -490,7 +379,7 @@ const Terms_conditions = () => {
             {/* Section 15 */}
             <div>
               <h3 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                <span className="text-gray-800 font-bold mr-4">15)</span>
+                <span className="text-gray-800 font-bold mr-4">12)</span>
                 Transportation Failure
               </h3>
               <div className="space-y-3 text-gray-700 ml-12 text-justify leading-relaxed">
@@ -506,7 +395,7 @@ const Terms_conditions = () => {
             {/* Section 16 */}
             <div>
               <h3 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                <span className="text-gray-800 font-bold mr-4">16)</span>
+                <span className="text-gray-800 font-bold mr-4">13)</span>
                 Loans & EMI for Tour
               </h3>
               <div className="space-y-3 text-gray-700 ml-12 text-justify leading-relaxed">
@@ -524,7 +413,7 @@ const Terms_conditions = () => {
             {/* Section 17 */}
             <div>
               <h3 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                <span className="text-gray-800 font-bold mr-4">17)</span>
+                <span className="text-gray-800 font-bold mr-4">14)</span>
                 Postpone or Prepone
               </h3>
               <div className="space-y-3 text-gray-700 ml-12 text-justify leading-relaxed">
@@ -540,7 +429,7 @@ const Terms_conditions = () => {
             {/* Section 18 */}
             <div>
               <h3 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                <span className="text-gray-800 font-bold mr-4">18)</span>
+                <span className="text-gray-800 font-bold mr-4">15)</span>
                 Limitation of Liability
               </h3>
               <div className="space-y-4 text-gray-700 ml-12 text-justify leading-relaxed">
@@ -590,7 +479,7 @@ const Terms_conditions = () => {
             {/* Section 19 */}
             <div>
               <h3 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                <span className="text-gray-800 font-bold mr-4">19)</span>
+                <span className="text-gray-800 font-bold mr-4">16)</span>
                 Governing Law
               </h3>
               <div className="space-y-3 text-red-700 ml-12 text-justify leading-relaxed">

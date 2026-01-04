@@ -103,7 +103,7 @@ const TourCarousel: React.FC<{
 
         const res = await fetch(endpoint);
         const data = await res.json();
-
+console.log("data",data);
         if (!data.success) {
           throw new Error(data.error || 'Failed to fetch tours');
         }
@@ -113,9 +113,8 @@ const TourCarousel: React.FC<{
           const tour = tourData.basic_details;
           const images = tourData.images || [];
           
-          // Calculate EMI: price / 12 (round to nearest integer)
-          const basePrice = parseFloat(tour.base_price_adult) || 0;
-          const emiValue = basePrice > 0 ? Math.round(basePrice / 12) : 0;
+const emiPrice = parseFloat(tour.emi_price) || 0;
+const emiValue = emiPrice > 0 ? emiPrice : 0;
           
           // Get first image URL, or use placeholder
           const firstImage = images.length > 0 ? images[0].url : 'https://via.placeholder.com/400x250';
