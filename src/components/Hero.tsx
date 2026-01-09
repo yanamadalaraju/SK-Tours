@@ -5041,7 +5041,6 @@
 
 
 
-
 import { BASE_URL } from "@/ApiUrls";
 import { useState, useEffect, useRef } from "react";
 
@@ -5052,6 +5051,7 @@ const Hero = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const videoRefs = useRef([]);
+  const autoScrollRef = useRef(null);
 
   // Fetch videos from API
   useEffect(() => {
@@ -5129,6 +5129,30 @@ const Hero = () => {
     }
   }, [currentVideo, videoCarousel.length]);
 
+  // Auto-scroll every 15 seconds
+  useEffect(() => {
+    if (videoCarousel.length === 0 || !isPlaying) return;
+
+    const autoScroll = () => {
+      setCurrentVideo((prev) => (prev + 1) % videoCarousel.length);
+    };
+
+    // Clear any existing interval
+    if (autoScrollRef.current) {
+      clearInterval(autoScrollRef.current);
+    }
+
+    // Set new interval for 15 seconds
+    autoScrollRef.current = setInterval(autoScroll, 15000);
+
+    // Cleanup on unmount or when dependencies change
+    return () => {
+      if (autoScrollRef.current) {
+        clearInterval(autoScrollRef.current);
+      }
+    };
+  }, [videoCarousel.length, isPlaying, currentVideo]); // Include currentVideo to reset timer when manually changing videos
+
   const togglePlay = () => {
     setIsPlaying(!isPlaying);
   };
@@ -5136,6 +5160,18 @@ const Hero = () => {
   const handleVideoSelect = (index) => {
     setCurrentVideo(index);
     setIsPlaying(true);
+    
+    // Reset the auto-scroll timer when manually selecting a video
+    if (autoScrollRef.current) {
+      clearInterval(autoScrollRef.current);
+    }
+    
+    // Restart auto-scroll after manual selection
+    if (isPlaying) {
+      autoScrollRef.current = setInterval(() => {
+        setCurrentVideo((prev) => (prev + 1) % videoCarousel.length);
+      }, 15000);
+    }
   };
 
   const handleRetry = () => {

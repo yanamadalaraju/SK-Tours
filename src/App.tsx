@@ -52,6 +52,7 @@ import International_students from "./pages/International_Tours/International_st
 import International_honeymoon from "./pages/International_Tours/International_honyemoon/International_honeymoon";
 import International_senior from "./pages/International_Tours/International_senior/International_senior";
 import International_Tourdetails from "./pages/International_Tours/International_details/International_Tourdetails";
+import Exhibition from "./pages/Exhibition/Exhibition";
 
 const queryClient = new QueryClient();
 
@@ -91,11 +92,6 @@ const App = () => (
            <Route path="/intl-ladies_tours/:state" element={<IntlLadies_tour />} />
           <Route path="/senior_tours/:state" element={<Seniors_tour />} />
           <Route path="/intl-senior_tours/:state" element={<IntlSenior_tour/>} />
-
-
-           {/* <Route path="/ladies_tours/:state" element={<Ladies_tour />} /> */}
-
-
           <Route path="/terms_conditions" element={<Terms_conditions />} />
 <Route path="/privacy_policy" element={<Privacy_policy />} />
 <Route path="/alert" element={<Alert />} />
@@ -110,6 +106,7 @@ const App = () => (
 <Route path="/international-honeymoon_tours/:state" element={<International_honeymoon />} />
 <Route path="/international-senior_tours/:state" element={<International_senior />} />
 <Route path="/international_tour_details/:tourId" element={<International_Tourdetails />} />
+<Route path="/exhibition" element={<Exhibition />} />
 
         </Routes>
       </BrowserRouter>

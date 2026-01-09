@@ -100,9 +100,9 @@ const Header = () => {
         { label: "Individual Tours", href: "#international-individual", icon: Users, subDropdown: internationalDestinations },
         { label: "Group Tours", href: "#international-group", icon: UsersRound, subDropdown: internationalDestinations },
         { label: "Ladies Special Tours", href: "#international-ladies-special", icon: Sparkles, subDropdown: internationalDestinations },
-        { label: "Senior Citizen Tours", href: "#international-senior-citizens", icon: Heart, subDropdown: internationalDestinations },
-        { label: "Students Tours", href: "#international-students-tours", icon: GraduationCap },
-        { label: "Honeymoon Tours", href: "#international-honeymoon-tours", icon: Heart },
+        { label: "Senior Citizen Tours", href: "#international-senior-citizens", icon: UsersRound, subDropdown: internationalDestinations },
+        { label: "Students Tours", href: "#international-students-tours", icon: GraduationCap , subDropdown: internationalDestinations },
+        { label: "Honeymoon Tours", href: "#international-honeymoon-tours", icon: Heart ,  subDropdown: internationalDestinations },
       ],
     },
     { 
@@ -114,7 +114,7 @@ const Header = () => {
         { label: "Offline Hotel Rates", href: "/alert" }
       ]
     },
-    { icon: Ship, label: "Exhibitions", href: "/alert" },
+    { icon: Ship, label: "Exhibitions", href: "/exhibition" },
     { icon: Compass, label: "MICE", href: "/alert" },
     {
       icon: Star, label: "Others",

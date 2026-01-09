@@ -641,6 +641,7 @@ const processTransport = (transportArray: any[], basicDetails: any) => {
     if (basicDetails.emi_remarks) remarks.push(basicDetails.emi_remarks);
     if (basicDetails.booking_poi_remarks) remarks.push(basicDetails.booking_poi_remarks);
     if (basicDetails.cancellation_remarks) remarks.push(basicDetails.cancellation_remarks);
+     if (basicDetails.optional_tour_remarks) remarks.push(basicDetails.optional_tour_remarks); 
     return remarks;
   };
 
@@ -671,6 +672,9 @@ const processTransport = (transportArray: any[], basicDetails: any) => {
       cancellation: processCancellation(cancellation_policies),
       instructions: instructions || [],
       tourType: tour_type || 'Individual',
+
+        optionalTourRemarks: basic_details.optional_tour_remarks ? 
+      [basic_details.optional_tour_remarks] : [],
 
        // ADD THIS: Additional remarks from basic_details
     additionalRemarks: processAdditionalRemarks(basic_details),
@@ -1693,20 +1697,31 @@ const selectedDeparture = availableDates.find(
         </div>
       )}
 
-         <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
-    <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
-    Optinal Tour Remarks
-    </div>
-    <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-      <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-     
-          <div className="flex items-center justify-center h-full">
-            <span className="text-gray-500 italic">No Optinal Tour Remarks available</span>
-          </div>
-       
-      </div>
+         {/* Optional Tour Remarks Section */}
+<div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
+  <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
+    Optional Tour Remarks
+  </div>
+  <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
+    <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+      {tour.optionalTourRemarks && tour.optionalTourRemarks.length > 0 ? (
+        <ul className="space-y-2 w-full">
+          {tour.optionalTourRemarks.map((remark: string, index: number) => (
+            <li key={index} className="flex items-start gap-2 w-full">
+              <span className="text-gray-700 whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
+                {remark}
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div className="flex items-center justify-center h-full">
+          <span className="text-gray-500 italic">No optional tour remarks available</span>
+        </div>
+      )}
     </div>
   </div>
+</div>
 
     {/* EMI Options Section (show for both types if has data) */}
 {tour.emiOptions && tour.emiOptions.options && tour.emiOptions.options.length > 0 && (
@@ -2084,50 +2099,49 @@ const selectedDeparture = availableDates.find(
       Booking Policy
     </div>
       
-    <div className="flex flex-col lg:flex-row gap-1 mt-1 h-[320px]">
-      {/* Left Card - Booking Policy - 80% width */}
-      <div className="h-full w-full lg:w-4/5 flex flex-col">
-        <div className="bg-[#2E4D98] text-white text-center py-3 rounded-t-lg">
-          <h3 className="text-xl font-bold">Booking Policy</h3>
-        </div>
-        <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-white overflow-hidden">
-          <div className="h-full overflow-y-auto">
-            <div className="p-1 space-y-1">
-              {tour.booking.items.map((item: string, index: number) => (
-                <div key={index} className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg border border-blue-300">
-                  <span className="text-gray-700 text-sm whitespace-normal text-justify w-full">
-                    {item}
-                  </span>
-                </div>
-              ))}
+<div className="flex flex-col lg:flex-row gap-1 mt-1 h-[320px]">
+  {/* Left Card - Booking Policy - 70% width */}
+  <div className="h-full w-full lg:w-8/12 flex flex-col">
+    <div className="bg-[#2E4D98] text-white text-center py-3 rounded-t-lg">
+      <h3 className="text-xl font-bold">Booking Policy</h3>
+    </div>
+    <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-white overflow-hidden">
+      <div className="h-full overflow-y-auto">
+        <div className="p-1 space-y-1">
+          {tour.booking.items.map((item: string, index: number) => (
+            <div key={index} className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg border border-blue-300">
+              <span className="text-gray-700 text-sm whitespace-normal text-justify w-full">
+                {item}
+              </span>
             </div>
-          </div>
-        </div>
-      </div>
-      
-      {/* Right Card - Amount Details - 20% width */}
-      <div className="h-full w-full lg:w-1/5 flex flex-col">
-        <div className="bg-[#2E4D98] text-white text-center py-3 rounded-t-lg">
-          <h3 className="text-xl font-bold">Amount Details</h3>
-        </div>
-        <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-white overflow-hidden">
-          <div className="h-full overflow-y-auto">
-            <div className="p-1 grid gap-1">
-              {tour.booking.amountDetails.map((amount: string, index: number) => (
-                <div key={index} className="flex items-center justify-center p-3 bg-white rounded-lg border border-blue-300">
-                  <div className="text-center w-full">
-                    <span className="text-sm font-bold text-green-600">
-                 {amount}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          ))}
         </div>
       </div>
     </div>
-    
+  </div>
+  
+  {/* Right Card - Amount Details - 30% width */}
+  <div className="h-full w-full lg:w-4/12 flex flex-col">
+    <div className="bg-[#2E4D98] text-white text-center py-3 rounded-t-lg">
+      <h3 className="text-xl font-bold">Amount Details</h3>
+    </div>
+    <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-white overflow-hidden">
+      <div className="h-full overflow-y-auto">
+        <div className="p-1 grid gap-1">
+          {tour.booking.amountDetails.map((amount: string, index: number) => (
+            <div key={index} className="flex items-center justify-center p-3 bg-white rounded-lg border border-blue-300">
+              <div className="text-center w-full">
+                <span className="text-sm font-bold text-green-600">
+                  {amount}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
     {/* Booking Policy Remarks Section */}
     <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
       <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
@@ -2156,8 +2170,6 @@ const selectedDeparture = availableDates.find(
   </div>
 )}
 
-              {/* Cancellation Tab */}
-             {/* Cancellation Tab */}
 {activeTab === "cancellation" && (
   <div className="bg-[#E8F0FF] rounded-lg p-1">
     <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg mb-1">
@@ -2165,7 +2177,7 @@ const selectedDeparture = availableDates.find(
     </div>
 
     <div className="flex flex-col lg:flex-row gap-1 mt-1 h-[320px]">
-      <div className="h-full w-full lg:w-4/5 flex flex-col">
+      <div className="h-full w-full lg:w-8/12 flex flex-col">
         <div className="bg-[#A72703] text-white text-center py-3 rounded-t-lg">
           <h3 className="text-xl font-bold">Cancellation Policy</h3>
         </div>
@@ -2188,7 +2200,7 @@ const selectedDeparture = availableDates.find(
         
       </div>
 
-      <div className="h-full w-full lg:w-1/5 flex flex-col">
+      <div className="h-full w-full lg:w-4/12 flex flex-col">
         <div className="bg-[#A72703] text-white text-center py-3 rounded-t-lg">
           <h3 className="text-xl font-bold">Charges</h3>
         </div>
