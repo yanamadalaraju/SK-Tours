@@ -127,7 +127,7 @@ const TourPackages = () => {
           allTours.map(async (tour) => {
             try {
               const res = await fetch(
-                `${BASE_URL}/api/tours/tour/full/individual/${tour.tour_id}`
+                `${BASE_URL}/api/tours/tour/full/intl/individual/${tour.tour_id}`
               );
               const data = await res.json();
 

@@ -23,7 +23,7 @@ import IntlHoneymoon_tours from "./pages/InternationalHoneymoon_tours";
 import ContactPage from "./pages/Contact";
 import Tour_indain from "./pages/Tour_indain";
 import Tourdetails_indian from "./pages/Tourdetails_indian";
-import IntlTourdetails_indian from "./pages/InternationalTourPackages";
+import IntlTourdetails_indian from "./pages/InternationalTourdetails_indian";
 
 import Ladies_tour from "./pages/Ladies_tour/Ladies_tour";
 import IntlLadies_tour from "./pages/Ladies_tour/InternationalLadies_tour"

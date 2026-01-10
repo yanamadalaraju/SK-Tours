@@ -128,7 +128,7 @@ const TourPackages = () => {
             try {
               // Note: Using /full/seniorcitizen/ for senior citizen tours
               const res = await fetch(
-                `${BASE_URL}/api/tours/tour/full/seniorcitizen/${tour.tour_id}`
+                `${BASE_URL}/api/tours/tour/full/intl/seniorcitizen/${tour.tour_id}`
               );
               const data = await res.json();
 

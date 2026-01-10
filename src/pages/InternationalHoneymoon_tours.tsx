@@ -129,7 +129,7 @@ const TourPackages = () => {
             try {
               // Note: Using /full/honeymoon/ for honeymoon tours
               const res = await fetch(
-                `${BASE_URL}/api/tours/tour/full/honeymoon/${tour.tour_id}`
+                `${BASE_URL}/api/tours/tour/full/intl/honeymoon/${tour.tour_id}`
               );
               const data = await res.json();
 

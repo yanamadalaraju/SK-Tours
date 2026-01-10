@@ -128,7 +128,7 @@ const TourPackages = () => {
             try {
               // Note: Using /full/ladiesspecial/ for ladies special tours
               const res = await fetch(
-                `${BASE_URL}/api/tours/tour/full/ladiesspecial/${tour.tour_id}`
+                `${BASE_URL}/api/tours/tour/full/intl/ladiesspecial/${tour.tour_id}`
               );
               const data = await res.json();
 
