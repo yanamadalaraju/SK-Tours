@@ -1,1239 +1,286 @@
-// import React, { useState, useEffect } from "react";
-// import { ChevronLeft, ChevronRight, MapPin, Star, Users, Calendar } from "lucide-react";
-
-// const internationalTours = [
-//   {
-//     id: 1,
-//     name: "Bali Tropical Paradise",
-//     location: "Indonesia",
-//     duration: "7 Days",
-//     price: "₹45,999",
-//     image: "https://images.pexels.com/photos/1483053/pexels-photo-1483053.jpeg?auto=compress&cs=tinysrgb&w=1200",
-//     rating: 4.8,
-//     travelers: 890,
-//     badge: "Beach"
-//   },
-//   {
-//     id: 2,
-//     name: "Swiss Alps Adventure",
-//     location: "Switzerland",
-//     duration: "8 Days",
-//     price: "₹89,999",
-//     image: "https://images.pexels.com/photos/206359/pexels-photo-206359.jpeg?auto=compress&cs=tinysrgb&w=1200",
-//     rating: 4.9,
-//     travelers: 670,
-//     badge: "Adventure"
-//   },
-//   {
-//     id: 3,
-//     name: "Tokyo City Experience",
-//     location: "Japan",
-//     duration: "6 Days",
-//     price: "₹65,999",
-//     image: "https://images.pexels.com/photos/2506923/pexels-photo-2506923.jpeg?auto=compress&cs=tinysrgb&w=1200",
-//     rating: 4.7,
-//     travelers: 1120,
-//     badge: "Cultural"
-//   },
-//   {
-//     id: 4,
-//     name: "Paris Romantic Getaway",
-//     location: "France",
-//     duration: "5 Days",
-//     price: "₹72,999",
-//     image: "https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg?auto=compress&cs=tinysrgb&w=1200",
-//     rating: 4.8,
-//     travelers: 950,
-//     badge: "Romantic"
-//   },
-//   {
-//     id: 5,
-//     name: "Dubai Luxury Escape",
-//     location: "UAE",
-//     duration: "4 Days",
-//     price: "₹55,999",
-//     image: "https://images.pexels.com/photos/1796715/pexels-photo-1796715.jpeg?auto=compress&cs=tinysrgb&w=1200",
-//     rating: 4.6,
-//     travelers: 1340,
-//     badge: "Luxury"
-//   },
-//   {
-//     id: 6,
-//     name: "Thailand Island Hopping",
-//     location: "Thailand",
-//     duration: "7 Days",
-//     price: "₹38,999",
-//     image: "https://images.pexels.com/photos/3293148/pexels-photo-3293148.jpeg?auto=compress&cs=tinysrgb&w=1200",
-//     rating: 4.7,
-//     travelers: 1560,
-//     badge: "Island"
-//   }
-// ];
-
-// const InternationalToursSection: React.FC = () => {
-//   const [currentIndex, setCurrentIndex] = useState(0);
-//   const [visibleCards, setVisibleCards] = useState(4);
-
-//   // Update visible cards based on screen size
-//   useEffect(() => {
-//     const updateVisibleCards = () => {
-//       if (window.innerWidth < 768) {
-//         setVisibleCards(1);
-//       } else if (window.innerWidth < 1024) {
-//         setVisibleCards(2);
-//       } else {
-//         setVisibleCards(4);
-//       }
-//     };
-
-//     updateVisibleCards();
-//     window.addEventListener('resize', updateVisibleCards);
-//     return () => window.removeEventListener('resize', updateVisibleCards);
-//   }, []);
-
-//   const nextSlide = () => {
-//     setCurrentIndex((prevIndex) => 
-//       prevIndex === internationalTours.length - visibleCards ? 0 : prevIndex + 1
-//     );
-//   };
-
-//   const prevSlide = () => {
-//     setCurrentIndex((prevIndex) => 
-//       prevIndex === 0 ? internationalTours.length - visibleCards : prevIndex - 1
-//     );
-//   };
-
-//   // Auto slide every 5 seconds
-//   useEffect(() => {
-//     const timer = setInterval(() => {
-//       nextSlide();
-//     }, 5000);
-
-//     return () => clearInterval(timer);
-//   }, [currentIndex, visibleCards]);
-
-//   return (
-//     <section className="py-12 bg-gradient-to-br from-red-50 to-pink-50/30">
-//       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-//         {/* Header Section - Compact */}
-//         <div className="text-center mb-10">
-//           <div className="inline-flex items-center gap-2 bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-medium mb-3">
-//             <MapPin className="h-3 w-3" />
-//             Explore World
-//           </div>
-//           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
-//             Best{" "}
-//             <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-pink-600">
-//               International Tours
-//             </span>
-//           </h2>
-//           <p className="text-gray-600 max-w-2xl mx-auto text-sm leading-relaxed">
-//             Discover amazing destinations worldwide with our handpicked international tour packages.
-//           </p>
-//         </div>
-
-//         {/* Compact Carousel Container */}
-//         <div className="bg-white rounded-2xl shadow-lg p-6 mb-12 border border-gray-100">
-//           {/* Carousel Header */}
-//           <div className="flex items-center justify-between mb-6">
-//             <div>
-//               <h3 className="text-xl font-bold text-gray-900">
-//                 Global Destinations
-//               </h3>
-//               <p className="text-gray-600 text-sm">
-//                 Curated experiences around the world
-//               </p>
-//             </div>
-//             <div className="flex items-center gap-3">
-//               <div className="hidden sm:flex items-center gap-2 bg-gray-100 rounded-full px-3 py-1">
-//                 <span className="text-xs text-gray-600">
-//                   {currentIndex + 1}/{internationalTours.length - visibleCards + 1}
-//                 </span>
-//               </div>
-//               <div className="flex items-center gap-2">
-//                 <button
-//                   onClick={prevSlide}
-//                   className="bg-red-600 hover:bg-red-700 text-white w-8 h-8 rounded-full flex items-center justify-center shadow transition-all duration-300"
-//                 >
-//                   <ChevronLeft className="h-4 w-4" />
-//                 </button>
-//                 <button
-//                   onClick={nextSlide}
-//                   className="bg-red-600 hover:bg-red-700 text-white w-8 h-8 rounded-full flex items-center justify-center shadow transition-all duration-300"
-//                 >
-//                   <ChevronRight className="h-4 w-4" />
-//                 </button>
-//               </div>
-//             </div>
-//           </div>
-
-//           {/* Carousel Content */}
-//           <div className="relative">
-//             {/* Cards Container */}
-//             <div className="overflow-hidden">
-//               <div 
-//                 className="flex transition-transform duration-500 ease-in-out gap-4"
-//                 style={{ transform: `translateX(-${currentIndex * (100 / visibleCards)}%)` }}
-//               >
-//                 {internationalTours.map((tour) => (
-//                   <div
-//                     key={tour.id}
-//                     className="flex-shrink-0"
-//                     style={{ width: `${100 / visibleCards}%` }}
-//                   >
-//                     <div className="group cursor-pointer bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 h-full border border-gray-100">
-//                       {/* Tour Image */}
-//                       <div className="relative h-40 overflow-hidden">
-//                         <img
-//                           src={tour.image}
-//                           alt={tour.name}
-//                           className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
-//                         />
-                        
-//                         {/* Gradient Overlay */}
-//                         <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-                        
-//                         {/* Badge */}
-//                         <div className="absolute top-2 left-2 z-10">
-//                           <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-bold text-white ${
-//                             tour.badge === "Beach" ? "bg-blue-500" :
-//                             tour.badge === "Adventure" ? "bg-green-500" :
-//                             tour.badge === "Cultural" ? "bg-purple-500" :
-//                             tour.badge === "Romantic" ? "bg-pink-500" :
-//                             tour.badge === "Luxury" ? "bg-yellow-500" :
-//                             "bg-teal-500"
-//                           }`}>
-//                             {tour.badge}
-//                           </span>
-//                         </div>
-                        
-//                         {/* Rating */}
-//                         <div className="absolute top-2 right-2 z-10 flex items-center gap-1 bg-black/50 backdrop-blur-sm rounded-full px-2 py-1">
-//                           <Star className="h-3 w-3 text-yellow-400 fill-current" />
-//                           <span className="text-xs font-semibold text-white">{tour.rating}</span>
-//                         </div>
-//                       </div>
-
-//                       {/* Tour Content */}
-//                       <div className="p-4">
-//                         <div className="flex items-start justify-between mb-2">
-//                           <h3 className="text-sm font-semibold text-gray-900 group-hover:text-red-600 transition-colors duration-300 flex-1 pr-2 line-clamp-2">
-//                             {tour.name}
-//                           </h3>
-//                           <div className="text-right">
-//                             <div className="text-base font-bold text-red-600">{tour.price}</div>
-//                           </div>
-//                         </div>
-                        
-//                         <div className="flex items-center gap-1 text-gray-600 mb-2">
-//                           <MapPin className="h-3 w-3" />
-//                           <span className="text-xs">{tour.location}</span>
-//                         </div>
-                        
-//                         <div className="flex items-center justify-between text-xs text-gray-600 mb-3">
-//                           <div className="flex items-center gap-1">
-//                             <Calendar className="h-3 w-3" />
-//                             <span>{tour.duration}</span>
-//                           </div>
-//                           <div className="flex items-center gap-1">
-//                             <Users className="h-3 w-3" />
-//                             <span>{tour.travelers}+</span>
-//                           </div>
-//                         </div>
-                        
-//                         <button className="w-full bg-red-600 hover:bg-red-700 text-white text-sm font-medium py-2 px-3 rounded-lg transition-all duration-300">
-//                           View Details
-//                         </button>
-//                       </div>
-//                     </div>
-//                   </div>
-//                 ))}
-//               </div>
-//             </div>
-
-//             {/* Dot Indicators */}
-//             <div className="flex justify-center mt-6 gap-1.5">
-//               {Array.from({ length: internationalTours.length - visibleCards + 1 }).map((_, index) => (
-//                 <button
-//                   key={index}
-//                   onClick={() => setCurrentIndex(index)}
-//                   className={`w-2 h-2 rounded-full transition-all duration-300 ${
-//                     index === currentIndex ? 'bg-red-600 w-6' : 'bg-gray-300'
-//                   }`}
-//                 />
-//               ))}
-//             </div>
-//           </div>
-//         </div>
-
-//         {/* Compact Bottom CTA */}
-//         <div className="text-center">
-//           <button className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-medium px-6 py-3 rounded-xl shadow transition-all duration-300 transform hover:scale-105">
-//             <MapPin className="h-4 w-4" />
-//             Explore All Destinations
-//             <ChevronRight className="h-4 w-4" />
-//           </button>
-//           <p className="mt-3 text-gray-600 text-sm">
-//             Join 35,000+ travelers exploring the world
-//           </p>
-//         </div>
-//       </div>
-//     </section>
-//   );
-// };
-
-// export default InternationalToursSection;
-
-
-
-// import React, { useState, useEffect, useRef } from "react";
-// import { ChevronLeft, ChevronRight, MapPin, Star, Users, Calendar } from "lucide-react";
-
-// const internationalTours = [
-//   {
-//     id: 1,
-//     name: "Bali Tropical Paradise",
-//     location: "Indonesia",
-//     duration: "7 Days",
-//     price: "₹45,999",
-//     image: "https://images.pexels.com/photos/1483053/pexels-photo-1483053.jpeg?auto=compress&cs=tinysrgb&w=1200",
-//     rating: 4.8,
-//     travelers: 890,
-//     badge: "Beach"
-//   },
-//   {
-//     id: 2,
-//     name: "Swiss Alps Adventure",
-//     location: "Switzerland",
-//     duration: "8 Days",
-//     price: "₹89,999",
-//     image: "https://images.pexels.com/photos/206359/pexels-photo-206359.jpeg?auto=compress&cs=tinysrgb&w=1200",
-//     rating: 4.9,
-//     travelers: 670,
-//     badge: "Adventure"
-//   },
-//   {
-//     id: 3,
-//     name: "Tokyo City Experience",
-//     location: "Japan",
-//     duration: "6 Days",
-//     price: "₹65,999",
-//     image: "https://images.pexels.com/photos/2506923/pexels-photo-2506923.jpeg?auto=compress&cs=tinysrgb&w=1200",
-//     rating: 4.7,
-//     travelers: 1120,
-//     badge: "Cultural"
-//   },
-//   {
-//     id: 4,
-//     name: "Paris Romantic Getaway",
-//     location: "France",
-//     duration: "5 Days",
-//     price: "₹72,999",
-//     image: "https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg?auto=compress&cs=tinysrgb&w=1200",
-//     rating: 4.8,
-//     travelers: 950,
-//     badge: "Romantic"
-//   },
-//   {
-//     id: 5,
-//     name: "Dubai Luxury Escape",
-//     location: "UAE",
-//     duration: "4 Days",
-//     price: "₹55,999",
-//     image: "https://images.pexels.com/photos/1796715/pexels-photo-1796715.jpeg?auto=compress&cs=tinysrgb&w=1200",
-//     rating: 4.6,
-//     travelers: 1340,
-//     badge: "Luxury"
-//   },
-//   {
-//     id: 6,
-//     name: "Thailand Island Hopping",
-//     location: "Thailand",
-//     duration: "7 Days",
-//     price: "₹38,999",
-//     image: "https://images.pexels.com/photos/3293148/pexels-photo-3293148.jpeg?auto=compress&cs=tinysrgb&w=1200",
-//     rating: 4.7,
-//     travelers: 1560,
-//     badge: "Island"
-//   }
-// ];
-
-// const InternationalToursSection: React.FC = () => {
-//   const [visibleCards, setVisibleCards] = useState(4);
-//   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
-//   const scrollContainerRef = useRef<HTMLDivElement>(null);
-//   const animationRef = useRef<number>();
-//   const scrollPositionRef = useRef(0);
-//   const isManualScrollingRef = useRef(false);
-
-//   // Update visible cards based on screen size
-//   useEffect(() => {
-//     const updateVisibleCards = () => {
-//       if (window.innerWidth < 768) {
-//         setVisibleCards(1);
-//       } else if (window.innerWidth < 1024) {
-//         setVisibleCards(2);
-//       } else {
-//         setVisibleCards(4);
-//       }
-//     };
-
-//     updateVisibleCards();
-//     window.addEventListener('resize', updateVisibleCards);
-//     return () => window.removeEventListener('resize', updateVisibleCards);
-//   }, []);
-
-//   // Continuous smooth scrolling animation
-//   useEffect(() => {
-//     if (!isAutoPlaying || !scrollContainerRef.current || isManualScrollingRef.current) return;
-
-//     const scrollContainer = scrollContainerRef.current;
-//     const scrollWidth = scrollContainer.scrollWidth / 2; // Since we duplicated the cards
-//     const clientWidth = scrollContainer.clientWidth;
-
-//     const animateScroll = () => {
-//       scrollPositionRef.current += 0.8; // Adjust speed here (higher = faster)
-      
-//       // Reset to start when reaching the duplicated section
-//       if (scrollPositionRef.current >= scrollWidth) {
-//         scrollPositionRef.current = 0;
-//       }
-      
-//       scrollContainer.scrollLeft = scrollPositionRef.current;
-//       animationRef.current = requestAnimationFrame(animateScroll);
-//     };
-
-//     animationRef.current = requestAnimationFrame(animateScroll);
-
-//     return () => {
-//       if (animationRef.current) {
-//         cancelAnimationFrame(animationRef.current);
-//       }
-//     };
-//   }, [isAutoPlaying]);
-
-//   const nextSlide = () => {
-//     if (scrollContainerRef.current) {
-//       isManualScrollingRef.current = true;
-//       setIsAutoPlaying(false);
-      
-//       const scrollContainer = scrollContainerRef.current;
-//       const cardWidth = scrollContainer.scrollWidth / (internationalTours.length * 2);
-//       const scrollAmount = cardWidth * visibleCards;
-//       const newScrollPosition = scrollContainer.scrollLeft + scrollAmount;
-      
-//       scrollContainer.scrollTo({
-//         left: newScrollPosition,
-//         behavior: 'smooth'
-//       });
-
-//       // Update the scroll position reference
-//       scrollPositionRef.current = newScrollPosition;
-
-//       // Resume auto-play after a delay
-//       setTimeout(() => {
-//         isManualScrollingRef.current = false;
-//         setIsAutoPlaying(true);
-//       }, 3000); // Resume after 3 seconds
-//     }
-//   };
-
-//   const prevSlide = () => {
-//     if (scrollContainerRef.current) {
-//       isManualScrollingRef.current = true;
-//       setIsAutoPlaying(false);
-      
-//       const scrollContainer = scrollContainerRef.current;
-//       const cardWidth = scrollContainer.scrollWidth / (internationalTours.length * 2);
-//       const scrollAmount = cardWidth * visibleCards;
-//       let newScrollPosition = scrollContainer.scrollLeft - scrollAmount;
-      
-//       // Handle going backwards past the start
-//       if (newScrollPosition < 0) {
-//         newScrollPosition = scrollContainer.scrollWidth / 2 - scrollAmount;
-//       }
-      
-//       scrollContainer.scrollTo({
-//         left: newScrollPosition,
-//         behavior: 'smooth'
-//       });
-
-//       // Update the scroll position reference
-//       scrollPositionRef.current = newScrollPosition;
-
-//       // Resume auto-play after a delay
-//       setTimeout(() => {
-//         isManualScrollingRef.current = false;
-//         setIsAutoPlaying(true);
-//       }, 3000); // Resume after 3 seconds
-//     }
-//   };
-
-//   // Stop auto-play when hovering on any card
-//   const handleCardMouseEnter = () => {
-//     setIsAutoPlaying(false);
-//   };
-
-//   // Resume auto-play when leaving card
-//   const handleCardMouseLeave = () => {
-//     if (!isManualScrollingRef.current) {
-//       setIsAutoPlaying(true);
-//     }
-//   };
-
-//   return (
-//     <section className="py-0 bg-gradient-to-br from-sky-200 via-sky-200 to-sky-200">
-//       {/* Full Width Header Strip */}
-//       <div className="w-full bg-gradient-to-r from-[#0F1F5C] via-[#1F3F93] to-[#0F1F5C] py-8 mb-10 shadow-lg">
-//         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-//           <div className="text-center">
-//             <h2
-//               className="text-4xl md:text-6xl font-extrabold mb-4 tracking-tight"
-//               style={{
-//                 fontFamily: "'Baloo 2', sans-serif",
-//                 color: "white",
-//                 letterSpacing: "-2px",
-//                 textShadow: `
-//                   2px 2px 0 #1F3F93,
-//                   -2px -2px 0 #1F3F93,
-//                   0 0 18px rgba(255,255,255,0.65)
-//                 `,
-//               }}
-//             >
-//               International <span className="text-[#E31B23]">Tours</span>
-//             </h2>
-//           </div>
-//         </div>
-//       </div>
-
-//       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-//         {/* Compact Carousel Container */}
-//         <div className="bg-white rounded-2xl shadow-lg p-6 mb-12 border border-gray-100">
-//           {/* Carousel Header */}
-//           <div className="flex items-center justify-between mb-6">
-//             <div>
-//               <h3 className="text-xl font-bold text-gray-900">
-//                 Global Destinations
-//               </h3>
-//               <p className="text-gray-600 text-sm">
-//                 Curated experiences around the world
-//               </p>
-//             </div>
-//             <div className="flex items-center gap-3">
-//               <div className="flex items-center gap-2">
-//                 <button
-//                   onClick={prevSlide}
-//                   className="bg-red-600 hover:bg-red-700 text-white w-8 h-8 rounded-full flex items-center justify-center shadow transition-all duration-300 hover:scale-110 active:scale-95"
-//                 >
-//                   <ChevronLeft className="h-4 w-4" />
-//                 </button>
-//                 <button
-//                   onClick={nextSlide}
-//                   className="bg-red-600 hover:bg-red-700 text-white w-8 h-8 rounded-full flex items-center justify-center shadow transition-all duration-300 hover:scale-110 active:scale-95"
-//                 >
-//                   <ChevronRight className="h-4 w-4" />
-//                 </button>
-//               </div>
-//             </div>
-//           </div>
-
-//           {/* Carousel Content */}
-//           <div className="relative">
-//             {/* Cards Container with Continuous Scroll */}
-//             <div 
-//               ref={scrollContainerRef}
-//               className="flex gap-4 overflow-x-auto scrollbar-hide"
-//               style={{ 
-//                 scrollBehavior: 'auto',
-//               }}
-//             >
-//               {/* Duplicate cards for seamless looping */}
-//               {[...internationalTours, ...internationalTours].map((tour, index) => (
-//                 <div
-//                   key={`${tour.id}-${index}`}
-//                   className="flex-shrink-0"
-//                   style={{ width: `calc(${100 / visibleCards}% - 16px)` }}
-//                   onMouseEnter={handleCardMouseEnter}
-//                   onMouseLeave={handleCardMouseLeave}
-//                 >
-//                   <div className="group cursor-pointer bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 h-full border border-gray-100">
-//                     {/* Tour Image */}
-//                     <div className="relative h-40 overflow-hidden">
-//                       <img
-//                         src={tour.image}
-//                         alt={tour.name}
-//                         className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
-//                       />
-                      
-//                       {/* Gradient Overlay */}
-//                       <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-                      
-//                       {/* Badge */}
-//                       <div className="absolute top-2 left-2 z-10">
-//                         <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-bold text-white ${
-//                           tour.badge === "Beach" ? "bg-blue-500" :
-//                           tour.badge === "Adventure" ? "bg-green-500" :
-//                           tour.badge === "Cultural" ? "bg-purple-500" :
-//                           tour.badge === "Romantic" ? "bg-pink-500" :
-//                           tour.badge === "Luxury" ? "bg-yellow-500" :
-//                           "bg-teal-500"
-//                         }`}>
-//                           {tour.badge}
-//                         </span>
-//                       </div>
-                      
-//                       {/* Rating */}
-//                       <div className="absolute top-2 right-2 z-10 flex items-center gap-1 bg-black/50 backdrop-blur-sm rounded-full px-2 py-1">
-//                         <Star className="h-3 w-3 text-yellow-400 fill-current" />
-//                         <span className="text-xs font-semibold text-white">{tour.rating}</span>
-//                       </div>
-//                     </div>
-
-//                     {/* Tour Content */}
-//                     <div className="p-4">
-//                       <div className="flex items-start justify-between mb-2">
-//                         <h3 className="text-sm font-semibold text-gray-900 group-hover:text-red-600 transition-colors duration-300 flex-1 pr-2 line-clamp-2">
-//                           {tour.name}
-//                         </h3>
-//                         <div className="text-right">
-//                           <div className="text-base font-bold text-red-600">{tour.price}</div>
-//                         </div>
-//                       </div>
-                      
-//                       <div className="flex items-center gap-1 text-gray-600 mb-2">
-//                         <MapPin className="h-3 w-3" />
-//                         <span className="text-xs">{tour.location}</span>
-//                       </div>
-                      
-//                       <div className="flex items-center justify-between text-xs text-gray-600 mb-3">
-//                         <div className="flex items-center gap-1">
-//                           <Calendar className="h-3 w-3" />
-//                           <span>{tour.duration}</span>
-//                         </div>
-//                         <div className="flex items-center gap-1">
-//                           <Users className="h-3 w-3" />
-//                           <span>{tour.travelers}+</span>
-//                         </div>
-//                       </div>
-                      
-//                       <button className="w-full bg-red-600 hover:bg-red-700 text-white text-sm font-medium py-2 px-3 rounded-lg transition-all duration-300 transform hover:scale-105">
-//                         View Details
-//                       </button>
-//                     </div>
-//                   </div>
-//                 </div>
-//               ))}
-//             </div>
-
-//             {/* Auto-play Status Indicator */}
-//             <div className="flex justify-center items-center mt-6 gap-2">
-//               <div className={`w-2 h-2 rounded-full ${
-//                 isAutoPlaying ? 'bg-green-500 animate-pulse' : 'bg-red-500'
-//               }`} />
-//               <span className="text-xs text-gray-500">
-//                 {isAutoPlaying ? 'Auto-scrolling' : 'Paused'}
-//               </span>
-//             </div>
-//           </div>
-//         </div>
-
-//         {/* Compact Bottom CTA */}
-//         <div className="text-center">
-//           <button className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-medium px-6 py-3 rounded-xl shadow transition-all duration-300 transform hover:scale-105">
-//             <MapPin className="h-4 w-4" />
-//             Explore All Destinations
-//             <ChevronRight className="h-4 w-4" />
-//           </button>
-//           <p className="mt-3 text-gray-600 text-sm">
-//             Join 35,000+ travelers exploring the world
-//           </p>
-//         </div>
-//       </div>
-
-//       {/* Hide scrollbar styles */}
-//       <style jsx>{`
-//         .scrollbar-hide {
-//           -ms-overflow-style: none;
-//           scrollbar-width: none;
-//         }
-//         .scrollbar-hide::-webkit-scrollbar {
-//           display: none;
-//         }
-//       `}</style>
-//     </section>
-//   );
-// };
-
-// export default InternationalToursSection;
-
-
-
-
-// import React, { useState, useEffect, useRef } from "react";
-// import { ChevronLeft, ChevronRight, MapPin, Star, Users, Calendar } from "lucide-react";
-
-// const internationalTours = [
-//   {
-//     id: 1,
-//     name: "Bali Tropical Paradise",
-//     location: "Indonesia",
-//     duration: "7 Days",
-//     price: "₹45,999",
-//     image: "https://images.pexels.com/photos/1483053/pexels-photo-1483053.jpeg?auto=compress&cs=tinysrgb&w=1200",
-//     rating: 4.8,
-//     travelers: 890,
-//     badge: "Beach"
-//   },
-//   {
-//     id: 2,
-//     name: "Swiss Alps Adventure",
-//     location: "Switzerland",
-//     duration: "8 Days",
-//     price: "₹89,999",
-//     image: "https://images.pexels.com/photos/206359/pexels-photo-206359.jpeg?auto=compress&cs=tinysrgb&w=1200",
-//     rating: 4.9,
-//     travelers: 670,
-//     badge: "Adventure"
-//   },
-//   {
-//     id: 3,
-//     name: "Tokyo City Experience",
-//     location: "Japan",
-//     duration: "6 Days",
-//     price: "₹65,999",
-//     image: "https://images.pexels.com/photos/2506923/pexels-photo-2506923.jpeg?auto=compress&cs=tinysrgb&w=1200",
-//     rating: 4.7,
-//     travelers: 1120,
-//     badge: "Cultural"
-//   },
-//   {
-//     id: 4,
-//     name: "Paris Romantic Getaway",
-//     location: "France",
-//     duration: "5 Days",
-//     price: "₹72,999",
-//     image: "https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg?auto=compress&cs=tinysrgb&w=1200",
-//     rating: 4.8,
-//     travelers: 950,
-//     badge: "Romantic"
-//   },
-//   {
-//     id: 5,
-//     name: "Dubai Luxury Escape",
-//     location: "UAE",
-//     duration: "4 Days",
-//     price: "₹55,999",
-//     image: "https://images.pexels.com/photos/1796715/pexels-photo-1796715.jpeg?auto=compress&cs=tinysrgb&w=1200",
-//     rating: 4.6,
-//     travelers: 1340,
-//     badge: "Luxury"
-//   },
-//   {
-//     id: 6,
-//     name: "Thailand Island Hopping",
-//     location: "Thailand",
-//     duration: "7 Days",
-//     price: "₹38,999",
-//     image: "https://images.pexels.com/photos/3293148/pexels-photo-3293148.jpeg?auto=compress&cs=tinysrgb&w=1200",
-//     rating: 4.7,
-//     travelers: 1560,
-//     badge: "Island"
-//   }
-// ];
-
-// const InternationalToursSection: React.FC = () => {
-//   const [visibleCards, setVisibleCards] = useState(4);
-//   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
-//   const scrollContainerRef = useRef<HTMLDivElement>(null);
-//   const animationRef = useRef<number>();
-//   const scrollPositionRef = useRef(0);
-//   const isManualScrollingRef = useRef(false);
-
-//   // Update visible cards based on screen size
-//   useEffect(() => {
-//     const updateVisibleCards = () => {
-//       if (window.innerWidth < 768) {
-//         setVisibleCards(1);
-//       } else if (window.innerWidth < 1024) {
-//         setVisibleCards(2);
-//       } else {
-//         setVisibleCards(4);
-//       }
-//     };
-
-//     updateVisibleCards();
-//     window.addEventListener('resize', updateVisibleCards);
-//     return () => window.removeEventListener('resize', updateVisibleCards);
-//   }, []);
-
-//   // Continuous smooth scrolling animation
-//   useEffect(() => {
-//     if (!isAutoPlaying || !scrollContainerRef.current || isManualScrollingRef.current) return;
-
-//     const scrollContainer = scrollContainerRef.current;
-//     const scrollWidth = scrollContainer.scrollWidth / 2; // Since we duplicated the cards
-//     const clientWidth = scrollContainer.clientWidth;
-
-//     const animateScroll = () => {
-//       scrollPositionRef.current += 0.8; // Adjust speed here (higher = faster)
-      
-//       // Reset to start when reaching the duplicated section
-//       if (scrollPositionRef.current >= scrollWidth) {
-//         scrollPositionRef.current = 0;
-//       }
-      
-//       scrollContainer.scrollLeft = scrollPositionRef.current;
-//       animationRef.current = requestAnimationFrame(animateScroll);
-//     };
-
-//     animationRef.current = requestAnimationFrame(animateScroll);
-
-//     return () => {
-//       if (animationRef.current) {
-//         cancelAnimationFrame(animationRef.current);
-//       }
-//     };
-//   }, [isAutoPlaying]);
-
-//   const nextSlide = () => {
-//     if (scrollContainerRef.current) {
-//       isManualScrollingRef.current = true;
-//       setIsAutoPlaying(false);
-      
-//       const scrollContainer = scrollContainerRef.current;
-//       const cardWidth = scrollContainer.scrollWidth / (internationalTours.length * 2);
-//       const scrollAmount = cardWidth * visibleCards;
-//       const newScrollPosition = scrollContainer.scrollLeft + scrollAmount;
-      
-//       scrollContainer.scrollTo({
-//         left: newScrollPosition,
-//         behavior: 'smooth'
-//       });
-
-//       // Update the scroll position reference
-//       scrollPositionRef.current = newScrollPosition;
-
-//       // Resume auto-play after a delay
-//       setTimeout(() => {
-//         isManualScrollingRef.current = false;
-//         setIsAutoPlaying(true);
-//       }, 3000); // Resume after 3 seconds
-//     }
-//   };
-
-//   const prevSlide = () => {
-//     if (scrollContainerRef.current) {
-//       isManualScrollingRef.current = true;
-//       setIsAutoPlaying(false);
-      
-//       const scrollContainer = scrollContainerRef.current;
-//       const cardWidth = scrollContainer.scrollWidth / (internationalTours.length * 2);
-//       const scrollAmount = cardWidth * visibleCards;
-//       let newScrollPosition = scrollContainer.scrollLeft - scrollAmount;
-      
-//       // Handle going backwards past the start
-//       if (newScrollPosition < 0) {
-//         newScrollPosition = scrollContainer.scrollWidth / 2 - scrollAmount;
-//       }
-      
-//       scrollContainer.scrollTo({
-//         left: newScrollPosition,
-//         behavior: 'smooth'
-//       });
-
-//       // Update the scroll position reference
-//       scrollPositionRef.current = newScrollPosition;
-
-//       // Resume auto-play after a delay
-//       setTimeout(() => {
-//         isManualScrollingRef.current = false;
-//         setIsAutoPlaying(true);
-//       }, 3000); // Resume after 3 seconds
-//     }
-//   };
-
-//   // Stop auto-play when hovering on any card
-//   const handleCardMouseEnter = () => {
-//     setIsAutoPlaying(false);
-//   };
-
-//   // Resume auto-play when leaving card
-//   const handleCardMouseLeave = () => {
-//     if (!isManualScrollingRef.current) {
-//       setIsAutoPlaying(true);
-//     }
-//   };
-
-//   return (
-//     <section className="py-0 bg-gradient-to-br from-sky-200 via-sky-200 to-sky-200">
-//       {/* Full Width Header Strip */}
-//       <div className="w-full bg-gradient-to-r from-[#0F1F5C] via-[#1F3F93] to-[#0F1F5C] py-8 mb-10 shadow-lg">
-//         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-//           <div className="text-center">
-//             <h2
-//               className="text-4xl md:text-6xl font-extrabold mb-4 tracking-tight"
-//               style={{
-//                 fontFamily: "'Baloo 2', sans-serif",
-//                 color: "white",
-//                 letterSpacing: "-2px",
-//                 textShadow: `
-//                   2px 2px 0 #1F3F93,
-//                   -2px -2px 0 #1F3F93,
-//                   0 0 18px rgba(255,255,255,0.65)
-//                 `,
-//               }}
-//             >
-//               International <span className="text-[#E31B23]">Tours</span>
-//             </h2>
-//           </div>
-//         </div>
-//       </div>
-
-//       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-//         {/* Carousel Container with Gradient Background */}
-//         <div 
-//           className="rounded-2xl shadow-lg p-6 mb-12 border border-gray-100 relative overflow-hidden"
-//           style={{
-//             background: 'radial-gradient(circle at center, #f8fafc 0%, #1F3F93 100%)',
-//           }}
-//         >
-//           {/* Additional overlay for better gradient effect */}
-//           <div 
-//             className="absolute inset-0 pointer-events-none"
-//             style={{
-//               background: 'radial-gradient(circle at center, transparent 30%, #0F1F5C 150%)',
-//             }}
-//           />
-          
-//           {/* Content */}
-//           <div className="relative z-10">
-//             {/* Carousel Header */}
-//             <div className="flex items-center justify-between mb-6">
-//               <div>
-//                 <h3 className="text-xl font-bold text-white drop-shadow-lg">
-//                   Global Destinations
-//                 </h3>
-//                 <p className="text-white/80 text-sm drop-shadow">
-//                   Curated experiences around the world
-//                 </p>
-//               </div>
-//               <div className="flex items-center gap-3">
-//                 <div className="flex items-center gap-2">
-//                   <button
-//                     onClick={prevSlide}
-//                     className="bg-red-600 hover:bg-red-700 text-white w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110 active:scale-95 border border-white/20"
-//                   >
-//                     <ChevronLeft className="h-4 w-4" />
-//                   </button>
-//                   <button
-//                     onClick={nextSlide}
-//                     className="bg-red-600 hover:bg-red-700 text-white w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110 active:scale-95 border border-white/20"
-//                   >
-//                     <ChevronRight className="h-4 w-4" />
-//                   </button>
-//                 </div>
-//               </div>
-//             </div>
-
-//             {/* Carousel Content */}
-//             <div className="relative">
-//               {/* Cards Container with Continuous Scroll */}
-//               <div 
-//                 ref={scrollContainerRef}
-//                 className="flex gap-4 overflow-x-auto scrollbar-hide"
-//                 style={{ 
-//                   scrollBehavior: 'auto',
-//                 }}
-//               >
-//                 {/* Duplicate cards for seamless looping */}
-//                 {[...internationalTours, ...internationalTours].map((tour, index) => (
-//                   <div
-//                     key={`${tour.id}-${index}`}
-//                     className="flex-shrink-0"
-//                     style={{ width: `calc(${100 / visibleCards}% - 16px)` }}
-//                     onMouseEnter={handleCardMouseEnter}
-//                     onMouseLeave={handleCardMouseLeave}
-//                   >
-//                     <div className="group cursor-pointer bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 h-full border border-white/20 backdrop-blur-sm">
-//                       {/* Tour Image */}
-//                       <div className="relative h-40 overflow-hidden">
-//                         <img
-//                           src={tour.image}
-//                           alt={tour.name}
-//                           className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
-//                         />
-                        
-//                         {/* Gradient Overlay */}
-//                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                        
-//                         {/* Badge */}
-//                         <div className="absolute top-2 left-2 z-10">
-//                           <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-bold text-white ${
-//                             tour.badge === "Beach" ? "bg-blue-500" :
-//                             tour.badge === "Adventure" ? "bg-green-500" :
-//                             tour.badge === "Cultural" ? "bg-purple-500" :
-//                             tour.badge === "Romantic" ? "bg-pink-500" :
-//                             tour.badge === "Luxury" ? "bg-yellow-500" :
-//                             "bg-teal-500"
-//                           } shadow-lg`}>
-//                             {tour.badge}
-//                           </span>
-//                         </div>
-                        
-//                         {/* Rating */}
-//                         <div className="absolute top-2 right-2 z-10 flex items-center gap-1 bg-black/70 backdrop-blur-sm rounded-full px-2 py-1 border border-white/20">
-//                           <Star className="h-3 w-3 text-yellow-400 fill-current" />
-//                           <span className="text-xs font-semibold text-white">{tour.rating}</span>
-//                         </div>
-//                       </div>
-
-//                       {/* Tour Content */}
-//                       <div className="p-4 bg-white/95 backdrop-blur-sm">
-//                         <div className="flex items-start justify-between mb-2">
-//                           <h3 className="text-sm font-semibold text-gray-900 group-hover:text-red-600 transition-colors duration-300 flex-1 pr-2 line-clamp-2">
-//                             {tour.name}
-//                           </h3>
-//                           <div className="text-right">
-//                             <div className="text-base font-bold text-red-600">{tour.price}</div>
-//                           </div>
-//                         </div>
-                        
-//                         <div className="flex items-center gap-1 text-gray-600 mb-2">
-//                           <MapPin className="h-3 w-3" />
-//                           <span className="text-xs">{tour.location}</span>
-//                         </div>
-                        
-//                         <div className="flex items-center justify-between text-xs text-gray-600 mb-3">
-//                           <div className="flex items-center gap-1">
-//                             <Calendar className="h-3 w-3" />
-//                             <span>{tour.duration}</span>
-//                           </div>
-//                           <div className="flex items-center gap-1">
-//                             <Users className="h-3 w-3" />
-//                             <span>{tour.travelers}+</span>
-//                           </div>
-//                         </div>
-                        
-//                         <button className="w-full bg-red-600 hover:bg-red-700 text-white text-sm font-medium py-2 px-3 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg border border-white/20">
-//                           View Details
-//                         </button>
-//                       </div>
-//                     </div>
-//                   </div>
-//                 ))}
-//               </div>
-
-//               {/* Auto-play Status Indicator */}
-//               <div className="flex justify-center items-center mt-6 gap-2">
-//                 <div className={`w-2 h-2 rounded-full ${
-//                   isAutoPlaying ? 'bg-green-400 animate-pulse' : 'bg-red-400'
-//                 } shadow-lg`} />
-//                 <span className="text-xs text-white drop-shadow-lg">
-//                   {isAutoPlaying ? 'Auto-scrolling' : 'Paused'}
-//                 </span>
-//               </div>
-//             </div>
-//           </div>
-//         </div>
-
-//         {/* Compact Bottom CTA */}
-//         <div className="text-center">
-//           <button className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-medium px-6 py-3 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105 border border-white/20">
-//             <MapPin className="h-4 w-4" />
-//             Explore All Destinations
-//             <ChevronRight className="h-4 w-4" />
-//           </button>
-//           <p className="mt-3 text-gray-700 text-sm font-medium">
-//             Join 35,000+ travelers exploring the world
-//           </p>
-//         </div>
-//       </div>
-
-//       {/* Hide scrollbar styles */}
-//       <style jsx>{`
-//         .scrollbar-hide {
-//           -ms-overflow-style: none;
-//           scrollbar-width: none;
-//         }
-//         .scrollbar-hide::-webkit-scrollbar {
-//           display: none;
-//         }
-//       `}</style>
-//     </section>
-//   );
-// };
-
-// export default InternationalToursSection;
-
-
-
-
-import React, { useState, useEffect, useRef } from "react";
-import { ChevronLeft, ChevronRight, MapPin, Star, Users, Calendar } from "lucide-react";
-import "./InternationalToursSection.css";
-
-const internationalTours = [
-  {
-    id: 1,
-    name: "Bali Tropical Paradise",
-    location: "Indonesia",
-    duration: "7 Days",
-    price: "₹45,999",
-    image: "https://images.pexels.com/photos/1483053/pexels-photo-1483053.jpeg?auto=compress&cs=tinysrgb&w=1200",
-    rating: 4.8,
-    travelers: 890,
-    badge: "Beach"
-  },
-  {
-    id: 2,
-    name: "Swiss Alps Adventure",
-    location: "Switzerland",
-    duration: "8 Days",
-    price: "₹89,999",
-    image: "https://images.pexels.com/photos/206359/pexels-photo-206359.jpeg?auto=compress&cs=tinysrgb&w=1200",
-    rating: 4.9,
-    travelers: 670,
-    badge: "Adventure"
-  },
-  {
-    id: 3,
-    name: "Tokyo City Experience",
-    location: "Japan",
-    duration: "6 Days",
-    price: "₹65,999",
-    image: "https://images.pexels.com/photos/2506923/pexels-photo-2506923.jpeg?auto=compress&cs=tinysrgb&w=1200",
-    rating: 4.7,
-    travelers: 1120,
-    badge: "Cultural"
-  },
-  {
-    id: 4,
-    name: "Paris Romantic Getaway",
-    location: "France",
-    duration: "5 Days",
-    price: "₹72,999",
-    image: "https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg?auto=compress&cs=tinysrgb&w=1200",
-    rating: 4.8,
-    travelers: 950,
-    badge: "Romantic"
-  },
-  {
-    id: 5,
-    name: "Dubai Luxury Escape",
-    location: "UAE",
-    duration: "4 Days",
-    price: "₹55,999",
-    image: "https://images.pexels.com/photos/1796715/pexels-photo-1796715.jpeg?auto=compress&cs=tinysrgb&w=1200",
-    rating: 4.6,
-    travelers: 1340,
-    badge: "Luxury"
-  },
-  {
-    id: 6,
-    name: "Thailand Island Hopping",
-    location: "Thailand",
-    duration: "7 Days",
-    price: "₹38,999",
-    image: "https://images.pexels.com/photos/3293148/pexels-photo-3293148.jpeg?auto=compress&cs=tinysrgb&w=1200",
-    rating: 4.7,
-    travelers: 1560,
-    badge: "Island"
-  }
-];
-
-const InternationalToursSection: React.FC = () => {
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { ChevronLeft, ChevronRight, MapPin } from "lucide-react";
+import "./DomesticToursSection.css";
+import { BASE_URL } from "../../ApiUrls";
+
+interface Destination {
+  destination_id: number;
+  name: string;
+  short_desc: string | null;
+  created_at: string;
+  country_name: string;
+  country_id: number;
+  is_domestic: number;
+}
+
+interface Tour {
+  id: number;
+  tour_id: string;
+  name: string;
+  location: string;
+  duration: string;
+  price: string;
+  image: string;
+  travelers: number;
+  emi: string;
+  tour_type: 'individual' | 'Group';
+  status: number;
+  display_order: number;
+  primary_destination_id?: number;
+  state?: string;
+  destination_name?: string;
+}
+
+const TourCarousel: React.FC<{ 
+  title: string; 
+  subtitle: string;
+  tourType: 'individual' | 'Group';
+}> = ({ title, subtitle, tourType }) => {
+  const navigate = useNavigate();
+  const [tours, setTours] = useState<Tour[]>([]);
+  const [filteredTours, setFilteredTours] = useState<Tour[]>([]);
+  const [destinations, setDestinations] = useState<Destination[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [destinationsLoading, setDestinationsLoading] = useState(true);
+  
   const [visibleCards, setVisibleCards] = useState(4);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number>();
   const scrollPositionRef = useRef(0);
   const isManualScrollingRef = useRef(false);
+  const [cardWidth, setCardWidth] = useState<string>('280px');
+  const [shouldDuplicate, setShouldDuplicate] = useState<boolean>(true);
 
-  // Update visible cards based on screen size
+  // Fetch destinations data
   useEffect(() => {
-    const updateVisibleCards = () => {
-      if (window.innerWidth < 768) {
-        setVisibleCards(1);
-      } else if (window.innerWidth < 1024) {
-        setVisibleCards(2);
-      } else {
-        setVisibleCards(4);
+    const fetchDestinations = async () => {
+      try {
+        setDestinationsLoading(true);
+        const response = await fetch(`${BASE_URL}/api/destinations/`);
+        const data = await response.json();
+        
+        if (data && Array.isArray(data)) {
+          setDestinations(data);
+        } else {
+          console.error('Invalid destinations data format:', data);
+          setDestinations([]);
+        }
+      } catch (err: any) {
+        console.error('Error fetching destinations:', err);
+        setDestinations([]);
+      } finally {
+        setDestinationsLoading(false);
       }
     };
 
-    updateVisibleCards();
-    window.addEventListener('resize', updateVisibleCards);
-    return () => window.removeEventListener('resize', updateVisibleCards);
+    fetchDestinations();
   }, []);
+
+  // Function to get destination name by ID
+  const getDestinationNameById = (destinationId: number): string => {
+    if (!destinations || destinations.length === 0) {
+      return `Destination ${destinationId}`;
+    }
+    
+    const destination = destinations.find(dest => dest.destination_id === destinationId);
+    return destination ? destination.name : `Destination ${destinationId}`;
+  };
+
+  // Fetch tours data
+  useEffect(() => {
+    const fetchTours = async () => {
+      try {
+        setLoading(true);
+        setError('');
+
+        // Use the correct API endpoint based on your API structure
+        const endpoint = tourType === 'individual' 
+          ? `${BASE_URL}/api/tours/tour/full/all-individual?is_international=true `
+          : `${BASE_URL}/api/tours/tour/full/all-group?is_international=true`;
+
+        const res = await fetch(endpoint);
+        const data = await res.json();
+console.log("data",data);
+        if (!data.success) {
+          throw new Error(data.error || 'Failed to fetch tours');
+        }
+
+        // Process the API data
+        const processedTours = data.data.map((tourData: any, index: number) => {
+          const tour = tourData.basic_details;
+          const images = tourData.images || [];
+          
+const emiPrice = parseFloat(tour.emi_price) || 0;
+const emiValue = emiPrice > 0 ? emiPrice : 0;
+          
+          // Get first image URL, or use placeholder
+          const firstImage = images.length > 0 ? images[0].url : 'https://via.placeholder.com/400x250';
+          
+          // Get destination name from destinations data
+          const primaryDestinationId = tour.primary_destination_id;
+          const destinationName = getDestinationNameById(primaryDestinationId);
+          
+          return {
+            id: tour.tour_id,
+            tour_id: tour.tour_code,
+            name: tour.title,
+            location: destinationName,
+            duration: `${tour.duration_days} Days`,
+            price: `₹${Number(tour.base_price_adult).toLocaleString('en-IN')}`,
+            image: firstImage,
+            travelers: 0,
+            emi: emiValue > 0 ? `₹${emiValue.toLocaleString('en-IN')}/month` : 'N/A',
+            tour_type: tour.tour_type,
+            status: tour.status || 0,
+            display_order: index + 1,
+            primary_destination_id: primaryDestinationId,
+            state: destinationName,
+            destination_name: destinationName
+          };
+        });
+
+        // Sort tours: status 1 first, then by display_order
+        const sortedTours = processedTours.sort((a: Tour, b: Tour) => {
+          if (b.status !== a.status) {
+            return b.status - a.status;
+          }
+          return a.display_order - b.display_order;
+        });
+
+        setTours(sortedTours);
+        
+        // Filter tours to only show those with status === 1
+        const activeTours = sortedTours.filter((t: Tour) => Number(t.status) === 1);
+        setFilteredTours(activeTours);
+        
+        // Don't duplicate if we have 3 or fewer tours
+        setShouldDuplicate(activeTours.length > 3);
+        
+      } catch (err: any) {
+        console.error('Error fetching tours:', err);
+        setError(err.message || 'Failed to load tours');
+        setTours([]);
+        setFilteredTours([]);
+        setShouldDuplicate(true);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (!destinationsLoading) {
+      fetchTours();
+    }
+  }, [tourType, destinationsLoading, destinations]);
+
+  // Function to handle View Packages button click
+  const handleViewPackages = (tour: Tour) => {
+    const tourState = tour.state || tour.destination_name || 'Unknown';
+    
+    const route = tourType === 'individual' 
+      ? `/intl-tours-packages/${encodeURIComponent(tourState)}`
+      : `/intl-tours_groups/${encodeURIComponent(tourState)}`;
+    
+    navigate(route, { 
+      state: { 
+        fromTour: true,
+        tourState: tourState,
+        tourType: tourType,
+        tourName: tour.name,
+        tourId: tour.id,
+        primary_destination_id: tour.primary_destination_id,
+        tourData: tour
+      }
+    });
+  };
+
+  // Update visible cards and card width based on screen size
+  useEffect(() => {
+    const updateCardSizes = () => {
+      if (window.innerWidth < 768) {
+        setVisibleCards(1);
+        setCardWidth('280px');
+      } else if (window.innerWidth < 1024) {
+        setVisibleCards(2);
+        setCardWidth('280px');
+      } else {
+        setVisibleCards(4);
+        setCardWidth('280px');
+      }
+    };
+
+    updateCardSizes();
+    window.addEventListener('resize', updateCardSizes);
+    return () => window.removeEventListener('resize', updateCardSizes);
+  }, []);
+
+  // Animation function - only animate if we have enough tours
+  const animateScroll = useCallback(() => {
+    if (!scrollContainerRef.current || filteredTours.length === 0 || !shouldDuplicate) return;
+    
+    const scrollContainer = scrollContainerRef.current;
+    const scrollWidth = scrollContainer.scrollWidth / 2;
+    
+    scrollPositionRef.current += 0.8;
+    
+    if (scrollPositionRef.current >= scrollWidth) {
+      scrollPositionRef.current = 0;
+    }
+    
+    scrollContainer.scrollLeft = scrollPositionRef.current;
+    
+    if (isAutoPlaying && !isManualScrollingRef.current && shouldDuplicate) {
+      animationRef.current = requestAnimationFrame(animateScroll);
+    }
+  }, [isAutoPlaying, filteredTours.length, shouldDuplicate]);
 
   // Continuous smooth scrolling animation
   useEffect(() => {
-    if (!isAutoPlaying || !scrollContainerRef.current || isManualScrollingRef.current) return;
-
-    const scrollContainer = scrollContainerRef.current;
-    const scrollWidth = scrollContainer.scrollWidth / 2; // Since we duplicated the cards
-    const clientWidth = scrollContainer.clientWidth;
-
-    const animateScroll = () => {
-      scrollPositionRef.current += 0.8; // Adjust speed here (higher = faster)
-      
-      // Reset to start when reaching the duplicated section
-      if (scrollPositionRef.current >= scrollWidth) {
-        scrollPositionRef.current = 0;
-      }
-      
-      scrollContainer.scrollLeft = scrollPositionRef.current;
-      animationRef.current = requestAnimationFrame(animateScroll);
-    };
-
+    if (!isAutoPlaying || !scrollContainerRef.current || filteredTours.length === 0 || !shouldDuplicate) return;
+    
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+    }
+    
+    scrollPositionRef.current = scrollContainerRef.current.scrollLeft;
     animationRef.current = requestAnimationFrame(animateScroll);
-
+    
     return () => {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [isAutoPlaying]);
+  }, [isAutoPlaying, filteredTours, animateScroll, shouldDuplicate]);
 
   const nextSlide = () => {
-    if (scrollContainerRef.current) {
+    if (scrollContainerRef.current && filteredTours.length > 0) {
       isManualScrollingRef.current = true;
       setIsAutoPlaying(false);
       
       const scrollContainer = scrollContainerRef.current;
-      const cardWidth = scrollContainer.scrollWidth / (internationalTours.length * 2);
-      const scrollAmount = cardWidth * visibleCards;
-      const newScrollPosition = scrollContainer.scrollLeft + scrollAmount;
+      const cardElement = scrollContainer.querySelector('.tour-card');
+      const cardWidth = cardElement ? cardElement.clientWidth + 16 : 296;
       
-      scrollContainer.scrollTo({
-        left: newScrollPosition,
-        behavior: 'smooth'
-      });
-
-      // Update the scroll position reference
-      scrollPositionRef.current = newScrollPosition;
-
-      // Resume auto-play after a delay
-      setTimeout(() => {
-        isManualScrollingRef.current = false;
-        setIsAutoPlaying(true);
-      }, 3000); // Resume after 3 seconds
-    }
-  };
-
-  const prevSlide = () => {
-    if (scrollContainerRef.current) {
-      isManualScrollingRef.current = true;
-      setIsAutoPlaying(false);
+      // Only scroll multiple cards if we have duplication enabled
+      const scrollAmount = shouldDuplicate 
+        ? cardWidth * Math.min(visibleCards, 3)
+        : cardWidth;
       
-      const scrollContainer = scrollContainerRef.current;
-      const cardWidth = scrollContainer.scrollWidth / (internationalTours.length * 2);
-      const scrollAmount = cardWidth * visibleCards;
-      let newScrollPosition = scrollContainer.scrollLeft - scrollAmount;
+      let newScrollPosition = scrollContainer.scrollLeft + scrollAmount;
       
-      // Handle going backwards past the start
-      if (newScrollPosition < 0) {
-        newScrollPosition = scrollContainer.scrollWidth / 2 - scrollAmount;
+      if (shouldDuplicate) {
+        const maxScroll = scrollContainer.scrollWidth - scrollContainer.clientWidth;
+        if (newScrollPosition >= maxScroll - 100) {
+          newScrollPosition = 0;
+        }
+      } else {
+        // For non-duplicated, just scroll within bounds
+        const maxScroll = scrollContainer.scrollWidth - scrollContainer.clientWidth;
+        if (newScrollPosition > maxScroll) {
+          newScrollPosition = 0;
+        }
       }
       
       scrollContainer.scrollTo({
@@ -1241,32 +288,282 @@ const InternationalToursSection: React.FC = () => {
         behavior: 'smooth'
       });
 
-      // Update the scroll position reference
       scrollPositionRef.current = newScrollPosition;
 
-      // Resume auto-play after a delay
       setTimeout(() => {
         isManualScrollingRef.current = false;
-        setIsAutoPlaying(true);
-      }, 3000); // Resume after 3 seconds
+        setIsAutoPlaying(shouldDuplicate); // Only auto-play if we have duplication
+      }, 3000);
     }
   };
 
-  // Stop auto-play when hovering on any card
+  const prevSlide = () => {
+    if (scrollContainerRef.current && filteredTours.length > 0) {
+      isManualScrollingRef.current = true;
+      setIsAutoPlaying(false);
+      
+      const scrollContainer = scrollContainerRef.current;
+      const cardElement = scrollContainer.querySelector('.tour-card');
+      const cardWidth = cardElement ? cardElement.clientWidth + 16 : 296;
+      const scrollAmount = shouldDuplicate 
+        ? cardWidth * Math.min(visibleCards, 3)
+        : cardWidth;
+      
+      let newScrollPosition = scrollContainer.scrollLeft - scrollAmount;
+      
+      if (newScrollPosition < 0) {
+        if (shouldDuplicate) {
+          newScrollPosition = scrollContainer.scrollWidth - scrollContainer.clientWidth;
+        } else {
+          newScrollPosition = 0;
+        }
+      }
+      
+      scrollContainer.scrollTo({
+        left: newScrollPosition,
+        behavior: 'smooth'
+      });
+
+      scrollPositionRef.current = newScrollPosition;
+
+      setTimeout(() => {
+        isManualScrollingRef.current = false;
+        setIsAutoPlaying(shouldDuplicate);
+      }, 3000);
+    }
+  };
+
   const handleCardMouseEnter = () => {
-    setIsAutoPlaying(false);
-  };
-
-  // Resume auto-play when leaving card
-  const handleCardMouseLeave = () => {
-    if (!isManualScrollingRef.current) {
-      setIsAutoPlaying(true);
+    if (shouldDuplicate) {
+      setIsAutoPlaying(false);
     }
   };
+
+  const handleCardMouseLeave = () => {
+    if (!isManualScrollingRef.current && shouldDuplicate) {
+      setTimeout(() => {
+        setIsAutoPlaying(true);
+      }, 100);
+    }
+  };
+
+  // Calculate which tours to display
+  const getToursToDisplay = () => {
+    if (filteredTours.length === 0) return [];
+    
+    if (shouldDuplicate) {
+      return [...filteredTours, ...filteredTours];
+    } else {
+      return filteredTours;
+    }
+  };
+
+  if (loading || destinationsLoading) {
+    return (
+      <div className="rounded-2xl shadow-lg p-6 mb-12 border border-gray-100 relative overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50">
+        <div className="text-center py-8">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-600 border-t-transparent mb-4"></div>
+          <p className="text-gray-600">Loading {tourType} tours...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error && tours.length === 0) {
+    return (
+      <div className="rounded-2xl shadow-lg p-6 mb-12 border border-gray-100 relative overflow-hidden bg-gradient-to-br from-red-50 to-pink-50">
+        <div className="text-center py-8">
+          <p className="text-red-600 mb-2">{error}</p>
+          <p className="text-gray-600">Showing sample data</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (filteredTours.length === 0 && tours.length > 0) {
+    return (
+      <div className="rounded-2xl shadow-lg p-6 mb-12 border border-gray-100 relative overflow-hidden bg-gradient-to-br from-yellow-50 to-orange-50">
+        <div className="text-center py-8">
+          <p className="text-yellow-600 mb-2">No active {tourType} tours available</p>
+          <p className="text-gray-600">All tours are currently inactive (status: 0)</p>
+        </div>
+      </div>
+    );
+  }
+
+  const toursToDisplay = getToursToDisplay();
 
   return (
+    <div 
+      className="rounded-2xl shadow-lg p-6 mb-12 border border-gray-100 relative overflow-hidden"
+      style={{
+        background: 'radial-gradient(circle at center, #5a92edff 0%, #4c70e7ff 30%, #0F1F5C 70%, #0A1128 100%)',
+      }}
+    >
+      <div 
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'radial-gradient(circle at center, rgba(59, 130, 246, 0.3) 0%, transparent 50%)',
+        }}
+      />
+      
+      <div className="relative z-10">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h3 className="text-xl font-bold text-white drop-shadow-lg">
+              {title}
+            </h3>
+            <p className="text-white/80 text-sm drop-shadow">
+              {subtitle}
+            </p>
+          </div>
+          {filteredTours.length > 1 && (
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={prevSlide}
+                  className="bg-blue-600 hover:bg-blue-700 text-white w-8 h-8 rounded-full flex items-center justify-center shadow transition-all duration-300 hover:scale-110 active:scale-95 border border-white/20"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={nextSlide}
+                  className="bg-blue-600 hover:bg-blue-700 text-white w-8 h-8 rounded-full flex items-center justify-center shadow transition-all duration-300 hover:scale-110 active:scale-95 border border-white/20"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="relative">
+          {filteredTours.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-white">No {tourType} tours available</p>
+            </div>
+          ) : (
+            <>
+              <div 
+                ref={scrollContainerRef}
+                className="flex gap-4 overflow-x-auto scrollbar-hide px-1"
+                style={{ 
+                  scrollBehavior: 'auto',
+                  cursor: 'grab',
+                  // Only add padding if we have multiple tours
+                  paddingLeft: filteredTours.length > 1 ? 'calc((100% - min(100%, 1200px)) / 2)' : '0',
+                  paddingRight: filteredTours.length > 1 ? 'calc((100% - min(100%, 1200px)) / 2)' : '0',
+                  // Center single card
+                  justifyContent: filteredTours.length === 1 ? 'center' : 'flex-start'
+                }}
+                onMouseDown={() => {
+                  if (shouldDuplicate) {
+                    setIsAutoPlaying(false);
+                    isManualScrollingRef.current = true;
+                  }
+                }}
+                onMouseUp={() => {
+                  if (shouldDuplicate) {
+                    isManualScrollingRef.current = false;
+                    setIsAutoPlaying(true);
+                  }
+                }}
+                onMouseLeave={() => {
+                  if (!isManualScrollingRef.current && shouldDuplicate) {
+                    setIsAutoPlaying(true);
+                  }
+                }}
+              >
+                {toursToDisplay.map((tour, index) => (
+                  <div
+                    key={`${tour.id}-${index}-${tourType}`}
+                    className="flex-shrink-0 tour-card"
+                    style={{ 
+                      width: cardWidth,
+                      minWidth: cardWidth,
+                      maxWidth: cardWidth
+                    }}
+                    onMouseEnter={handleCardMouseEnter}
+                    onMouseLeave={handleCardMouseLeave}
+                  >
+                    <div className="group cursor-pointer bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 h-full border border-gray-100 flex flex-col w-full">
+                      <div className="relative h-48 overflow-hidden flex-shrink-0">
+                        <img
+                          src={tour.image}
+                          alt={tour.name}
+                          className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
+                          onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = 'https://via.placeholder.com/400x250';
+                          }}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                        <div className="absolute top-2 left-2 z-10">
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold text-white bg-black/60 backdrop-blur-sm">
+                            {tour.tour_id}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="p-4 flex flex-col flex-grow w-full">
+                        <div className="flex items-start justify-between mb-2 w-full">
+                          <h3 className="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-300 flex-1 pr-2 line-clamp-2">
+                            {tour.name}
+                          </h3>
+                        </div>
+                        
+                        <div className="flex items-center gap-1 text-gray-600 mb-2 w-full">
+                          <MapPin className="h-3 w-3" />
+                          <span className="text-xs">{tour.location}</span>
+                        </div>
+                        
+                        <div className="mb-3 mt-auto w-full">
+                          <div className="flex items-center justify-between mb-1 w-full">
+                            <span className="text-sm font-semibold text-gray-700">Tour Cost</span>
+                            <p className="text-2xl font-bold text-gray-900">{tour.price}</p>
+                          </div>
+                          
+                          <div className="flex items-center justify-between w-full">
+                            <span className="text-sm text-gray-600">EMI per/month</span>
+                            <p className="text-sm font-bold text-gray-900">
+                              {tour.emi}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <button 
+                          onClick={() => handleViewPackages(tour)}
+                          className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-3 rounded-lg transition-all duration-300 transform hover:scale-105 active:scale-95 mt-auto"
+                        >
+                          View Packages
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {shouldDuplicate && filteredTours.length > 0 && (
+                <div className="flex justify-center items-center mt-6 gap-2">
+                  <div className={`w-3 h-3 rounded-full ${
+                    isAutoPlaying ? 'bg-green-400 animate-pulse' : 'bg-red-400'
+                  }`} />
+                  <span className="text-xs text-white drop-shadow-lg">
+                    {isAutoPlaying ? 'Auto-scrolling' : 'Paused'}
+                  </span>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const DomesticToursSection: React.FC = () => {
+  return (
     <section className="py-0 bg-gradient-to-br from-sky-200 via-sky-200 to-sky-200">
-      {/* Full Width Header Strip */}
       <div className="w-full bg-gradient-to-r from-[#0F1F5C] via-[#1F3F93] to-[#0F1F5C] py-8 mb-10 shadow-lg">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
@@ -1277,8 +574,8 @@ const InternationalToursSection: React.FC = () => {
                 color: "white",
                 letterSpacing: "-2px",
                 textShadow: `
-                  2px 2px 0 #1F3F93,
-                  -2px -2px 0 #1F3F93,
+                  2px 2px 0 #1F3F5C,
+                  -2px -2px 0 #1F3F5C,
                   0 0 18px rgba(255,255,255,0.65)
                 `,
               }}
@@ -1290,169 +587,28 @@ const InternationalToursSection: React.FC = () => {
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Compact Carousel Container with Gradient Background */}
-        <div 
-          className="rounded-2xl shadow-lg p-6 mb-12 border border-gray-100 relative overflow-hidden"
-          style={{
-            background: 'radial-gradient(circle at center, #5a92edff 0%, #4c70e7ff 30%, #0F1F5C 70%, #0A1128 100%)',
-          }}
-        >
-          {/* Additional Light Center Overlay */}
-          <div 
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              background: 'radial-gradient(circle at center, rgba(59, 130, 246, 0.3) 0%, transparent 50%)',
-            }}
-          />
-          
-          {/* Content */}
-          <div className="relative z-10">
-            {/* Carousel Header */}
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h3 className="text-xl font-bold text-white drop-shadow-lg">
-                  International Tours
-                </h3>
-                <p className="text-white/80 text-sm drop-shadow">
-                  Curated experiences around the world
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={prevSlide}
-                    className="bg-red-600 hover:bg-red-700 text-white w-8 h-8 rounded-full flex items-center justify-center shadow transition-all duration-300 hover:scale-110 active:scale-95 border border-white/20"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={nextSlide}
-                    className="bg-red-600 hover:bg-red-700 text-white w-8 h-8 rounded-full flex items-center justify-center shadow transition-all duration-300 hover:scale-110 active:scale-95 border border-white/20"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-            </div>
+        <TourCarousel 
+          title="International  Individual  Tours"
+          subtitle=""
+          tourType="individual"
+        />
 
-            {/* Carousel Content */}
-            <div className="relative">
-              {/* Cards Container with Continuous Scroll */}
-              <div 
-                ref={scrollContainerRef}
-                className="flex gap-4 overflow-x-auto scrollbar-hide"
-                style={{ 
-                  scrollBehavior: 'auto',
-                }}
-              >
-                {/* Duplicate cards for seamless looping */}
-                {[...internationalTours, ...internationalTours].map((tour, index) => (
-                  <div
-                    key={`${tour.id}-${index}`}
-                    className="flex-shrink-0"
-                    style={{ width: `calc(${100 / visibleCards}% - 16px)` }}
-                    onMouseEnter={handleCardMouseEnter}
-                    onMouseLeave={handleCardMouseLeave}
-                  >
-                    <div className="group cursor-pointer bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 h-full border border-gray-100">
-                      {/* Tour Image */}
-                      <div className="relative h-40 overflow-hidden">
-                        <img
-                          src={tour.image}
-                          alt={tour.name}
-                          className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
-                        />
-                        
-                        {/* Gradient Overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-                        
-                        {/* Badge */}
-                        <div className="absolute top-2 left-2 z-10">
-                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-bold text-white ${
-                            tour.badge === "Beach" ? "bg-blue-500" :
-                            tour.badge === "Adventure" ? "bg-green-500" :
-                            tour.badge === "Cultural" ? "bg-purple-500" :
-                            tour.badge === "Romantic" ? "bg-pink-500" :
-                            tour.badge === "Luxury" ? "bg-yellow-500" :
-                            "bg-teal-500"
-                          }`}>
-                            {tour.badge}
-                          </span>
-                        </div>
-                        
-                        {/* Rating */}
-                        <div className="absolute top-2 right-2 z-10 flex items-center gap-1 bg-black/50 backdrop-blur-sm rounded-full px-2 py-1">
-                          <Star className="h-3 w-3 text-yellow-400 fill-current" />
-                          <span className="text-xs font-semibold text-white">{tour.rating}</span>
-                        </div>
-                      </div>
+        <TourCarousel 
+          title="International Group Tours"
+          subtitle="Shared adventures with fellow travelers"
+          tourType="Group"
+        />
 
-                      {/* Tour Content */}
-                      <div className="p-4">
-                        <div className="flex items-start justify-between mb-2">
-                          <h3 className="text-sm font-semibold text-gray-900 group-hover:text-red-600 transition-colors duration-300 flex-1 pr-2 line-clamp-2">
-                            {tour.name}
-                          </h3>
-                          <div className="text-right">
-                            <div className="text-base font-bold text-red-600">{tour.price}</div>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center gap-1 text-gray-600 mb-2">
-                          <MapPin className="h-3 w-3" />
-                          <span className="text-xs">{tour.location}</span>
-                        </div>
-                        
-                        <div className="flex items-center justify-between text-xs text-gray-600 mb-3">
-                          <div className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            <span>{tour.duration}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Users className="h-3 w-3" />
-                            <span>{tour.travelers}+</span>
-                          </div>
-                        </div>
-                        
-                        <button className="w-full bg-red-600 hover:bg-red-700 text-white text-sm font-medium py-2 px-3 rounded-lg transition-all duration-300 transform hover:scale-105">
-                          View Details
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Auto-play Status Indicator */}
-              <div className="flex justify-center items-center mt-6 gap-2">
-                <div className={`w-2 h-2 rounded-full ${
-                  isAutoPlaying ? 'bg-green-400 animate-pulse' : 'bg-red-400'
-                }`} />
-                <span className="text-xs text-white drop-shadow-lg">
-                  {isAutoPlaying ? 'Auto-scrolling' : 'Paused'}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Compact Bottom CTA */}
         <div className="text-center">
-          <button className="inline-flex items-center mb-6 gap-2 bg-red-600 hover:bg-red-700 text-white font-medium px-6 py-3 rounded-xl shadow transition-all duration-300 transform hover:scale-105 border border-white/20">
+          <button className="inline-flex mb-6 items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-xl shadow transition-all duration-300 transform hover:scale-105 border border-white/20">
             <MapPin className="h-4 w-4" />
-            Explore All Destinations
+            View All Tours
             <ChevronRight className="h-4 w-4" />
           </button>
-          {/* <p className="mt-3 text-gray-600 text-sm">
-            Join 35,000+ travelers exploring the world
-          </p> */}
         </div>
       </div>
-
-      
-     
     </section>
   );
 };
 
-export default InternationalToursSection;
+export default DomesticToursSection;

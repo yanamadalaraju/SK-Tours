@@ -128,7 +128,7 @@ const TourPackages = () => {
             try {
               // Note: Changed from /full/individual/ to /full/group/ for group tours
               const res = await fetch(
-                `${BASE_URL}/api/tours/tour/full/intl/group/${tour.tour_id}`
+                `${BASE_URL}/api/tours/tour/full/group/${tour.tour_id}`
               );
               const data = await res.json();
 
@@ -245,7 +245,9 @@ const TourPackages = () => {
       // Get EMI price from stored data (already fetched for groups)
       const emiData = tourEmiData[tour.tour_id];
       const emiPrice = emiData?.emiPrice || "0";
-      
+              const basicDetails = emiData?.basicDetails || {};  // Extract basicDetails here
+       const isInternational = basicDetails.is_international === 1;
+
       // Format EMI price (remove the /12 calculation and use dynamic value)
       const formattedEmi = emiPrice !== "0" ? `₹${parseFloat(emiPrice).toLocaleString()}` : "₹0";
 
@@ -265,6 +267,8 @@ const TourPackages = () => {
         locationTags: [tour.primary_destination_name || ""],
         tourType: tour.tour_type,
         rawTourType: tour.tour_type,
+                   is_international: isInternational
+
       };
     });
   };
@@ -745,14 +749,25 @@ const TourPackages = () => {
 
                         {/* Buttons */}
                         <div className="flex gap-2 mt-0">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="flex-1 border-[#2E4D98] text-[#2E4D98] hover:bg-[#2E4D98] hover:text-white"
-                            onClick={() => navigate(`/tour/${tour.id}`)}
-                          >
-                            View Tour
-                          </Button>
+                     <Button
+                       size="sm"
+                       variant="outline"
+                       className="flex-1 border-[#2E4D98] text-[#2E4D98] hover:bg-[#2E4D98] hover:text-white"
+                       onClick={() => {
+                         console.log("Tour object:", tour); // Add this for debugging
+                         console.log("is_international value:", tour.is_international); // Add this for debugging
+                         console.log("Type of is_international:", typeof tour.is_international); // Add this for debugging
+                         
+                         // Check if it's an international tour
+                         if (tour.is_international === true) {
+                           navigate(`/international_tour_details/${tour.id}`);
+                         } else {
+                           navigate(`/tour_details/${tour.id}`); 
+                         }
+                       }}
+                     >
+                       View Tour
+                     </Button>  
                           <Button 
                             size="sm" 
                             className="flex-1 bg-[#E53C42] hover:bg-[#E53C42] hover:opacity-90 text-white"

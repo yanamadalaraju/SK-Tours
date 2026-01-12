@@ -98,8 +98,8 @@ const TourCarousel: React.FC<{
 
         // Use the correct API endpoint based on your API structure
         const endpoint = tourType === 'individual' 
-          ? `${BASE_URL}/api/tours/tour/full/all-individual`
-          : `${BASE_URL}/api/tours/tour/full/all-group`;
+          ? `${BASE_URL}/api/tours/tour/full/all-individual?is_international=false `
+          : `${BASE_URL}/api/tours/tour/full/all-group?is_international=false`;
 
         const res = await fetch(endpoint);
         const data = await res.json();
