@@ -202,252 +202,252 @@ const ContactPage = () => {
         )}
 
         {/* Contact Information */}
-        <section className="py-20 border-b border-gray-100">
-          <div className="max-w-6xl mx-auto px-4">
+    <section className="py-20 border-b border-gray-100">
+  <div className="max-w-6xl mx-auto px-4">
     <div className="grid md:grid-cols-3 gap-8 mb-16">
-  <div className="relative pl-14"> {/* Increased from pl-10 to pl-14 */}
-    <div className="absolute left-0 top-0 w-12 h-12 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-lg flex items-center justify-center">
-      <Phone className="w-6 h-6 text-white" />
+      <div className="relative pl-14">
+        <div className="absolute left-0 top-0 w-12 h-12 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-lg flex items-center justify-center">
+          <Phone className="w-6 h-6 text-white" />
+        </div>
+        <h3 className="text-xl font-bold text-gray-900 mb-3">Phone Support</h3>
+        <div className="space-y-1">
+          <a 
+            href="tel:+919820870771" 
+            className="block text-lg text-gray-700 hover:text-blue-600 transition-colors"
+          >
+            +91 98208 70771
+          </a>
+        </div>
+        <p className="text-gray-500 text-sm mt-3">24/7 emergency support available</p>
+      </div>
+      
+      <div className="relative pl-14">
+        <div className="absolute left-0 top-0 w-12 h-12 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-lg flex items-center justify-center">
+          <Mail className="w-6 h-6 text-white" />
+        </div>
+        <h3 className="text-xl font-bold text-gray-900 mb-3">Email Contact</h3>
+        <div className="space-y-1">
+          <a 
+            href="mailto:salil@sktt.in" 
+            className="block text-lg text-gray-700 hover:text-blue-600 transition-colors"
+          >
+            salil@sktt.in
+          </a>
+        </div>
+        <p className="text-gray-500 text-sm mt-3">Response within 2 working hours</p>
+      </div>
+      
+      <div className="relative pl-14">
+        <div className="absolute left-0 top-0 w-12 h-12 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-lg flex items-center justify-center">
+          <Headphones className="w-6 h-6 text-white" />
+        </div>
+        <h3 className="text-xl font-bold text-gray-900 mb-3">WhatsApp Support</h3>
+        <a 
+          href="https://wa.me/919820870771" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="block text-lg text-gray-700 hover:text-blue-600 transition-colors"
+        >
+          +91 98208 70771
+        </a>
+        <p className="text-gray-500 text-sm mt-3">Quick responses for instant queries</p>
+      </div>
     </div>
-    <h3 className="text-xl font-bold text-gray-900 mb-3">Phone Support</h3>
-    <div className="space-y-1">
-      <a href="tel:+919876543210" className="block text-lg text-gray-700 hover:text-blue-600 transition-colors">
-        +91 98765 43210
-      </a>
-      <a href="tel:+911234567890" className="block text-lg text-gray-700 hover:text-blue-600 transition-colors">
-        +91 12345 67890
-      </a>
-    </div>
-    <p className="text-gray-500 text-sm mt-3">24/7 emergency support available</p>
-  </div>
-  
-  <div className="relative pl-14"> {/* Increased from pl-10 to pl-14 */}
-    <div className="absolute left-0 top-0 w-12 h-12 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-lg flex items-center justify-center">
-      <Mail className="w-6 h-6 text-white" />
-    </div>
-    <h3 className="text-xl font-bold text-gray-900 mb-3">Email Contact</h3>
-    <div className="space-y-1">
-      <a href="mailto:info@sktours.com" className="block text-lg text-gray-700 hover:text-blue-600 transition-colors">
-        info@sktours.com
-      </a>
-      <a href="mailto:bookings@sktours.com" className="block text-lg text-gray-700 hover:text-blue-600 transition-colors">
-        bookings@sktours.com
-      </a>
-    </div>
-    <p className="text-gray-500 text-sm mt-3">Response within 2 working hours</p>
-  </div>
-  
-  <div className="relative pl-14"> {/* Increased from pl-10 to pl-14 */}
-    <div className="absolute left-0 top-0 w-12 h-12 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-lg flex items-center justify-center">
-      <Headphones className="w-6 h-6 text-white" />
-    </div>
-    <h3 className="text-xl font-bold text-gray-900 mb-3">WhatsApp Support</h3>
-    <a 
-      href="https://wa.me/919876543210" 
-      target="_blank" 
-      rel="noopener noreferrer"
-      className="block text-lg text-gray-700 hover:text-blue-600 transition-colors"
-    >
-      +91 98765 43210
-    </a>
-    <p className="text-gray-500 text-sm mt-3">Quick responses for instant queries</p>
-  </div>
-</div>
 
-            {/* Main Contact Form */}
-            <div className="max-w-4xl mx-auto">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                  Send Us Your Inquiry
-                </h2>
-                <p className="text-gray-600 max-w-2xl mx-auto">
-                  Fill out the form below and our travel specialists will prepare a customized proposal for you.
-                </p>
-              </div>
+    {/* Main Contact Form */}
+    <div className="max-w-4xl mx-auto">
+      <div className="text-center mb-12">
+        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          Send Us Your Inquiry
+        </h2>
+        <p className="text-gray-600 max-w-2xl mx-auto">
+          Fill out the form below and our travel specialists will prepare a customized proposal for you.
+        </p>
+      </div>
 
-              <form onSubmit={handleSubmit} className="space-y-8">
-                {/* Personal Information */}
-                <div className="border-b border-gray-200 pb-8">
-                  <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
-                    <User className="w-5 h-5 mr-2 text-blue-600" />
-                    Personal Information
-                  </h3>
-                  <div className="grid md:grid-cols-3 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Full Name *
-                      </label>
-                      <input
-                        type="text"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleChange}
-                        required
-                        minLength={2}
-                        maxLength={100}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-                        placeholder="Enter your full name"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Email Address *
-                      </label>
-                      <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-                        placeholder="your.email@example.com"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Phone Number *
-                      </label>
-                      <input
-                        type="tel"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleChange}
-                        required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-                        placeholder="+91 98765 43210"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Travel Details */}
-                <div className="border-b border-gray-200 pb-8">
-                  <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
-                    <Globe className="w-5 h-5 mr-2 text-blue-600" />
-                    Travel Details
-                  </h3>
-                  <div className="grid md:grid-cols-3 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Destination Interest
-                      </label>
-                      <select
-                        name="destination"
-                        value={formData.destination}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors bg-white"
-                      >
-                        <option value="">Select destination</option>
-                        <option value="domestic">Domestic (India)</option>
-                        <option value="international">International</option>
-                        <option value="europe">Europe</option>
-                        <option value="asia">Southeast Asia</option>
-                        <option value="middle-east">Middle East</option>
-                        <option value="usa">USA & Canada</option>
-                        <option value="australia">Australia & NZ</option>
-                      </select>
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Travel Date
-                      </label>
-                      <input
-                        type="date"
-                        name="travelDate"
-                        value={formData.travelDate}
-                        onChange={handleChange}
-                        min={new Date().toISOString().split('T')[0]}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Number of Travelers
-                      </label>
-                      <select
-                        name="travelers"
-                        value={formData.travelers}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors bg-white"
-                      >
-                        <option value="">Select</option>
-                        <option value="1">1 Traveler</option>
-                        <option value="2">2 Travelers</option>
-                        <option value="3-4">3-4 Travelers</option>
-                        <option value="5-10">5-10 Travelers</option>
-                        <option value="10+">10+ Travelers</option>
-                        <option value="corporate">Corporate Group</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Message */}
-                <div className="pb-8">
-                  <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
-                    <MessageCircle className="w-5 h-5 mr-2 text-blue-600" />
-                    Your Requirements
-                  </h3>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Detailed Message *
-                    </label>
-                    <textarea
-                      name="message"
-                      value={formData.message}
-                      onChange={handleChange}
-                      required
-                      minLength={10}
-                      maxLength={2000}
-                      rows={6}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors resize-none"
-                      placeholder="Please describe your travel requirements, preferred activities, budget range, and any special requests..."
-                    ></textarea>
-                    <div className="text-right text-sm text-gray-500 mt-1">
-                      {formData.message.length}/2000 characters
-                    </div>
-                  </div>
-                </div>
-
-                {/* Submit Section */}
-                <div className="flex flex-col sm:flex-row items-center justify-between pt-8 border-t border-gray-200">
-                  <div className="flex items-center gap-3 mb-4 sm:mb-0">
-                    <Shield className="w-5 h-5 text-emerald-500" />
-                    <span className="text-sm text-gray-600">
-                      Your information is protected and will not be shared
-                    </span>
-                  </div>
-                  
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className={`px-10 py-4 rounded-lg font-bold text-white flex items-center gap-3 transition-all duration-300 ${
-                      isSubmitting 
-                        ? 'bg-gray-400 cursor-not-allowed' 
-                        : 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:shadow-xl hover:translate-y-[-2px]'
-                    }`}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        Submitting...
-                      </>
-                    ) : (
-                      <>
-                        <Send className="w-5 h-5" />
-                        Submit Inquiry
-                      </>
-                    )}
-                  </button>
-                </div>
-              </form>
+      <form onSubmit={handleSubmit} className="space-y-8">
+        {/* Personal Information */}
+        <div className="border-b border-gray-200 pb-8">
+          <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+            <User className="w-5 h-5 mr-2 text-blue-600" />
+            Personal Information
+          </h3>
+          <div className="grid md:grid-cols-3 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Full Name *
+              </label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                required
+                minLength={2}
+                maxLength={100}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+                placeholder="Enter your full name"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Email Address *
+              </label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+                placeholder="your.email@example.com"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Phone Number *
+              </label>
+              <input
+                type="tel"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                required
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+                placeholder="+91 98765 43210"
+              />
             </div>
           </div>
-        </section>
+        </div>
+
+        {/* Travel Details */}
+        <div className="border-b border-gray-200 pb-8">
+          <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+            <Globe className="w-5 h-5 mr-2 text-blue-600" />
+            Travel Details
+          </h3>
+          <div className="grid md:grid-cols-3 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Destination Interest
+              </label>
+              <select
+                name="destination"
+                value={formData.destination}
+                onChange={handleChange}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors bg-white"
+              >
+                <option value="">Select destination</option>
+                <option value="domestic">Domestic (India)</option>
+                <option value="international">International</option>
+                <option value="europe">Europe</option>
+                <option value="asia">Southeast Asia</option>
+                <option value="middle-east">Middle East</option>
+                <option value="usa">USA & Canada</option>
+                <option value="australia">Australia & NZ</option>
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Travel Date
+              </label>
+              <input
+                type="date"
+                name="travelDate"
+                value={formData.travelDate}
+                onChange={handleChange}
+                min={new Date().toISOString().split('T')[0]}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Number of Travelers
+              </label>
+              <select
+                name="travelers"
+                value={formData.travelers}
+                onChange={handleChange}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors bg-white"
+              >
+                <option value="">Select</option>
+                <option value="1">1 Traveler</option>
+                <option value="2">2 Travelers</option>
+                <option value="3-4">3-4 Travelers</option>
+                <option value="5-10">5-10 Travelers</option>
+                <option value="10+">10+ Travelers</option>
+                <option value="corporate">Corporate Group</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Message */}
+        <div className="pb-8">
+          <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+            <MessageCircle className="w-5 h-5 mr-2 text-blue-600" />
+            Your Requirements
+          </h3>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Detailed Message *
+            </label>
+            <textarea
+              name="message"
+              value={formData.message}
+              onChange={handleChange}
+              required
+              minLength={10}
+              maxLength={2000}
+              rows={6}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors resize-none"
+              placeholder="Please describe your travel requirements, preferred activities, budget range, and any special requests..."
+            ></textarea>
+            <div className="text-right text-sm text-gray-500 mt-1">
+              {formData.message.length}/2000 characters
+            </div>
+          </div>
+        </div>
+
+        {/* Submit Section */}
+        <div className="flex flex-col sm:flex-row items-center justify-between pt-8 border-t border-gray-200">
+          <div className="flex items-center gap-3 mb-4 sm:mb-0">
+            <Shield className="w-5 h-5 text-emerald-500" />
+            <span className="text-sm text-gray-600">
+              Your information is protected and will not be shared
+            </span>
+          </div>
+          
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className={`px-10 py-4 rounded-lg font-bold text-white flex items-center gap-3 transition-all duration-300 ${
+              isSubmitting 
+                ? 'bg-gray-400 cursor-not-allowed' 
+                : 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:shadow-xl hover:translate-y-[-2px]'
+            }`}
+          >
+            {isSubmitting ? (
+              <>
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                Submitting...
+              </>
+            ) : (
+              <>
+                <Send className="w-5 h-5" />
+                Submit Inquiry
+              </>
+            )}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
 
         {/* Office Information */}
         <section className="py-20 bg-gray-50">
@@ -466,13 +466,13 @@ const ContactPage = () => {
                     </h3>
                     <div className="space-y-3 pl-7">
                       <p className="text-gray-700">
-                        <strong>Address:</strong> 123 Travel Street, Colaba, Mumbai - 400001
+                        <strong>Address:</strong> Dadar West, Mumbai 400028 INDIA
                       </p>
                       <p className="text-gray-700">
-                        <strong>Landline:</strong> +91 22 1234 5678
+                        <strong>Landline:</strong> +919820870771
                       </p>
                       <p className="text-gray-700">
-                        <strong>Email:</strong> corporate@sktours.com
+                        <strong>Email:</strong> salil@sktt.in 
                       </p>
                     </div>
                   </div>
