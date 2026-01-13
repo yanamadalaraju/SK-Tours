@@ -192,7 +192,7 @@ const International_Tourdetails = () => {
   const [openIndex, setOpenIndex] = useState(null);
   const [selectedCostMonth, setSelectedCostMonth] = useState("");
   const [selectedCostDate, setSelectedCostDate] = useState("");
-  
+  const [activeVisaFeeType, setActiveVisaFeeType] = useState('tourist');
   // New state for dynamic data
   const [tour, setTour] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -2135,7 +2135,7 @@ const International_Tourdetails = () => {
 {tour.visaForms.length > 0 && tour.visaForms[0].remarks && (
   <div className="w-full">
     <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
-      Remarks
+     Visa Form Remarks
     </div>
     <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
       <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-4 bg-[#FFEBEE] w-full">
@@ -2181,110 +2181,164 @@ const International_Tourdetails = () => {
                         </div>
                       </div>
                     )}
+{activeVisaTab === 'fees' && (
+  <div className="space-y-4 mt-1">
+    <div className="overflow-x-auto w-full">
+      {/* Visa Type Selection Header - Same style as main tabs */}
+      <div className="flex bg-white border border-black rounded-t-lg overflow-hidden mb-0">
+        {[
+          "Tourist Visa",
+          "Transit Visa", 
+          "Business Visa",
+          "Visa & VFS & Other Charges"
+        ].map((label, idx) => {
+          const tabMap = {
+            "Tourist Visa": "tourist",
+            "Transit Visa": "transit",
+            "Business Visa": "business",
+            "Visa & VFS & Other Charges": "charges"
+          };
 
-                    {activeVisaTab === 'fees' && (
-                      <div className="space-y-4">
-                        <div className="overflow-x-auto w-full">
-                          <table className="w-full border-collapse min-w-max border border-gray-300 mt-1">
-                            <thead>
-                              <tr className="bg-[#2E4D98] text-white text-center">
-                                <th className="border border-white px-4 py-3" colSpan="2">Tourist Visa</th>
-                                <th className="border border-white px-4 py-3" colSpan="2">Transit Visa</th>
-                                <th className="border border-white px-4 py-3" colSpan="2">Business Visa</th>
-                                <th className="border border-white px-4 py-3" colSpan="1">Visa & VFS Other Charges</th>
-                              </tr>
-                              <tr className="bg-[#2E4D98] text-white text-center">
-                                <th className="border border-white px-4 py-3">Description</th>
-                                <th className="border border-white px-4 py-3">Charges</th>
-                                <th className="border border-white px-4 py-3">Description</th>
-                                <th className="border border-white px-4 py-3">Charges</th>
-                                <th className="border border-white px-4 py-3">Description</th>
-                                <th className="border border-white px-4 py-3">Charges</th>
-                                <th className="border border-white px-4 py-3">Charges</th>
-                              </tr>
-                            </thead>
-                            <tbody className="border-2 border-[#1e3a8a] border-t-0">
-                              {tour.visaFees.length > 0 ? (
-                                tour.visaFees.map((fee, index) => (
-                                  <tr key={index} className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}>
-                                    <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap" colSpan="1">
-                                      {fee.tourist}
-                                    </td>
-                                    <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap" colSpan="1">
-                                      {fee.touristCharges}
-                                    </td>
-                                    <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap" colSpan="1">
-                                      {fee.transit}
-                                    </td>
-                                    <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap" colSpan="1">
-                                      {fee.transitCharges}
-                                    </td>
-                                    <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap" colSpan="1">
-                                      {fee.business}
-                                    </td>
-                                    <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap" colSpan="1">
-                                      {fee.businessCharges}
-                                    </td>
-                                    <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap" colSpan="1">
-                                      {fee.charges}
-                                    </td>
-                                  </tr>
-                                ))
-                              ) : (
-                                <tr className="bg-[#FFEBEE]">
-                                  <td className="border border-black px-4 py-3 text-center" colSpan="7">
-                                    No visa fee information available
-                                  </td>
-                                </tr>
-                              )}
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-                    )}
+          const tabKey = tabMap[label];
+          const isLastTab = idx === 3;
 
-                    {activeVisaTab === 'time' && (
-                      <div className="space-y-4">
-                        <div className="overflow-x-auto w-full">
-                          <table className="w-full border-collapse min-w-max border border-gray-300 mt-1">
-                            <thead>
-                              <tr className="bg-[#2E4D98] text-white text-center">
-                                <th className="border border-white px-4 py-3 w-1/4">Label</th>
-                                <th className="border border-white px-4 py-3 w-1/4">Tourist Visa</th>
-                                <th className="border border-white px-4 py-3 w-1/4">Transit Visa</th>
-                                <th className="border border-white px-4 py-3 w-1/4">Business Visa</th>
-                              </tr>
-                            </thead>
-                            <tbody className="border-2 border-[#1e3a8a] border-t-0">
-                              {tour.visaSubmission.length > 0 ? (
-                                tour.visaSubmission.map((sub, index) => (
-                                  <tr key={index} className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}>
-                                    <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap">
-                                      {sub.label}
-                                    </td>
-                                    <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap">
-                                      {sub.tourist}
-                                    </td>
-                                    <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap">
-                                      {sub.transit}
-                                    </td>
-                                    <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap">
-                                      {sub.business}
-                                    </td>
-                                  </tr>
-                                ))
-                              ) : (
-                                <tr className="bg-[#FFEBEE]">
-                                  <td className="border border-black px-4 py-3 text-center" colSpan="4">
-                                    No submission information available
-                                  </td>
-                                </tr>
-                              )}
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-                    )}
+          // Determine which button should be active
+          let isActive = false;
+          if (tabKey === 'tourist' && activeVisaFeeType === 'tourist') isActive = true;
+          if (tabKey === 'transit' && activeVisaFeeType === 'transit') isActive = true;
+          if (tabKey === 'business' && activeVisaFeeType === 'business') isActive = true;
+
+          return (
+            <button
+              key={label}
+              onClick={() => {
+                if (tabKey !== 'charges') {
+                  setActiveVisaFeeType(tabKey);
+                }
+              }}
+              className={`px-2 py-3 text-sm font-semibold text-center whitespace-nowrap border-r border-black last:border-r-0 transition 
+                ${
+                  (isActive && tabKey !== 'charges')
+                    ? "bg-[#A72703] text-white"
+                    : "bg-[#FFE797] text-gray-800 hover:bg-[#FFE797]/90"
+                }
+                ${tabKey === 'charges' ? 'cursor-default hover:bg-[#FFE797]' : 'cursor-pointer'}
+              `}
+              style={{
+                flex: isLastTab ? '1.3' : '1'
+              }}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
+
+      <table className="w-full border-collapse border border-gray-300 border-t-0">
+      <tbody className="border-2 border-[#1e3a8a]">
+  {/* Show only actual data if available */}
+  {activeVisaFeeType && tour.visaFees.length > 0 ? (
+    tour.visaFees.map((fee, index) => (
+      <tr key={index} className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}>
+        {/* Free Flow Entry Column */}
+        <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap w-[47%]">
+          {activeVisaFeeType === 'tourist' && (fee.tourist || 'Free Flow Entry')}
+          {activeVisaFeeType === 'transit' && (fee.transit || 'Free Flow Entry')}
+          {activeVisaFeeType === 'business' && (fee.business || 'Free Flow Entry')}
+        </td>
+        
+        {/* Visa Type Charges Column */}
+        <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap w-[20%] text-center">
+          {activeVisaFeeType === 'tourist' && (fee.touristCharges || 'N/A')}
+          {activeVisaFeeType === 'transit' && (fee.transitCharges || 'N/A')}
+          {activeVisaFeeType === 'business' && (fee.businessCharges || 'N/A')}
+        </td>
+        
+    
+      </tr>
+    ))
+  ) : (
+    // Show message when no data or no visa type selected
+    <tr className="bg-[#FFEBEE]">
+      <td className="border border-black px-4 py-3 text-center" colSpan="3">
+        {activeVisaFeeType ? 'No fee data available' : 'Select a visa type to view fees'}
+      </td>
+    </tr>
+  )}
+</tbody>
+      </table>
+    </div>
+  </div>
+)}
+
+{activeVisaTab === 'time' && (
+  <div className="space-y-4 mt-1">
+    <div className="overflow-x-auto w-full">
+      {/* Visa Type Selection Header - Same style as main tabs */}
+      <div className="flex bg-white border border-black rounded-t-lg overflow-hidden mb-0">
+        {[
+          "Tourist Visa",
+          "Transit Visa", 
+          "Business Visa",
+        ].map((label, idx) => {
+          const tabMap = {
+            "Tourist Visa": "tourist",
+            "Transit Visa": "transit",
+            "Business Visa": "business",
+          };
+
+          const tabKey = tabMap[label];
+          const isActive = activeVisaFeeType === tabKey;
+
+          return (
+            <button
+              key={label}
+              onClick={() => setActiveVisaFeeType(tabKey)}
+              className={`px-2 py-3 text-sm font-semibold text-center whitespace-nowrap border-r border-black last:border-r-0 transition 
+                ${isActive ? "bg-[#A72703] text-white" : "bg-[#FFE797] text-gray-800 hover:bg-[#FFE797]/90"}
+              `}
+              style={{
+                flex: '1'
+              }}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
+
+      <table className="w-full border-collapse border border-gray-300 border-t-0">
+        <tbody className="border-2 border-[#1e3a8a]">
+          {/* Show only actual data if available */}
+          {activeVisaFeeType && tour.visaSubmission && tour.visaSubmission.length > 0 ? (
+            tour.visaSubmission.map((sub, index) => (
+              <tr key={index} className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}>
+                {/* Left column - Processing Time label */}
+                <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap w-[67%]">
+                  {sub.label || 'N/A'}
+                </td>
+                
+                {/* Right column - Selected Visa Type data */}
+                <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap w-[53%] text-center">
+                  {activeVisaFeeType === 'tourist' && (sub.tourist || 'N/A')}
+                  {activeVisaFeeType === 'transit' && (sub.transit || 'N/A')}
+                  {activeVisaFeeType === 'business' && (sub.business || 'N/A')}
+                </td>
+              </tr>
+            ))
+          ) : (
+            // Show message when no data or no visa type selected
+            <tr className="bg-[#FFEBEE]">
+              <td className="border border-black px-4 py-3 text-center" colSpan="2">
+                {activeVisaFeeType ? 'No submission information available' : 'Select a visa type to view processing times'}
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  </div>
+)}
                   </div>
                 )}
 
