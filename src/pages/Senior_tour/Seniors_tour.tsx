@@ -8,6 +8,7 @@ import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { BASE_URL } from '@/ApiUrls';
 import Footer from '@/components/Footer';
+import { Input } from "@/components/ui/input"; // Add this with other imports
 
 const stateHeroImages = {
   "Andaman": "https://i.pinimg.com/1200x/67/10/27/671027210a396e38b27e5d0432bd18db.jpg",
@@ -92,11 +93,13 @@ const TourPackages = () => {
   const [filteredTours, setFilteredTours] = useState<any[]>([]);
   const [formattedTours, setFormattedTours] = useState<any[]>([]); // NEW: Store all formatted tours
   const [selectedState, setSelectedState] = useState<string>(state || "Andaman");
-
+const [searchQuery, setSearchQuery] = useState(""); // 👈 ADD THIS
+const [isSearchActive, setIsSearchActive] = useState(false); // 👈 ADD THIS
   const [allTours, setAllTours] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [tourImages, setTourImages] = useState<Record<number | string, string>>({});
   const [tourEmiData, setTourEmiData] = useState<Record<number | string, any>>({}); // NEW: Store EMI data for senior citizen
+const [showSearchBtn, setShowSearchBtn] = useState(false);
 
   // ---------- Fetch base tours ----------
   useEffect(() => {
@@ -295,92 +298,122 @@ const TourPackages = () => {
     
     setFormattedTours(formatted);
   }, [allTours, tourImages, tourEmiData, selectedState]);
+useEffect(() => {
+  console.log("=== APPLYING FILTERS ===");
+  console.log("Search active:", isSearchActive);
+  
+  if (formattedTours.length === 0) {
+    setFilteredTours([]);
+    return;
+  }
 
-  // ---------- Apply filters to formatted tours ----------
-  useEffect(() => {
-    console.log("=== APPLYING FILTERS ===");
-    console.log("Starting with formatted senior citizen tours:", formattedTours.length);
-    console.log("Formatted tour IDs:", formattedTours.map(t => t.id));
+  let result = [...formattedTours];
+  console.log("Initial senior citizen tours count:", result.length);
+
+  if (isSearchActive && searchQuery.trim() !== "") {
+    const query = searchQuery.trim().toUpperCase();
+    console.log("Applying search filter for query:", query);
     
-    if (formattedTours.length === 0) {
-      setFilteredTours([]);
-      return;
-    }
+    result = result.filter(tour => {
+      const codeMatch = tour.code?.toUpperCase().includes(query);
+      
+      const titleMatch = tour.title?.toUpperCase().includes(query);
+      
+      return codeMatch || titleMatch;
+    });
+  }
 
-    let result = [...formattedTours];
-    console.log("Initial senior citizen tours count:", result.length);
+  console.log("Duration range:", durationRange);
+  if (durationRange[0] > 0 || durationRange[1] < 15) {
+    result = result.filter(
+      (tour) => tour.days >= durationRange[0] && tour.days <= durationRange[1]
+    );
+  }
 
-    // Duration filter
-    console.log("Duration range:", durationRange);
-    if (durationRange[0] > 0 || durationRange[1] < 15) {
-      result = result.filter(
-        (tour) => tour.days >= durationRange[0] && tour.days <= durationRange[1]
-      );
-    }
+  // Price filter
+  console.log("Price range:", priceRange);
+  if (priceRange[0] > 0 || priceRange[1] < 200000) {
+    result = result.filter(
+      (tour) =>
+        tour.priceValue >= priceRange[0] && tour.priceValue <= priceRange[1]
+    );
+  }
 
-    // Price filter
-    console.log("Price range:", priceRange);
-    if (priceRange[0] > 0 || priceRange[1] < 200000) {
-      result = result.filter(
-        (tour) =>
-          tour.priceValue >= priceRange[0] && tour.priceValue <= priceRange[1]
-      );
-    }
+  // Departure month filter (placeholder logic)
+  if (selectedDepartureMonths.length > 0) {
+    result = result.filter(() => true);
+  }
 
-    // Departure month filter (placeholder logic)
-    if (selectedDepartureMonths.length > 0) {
-      result = result.filter(() => true);
-    }
-
-    // Indian tours filter
-    if (selectedIndianTours.length > 0) {
-      console.log("Selected Indian tours:", selectedIndianTours);
-      result = result.filter((tour) => {
-        return selectedIndianTours.some((sel) => {
-          const selLower = sel.toLowerCase();
-          return tour.locations?.toLowerCase() === selLower || 
-                 tour.title?.toLowerCase().includes(selLower) ||
-                 tour.locations?.toLowerCase().includes(selLower);
-        });
+  // Indian tours filter
+  if (selectedIndianTours.length > 0) {
+    console.log("Selected Indian tours:", selectedIndianTours);
+    result = result.filter((tour) => {
+      return selectedIndianTours.some((sel) => {
+        const selLower = sel.toLowerCase();
+        return tour.locations?.toLowerCase() === selLower || 
+               tour.title?.toLowerCase().includes(selLower) ||
+               tour.locations?.toLowerCase().includes(selLower);
       });
-    }
+    });
+  }
 
-    // World tours filter (won't really match for isIndian=true, but safe)
-    if (selectedWorldTours.length > 0) {
-      console.log("Selected World tours:", selectedWorldTours);
-      result = result.filter((tour) => {
-        if (tour.isIndian) return false;
-        return selectedWorldTours.some((selectedLocation) =>
-          (tour.locationTags || []).some((tag: string) =>
-            tag.toLowerCase().includes(selectedLocation.toLowerCase())
-          )
-        );
-      });
-    }
+  // World tours filter (won't really match for isIndian=true, but safe)
+  if (selectedWorldTours.length > 0) {
+    console.log("Selected World tours:", selectedWorldTours);
+    result = result.filter((tour) => {
+      if (tour.isIndian) return false;
+      return selectedWorldTours.some((selectedLocation) =>
+        (tour.locationTags || []).some((tag: string) =>
+          tag.toLowerCase().includes(selectedLocation.toLowerCase())
+        )
+      );
+    });
+  }
 
-    // Sorting
-    console.log("Sort type:", sortType);
-    if (sortType === "price-low") {
-      result.sort((a, b) => a.priceValue - b.priceValue);
-    } else if (sortType === "price-high") {
-      result.sort((a, b) => b.priceValue - a.priceValue);
-    } else if (sortType === "duration") {
-      result.sort((a, b) => a.days - b.days);
-    }
+  // Sorting
+  console.log("Sort type:", sortType);
+  if (sortType === "price-low") {
+    result.sort((a, b) => a.priceValue - b.priceValue);
+  } else if (sortType === "price-high") {
+    result.sort((a, b) => b.priceValue - a.priceValue);
+  } else if (sortType === "duration") {
+    result.sort((a, b) => a.days - b.days);
+  }
 
-    console.log("Final filtered senior citizen tours count:", result.length);
-    console.log("Final filtered senior citizen tour IDs:", result.map(t => t.id));
-    setFilteredTours(result);
-  }, [
-    formattedTours,
-    durationRange,
-    priceRange,
-    selectedDepartureMonths,
-    selectedIndianTours,
-    selectedWorldTours,
-    sortType,
-  ]);
+  console.log("Final filtered senior citizen tours count:", result.length);
+  setFilteredTours(result);
+}, [
+  formattedTours,
+  isSearchActive, // 👈 ADD THIS
+  searchQuery, // 👈 ADD THIS
+  durationRange,
+  priceRange,
+  selectedDepartureMonths,
+  selectedIndianTours,
+  selectedWorldTours,
+  sortType,
+]);
 
+
+  // Add this function near your other filter handlers
+const handleSearchTourCode = (e: React.FormEvent) => {
+  e.preventDefault();
+  const query = searchQuery.trim().toUpperCase();
+  
+  if (query === "") {
+    setIsSearchActive(false);
+    return;
+  }
+  
+  setIsSearchActive(true);
+  console.log("Search activated for:", query);
+};
+
+// Add this function to clear search
+const clearSearch = () => {
+  setSearchQuery("");
+  setIsSearchActive(false);
+};
   // ---------- Filter handlers ----------
   const handleDepartureMonthChange = (month: string, checked: boolean) => {
     if (checked) {
@@ -520,104 +553,191 @@ const TourPackages = () => {
                 </button>
               </div>
 
-              {/* Indian Tours */}
-              <div className="mb-8">
-                <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
-                  <h2 className="text-2xl font-bold text-[#2E4D98]">Indian Tours</h2>
+           {/* Indian Tours */}
+                           <div className="mb-8">
+
+                           <div className="mb-0">
+  <div className="mb-4">
+  <form onSubmit={handleSearchTourCode} className="flex gap-2">
+    <div className="relative flex-1">
+      <Input
+        type="text"
+        placeholder="Search by tour code (e.g. IND001)"
+        value={searchQuery}
+        onChange={(e) => {
+          setSearchQuery(e.target.value);
+          setShowSearchBtn(e.target.value.trim() !== "");
+        }}
+        onFocus={() => setShowSearchBtn(true)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            handleSearchTourCode(e);
+          }
+        }}
+        className="border-[#2E4D98] focus:border-[#2E4D98] focus:ring-[#2E4D98] pr-10"
+      />
+
+      {searchQuery && (
+        <button
+          type="button"
+          onClick={() => {
+            clearSearch();
+            setShowSearchBtn(false);
+          }}
+          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+        >
+          ✕
+        </button>
+      )}
+    </div>
+
+    {showSearchBtn && (
+      <Button
+        type="submit"
+        className="bg-red-600 hover:bg-red-700 text-white px-6"
+      >
+        Search
+      </Button>
+    )}
+  </form>
+</div>
+
+</div>
+                  <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
+                    <h2 className="text-2xl font-bold text-[#2E4D98]">India Indv Tours</h2>
+                  </div>
+                
+                  <div className={`${showMoreIndian ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
+                    {[
+                      'Andaman', 'Goa', 'Kerala', 'Kashmir', 'Rajasthan','Himachal',  
+                      ...(showMoreIndian
+                        ? [
+                            'Andhra Pradesh',
+                            'Bihar',
+                            'Chhattisgarh',
+                            'Dadra & Nagar Haveli',
+                            'Daman & Diu',
+                            'Delhi',
+                            'Gujarat',
+                            'Haryana',
+                            'Jharkhand',
+                            'Karnataka',
+                            'Ladakh',
+                            'Lakshadweep',
+                            'Madhya Pradesh',
+                            'Maharashtra',
+                            'North East',
+                            'Odisha',
+                            'Puducherry',
+                            'Punjab & Haryana',
+                            'Seven Sisters',
+                            'Tamil Nadu',
+                            'Uttar Pradesh',
+                            'Uttarakhand',
+                            'West Bengal'
+                          ]
+                        : [])
+                    ]
+                      .sort((a, b) => a.localeCompare(b)) // 👈 ONLY CHANGE
+                      .map((place) => {
+                        const isCurrentState = selectedState === place;
+                
+                        return (
+                          <div key={place} className="flex items-center gap-3 cursor-pointer">
+                            <Checkbox
+                              checked={isCurrentState}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  clearAllFilters();
+                                  navigate(`/tours-packages/${encodeURIComponent(place)}`);
+                                }
+                              }}
+                              className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
+                            />
+                
+                            <span
+                              className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${
+                                isCurrentState ? 'font-bold text-[#2E4D98]' : ''
+                              }`}
+                              onClick={() => {
+                                clearAllFilters();
+                                navigate(`/tours-packages/${encodeURIComponent(place)}`);
+                              }}
+                            >
+                              {place}
+                            </span>
+                          </div>
+                        );
+                      })}
+                  </div>
+                
+                  <button
+                    onClick={() => setShowMoreIndian(!showMoreIndian)}
+                    className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
+                  >
+                    {showMoreIndian ? "Show Less" : "Show More"}
+                  </button>
                 </div>
-                <div className={`${showMoreIndian ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
-                  {[
-                    'Andaman', 'Goa', 'Kerala', 'Himachal', 'Rajasthan', 'Kashmir',
-                    ...(showMoreIndian
-                      ? [     'Andhra Pradesh',
-                              'Bihar',
-                              'Chhattisgarh',
-                              'Dadra & Nagar Haveli',
-                              'Daman & Diu',
-                              'Delhi',
-                              'Gujarat',
-                              'Haryana',
-                              'Jharkhand',
-                              'Karnataka',
-                              'Ladakh',
-                              'Lakshadweep',
-                              'Madhya Pradesh',
-                              'Maharashtra',
-                              'North East',
-                              'Odisha',
-                              'Puducherry',
-                              'Punjab & Haryana',
-                              'Seven Sisters',
-                              'Tamil Nadu',
-                              'Uttar Pradesh',
-                              'Uttarakhand',
-                              'West Bengal']
-                      : [])
-                  ].map((place) => {
-                    const isCurrentState = selectedState === place;
-                    
+                
+                
+                              {/* World Tours */}
+                          <div>
+                  <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
+                    <h2 className="text-2xl font-bold text-[#2E4D98]">World Tours</h2>
+                  </div>
+                
+                  {(() => {
+                    const allWorldTours = [
+                      'Africa',
+                      'America',
+                      'Australia NewZealand',
+                      'Bhutan',
+                      'Dubai and MiddleEast',
+                      'Eurasia',
+                      'Europe',
+                      'Japan China',
+                      'Mauritius',
+                      'Nepal',
+                      'Seychelles',
+                      'South East Asia',
+                      'SriLanka Maldives'
+                    ];
+                
+                    const sortedWorldTours = [...allWorldTours].sort((a, b) =>
+                      a.localeCompare(b)
+                    );
+                
+                    const visibleWorldTours = showMoreWorld
+                      ? sortedWorldTours
+                      : sortedWorldTours.slice(0, 6); // 👈 first 6 A–Z
+                
                     return (
-                      <div key={place} className="flex items-center gap-3 cursor-pointer">
-                        <Checkbox 
-                          checked={isCurrentState}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              clearAllFilters();
-                              navigate(`/students_tours/${encodeURIComponent(place)}`);
-                            }
-                          }}
-                          className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]" 
-                        />
-                        <span 
-                          className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${isCurrentState ? 'font-bold text-[#2E4D98]' : ''}`}
-                          onClick={() => {
-                            clearAllFilters();
-                            navigate(`/students_tours/${encodeURIComponent(place)}`);
-                          }}
-                        >
-                          {place}
-                        </span>
+                      <div className={`${showMoreWorld ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
+                        {visibleWorldTours.map((place) => (
+                          <label key={place} className="flex items-center gap-3 cursor-pointer">
+                            <Checkbox
+                              checked={selectedWorldTours.includes(place)}
+                              onCheckedChange={(checked) =>
+                                handleWorldTourChange(place, checked as boolean)
+                              }
+                              className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
+                            />
+                            <span className="text-gray-700 hover:text-[#2E4D98]">
+                              {place}
+                            </span>
+                          </label>
+                        ))}
                       </div>
                     );
-                  })}
+                  })()}
+                
+                  <button
+                    onClick={() => setShowMoreWorld(!showMoreWorld)}
+                    className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
+                  >
+                    {showMoreWorld ? "Show Less" : "Show More"}
+                  </button>
                 </div>
-                <button
-                  onClick={() => setShowMoreIndian(!showMoreIndian)}
-                  className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
-                >
-                  {showMoreIndian ? "Show Less" : "Show More"}
-                </button>
-              </div>
-
-              {/* World Tours */}
-              <div>
-                <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
-                  <h2 className="text-2xl font-bold text-[#2E4D98]">World Tours</h2>
-                </div>
-                <div className={`${showMoreWorld ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
-                  {[
-                    'Dubai', 'Europe', 'Maldives', 'Mauritius', 'Thailand', 'Bali',
-                    ...(showMoreWorld
-                      ? ['Singapore', 'Vietnam', 'Turkey', 'Japan', 'South Korea', 'Australia']
-                      : [])
-                  ].map((place) => (
-                    <label key={place} className="flex items-center gap-3 cursor-pointer">
-                      <Checkbox 
-                        checked={selectedWorldTours.includes(place)}
-                        onCheckedChange={(checked) => handleWorldTourChange(place, checked as boolean)}
-                        className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]" 
-                      />
-                      <span className="text-gray-700">{place}</span>
-                    </label>
-                  ))}
-                </div>
-                <button
-                  onClick={() => setShowMoreWorld(!showMoreWorld)}
-                  className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
-                >
-                  {showMoreWorld ? "Show Less" : "Show More"}
-                </button>
-              </div>
             </div>
           </aside>
 

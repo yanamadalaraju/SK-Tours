@@ -6,14 +6,15 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logo from "../assets/png[3].png"; 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { BASE_URL } from "@/ApiUrls";
 
 const indianStates = [
-  "Andaman", "Andhra Pradesh", "Bihar", "Chhattisgarh", "Dadra & Nagar Haveli", "Daman & Diu",
-  "Delhi", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jammu & Kashmir",
+  "Andaman", "Andhra Pradesh", "Bihar", "Chhattisgarh", "Daman & Diu",
+   "Goa", "Gujarat",  "Himachal Pradesh", "Jammu & Kashmir",
   "Jharkhand", "Karnataka", "Kerala", "Ladakh", "Lakshadweep", "Madhya Pradesh",
-  "Maharashtra", "North East", "Odisha", "Puducherry", "Punjab & Haryana", "Rajasthan",
-  "Seven Sisters", "Tamil Nadu", "Uttar Pradesh", "Uttarakhand", "West Bengal",
+  "Maharashtra", "North East", "Odisha", "Puducherry", "Punjab", "Rajasthan",
+   "Tamil Nadu", "Uttar Pradesh", "Uttarakhand", "West Bengal",
 ].sort();
 
 const internationalDestinations = [
@@ -21,6 +22,9 @@ const internationalDestinations = [
   "Eurasia", "Europe", "Japan China", "Mauritius", "Nepal", "Seychelles",
   "South East Asia", "SriLanka Maldives",
 ];
+
+// Add BASE_URL constant
+
 
 const Header = () => {
   const [showIndianIndividualStates, setShowIndianIndividualStates] = useState(false);
@@ -40,6 +44,10 @@ const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileSubmenuOpen, setMobileSubmenuOpen] = useState<Record<string, boolean>>({});
   
+  // State to store tours data
+  const [allTours, setAllTours] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
   // Timers for delayed close
   const indianIndividualTimer = useRef<NodeJS.Timeout | null>(null);
   const indianGroupTimer = useRef<NodeJS.Timeout | null>(null);
@@ -54,6 +62,103 @@ const Header = () => {
   const intlSeniorTimer = useRef<NodeJS.Timeout | null>(null);
   const intlStudentTimer = useRef<NodeJS.Timeout | null>(null);
   const intlHoneymoonTimer = useRef<NodeJS.Timeout | null>(null);
+
+  // Fetch tours data
+  useEffect(() => {
+    const fetchTours = async () => {
+      try {
+        console.log("Fetching tours from API...");
+        const res = await fetch(`${BASE_URL}/api/tours`);
+        const data = await res.json();
+        console.log("Fetched tours:", data);
+        console.log("Total tours count:", data.length);
+        setAllTours(data);
+      } catch (err) {
+        console.error("Error fetching tours:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTours();
+  }, []);
+
+  // Function to check if a destination has tours in a specific category
+  const hasToursForDestination = (destinationName: string, tourType: string, isInternational: boolean = false) => {
+    if (!allTours.length) return false;
+    
+    // Map header category names to API tour_type values
+    const tourTypeMap: Record<string, string[]> = {
+      "Individual": ["individual", "Individual"],
+      "Group": ["Group", "group"],
+      "Ladies Special": ["ladiesspecial", "Ladies Special", "ladies special"],
+      "Senior Citizen": ["seniorcitizen", "Senior Citizen", "senior citizen"],
+      "Student": ["student", "Student"],
+      "Honeymoon": ["honeymoon", "Honeymoon"]
+    };
+    
+    const validTourTypes = tourTypeMap[tourType] || [tourType];
+    
+    return allTours.some(tour => {
+      // Normalize destination names for comparison
+      const tourDestination = tour.primary_destination_name?.trim();
+      const targetDestination = destinationName.trim();
+      
+      // Check if destinations match (case-insensitive for safety)
+      const destinationMatch = tourDestination?.toLowerCase() === targetDestination.toLowerCase();
+      
+      if (!destinationMatch) return false;
+      
+      // Check if tour type matches (case-insensitive)
+      const tourTypeMatch = validTourTypes.some(
+        validType => tour.tour_type?.toLowerCase() === validType.toLowerCase()
+      );
+      
+      if (!tourTypeMatch) return false;
+      
+      // Check international flag
+      const internationalMatch = isInternational ? tour.is_international === 1 : tour.is_international === 0;
+      
+      if (!internationalMatch) return false;
+      
+      // Check status and active
+      return tour.status === 1 && tour.is_active === 1;
+    });
+  };
+
+  // Function to get highlight class based on tour availability
+  const getHighlightClass = (
+    destinationName: string, 
+    isIndian: boolean,
+    isIndividualTour: boolean,
+    isGroupTour: boolean,
+    isLadiesTour: boolean,
+    isSeniorTour: boolean,
+    isStudentTour: boolean,
+    isHoneymoonTour: boolean,
+    rowIndex: number
+  ) => {
+    let category = "";
+    if (isIndividualTour) category = "Individual";
+    else if (isGroupTour) category = "Group";
+    else if (isLadiesTour) category = "Ladies Special";
+    else if (isSeniorTour) category = "Senior Citizen";
+    else if (isStudentTour) category = "Student";
+    else if (isHoneymoonTour) category = "Honeymoon";
+    
+    const hasTours = hasToursForDestination(destinationName, category, !isIndian);
+    const isAndaman = destinationName === "Andaman";
+    
+    // if (isAndaman) {
+    //   return hasTours 
+    //     ? "bg-gradient-to-r from-cyan-500 to-emerald-600 text-white hover:from-cyan-600 hover:to-emerald-700 shadow-lg font-bold"
+    //     : "bg-gradient-to-r from-cyan-500 to-blue-600 text-white hover:from-cyan-600 hover:to-blue-700 shadow-lg";
+    // }
+    
+    return hasTours 
+      ? "font-bold text-orange-600 hover:text-orange-700"
+      : `hover:text-blue-600 ${rowIndex % 2 === 0 ? 'hover:bg-blue-100' : 'hover:bg-blue-200'}`;
+  };
 
   const toggleMobileMenu = () => setMobileMenuOpen(prev => !prev);
   const toggleMobileSubmenu = (label: string) => {
@@ -110,11 +215,11 @@ const Header = () => {
       label: "Offline Flight/Hotels", 
       href: "#offline-flight-tickets",
       dropdown: [
-        { label: "Offline Flight Rates", href: "/alert" },
-        { label: "Offline Hotel Rates", href: "/alert" }
+        { label: "Offline Flight Blocks", href: "/alert" },
+        { label: "Offline Hotel Blocks", href: "/alert" }
       ]
     },
-    { icon: Ship, label: "Exhibitions", href: "/exhibition" },
+    { icon: Ship, label: "Exhibitions", href: "/alert" },
     { icon: Compass, label: "MICE", href: "/alert" },
     {
       icon: Star, label: "Others",
@@ -410,19 +515,29 @@ const Header = () => {
                                             href = `/honeymoon_tours/${encodeURIComponent(dest)}`;
                                           }
                                           
+                                          // Get highlight class based on tour availability
+                                          const highlightClass = getHighlightClass(
+                                            dest,
+                                            isIndian,
+                                            isIndividualTour,
+                                            isGroupTour,
+                                            isLadiesTour,
+                                            isSeniorTour,
+                                            isStudentTour,
+                                            isHoneymoonTour,
+                                            rowIndex
+                                          );
+                                          
                                           return (
                                             <td key={colIndex} className="w-1/3 px-2 py-2.5 whitespace-nowrap border-r border-gray-400">
-                                              <a
-                                                href={href}
-                                                className={`block w-full text-sm font-medium text-left transition-colors ${isAndaman
-                                                  ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white hover:from-cyan-600 hover:to-blue-700 shadow-lg"
-                                                  : `hover:text-blue-600 ${rowIndex % 2 === 0 ? 'hover:bg-blue-100' : 'hover:bg-blue-200'}`
-                                                }`}
-                                                title={dest}
-                                              >
-                                                {dest}
-                                                {isAndaman && <Sparkles className="inline-block w-4 h-4 ml-1 animate-pulse" />}
-                                              </a>
+                                             <a
+  href={href}
+  className={`block w-full text-sm font-medium text-left transition-colors ${highlightClass}`}
+  title={dest}
+>
+  {isAndaman ? "Andaman (P. Blair)" : dest}
+</a>
+
                                             </td>
                                           );
                                         })}

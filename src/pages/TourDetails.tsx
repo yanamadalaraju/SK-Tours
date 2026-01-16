@@ -256,6 +256,7 @@ const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [selectedDepartureMonths, setSelectedDepartureMonths] = useState<string[]>([]);
   const [selectedIndianTours, setSelectedIndianTours] = useState<string[]>([]);
   const [selectedWorldTours, setSelectedWorldTours] = useState<string[]>([]);
+const [selectedState, setSelectedState] = useState<string>("");
 
   // Tour data state
   const [tour, setTour] = useState<any>(null);
@@ -984,86 +985,146 @@ const selectedDeparture = availableDates.find(
               </div>
 
               {/* Indian Tours */}
-              <div className="mb-8">
-                <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
-                  <h2 className="text-2xl font-bold text-[#2E4D98]">Indian Tours</h2>
-                </div>
-                <div className={`${showMoreIndian ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
-                  {[
-                    'Andaman', 'Goa', 'Kerala', 'Himachal', 'Rajasthan', 'Kashmir',
-                    ...(showMoreIndian
-                      ? [     'Andhra Pradesh',
-          'Bihar',
-          'Chhattisgarh',
-          'Dadra & Nagar Haveli',
-          'Daman & Diu',
-          'Delhi',
-          'Gujarat',
-          'Haryana',
-          'Jharkhand',
-          'Karnataka',
-          'Ladakh',
-          'Lakshadweep',
-          'Madhya Pradesh',
-          'Maharashtra',
-          'North East',
-          'Odisha',
-          'Puducherry',
-          'Punjab & Haryana',
-          'Seven Sisters',
-          'Tamil Nadu',
-          'Uttar Pradesh',
-          'Uttarakhand',
-          'West Bengal']
-                      : [])
-                  ].map((place) => (
-                    <label key={place} className="flex items-center gap-3 cursor-pointer">
-                      <Checkbox 
-                        checked={selectedIndianTours.includes(place)}
-                        onCheckedChange={(checked) => handleIndianTourChange(place, checked as boolean)}
-                        className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]" 
-                      />
-                      <span className="text-gray-700">{place}</span>
-                    </label>
-                  ))}
-                </div>
-                <button
-                  onClick={() => setShowMoreIndian(!showMoreIndian)}
-                  className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
-                >
-                  {showMoreIndian ? "Show Less" : "Show More"}
-                </button>
-              </div>
+         {/* Indian Tours */}
+<div className="mb-8">
+  <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
+    <h2 className="text-2xl font-bold text-[#2E4D98]">Indian Tours</h2>
+  </div>
 
-              {/* World Tours */}
-              <div>
-                <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
-                  <h2 className="text-2xl font-bold text-[#2E4D98]">World Tours</h2>
-                </div>
-                <div className={`${showMoreWorld ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
-                  {[
-                    'Dubai', 'Europe', 'Maldives', 'Mauritius', 'Thailand', 'Bali',
-                    ...(showMoreWorld
-                      ? ['Singapore', 'Vietnam', 'Turkey', 'Japan', 'South Korea', 'Australia']
-                      : [])
-                  ].map((place) => (
-                    <label key={place} className="flex items-center gap-3 cursor-pointer">
-                      <Checkbox 
-                        checked={selectedWorldTours.includes(place)}
-                        onCheckedChange={(checked) => handleWorldTourChange(place, checked as boolean)}
-                        className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]" 
-                      />
-                      <span className="text-gray-700">{place}</span>
-                    </label>
-                  ))}
-                </div>
-                <button
-                  onClick={() => setShowMoreWorld(!showMoreWorld)}
-                  className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
-                >
-                  {showMoreWorld ? "Show Less" : "Show More"}
-                </button>
-              </div>
+  <div className={`${showMoreIndian ? "max-h-80 overflow-y-auto pr-2" : ""} space-y-2.5`}>
+    {[
+      'Andaman', 'Goa', 'Himachal', 'Kashmir', 'Kerala', 'Rajasthan',
+      ...(showMoreIndian
+        ? [
+            'Andhra Pradesh',
+            'Bihar',
+            'Chhattisgarh',
+            'Dadra & Nagar Haveli',
+            'Daman & Diu',
+            'Delhi',
+            'Gujarat',
+            'Haryana',
+            'Jharkhand',
+            'Karnataka',
+            'Ladakh',
+            'Lakshadweep',
+            'Madhya Pradesh',
+            'Maharashtra',
+            'North East',
+            'Odisha',
+            'Puducherry',
+            'Punjab & Haryana',
+            'Seven Sisters',
+            'Tamil Nadu',
+            'Uttar Pradesh',
+            'Uttarakhand',
+            'West Bengal',
+          ]
+        : []),
+    ]
+      .sort((a, b) => a.localeCompare(b)) // Alphabetical order
+      .map((place) => {
+        const isCurrentState = selectedState === place; // assuming you have selectedState state
+
+        return (
+          <div
+            key={place}
+            className={`flex items-center gap-3 cursor-pointer group px-1 py-0.5 rounded-md transition-colors ${
+              isCurrentState ? 'bg-blue-50' : ''
+            }`}
+            onClick={() => {
+              clearAllFilters();
+              navigate(`/tours-packages/${encodeURIComponent(place)}`);
+            }}
+          >
+            <Checkbox
+              checked={isCurrentState}
+              onCheckedChange={(checked) => {
+                if (checked) {
+                  clearAllFilters();
+                  navigate(`/tours-packages/${encodeURIComponent(place)}`);
+                }
+              }}
+              className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98] pointer-events-none"
+            />
+
+            <span
+              className={`text-gray-800 transition-colors group-hover:text-[#2E4D98] ${
+                isCurrentState ? 'font-semibold text-[#2E4D98]' : ''
+              }`}
+            >
+              {place}
+            </span>
+          </div>
+        );
+      })}
+  </div>
+
+  <button
+    onClick={() => setShowMoreIndian(!showMoreIndian)}
+    className="mt-4 text-[#2E4D98] text-sm font-medium hover:underline flex items-center gap-1"
+  >
+    {showMoreIndian ? 'Show Less' : 'Show More States'}
+  </button>
+</div>
+
+     
+<div>
+  <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
+    <h2 className="text-2xl font-bold text-[#2E4D98]">World Tours</h2>
+  </div>
+
+  {(() => {
+    const allWorldTours = [
+      'Africa',
+      'America',
+      'Australia NewZealand',
+      'Bhutan',
+      'Dubai and MiddleEast',
+      'Eurasia',
+      'Europe',
+      'Japan China',
+      'Mauritius',
+      'Nepal',
+      'Seychelles',
+      'South East Asia',
+      'SriLanka Maldives',
+    ];
+
+    const sortedWorldTours = [...allWorldTours].sort((a, b) => a.localeCompare(b));
+
+    const visibleTours = showMoreWorld ? sortedWorldTours : sortedWorldTours.slice(0, 6);
+
+    return (
+      <div className={`${showMoreWorld ? 'max-h-80 overflow-y-auto pr-2' : ''} space-y-2.5`}>
+        {visibleTours.map((place) => (
+          <label
+            key={place}
+            className={`flex items-center gap-3 cursor-pointer group px-1 py-0.5 rounded-md transition-colors ${
+              selectedWorldTours.includes(place) ? 'bg-blue-50' : ''
+            }`}
+          >
+            <Checkbox
+              checked={selectedWorldTours.includes(place)}
+              onCheckedChange={(checked) => handleWorldTourChange(place, checked as boolean)}
+              className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
+            />
+            <span className="text-gray-800 group-hover:text-[#2E4D98] transition-colors">
+              {place}
+            </span>
+          </label>
+        ))}
+      </div>
+    );
+  })()}
+
+  <button
+    onClick={() => setShowMoreWorld(!showMoreWorld)}
+    className="mt-4 text-[#2E4D98] text-sm font-medium hover:underline flex items-center gap-1"
+  >
+    {showMoreWorld ? 'Show Less' : 'Show More Destinations'}
+  </button>
+</div>
             </div>
           </aside>
 
@@ -1148,7 +1209,7 @@ const selectedDeparture = availableDates.find(
                 </div>  
 
                 <div className="col-span-6 border-r border-white bg-[#2E3a8a] px-4 py-3">
-                  <h3 className="font-bold text-white text-start text-lg">Tour Name</h3>
+                  <h3 className="font-bold text-white text-center text-lg">Tour Name</h3>
                 </div>
 
                 <div className="px-4 py-3 bg-[#2E3a8a]">
@@ -1244,9 +1305,7 @@ const selectedDeparture = availableDates.find(
       
       <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg w-full flex flex-col min-h-[680px] max-h-[780px] overflow-hidden">
         <div className="flex-1 overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-          {/* Dynamically generate month tabs based on available departure data */}
           <div className="flex flex-wrap gap-2 mb-2">
-            {/* First, calculate which months actually have departure data */}
             {(() => {
               // Get unique months from departure data
               const availableMonths = tour.departures.data
@@ -1422,7 +1481,7 @@ const selectedDeparture = availableDates.find(
         <div className="flex-1 overflow-y-auto p-2 bg-[#FFEBEE] w-full">
           <div className="space-y-4 w-full">
             {tour.departures.descriptions.map((description: string, index: number) => (
-              <div key={index} className="border border-gray-200 rounded-lg p-2 bg-white w-full">
+              <div key={index} className="border-gray-200 rounded-lg w-full">
                 <div className="flex items-start w-full">
                   <div className="flex-1 min-w-0">
                     <p className="text-gray-700 break-words whitespace-pre-wrap text-justify w-full">
@@ -1980,28 +2039,28 @@ const selectedDeparture = availableDates.find(
                           </div>
                         ) : (
                           // ===== INDIVIDUAL TOUR - LIST/BOX LAYOUT =====
-                          <div>
-                            {tour.airlines.tableData && tour.airlines.tableData.length > 0 ? (
-                              <div className="space-y-4 w-full">
-                                {tour.airlines.tableData.map((flight: any, index: number) => (
-                                  <div key={index} className="border border-gray-200 rounded-lg p-1 bg-white w-full overflow-hidden shadow-sm">
-                                    
-                                    {flight.description && (
-                                      <div className="  border-gray-300">
-                                        <p className="text-gray-600 bg-gray-50 p-2 rounded whitespace-pre-wrap">
-                                          {flight.description}
-                                        </p>
-                                      </div>
-                                    )}
-                                  </div>
-                                ))}
-                              </div>
-                            ) : (
-                              <div className="flex items-center justify-center h-full min-h-[200px]">
-                                <p className="text-gray-500 text-lg">No transport information available</p>
-                              </div>
-                            )}
-                          </div>
+                 <div>
+  {tour.airlines.tableData && tour.airlines.tableData.length > 0 ? (
+    <div className="space-y-4 w-full">
+      {tour.airlines.tableData.map((flight: any, index: number) => (
+        <div key={index} className="border-gray-200 overflow-hidden">
+          
+          {flight.description && (
+            <div>
+              <p className="text-gray-600  p-1">
+                {flight.description}
+              </p>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  ) : (
+    <div className="flex items-center justify-center h-full min-h-[200px]">
+      <p className="text-gray-500 text-lg">No transport information available</p>
+    </div>
+  )}
+</div>
                         )}
                       </div>
                     </div>
@@ -2018,23 +2077,28 @@ const selectedDeparture = availableDates.find(
     {tour.hotels.tableData.length > 0 ? (
       <table className="w-full border-collapse min-w-max">
         <thead>
-          <tr className="bg-[#2E4D98]">
-            <th className="border border-white px-2 py-2 text-left text-white w-[14.28%]">
-              City
-            </th>
-            <th className="border border-white px-2 py-2 text-left text-white w-[14.28%]">
-                Nights
-            </th>
-            <th className="border border-white px-2 py-2 text-left text-white w-[14.28%]">
-              Standard
-            </th>
-            <th className="border border-white px-2 py-2 text-left text-white w-[14.28%]">
-              Deluxe 
-            </th>
-            <th className="border border-white px-2 py-2 text-left text-white w-[14.28%]">
-              Executive 
-            </th>
-          </tr>
+    <tr className="bg-[#2E4D98]">
+  <th className="border border-white px-2 py-2 text-left text-white w-[22.5%]">
+    City
+  </th>
+
+  <th className="border border-white px-2 py-2 text-left text-white w-[10%]">
+    Nights
+  </th>
+
+  <th className="border border-white px-2 py-2 text-left text-white w-[22.5%]">
+    Standard
+  </th>
+
+  <th className="border border-white px-2 py-2 text-left text-white w-[22.5%]">
+    Deluxe
+  </th>
+
+  <th className="border border-white px-2 py-2 text-left text-white w-[22.5%]">
+    Executive
+  </th>
+</tr>
+
         </thead>
         <tbody className="border-2 border-[#1e3a8a] border-t-0">
           {tour.hotels.tableData.map((hotel: any, index: number) => (
@@ -2261,7 +2325,7 @@ const selectedDeparture = availableDates.find(
                   <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg">
                     <div className="min-h-[300px] max-h-[320px] overflow-y-auto p-1 bg-[#FFEBEE]">
                       <div className="space-y-4 p-0">
-                        <div className="p-2 bg-blue-50 rounded-lg border border-blue-200">
+                        <div className="p-1">
                           <ul className="space-y-2 text-gray-700">
                             {tour.instructions.map((instruction: any, index: number) => (
                               <li key={index} className="text-justify whitespace-normal">

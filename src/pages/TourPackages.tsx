@@ -7,6 +7,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input"; 
 import { BASE_URL } from '@/ApiUrls';
 
 const stateHeroImages = {
@@ -81,6 +82,7 @@ const TourPackages = () => {
   const [showMoreIndian, setShowMoreIndian] = useState(false);
   const [showMoreWorld, setShowMoreWorld] = useState(false);
   const [sortType, setSortType] = useState("recommended");
+  const [searchQuery, setSearchQuery] = useState(""); // 👈 NEW STATE FOR SEARCH
 
   // Filter states
   const [durationRange, setDurationRange] = useState([0, 120]);
@@ -89,12 +91,16 @@ const TourPackages = () => {
   const [selectedIndianTours, setSelectedIndianTours] = useState<string[]>([]);
   const [selectedWorldTours, setSelectedWorldTours] = useState<string[]>([]);
   const [filteredTours, setFilteredTours] = useState<any[]>([]);
-  const [formattedTours, setFormattedTours] = useState<any[]>([]); // NEW: Store all formatted tours
+const [formattedTours, setFormattedTours] = useState<any[]>([]);     // current state
+const [allFormattedTours, setAllFormattedTours] = useState<any[]>([]); // ALL tours
   const [selectedState, setSelectedState] = useState<string>(state || "Andaman");
   const [allTours, setAllTours] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [tourImages, setTourImages] = useState<Record<number | string, string>>({});
-  const [tourEmiData, setTourEmiData] = useState<Record<number | string, any>>({}); // NEW: Store EMI data
+  const [tourEmiData, setTourEmiData] = useState<Record<number | string, any>>({}); 
+  const [searchFilteredTours, setSearchFilteredTours] = useState<any[] | null>(null);
+const [isSearchActive, setIsSearchActive] = useState(false);
+const [showSearchBtn, setShowSearchBtn] = useState(false);
 
   // ---------- Fetch base tours ----------
   useEffect(() => {
@@ -280,119 +286,128 @@ const TourPackages = () => {
   };
 
   // ---------- Format tours when data changes ----------
-  useEffect(() => {
-    if (allTours.length === 0) {
-      console.log("No tours to format yet");
-      return;
-    }
+useEffect(() => {
+  if (allTours.length === 0 || 
+      Object.keys(tourImages).length === 0 || 
+      Object.keys(tourEmiData).length === 0) return;
 
-    // Only format if we have EMI data and images loaded
-    if (Object.keys(tourEmiData).length === 0 || Object.keys(tourImages).length === 0) {
-      console.log("Waiting for tour details to load...");
-      return;
-    }
+  // Format ALL individual tours for global search
+  const allIndividual = allTours.filter(t => t.tour_type?.toLowerCase() === "individual");
+  const allFormatted = formatTours(allIndividual);
+  setAllFormattedTours(allFormatted);
 
-    console.log("=== FORMATTING TOURS ===");
-    console.log("All tours available:", allTours.length);
-    console.log("Selected state:", selectedState);
-    console.log("Tour EMI data available for:", Object.keys(tourEmiData).length, "tours");
-    
-    const currentStateTours = getCurrentStateTours();
-    console.log("Tours for current state:", currentStateTours.length);
-    
-    const formatted = formatTours(currentStateTours);
-    console.log("Formatted tours (all individual tours for this state):", formatted);
-    
-    setFormattedTours(formatted);
-  }, [allTours, tourImages, tourEmiData, selectedState]);
-
-  // ---------- Apply filters to formatted tours ----------
-  useEffect(() => {
-    console.log("=== APPLYING FILTERS ===");
-    console.log("Starting with formatted tours:", formattedTours.length);
-    console.log("Formatted tour IDs:", formattedTours.map(t => t.id));
-    
-    if (formattedTours.length === 0) {
-      setFilteredTours([]);
-      return;
-    }
-
-    let result = [...formattedTours];
-    console.log("Initial tours count:", result.length);
-
-    // Duration filter
-    console.log("Duration range:", durationRange);
-    result = result.filter(
-      (tour) => tour.days >= durationRange[0] && tour.days <= durationRange[1]
+  // Format only current state for display
+  const currentStateTours = allTours.filter(tour => {
+    return (
+      tour.primary_destination_name?.toLowerCase() === selectedState.toLowerCase() &&
+      tour.tour_type?.toLowerCase() === "individual"
     );
-    console.log("After duration filter:", result.length);
+  });
+  const formattedCurrent = formatTours(currentStateTours);
+  setFormattedTours(formattedCurrent);
+}, [allTours, tourImages, tourEmiData, selectedState]);
 
-    // Price filter
-    console.log("Price range:", priceRange);
-    result = result.filter(
-      (tour) =>
-        tour.priceValue >= priceRange[0] && tour.priceValue <= priceRange[1]
-    );
-    console.log("After price filter:", result.length);
+// ---------- Apply filters to formatted tours ----------
+useEffect(() => {
+  console.log("=== APPLYING FILTERS ===");
+  if (formattedTours.length === 0) {
+    setFilteredTours([]);
+    return;
+  }
 
-    // Departure month filter (placeholder logic)
-    if (selectedDepartureMonths.length > 0) {
-      result = result.filter(() => true);
-    }
+  let result = [...formattedTours];
+  console.log("Initial tours count:", result.length);
 
-    // Indian tours filter
-    if (selectedIndianTours.length > 0) {
-      console.log("Selected Indian tours:", selectedIndianTours);
-      result = result.filter((tour) => {
-        if (!tour.isIndian) return false;
+  // SEARCH FILTER - Only apply if search is active AND has query
+  if (isSearchActive && searchQuery.trim() !== "") {
+    const query = searchQuery.trim().toUpperCase();
+    console.log("Applying search filter for query:", query);
+    
+    result = result.filter(tour => {
+      // Search by tour code (case-insensitive)
+      const codeMatch = tour.code?.toUpperCase().includes(query);
+      
+      // Optional: also search by title if you want
+      const titleMatch = tour.title?.toUpperCase().includes(query);
+      
+      return codeMatch || titleMatch;
+    });
+    
+  }
 
-        return selectedIndianTours.some((sel) => {
-          if (tour.state === sel) return true;
-          if (tour.title.toLowerCase().includes(sel.toLowerCase())) return true;
-          if (tour.locations.toLowerCase().includes(sel.toLowerCase()))
-            return true;
-          return false;
-        });
+  console.log("Duration range:", durationRange);
+  result = result.filter(
+    (tour) => tour.days >= durationRange[0] && tour.days <= durationRange[1]
+  );
+  console.log("After duration filter:", result.length);
+
+  // Price filter
+  console.log("Price range:", priceRange);
+  result = result.filter(
+    (tour) =>
+      tour.priceValue >= priceRange[0] && tour.priceValue <= priceRange[1]
+  );
+  console.log("After price filter:", result.length);
+
+  // Departure month filter (placeholder logic)
+  if (selectedDepartureMonths.length > 0) {
+    result = result.filter(() => true);
+  }
+
+  // Indian tours filter
+  if (selectedIndianTours.length > 0) {
+    console.log("Selected Indian tours:", selectedIndianTours);
+    result = result.filter((tour) => {
+      if (!tour.isIndian) return false;
+
+      return selectedIndianTours.some((sel) => {
+        if (tour.state === sel) return true;
+        if (tour.title.toLowerCase().includes(sel.toLowerCase())) return true;
+        if (tour.locations.toLowerCase().includes(sel.toLowerCase()))
+          return true;
+        return false;
       });
-      console.log("After Indian tours filter:", result.length);
-    }
+    });
+    console.log("After Indian tours filter:", result.length);
+  }
 
-    // World tours filter (won't really match for isIndian=true, but safe)
-    if (selectedWorldTours.length > 0) {
-      console.log("Selected World tours:", selectedWorldTours);
-      result = result.filter((tour) => {
-        if (tour.isIndian) return false;
-        return selectedWorldTours.some((selectedLocation) =>
-          (tour.locationTags || []).some((tag: string) =>
-            tag.toLowerCase().includes(selectedLocation.toLowerCase())
-          )
-        );
-      });
-      console.log("After world tours filter:", result.length);
-    }
+  // World tours filter (won't really match for isIndian=true, but safe)
+  if (selectedWorldTours.length > 0) {
+    console.log("Selected World tours:", selectedWorldTours);
+    result = result.filter((tour) => {
+      if (tour.isIndian) return false;
+      return selectedWorldTours.some((selectedLocation) =>
+        (tour.locationTags || []).some((tag: string) =>
+          tag.toLowerCase().includes(selectedLocation.toLowerCase())
+        )
+      );
+    });
+    console.log("After world tours filter:", result.length);
+  }
 
-    // Sorting
-    console.log("Sort type:", sortType);
-    if (sortType === "price-low") {
-      result.sort((a, b) => a.priceValue - b.priceValue);
-    } else if (sortType === "price-high") {
-      result.sort((a, b) => b.priceValue - a.priceValue);
-    } else if (sortType === "duration") {
-      result.sort((a, b) => a.days - b.days);
-    }
+  // Sorting
+  console.log("Sort type:", sortType);
+  if (sortType === "price-low") {
+    result.sort((a, b) => a.priceValue - b.priceValue);
+  } else if (sortType === "price-high") {
+    result.sort((a, b) => b.priceValue - a.priceValue);
+  } else if (sortType === "duration") {
+    result.sort((a, b) => a.days - b.days);
+  }
 
-    console.log("Final filtered tours count:", result.length);
-    console.log("Final filtered tour IDs:", result.map(t => t.id));
-    setFilteredTours(result);
-  }, [
-    formattedTours,
-    durationRange,
-    priceRange,
-    selectedDepartureMonths,
-    selectedIndianTours,
-    selectedWorldTours,
-    sortType,
-  ]);
+  console.log("Final filtered tours count:", result.length);
+  setFilteredTours(result);
+}, [
+  formattedTours,
+  isSearchActive, // Add this dependency
+  searchQuery, // Keep this dependency
+  durationRange,
+  priceRange,
+  selectedDepartureMonths,
+  selectedIndianTours,
+  selectedWorldTours,
+  sortType,
+]);
 
   // ---------- Filter handlers ----------
   const handleDepartureMonthChange = (month: string, checked: boolean) => {
@@ -421,6 +436,23 @@ const TourPackages = () => {
     }
   };
 
+
+const handleSearchTourCode = (e: React.FormEvent) => {
+  e.preventDefault();
+  const query = searchQuery.trim().toUpperCase();
+  
+  if (query === "") {
+    // If empty, deactivate search
+    setIsSearchActive(false);
+    return;
+  }
+  
+  // Activate search
+  setIsSearchActive(true);
+  console.log("Search activated for:", query);
+};
+
+
   useEffect(() => {
   if (state) {
     const decodedState = decodeURIComponent(state);
@@ -435,7 +467,15 @@ const TourPackages = () => {
     setSelectedIndianTours([]);
     setSelectedWorldTours([]);
     setSortType("recommended");
+    setIsSearchActive(false); // Also reset search activation
   };
+
+
+// Update clearSearch to also deactivate search
+const clearSearch = () => {
+  setSearchQuery("");
+  setIsSearchActive(false);
+};
 
 const heroImage =
   stateHeroImages[selectedState as keyof typeof stateHeroImages] ??
@@ -506,104 +546,179 @@ const heroDescription =
                 />
               </div>
 
-              {/* Indian Tours */}
-              <div className="mb-8">
-                <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
-                  <h2 className="text-2xl font-bold text-[#2E4D98]">Indian Tours</h2>
-                </div>
-<div className={`${showMoreIndian ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
-  {[
-    'Andaman', 'Goa', 'Kerala', 'Himachal', 'Rajasthan', 'Kashmir',
-    ...(showMoreIndian
-      ? [     'Andhra Pradesh',
-              'Bihar',
-              'Chhattisgarh',
-              'Dadra & Nagar Haveli',
-              'Daman & Diu',
-              'Delhi',
-              'Gujarat',
-              'Haryana',
-              'Jharkhand',
-              'Karnataka',
-              'Ladakh',
-              'Lakshadweep',
-              'Madhya Pradesh',
-              'Maharashtra',
-              'North East',
-              'Odisha',
-              'Puducherry',
-              'Punjab & Haryana',
-              'Seven Sisters',
-              'Tamil Nadu',
-              'Uttar Pradesh',
-              'Uttarakhand',
-              'West Bengal']
-      : [])
-  ].map((place) => {
-    const isCurrentState = selectedState === place;
-    
-    return (
-      <div key={place} className="flex items-center gap-3 cursor-pointer">
-        <Checkbox 
-          checked={isCurrentState}
-          onCheckedChange={(checked) => {
-            if (checked) {
-              clearAllFilters();
-              navigate(`/tours-packages/${encodeURIComponent(place)}`);
-            }
-          }}
-          className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]" 
-        />
-        <span 
-          className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${isCurrentState ? 'font-bold text-[#2E4D98]' : ''}`}
+<div className="mb-0">
+  
+<div className="mb-4">
+  <form onSubmit={handleSearchTourCode} className="flex gap-2">
+    <div className="relative flex-1">
+      <Input
+        type="text"
+        placeholder="Search by tour code (e.g. IND001)"
+        value={searchQuery}
+        onChange={(e) => {
+          setSearchQuery(e.target.value);
+          setShowSearchBtn(e.target.value.trim() !== "");
+        }}
+        onFocus={() => setShowSearchBtn(true)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            handleSearchTourCode(e);
+          }
+        }}
+        className="border-[#2E4D98] focus:border-[#2E4D98] focus:ring-[#2E4D98] pr-10"
+      />
+
+      {searchQuery && (
+        <button
+          type="button"
           onClick={() => {
-            clearAllFilters();
-            navigate(`/tours-packages/${encodeURIComponent(place)}`);
+            clearSearch();
+            setShowSearchBtn(false);
           }}
+          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
         >
-          {place}
-        </span>
-      </div>
-    );
-  })}
+          ✕
+        </button>
+      )}
+    </div>
+
+    {showSearchBtn && (
+      <Button
+        type="submit"
+        className="bg-red-600 hover:bg-red-700 text-white px-6"
+      >
+        Search
+      </Button>
+    )}
+  </form>
 </div>
-                <button
-                  onClick={() => setShowMoreIndian(!showMoreIndian)}
-                  className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
-                >
-                  {showMoreIndian ? "Show Less" : "Show More"}
-                </button>
-              </div>
+
+  <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
+    <h2 className="text-2xl font-bold text-[#2E4D98]">India Indv Tours</h2>
+    <button 
+      onClick={clearAllFilters}
+      className="text-sm text-[#E53C42] hover:underline"
+    >
+      Clear All
+    </button>
+  </div>
+
+ 
+
+  {/* States list - This is the part that toggles with Show More/Less */}
+  <div className={`${showMoreIndian ? "max-h-64 overflow-y-auto pr-1" : ""} space-y-3`}>
+    {[
+      'Andaman', 'Goa', 'Kerala', 'Kashmir', 'Rajasthan', 'Himachal',  
+      ...(showMoreIndian
+        ? [
+            'Andhra Pradesh', 'Bihar', 'Chhattisgarh', 'Dadra & Nagar Haveli',
+            'Daman & Diu', 'Delhi', 'Gujarat', 'Haryana', 'Jharkhand',
+            'Karnataka', 'Ladakh', 'Lakshadweep', 'Madhya Pradesh',
+            'Maharashtra', 'North East', 'Odisha', 'Puducherry',
+            'Punjab & Haryana', 'Seven Sisters', 'Tamil Nadu',
+            'Uttar Pradesh', 'Uttarakhand', 'West Bengal'
+          ]
+        : [])
+    ]
+      .sort((a, b) => a.localeCompare(b))
+      .map((place) => {
+        const isCurrentState = selectedState === place;
+
+        return (
+          <div key={place} className="flex items-center gap-3 cursor-pointer">
+            <Checkbox
+              checked={isCurrentState}
+              onCheckedChange={(checked) => {
+                if (checked) {
+                  clearAllFilters();
+                  navigate(`/tours-packages/${encodeURIComponent(place)}`);
+                }
+              }}
+              className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
+            />
+            <span
+              className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${
+                isCurrentState ? 'font-bold text-[#2E4D98]' : ''
+              }`}
+              onClick={() => {
+                clearAllFilters();
+                navigate(`/tours-packages/${encodeURIComponent(place)}`);
+              }}
+            >
+              {place}
+            </span>
+          </div>
+        );
+      })}
+  </div>
+
+  <button
+    onClick={() => setShowMoreIndian(!showMoreIndian)}
+    className="mt-4 text-[#2E4D98] text-sm font-semibold hover:underline"
+  >
+    {showMoreIndian ? "Show Less" : "Show More"}
+  </button>
+</div>
 
               {/* World Tours */}
-              <div>
-                <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
-                  <h2 className="text-2xl font-bold text-[#2E4D98]">World Tours</h2>
-                </div>
-                <div className={`${showMoreWorld ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
-                  {[
-                    'Dubai', 'Europe', 'Maldives', 'Mauritius', 'Thailand', 'Bali',
-                    ...(showMoreWorld
-                      ? ['Singapore', 'Vietnam', 'Turkey', 'Japan', 'South Korea', 'Australia']
-                      : [])
-                  ].map((place) => (
-                    <label key={place} className="flex items-center gap-3 cursor-pointer">
-                      <Checkbox 
-                        checked={selectedWorldTours.includes(place)}
-                        onCheckedChange={(checked) => handleWorldTourChange(place, checked as boolean)}
-                        className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]" 
-                      />
-                      <span className="text-gray-700">{place}</span>
-                    </label>
-                  ))}
-                </div>
-                <button
-                  onClick={() => setShowMoreWorld(!showMoreWorld)}
-                  className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
-                >
-                  {showMoreWorld ? "Show Less" : "Show More"}
-                </button>
-              </div>
+          <div>
+  <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
+    <h2 className="text-2xl font-bold text-[#2E4D98]">World Tours</h2>
+  </div>
+
+  {(() => {
+    const allWorldTours = [
+      'Africa',
+      'America',
+      'Australia NewZealand',
+      'Bhutan',
+      'Dubai and MiddleEast',
+      'Eurasia',
+      'Europe',
+      'Japan China',
+      'Mauritius',
+      'Nepal',
+      'Seychelles',
+      'South East Asia',
+      'SriLanka Maldives'
+    ];
+
+    const sortedWorldTours = [...allWorldTours].sort((a, b) =>
+      a.localeCompare(b)
+    );
+
+    const visibleWorldTours = showMoreWorld
+      ? sortedWorldTours
+      : sortedWorldTours.slice(0, 6); // 👈 first 6 A–Z
+
+    return (
+      <div className={`${showMoreWorld ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
+        {visibleWorldTours.map((place) => (
+          <label key={place} className="flex items-center gap-3 cursor-pointer">
+            <Checkbox
+              checked={selectedWorldTours.includes(place)}
+              onCheckedChange={(checked) =>
+                handleWorldTourChange(place, checked as boolean)
+              }
+              className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
+            />
+            <span className="text-gray-700 hover:text-[#2E4D98]">
+              {place}
+            </span>
+          </label>
+        ))}
+      </div>
+    );
+  })()}
+
+  <button
+    onClick={() => setShowMoreWorld(!showMoreWorld)}
+    className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
+  >
+    {showMoreWorld ? "Show Less" : "Show More"}
+  </button>
+</div>
+
             </div>
           </aside>
 
