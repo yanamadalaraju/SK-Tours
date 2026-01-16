@@ -126,40 +126,52 @@ const Header = () => {
     });
   };
 
-  // Function to get highlight class based on tour availability
-  const getHighlightClass = (
-    destinationName: string, 
-    isIndian: boolean,
-    isIndividualTour: boolean,
-    isGroupTour: boolean,
-    isLadiesTour: boolean,
-    isSeniorTour: boolean,
-    isStudentTour: boolean,
-    isHoneymoonTour: boolean,
-    rowIndex: number
-  ) => {
-    let category = "";
-    if (isIndividualTour) category = "Individual";
-    else if (isGroupTour) category = "Group";
-    else if (isLadiesTour) category = "Ladies Special";
-    else if (isSeniorTour) category = "Senior Citizen";
-    else if (isStudentTour) category = "Student";
-    else if (isHoneymoonTour) category = "Honeymoon";
-    
-    const hasTours = hasToursForDestination(destinationName, category, !isIndian);
-    const isAndaman = destinationName === "Andaman";
-    
-    // if (isAndaman) {
-    //   return hasTours 
-    //     ? "bg-gradient-to-r from-cyan-500 to-emerald-600 text-white hover:from-cyan-600 hover:to-emerald-700 shadow-lg font-bold"
-    //     : "bg-gradient-to-r from-cyan-500 to-blue-600 text-white hover:from-cyan-600 hover:to-blue-700 shadow-lg";
-    // }
-    
-    return hasTours 
-      ? "font-bold text-orange-600 hover:text-orange-700"
-      : `hover:text-blue-600 ${rowIndex % 2 === 0 ? 'hover:bg-blue-100' : 'hover:bg-blue-200'}`;
-  };
+ const getHighlightClass = (
+  destinationName: string,
+  isIndian: boolean,
+  isIndividualTour: boolean,
+  isGroupTour: boolean,
+  isLadiesTour: boolean,
+  isSeniorTour: boolean,
+  isStudentTour: boolean,
+  isHoneymoonTour: boolean,
+  rowIndex: number
+) => {
+  let category = "";
+  if (isIndividualTour) category = "Individual";
+  else if (isGroupTour) category = "Group";
+  else if (isLadiesTour) category = "Ladies Special";
+  else if (isSeniorTour) category = "Senior Citizen";
+  else if (isStudentTour) category = "Student";
+  else if (isHoneymoonTour) category = "Honeymoon";
 
+  const hasTours = hasToursForDestination(destinationName, category, !isIndian);
+  const isAndaman = destinationName === "Andaman";
+
+  if (hasTours) {
+    // === ACTIVE - HAS TOURS ===
+    return `
+      font-semibold 
+      text-blue-800 
+      hover:text-blue-950 
+      hover:bg-blue-100/70 
+      rounded 
+      px-1.5 
+      py-0.5 
+      transition-all 
+      duration-200
+    `;
+  }
+
+  // === NO TOURS - visible but clearly secondary (not too dull) ===
+  return `
+    text-gray-700 
+    hover:text-gray-800 
+    font-normal 
+    transition-colors 
+    duration-200
+  `;
+};
   const toggleMobileMenu = () => setMobileMenuOpen(prev => !prev);
   const toggleMobileSubmenu = (label: string) => {
     setMobileSubmenuOpen(prev => ({ ...prev, [label]: !prev[label] }));
