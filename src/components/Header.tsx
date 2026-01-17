@@ -125,8 +125,7 @@ const Header = () => {
       return tour.status === 1 && tour.is_active === 1;
     });
   };
-
- const getHighlightClass = (
+const getHighlightClass = (
   destinationName: string,
   isIndian: boolean,
   isIndividualTour: boolean,
@@ -149,17 +148,20 @@ const Header = () => {
   const isAndaman = destinationName === "Andaman";
 
   if (hasTours) {
-    // === ACTIVE - HAS TOURS ===
+    // === ACTIVE - HAS TOURS: Dark blue background with white text ===
     return `
       font-semibold 
-      text-blue-800 
-      hover:text-blue-950 
-      hover:bg-blue-100/70 
+      bg-blue-800 
+      text-white 
+      hover:bg-blue-900 
+      hover:text-white 
       rounded 
       px-1.5 
       py-0.5 
       transition-all 
       duration-200
+      shadow-sm
+      hover:shadow-md
     `;
   }
 
@@ -167,9 +169,13 @@ const Header = () => {
   return `
     text-gray-700 
     hover:text-gray-800 
+    hover:bg-gray-100
     font-normal 
     transition-colors 
     duration-200
+    px-1.5 
+    py-0.5 
+    rounded
   `;
 };
   const toggleMobileMenu = () => setMobileMenuOpen(prev => !prev);
@@ -224,11 +230,15 @@ const Header = () => {
     },
     { 
       icon: PlaneTakeoff, 
-      label: "Offline Flight/Hotels", 
+      label: "Flight / Hotel", 
       href: "#offline-flight-tickets",
       dropdown: [
-        { label: "Offline Flight Blocks", href: "/alert" },
-        { label: "Offline Hotel Blocks", href: "/alert" }
+        { label: "Online Flight Blocks", href: "/alert" },
+        { label: "Offline Filght Blocks", href: "/alert" },
+                { label: "Online Hotel Blocks", href: "/alert" },
+
+        { label: "Offline Hotel Blocks", href: "/alert" },
+        
       ]
     },
     { icon: Ship, label: "Exhibitions", href: "/alert" },

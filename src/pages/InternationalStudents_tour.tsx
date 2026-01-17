@@ -8,6 +8,7 @@ import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { BASE_URL } from '@/ApiUrls';
 import Footer from '@/components/Footer';
+import { Input } from "@/components/ui/input"; // Add this import
 
 const stateHeroImages = {
   "Andaman": "https://i.pinimg.com/1200x/67/10/27/671027210a396e38b27e5d0432bd18db.jpg",
@@ -82,6 +83,9 @@ const TourPackages = () => {
   const [showMoreWorld, setShowMoreWorld] = useState(false);
   const [sortType, setSortType] = useState("recommended");
   const [showAllDepartureMonths, setShowAllDepartureMonths] = useState(false);
+const [searchQuery, setSearchQuery] = useState(""); // ADD THIS
+const [isSearchActive, setIsSearchActive] = useState(false); // ADD THIS
+const [showSearchBtn, setShowSearchBtn] = useState(false); 
 
   // Filter states
   const [durationRange, setDurationRange] = useState([0, 150]);
@@ -273,6 +277,25 @@ const TourPackages = () => {
     });
   };
 
+     const handleSearchTourCode = (e: React.FormEvent) => {
+  e.preventDefault();
+  const query = searchQuery.trim().toUpperCase();
+  
+  if (query === "") {
+    setIsSearchActive(false);
+    return;
+  }
+  
+  setIsSearchActive(true);
+  console.log("Search activated for:", query);
+};
+
+// Add this function to clear search
+const clearSearch = () => {
+  setSearchQuery("");
+  setIsSearchActive(false);
+  setShowSearchBtn(false);
+};
   // ---------- Format tours when data changes ----------
   useEffect(() => {
     if (allTours.length === 0) {
@@ -312,6 +335,24 @@ const TourPackages = () => {
     }
 
     let result = [...formattedTours];
+
+  if (isSearchActive && searchQuery.trim() !== "") {
+    const query = searchQuery.trim().toUpperCase();
+    console.log("Applying search filter for query:", query);
+    
+    result = result.filter(tour => {
+      // Search by tour code (case-insensitive)
+      const codeMatch = tour.code?.toUpperCase().includes(query);
+      
+      // Optional: also search by title if you want
+      const titleMatch = tour.title?.toUpperCase().includes(query);
+      
+      return codeMatch || titleMatch;
+    });
+    
+    console.log("After search filter:", result.length);
+  }
+
     console.log("Initial student tours count:", result.length);
 
     // Duration filter
@@ -379,6 +420,8 @@ const TourPackages = () => {
     formattedTours,
     durationRange,
     priceRange,
+  isSearchActive, // ADD THIS
+  searchQuery, // ADD THIS
     selectedDepartureMonths,
     selectedIndianTours,
     selectedWorldTours,
@@ -419,6 +462,8 @@ const TourPackages = () => {
     setSelectedIndianTours([]);
     setSelectedWorldTours([]);
     setSortType("recommended");
+          clearSearch(); 
+
   };
 
   useEffect(() => {
@@ -527,102 +572,201 @@ const TourPackages = () => {
 
               {/* Indian Tours */}
               <div className="mb-8">
-                <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
-                  <h2 className="text-2xl font-bold text-[#2E4D98]">Indian Tours</h2>
-                </div>
-                <div className={`${showMoreIndian ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
-                  {[
-                    'Andaman', 'Goa', 'Kerala', 'Himachal', 'Rajasthan', 'Kashmir',
-                    ...(showMoreIndian
-                      ? [     'Andhra Pradesh',
-                              'Bihar',
-                              'Chhattisgarh',
-                              'Dadra & Nagar Haveli',
-                              'Daman & Diu',
-                              'Delhi',
-                              'Gujarat',
-                              'Haryana',
-                              'Jharkhand',
-                              'Karnataka',
-                              'Ladakh',
-                              'Lakshadweep',
-                              'Madhya Pradesh',
-                              'Maharashtra',
-                              'North East',
-                              'Odisha',
-                              'Puducherry',
-                              'Punjab & Haryana',
-                              'Seven Sisters',
-                              'Tamil Nadu',
-                              'Uttar Pradesh',
-                              'Uttarakhand',
-                              'West Bengal']
-                      : [])
-                  ].map((place) => {
-                    const isCurrentState = selectedState === place;
-                    
-                    return (
-                      <div key={place} className="flex items-center gap-3 cursor-pointer">
-                        <Checkbox 
-                          checked={isCurrentState}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              clearAllFilters();
-                              navigate(`/senior_tours/${encodeURIComponent(place)}`);
-                            }
-                          }}
-                          className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]" 
-                        />
-                        <span 
-                          className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${isCurrentState ? 'font-bold text-[#2E4D98]' : ''}`}
-                          onClick={() => {
-                            clearAllFilters();
-                            navigate(`/senior_tours/${encodeURIComponent(place)}`);
-                          }}
-                        >
-                          {place}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-                <button
-                  onClick={() => setShowMoreIndian(!showMoreIndian)}
-                  className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
-                >
-                  {showMoreIndian ? "Show Less" : "Show More"}
-                </button>
+
+                          <div className="mb-4">
+                            <form onSubmit={handleSearchTourCode} className="flex gap-2">
+                              <div className="relative flex-1">
+                                <Input
+                                  type="text"
+                                  placeholder="Search by tour code"
+                                  value={searchQuery}
+                                  onChange={(e) => {
+                                    setSearchQuery(e.target.value);
+                                    setShowSearchBtn(e.target.value.trim() !== "");
+                                  }}
+                                  onFocus={() => setShowSearchBtn(true)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                      handleSearchTourCode(e);
+                                    }
+                                  }}
+                                  className="border-[#2E4D98] focus:border-[#2E4D98] focus:ring-[#2E4D98] pr-8   placeholder:text-sm"
+                                />
+        
+        
+                                {searchQuery && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      clearSearch();
+                                      setShowSearchBtn(false);
+                                    }}
+                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                  >
+                                    ✕
+                                  </button>
+                                )}
+                              </div>
+        
+                              {showSearchBtn && (
+                                <Button
+                                  type="submit"
+                                  className="bg-red-600 hover:bg-red-700 text-white px-6"
+                                >
+                                  Search
+                                </Button>
+                              )}
+                            </form>
+                          </div>
+                
+             <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
+                    <h2 className="text-2xl font-bold text-[#2E4D98]">India Dom Tours</h2>
+                  </div>
+                
+                  <div className={`${showMoreIndian ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
+                    {[
+                      'Andaman', 'Goa', 'Kerala', 'Kashmir', 'Rajasthan','Himachal',  
+                      ...(showMoreIndian
+                        ? [
+                            'Andhra Pradesh',
+                            'Bihar',
+                            'Chhattisgarh',
+                            'Dadra & Nagar Haveli',
+                            'Daman & Diu',
+                            'Delhi',
+                            'Gujarat',
+                            'Haryana',
+                            'Jharkhand',
+                            'Karnataka',
+                            'Ladakh',
+                            'Lakshadweep',
+                            'Madhya Pradesh',
+                            'Maharashtra',
+                            'North East',
+                            'Odisha',
+                            'Puducherry',
+                            'Punjab & Haryana',
+                            'Seven Sisters',
+                            'Tamil Nadu',
+                            'Uttar Pradesh',
+                            'Uttarakhand',
+                            'West Bengal'
+                          ]
+                        : [])
+                    ]
+                      .sort((a, b) => a.localeCompare(b)) // 👈 ONLY CHANGE
+                      .map((place) => {
+                        const isCurrentState = selectedState === place;
+                
+                        return (
+                          <div key={place} className="flex items-center gap-3 cursor-pointer">
+                            <Checkbox
+                              checked={isCurrentState}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  clearAllFilters();
+                                  navigate(`/tours-packages/${encodeURIComponent(place)}`);
+                                }
+                              }}
+                              className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
+                            />
+                
+                            <span
+                              className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${
+                                isCurrentState ? 'font-bold text-[#2E4D98]' : ''
+                              }`}
+                              onClick={() => {
+                                clearAllFilters();
+                                navigate(`/tours-packages/${encodeURIComponent(place)}`);
+                              }}
+                            >
+                              {place}
+                            </span>
+                          </div>
+                        );
+                      })}
+                  </div>
+                
+                  <button
+                    onClick={() => setShowMoreIndian(!showMoreIndian)}
+                    className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
+                  >
+                    {showMoreIndian ? "Show Less" : "Show More"}
+                  </button>
               </div>
 
               {/* World Tours */}
               <div>
-                <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
-                  <h2 className="text-2xl font-bold text-[#2E4D98]">World Tours</h2>
-                </div>
-                <div className={`${showMoreWorld ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
-                  {[
-                    'Dubai', 'Europe', 'Maldives', 'Mauritius', 'Thailand', 'Bali',
-                    ...(showMoreWorld
-                      ? ['Singapore', 'Vietnam', 'Turkey', 'Japan', 'South Korea', 'Australia']
-                      : [])
-                  ].map((place) => (
-                    <label key={place} className="flex items-center gap-3 cursor-pointer">
-                      <Checkbox 
-                        checked={selectedWorldTours.includes(place)}
-                        onCheckedChange={(checked) => handleWorldTourChange(place, checked as boolean)}
-                        className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]" 
-                      />
-                      <span className="text-gray-700">{place}</span>
-                    </label>
-                  ))}
-                </div>
-                <button
-                  onClick={() => setShowMoreWorld(!showMoreWorld)}
-                  className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
-                >
-                  {showMoreWorld ? "Show Less" : "Show More"}
-                </button>
-              </div>
+                     <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
+                       <h2 className="text-2xl font-bold text-[#2E4D98]">Intl Indv Tours</h2>
+                     </div>
+                   
+                     {(() => {
+                       const allWorldTours = [
+                         'Africa',
+                         'America',
+                         'Australia NewZealand',
+                         'Bhutan',
+                         'Dubai and MiddleEast',
+                         'Eurasia',
+                         'Europe',
+                         'Japan China',
+                         'Mauritius',
+                         'Nepal',
+                         'Seychelles',
+                         'South East Asia',
+                         'SriLanka Maldives'
+                       ];
+                   
+                       const sortedWorldTours = [...allWorldTours].sort((a, b) =>
+                         a.localeCompare(b)
+                       );
+                   
+                       const visibleWorldTours = showMoreWorld
+                         ? sortedWorldTours
+                         : sortedWorldTours.slice(0, 6);
+                   
+                       return (
+                         <div className={`${showMoreWorld ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
+                           {visibleWorldTours.map((place) => {
+                             const isCurrentWorldTour = selectedWorldTours.includes(place);
+                   
+                             return (
+                               <div key={place} className="flex items-center gap-3 cursor-pointer">
+                                 <Checkbox
+                                   checked={isCurrentWorldTour}
+                                   onCheckedChange={(checked) => {
+                                     if (checked) {
+                                       clearAllFilters();
+                                       navigate(`/intl-students_tours/${encodeURIComponent(place)}`);
+                                     }
+                                   }}
+                                   className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
+                                 />
+                                 <span
+                                   className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${isCurrentWorldTour ? 'font-bold text-[#2E4D98]' : ''
+                                     }`}
+                                   onClick={() => {
+                                     clearAllFilters();
+                                     navigate(`/intl-students_tours/${encodeURIComponent(place)}`);
+                                   }}
+                                 >
+                                   {place}
+                                 </span>
+                               </div>
+                             );
+                           })}
+                         </div>
+                       );
+                     })()}
+                   
+                     <button
+                       onClick={() => setShowMoreWorld(!showMoreWorld)}
+                       className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
+                     >
+                       {showMoreWorld ? "Show Less" : "Show More"}
+                     </button>
+                   </div>
             </div>
           </aside>
 
