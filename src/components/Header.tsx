@@ -235,7 +235,6 @@ const getHighlightClass = (
       dropdown: [
         { label: "Online Flight Blocks", href: "/alert" },
         { label: "Offline Filght Blocks", href: "/alert" },
-                { label: "Online Hotel Blocks", href: "/alert" },
 
         { label: "Offline Hotel Blocks", href: "/alert" },
         
