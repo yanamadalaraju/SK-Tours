@@ -1038,7 +1038,7 @@ const International_Tourdetails = () => {
                   </div>
 
                   <div className="col-span-6 border-r border-black px-4 py-3 bg-gray-50">
-                    <p className="text-lg font-semibold text-gray-900 text-center">
+                    <p className="text-lg font-semibold text-gray-900 text-start">
                       {tour.title}
                     </p>
                   </div>
@@ -1711,7 +1711,7 @@ const International_Tourdetails = () => {
                     {/* Flights Section */}
                     <div className="bg-[#FFEBEE] rounded-lg p-1 mb-1 w-full">
                       <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
-                        Flights / Train or Transport Details
+                        Flight Transport Details
                       </div>
     
                       <div className="border-2 border-[#1e3a8a] rounded-t-none border-t-0 rounded-lg overflow-hidden w-full">

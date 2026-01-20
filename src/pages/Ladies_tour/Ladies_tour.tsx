@@ -95,6 +95,7 @@ const TourPackages = () => {
   const [selectedState, setSelectedState] = useState<string>(state || "Andaman");
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [searchQuery, setSearchQuery] = useState(""); // 👈 ADD THIS
+  const [departureMonths, setDepartureMonths] = useState<string[]>([]);
   
 const [showSearchBtn, setShowSearchBtn] = useState(false);
 
@@ -136,7 +137,23 @@ const [showSearchBtn, setShowSearchBtn] = useState(false);
                 `${BASE_URL}/api/tours/tour/full/ladiesspecial/${tour.tour_id}`
               );
               const data = await res.json();
+  // ✅ SIMPLE CONSOLE
+            console.log("Departures:", data.departures);
 
+            // ✅ EXTRACT MONTHS (THIS WAS MISSING PLACE)
+            if (Array.isArray(data.departures)) {
+              const months = data.departures.map((dep: any) => {
+                const date = new Date(dep.departure_date);
+                return date.toLocaleString("en-US", {
+                  month: "long",
+                  year: "numeric",
+                });
+              });
+
+              setDepartureMonths((prev) =>
+                Array.from(new Set([...prev, ...months]))
+              );
+            }
               // Get cover image
               const images = data.images || [];
               const cover =
@@ -532,36 +549,37 @@ useEffect(() => {
                 />
               </div>
 
-              <div className="mb-8">
-                <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Departure Months</h3>
-                <div className="space-y-3">
-                  {[
-                    'January 2025', 'February 2025', 'March 2025', 'April 2025', 
-                    'May 2025', 'June 2025', 'July 2025', 'August 2025',
-                    'September 2025', 'October 2025', 'November 2025', 'December 2025'
-                  ]
-                    .slice(0, showAllDepartureMonths ? 12 : 6)
-                    .map((month) => (
-                      <label key={month} className="flex items-center gap-3 cursor-pointer">
-                        <Checkbox
-                          checked={selectedDepartureMonths.includes(month)}
-                          onCheckedChange={(checked) => 
-                            handleDepartureMonthChange(month, checked as boolean)
-                          }
-                          className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
-                        />
-                        <span className="text-gray-700">{month}</span>
-                      </label>
-                    ))}
-                </div>
-                
-                <button
-                  onClick={() => setShowAllDepartureMonths(!showAllDepartureMonths)}
-                  className="mt-4 text-[#2E4D98] font-medium hover:text-[#1E3A8A] transition-colors"
-                >
-                  {showAllDepartureMonths ? 'Show Less' : 'Show More'}
-                </button>
-              </div>
+                  <div className="mb-8">
+          <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">
+            Departure Months
+          </h3>
+        
+          <div className="space-y-3">
+            {departureMonths
+              .slice(0, showAllDepartureMonths ? departureMonths.length : 6)
+              .map((month) => (
+                <label key={month} className="flex items-center gap-3 cursor-pointer">
+                  <Checkbox
+                    checked={selectedDepartureMonths.includes(month)}
+                    onCheckedChange={(checked) =>
+                      handleDepartureMonthChange(month, checked as boolean)
+                    }
+                    className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
+                  />
+                  <span className="text-gray-700">{month}</span>
+                </label>
+              ))}
+          </div>
+        
+          {departureMonths.length > 6 && (
+            <button
+              onClick={() => setShowAllDepartureMonths(!showAllDepartureMonths)}
+              className="mt-4 text-[#2E4D98] font-medium hover:text-[#1E3A8A]"
+            >
+              {showAllDepartureMonths ? "Show Less" : "Show More"}
+            </button>
+          )}
+        </div>
 
                  {/* Indian Tours */}
                          <div className="mb-8">
@@ -572,7 +590,7 @@ useEffect(() => {
     <div className="relative flex-1">
       <Input
         type="text"
-        placeholder="Search by tour code (e.g. IND001)"
+        placeholder="Search by tour code"
         value={searchQuery}
         onChange={(e) => {
           setSearchQuery(e.target.value);
@@ -584,7 +602,7 @@ useEffect(() => {
             handleSearchTourCode(e);
           }
         }}
-        className="border-[#2E4D98] focus:border-[#2E4D98] focus:ring-[#2E4D98] pr-10"
+  className="border-[#2E4D98] focus:border-[#2E4D98] focus:ring-[#2E4D98] placeholder:text-sm"
       />
 
       {searchQuery && (
@@ -694,63 +712,77 @@ useEffect(() => {
               
               
                             {/* World Tours */}
-                        <div>
-                <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
-                  <h2 className="text-2xl font-bold text-[#2E4D98]">Intl Dom Tours</h2>
-                </div>
-              
-                {(() => {
-                  const allWorldTours = [
-                    'Africa',
-                    'America',
-                    'Australia NewZealand',
-                    'Bhutan',
-                    'Dubai and MiddleEast',
-                    'Eurasia',
-                    'Europe',
-                    'Japan China',
-                    'Mauritius',
-                    'Nepal',
-                    'Seychelles',
-                    'South East Asia',
-                    'SriLanka Maldives'
-                  ];
-              
-                  const sortedWorldTours = [...allWorldTours].sort((a, b) =>
-                    a.localeCompare(b)
-                  );
-              
-                  const visibleWorldTours = showMoreWorld
-                    ? sortedWorldTours
-                    : sortedWorldTours.slice(0, 6); // 👈 first 6 A–Z
-              
-                  return (
-                    <div className={`${showMoreWorld ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
-                      {visibleWorldTours.map((place) => (
-                        <label key={place} className="flex items-center gap-3 cursor-pointer">
-                          <Checkbox
-                            checked={selectedWorldTours.includes(place)}
-                            onCheckedChange={(checked) =>
-                              handleWorldTourChange(place, checked as boolean)
-                            }
-                            className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
-                          />
-                          <span className="text-gray-700 hover:text-[#2E4D98]">
-                            {place}
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-                  );
-                })()}
-              
-                <button
-                  onClick={() => setShowMoreWorld(!showMoreWorld)}
-                  className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
-                >
-                  {showMoreWorld ? "Show Less" : "Show More"}
-                </button>
-              </div>
+      <div>
+        <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
+          <h2 className="text-2xl font-bold text-[#2E4D98]">Intl Indv Tours</h2>
+        </div>
+      
+        {(() => {
+          const allWorldTours = [
+            'Africa',
+            'America',
+            'Australia NewZealand',
+            'Bhutan',
+            'Dubai and MiddleEast',
+            'Eurasia',
+            'Europe',
+            'Japan China',
+            'Mauritius',
+            'Nepal',
+            'Seychelles',
+            'South East Asia',
+            'SriLanka Maldives'
+          ];
+      
+          const sortedWorldTours = [...allWorldTours].sort((a, b) =>
+            a.localeCompare(b)
+          );
+      
+          const visibleWorldTours = showMoreWorld
+            ? sortedWorldTours
+            : sortedWorldTours.slice(0, 6);
+      
+          return (
+            <div className={`${showMoreWorld ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
+              {visibleWorldTours.map((place) => {
+                const isCurrentWorldTour = selectedWorldTours.includes(place);
+      
+                return (
+                  <div key={place} className="flex items-center gap-3 cursor-pointer">
+                    <Checkbox
+                      checked={isCurrentWorldTour}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          clearAllFilters();
+                          navigate(`/intl-ladies_tours/${encodeURIComponent(place)}`);
+                        }
+                      }}
+                      className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
+                    />
+                    <span
+                      className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${isCurrentWorldTour ? 'font-bold text-[#2E4D98]' : ''
+                        }`}
+                      onClick={() => {
+                        clearAllFilters();
+                        navigate(`/intl-ladies_tours/${encodeURIComponent(place)}`);
+                      }}
+                    >
+                      {place}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })()}
+      
+        <button
+          onClick={() => setShowMoreWorld(!showMoreWorld)}
+          className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
+        >
+          {showMoreWorld ? "Show Less" : "Show More"}
+        </button>
+      </div>
             </div>
           </aside>
 
