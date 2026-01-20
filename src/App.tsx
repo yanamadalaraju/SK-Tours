@@ -54,6 +54,8 @@ import International_senior from "./pages/International_Tours/International_seni
 import International_Tourdetails from "./pages/International_Tours/International_details/International_Tourdetails";
 import Exhibition from "./pages/Exhibition/Exhibition";
 
+import TourEnquiry from "./pages/ToursEnquiry";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -107,6 +109,10 @@ const App = () => (
 <Route path="/international-senior_tours/:state" element={<International_senior />} />
 <Route path="/international_tour_details/:tourId" element={<International_Tourdetails />} />
 <Route path="/exhibition" element={<Exhibition />} />
+
+
+<Route path="/tour-enquiry" element={<TourEnquiry />} />
+
 
         </Routes>
       </BrowserRouter>

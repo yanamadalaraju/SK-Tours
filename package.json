@@ -68,6 +68,7 @@
     "shadcn-ui": "^0.9.5",
     "slider": "^1.0.4",
     "sonner": "^1.7.4",
+    "sweetalert2": "^11.26.17",
     "tabs": "^0.2.0",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
