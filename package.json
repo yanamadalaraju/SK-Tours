@@ -63,6 +63,7 @@
     "react-hook-form": "^7.61.1",
     "react-resizable-panels": "^2.1.9",
     "react-router-dom": "^6.30.2",
+    "react-toastify": "^11.0.5",
     "recharts": "^2.15.4",
     "select": "^1.1.2",
     "shadcn-ui": "^0.9.5",

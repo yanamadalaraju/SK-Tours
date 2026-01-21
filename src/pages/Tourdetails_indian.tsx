@@ -409,6 +409,60 @@ useEffect(() => {
 ]);
 
 
+const handleBookNowClick = (tour) => {
+    // Calculate 20% of the tour price
+    const totalPriceValue = tour.priceValue || 0;
+    const advancePercentage = 20;
+    const advanceAmount = Math.round((totalPriceValue * advancePercentage) / 100);
+    const balanceAmount = totalPriceValue - advanceAmount;
+    
+    // Parse EMI price if it's a string
+    const emiPriceValue = typeof tour.emiPriceValue === 'string' ? 
+        parseFloat(tour.emiPriceValue.replace(/[₹$,]/g, '')) : 
+        tour.emiPriceValue || 0;
+    
+    // Create modified tour object with advance payment info
+    const tourWithAdvance = {
+        ...tour,
+        total_price: tour.price, // Original price string
+        total_price_value: totalPriceValue, // Original price numeric
+        advance_percentage: advancePercentage,
+        advance_amount: advanceAmount,
+        advance_price: `₹${advanceAmount.toLocaleString()}`, // Formatted advance amount
+        balance_amount: balanceAmount,
+        balance_price: `₹${balanceAmount.toLocaleString()}`,
+        emi_price: emiPriceValue, // Numeric EMI value
+        payment_type: 'advance' // Indicate this is an advance payment
+    };
+    
+    // Save to localStorage as backup
+    localStorage.setItem('selectedTour', JSON.stringify(tourWithAdvance));
+    
+    // Navigate to checkout page with tour data
+    navigate('/checkout', { 
+        state: { 
+            tour: tourWithAdvance,
+            paymentType: 'advance'
+        } 
+    });
+};
+
+
+  // Function to handle enquiry navigation
+  const handleEnquiryClick = (tour: any) => {
+    // Save tour data to localStorage or pass via navigation state
+    localStorage.setItem('enquiryTour', JSON.stringify(tour));
+    
+    // Navigate to enquiry page with tour data
+    navigate('/tour-enquiry', { 
+      state: { 
+        tour: tour,
+        source: 'tour-packages',
+        state: selectedState
+      } 
+    });
+  };
+
 
   // ---------- Filter handlers ----------
   const handleDepartureMonthChange = (month: string, checked: boolean) => {
@@ -906,18 +960,36 @@ const clearSearch = () => {
                           >
                             View Tour
                           </Button>
-                          <Button 
-                            size="sm" 
-                            className="flex-1 bg-[#E53C42] hover:bg-[#E53C42] hover:opacity-90 text-white"
-                            onClick={() => {
-                              // Save tour data to localStorage as backup
-                              localStorage.setItem('selectedTour', JSON.stringify(tour));
-                              // Navigate to checkout page with tour data
-                              navigate('/checkout', { state: { tour } });
-                            }}
-                          >
-                            Book Now
+                          <Button
+                                                          size="sm"
+                                                          className="flex-1 bg-[#E53C42] hover:bg-[#E53C42] hover:opacity-90 text-white"
+                                                          onClick={() => handleBookNowClick(tour)}
+                                                      >
+                                                          Book Now
                           </Button>
+                          
+                           <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="w-full border-green-600 text-green-600 hover:bg-green-50 hover:border-green-700 hover:text-green-700"
+                                                        onClick={() => handleEnquiryClick(tour)}
+                                                      >
+                                                        {/* <svg 
+                                                          xmlns="http://www.w3.org/2000/svg" 
+                                                          className="h-4 w-4 mr-2" 
+                                                          fill="none" 
+                                                          viewBox="0 0 24 24" 
+                                                          stroke="currentColor"
+                                                        >
+                                                          <path 
+                                                            strokeLinecap="round" 
+                                                            strokeLinejoin="round" 
+                                                            strokeWidth={2} 
+                                                            d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" 
+                                                          />
+                                                        </svg> */}
+                                                         Enquiry
+                            </Button>
                         </div>
                       </div>
                     </div>
