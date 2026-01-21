@@ -98,6 +98,7 @@ const TourPackages = () => {
   const [departureMonths, setDepartureMonths] = useState<string[]>([]);
   
 const [showSearchBtn, setShowSearchBtn] = useState(false);
+const [tourDepartures, setTourDepartures] = useState<Record<number | string, string[]>>({});
 
   const [allTours, setAllTours] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -140,20 +141,20 @@ const [showSearchBtn, setShowSearchBtn] = useState(false);
   // ✅ SIMPLE CONSOLE
             console.log("Departures:", data.departures);
 
-            // ✅ EXTRACT MONTHS (THIS WAS MISSING PLACE)
-            if (Array.isArray(data.departures)) {
-              const months = data.departures.map((dep: any) => {
+      // ✅ Extract departure months
+          const departureMonths: string[] = [];
+          if (Array.isArray(data.departures)) {
+            data.departures.forEach((dep: any) => {
+              if (dep.departure_date) {
                 const date = new Date(dep.departure_date);
-                return date.toLocaleString("en-US", {
+                const month = date.toLocaleString("en-US", {
                   month: "long",
                   year: "numeric",
                 });
-              });
-
-              setDepartureMonths((prev) =>
-                Array.from(new Set([...prev, ...months]))
-              );
-            }
+                departureMonths.push(month);
+              }
+            });
+          }
               // Get cover image
               const images = data.images || [];
               const cover =
@@ -166,7 +167,9 @@ const [showSearchBtn, setShowSearchBtn] = useState(false);
                 tourId: tour.tour_id,
                 imageUrl: cover?.url || "",
                 emiPrice: emiPrice,
-                basicDetails: data.basic_details || {}
+                basicDetails: data.basic_details || {},
+                            departureMonths: [...new Set(departureMonths)], // Remove duplicates
+
               };
             } catch (err) {
               console.error(
@@ -178,7 +181,9 @@ const [showSearchBtn, setShowSearchBtn] = useState(false);
                 tourId: tour.tour_id, 
                 imageUrl: "", 
                 emiPrice: "0",
-                basicDetails: {}
+                basicDetails: {},
+                            departureMonths: [],
+
               };
             }
           })
@@ -186,6 +191,9 @@ const [showSearchBtn, setShowSearchBtn] = useState(false);
 
         const imageMap: Record<number | string, string> = {};
         const emiMap: Record<number | string, any> = {};
+    const departureMap: Record<number | string, string[]> = {};
+    const allMonthsSet = new Set<string>();
+
 
         results.forEach((r) => {
           if (r.imageUrl) {
@@ -197,6 +205,17 @@ const [showSearchBtn, setShowSearchBtn] = useState(false);
               basicDetails: r.basicDetails
             };
           }
+           departureMap[r.tourId] = r.departureMonths;
+      r.departureMonths.forEach((month: string) => allMonthsSet.add(month));
+    });
+
+    // Sort months chronologically
+    const allMonths = Array.from(allMonthsSet).sort((a, b) => {
+      const [monthA, yearA] = a.split(' ');
+      const [monthB, yearB] = b.split(' ');
+      const dateA = new Date(`${monthA} 1, ${yearA}`);
+      const dateB = new Date(`${monthB} 1, ${yearB}`);
+      return dateA.getTime() - dateB.getTime();
         });
 
         console.log("Ladies special tour images map:", imageMap);
@@ -204,6 +223,9 @@ const [showSearchBtn, setShowSearchBtn] = useState(false);
         
         setTourImages(imageMap);
         setTourEmiData(emiMap);
+            setTourDepartures(departureMap);
+    setDepartureMonths(allMonths);
+
       } catch (err) {
         console.error("Error building ladies special tour details map:", err);
       }
@@ -267,8 +289,8 @@ const [showSearchBtn, setShowSearchBtn] = useState(false);
       // Get EMI price from stored data (already fetched for ladies special)
       const emiData = tourEmiData[tour.tour_id];
       const emiPrice = emiData?.emiPrice || "0";
-      
-      // Format EMI price (remove the /12 calculation and use dynamic value)
+          const tourDepartureMonths = tourDepartures[tour.tour_id] || [];
+
       const formattedEmi = emiPrice !== "0" ? `₹${parseFloat(emiPrice).toLocaleString()}` : "₹0";
 
       return {
@@ -281,12 +303,14 @@ const [showSearchBtn, setShowSearchBtn] = useState(false);
         priceValue: priceValue,
         locations: tour.primary_destination_name || "Unknown Location",
         image: imgUrl,
-        emi: formattedEmi, // Use dynamic EMI price from API for ladies special
+        emi: formattedEmi, 
         emiPriceValue: parseFloat(emiPrice) || 0,
         isIndian: true,
         locationTags: [tour.primary_destination_name || ""],
         tourType: tour.tour_type,
         rawTourType: tour.tour_type,
+              departureMonths: tourDepartureMonths, 
+
       };
     });
   };
@@ -366,7 +390,14 @@ useEffect(() => {
 
   // Departure month filter (placeholder logic)
   if (selectedDepartureMonths.length > 0) {
-    result = result.filter(() => true);
+    console.log("Selected departure months:", selectedDepartureMonths);
+    result = result.filter((tour) => {
+      // Check if tour has any departure month that matches selected months
+      return selectedDepartureMonths.some(selectedMonth => 
+        tour.departureMonths?.includes(selectedMonth)
+      );
+    });
+    console.log("After departure month filter:", result.length);
   }
 
   // Indian tours filter
@@ -606,38 +637,44 @@ const handleBookNowClick = (tour) => {
                 />
               </div>
 
-                  <div className="mb-8">
-          <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">
-            Departure Months
-          </h3>
-        
-          <div className="space-y-3">
-            {departureMonths
-              .slice(0, showAllDepartureMonths ? departureMonths.length : 6)
-              .map((month) => (
-                <label key={month} className="flex items-center gap-3 cursor-pointer">
-                  <Checkbox
-                    checked={selectedDepartureMonths.includes(month)}
-                    onCheckedChange={(checked) =>
-                      handleDepartureMonthChange(month, checked as boolean)
-                    }
-                    className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
-                  />
-                  <span className="text-gray-700">{month}</span>
-                </label>
-              ))}
-          </div>
-        
-          {departureMonths.length > 6 && (
-            <button
-              onClick={() => setShowAllDepartureMonths(!showAllDepartureMonths)}
-              className="mt-4 text-[#2E4D98] font-medium hover:text-[#1E3A8A]"
-            >
-              {showAllDepartureMonths ? "Show Less" : "Show More"}
-            </button>
-          )}
-        </div>
+<div className="mb-8">
+  <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">
+    Departure Months
+  </h3>
 
+  <div className="space-y-3">
+    {departureMonths.length === 0 ? (
+      <p className="text-sm text-gray-500">Loading departure months...</p>
+    ) : (
+      departureMonths
+        .slice(0, showAllDepartureMonths ? departureMonths.length : 6)
+        .map((month) => (
+          <label key={month} className="flex items-center gap-3 cursor-pointer">
+            <Checkbox
+              checked={selectedDepartureMonths.includes(month)}
+              onCheckedChange={(checked) =>
+                handleDepartureMonthChange(month, checked as boolean)
+              }
+              className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
+            />
+            <span className="text-gray-700">{month}</span>
+            {/* <span className="text-xs text-gray-500 ml-auto">
+              ({formattedTours.filter(t => t.departureMonths?.includes(month)).length})
+            </span> */}
+          </label>
+        ))
+    )}
+  </div>
+
+  {departureMonths.length > 6 && (
+    <button
+      onClick={() => setShowAllDepartureMonths(!showAllDepartureMonths)}
+      className="mt-4 text-[#2E4D98] font-medium hover:text-[#1E3A8A]"
+    >
+      {showAllDepartureMonths ? "Show Less" : `Show ${departureMonths.length - 6} More`}
+    </button>
+  )}
+</div>
                  {/* Indian Tours */}
                          <div className="mb-8">
 

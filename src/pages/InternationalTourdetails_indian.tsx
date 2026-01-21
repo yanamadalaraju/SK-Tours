@@ -100,7 +100,10 @@ const TourPackages = () => {
   const [allTours, setAllTours] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [tourImages, setTourImages] = useState<Record<number | string, string>>({});
-  const [tourEmiData, setTourEmiData] = useState<Record<number | string, any>>({}); // NEW: Store EMI data for groups
+  const [tourEmiData, setTourEmiData] = useState<Record<number | string, any>>({}); 
+  const [departureMonths, setDepartureMonths] = useState<string[]>([]);
+  const [tourDepartures, setTourDepartures] = useState<Record<number | string, string[]>>({});
+  
   // ---------- Fetch base tours ----------
   useEffect(() => {
     const fetchTours = async () => {
