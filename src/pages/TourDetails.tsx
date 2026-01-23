@@ -13,7 +13,7 @@ import Footer from '@/components/Footer';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import TourPdfDocument from './TourPdfDocument';
 import { Download } from 'lucide-react';
-
+import EmailModal from './EmailModal';
 // Add this interface near the top
 interface DepartureData {
   id?: any;
@@ -50,8 +50,17 @@ interface DepartureData {
   };
 }
 
+interface EmailFormData {
+  from: string;
+  to: string;
+  subject: string;
+  message: string;
+}
 
 
+interface Props {
+  headerColor: string;
+}
 
 interface DayCardProps {
   dayNumber: string;
@@ -67,6 +76,7 @@ interface DayCardProps {
 const DayCard = ({ dayNumber, headerColor, bodyColor, dayData }: DayCardProps) => {
   const [meals, setMeals] = useState({ B: false, L: false, D: false });
 
+const navigate = useNavigate();
 
 
 
@@ -234,16 +244,26 @@ const DayCard = ({ dayNumber, headerColor, bodyColor, dayData }: DayCardProps) =
           {dayData?.description || ""}
         </div>
       </div>
+<div className="mt-1">
+  <button
+   onClick={() => navigate("/alert")}
+    className={`w-full  font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90`}
+  >
+    Customize your tour on chargeable basis
+  </button>
+</div>
+
+
     </div>
   );
 };
 
 const TourDetails = () => {
   const { tourId } = useParams<{ tourId: string }>();
-  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("itinerary");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-
+const [showEmailModal, setShowEmailModal] = useState(false);
+const [emailLoading, setEmailLoading] = useState(false);
   // Add these state variables near your other state declarations
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [showMoreIndian, setShowMoreIndian] = useState(false);
@@ -260,7 +280,7 @@ const TourDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [tourType, setTourType] = useState<'Individual' | 'Group'>('Individual');
-
+const navigate = useNavigate();
   // Departure date states for Group tours
   const [selectedMonth, setSelectedMonth] = useState("ALL");
   const [openIndex, setOpenIndex] = useState<number | null>(null);
@@ -290,6 +310,64 @@ const TourDetails = () => {
     const numPrice = typeof price === 'string' ? parseFloat(price) : price;
     return `₹${numPrice.toLocaleString('en-IN')}`;
   };
+
+
+const handleEmailSubmit = async (emailData: EmailFormData) => {
+  try {
+    setEmailLoading(true);
+
+    // Generate PDF
+    const { pdf } = await import('@react-pdf/renderer');
+    const TourPdfDocument = (await import('./TourPdfDocument')).default;
+
+    const pdfInstance = (
+      <TourPdfDocument
+        tour={tour || {}}
+        tourType={tourType}
+        isGroupTour={isGroupTour}
+        selectedCostMonth={selectedCostMonth}
+        selectedCostDate={selectedCostDate}
+        selectedDeparture={selectedDeparture}
+        currentImageIndex={currentImageIndex}
+        tourImages={tour?.images || []}
+      />
+    );
+
+    const pdfBlob = await pdf(pdfInstance).toBlob();
+
+    // Prepare FormData
+    const formData = new FormData();
+    formData.append('to', emailData.to);
+    formData.append('subject', emailData.subject);
+    formData.append('message', emailData.message);
+    formData.append('tourTitle', tour?.title || '');
+    formData.append('tourCode', tour?.code || '');
+    formData.append('pdf', pdfBlob, `tour_${tour?.code || 'details'}.pdf`);
+
+    // Send email
+    const response = await fetch(`${BASE_URL}/api/send-tour-pdf`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || 'Failed to send email');
+    }
+
+    // ✅ SUCCESS
+    setShowEmailModal(false);
+    alert('Email sent successfully!');
+
+  } catch (error: any) {
+    console.error('Error sending email:', error);
+    alert(`Failed to send email: ${error.message || 'Unknown error'}`);
+  } finally {
+    setEmailLoading(false);
+  }
+};
+
 
 
   const handleDownloadPdf = () => {
@@ -1310,7 +1388,7 @@ const TourDetails = () => {
                         Departure Dates
                       </div>
 
-                      <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg w-full flex flex-col min-h-[680px] max-h-[780px] overflow-hidden">
+                      <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg w-full flex flex-col min-h-[580px] max-h-[580px] overflow-hidden">
                         <div className="flex-1 overflow-y-auto p-2 bg-[#FFEBEE] w-full">
                           <div className="flex flex-wrap gap-2 mb-2">
                             {(() => {
@@ -1473,6 +1551,14 @@ const TourDetails = () => {
                           </div>
                         </div>
                       </div>
+                      <div className="mt-1">
+  <button
+   onClick={() => navigate("/alert")}
+    className={`w-full  font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90`}
+  >
+    Customize your tour on chargeable basis
+  </button>
+</div>
                     </div>
                   ) : (
                     // Individual Tour Departure Descriptions (unchanged)
@@ -1498,13 +1584,20 @@ const TourDetails = () => {
                           </div>
                         </div>
                       </div>
+                      <div className="mt-1">
+  <button
+   onClick={() => navigate("/alert")}
+    className={`w-full  font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90`}
+  >
+    Customize your tour on chargeable basis
+  </button>
+</div>
+
                     </div>
+                    
                   )
                 )}
 
-                {/* Tour Cost Tab */}
-                {/* Tour Cost Tab */}
-                {/* Tour Cost Tab */}
                 {activeTab === "tour-cost" && (
                   <div className="bg-[#E8F0FF] rounded-lg p-1">
                     <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg mb-1.5">
@@ -1859,6 +1952,15 @@ const TourDetails = () => {
                           </div>
                         </div>
                       </div>
+                      <div className="mt-1">
+  <button
+   onClick={() => navigate("/alert")}
+    className={`w-full  font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90`}
+  >
+    Customize your tour on chargeable basis
+  </button>
+</div>
+
                     </div>
                   </div>
                 )}
@@ -1915,7 +2017,17 @@ const TourDetails = () => {
                           </div>
                         </div>
                       </div>
+                      
                     </div>
+                    <div className="mt-1">
+  <button
+   onClick={() => navigate("/alert")}
+    className={`w-full  font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90`}
+  >
+    Customize your tour on chargeable basis
+  </button>
+</div>
+
                   </div>
                 )}
 
@@ -2153,12 +2265,21 @@ const TourDetails = () => {
                           </div>
                         </div>
                       )}
+                      <div className="mt-1">
+  <button
+   onClick={() => navigate("/alert")}
+    className={`w-full  font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90`}
+  >
+    Customize your tour on chargeable basis
+  </button>
+</div>
+
                     </div>
+                    
                   </div>
                 )}
 
 
-                {/* Bookings POI Tab */}
                 {/* Bookings POI Tab */}
                 {activeTab === "bookings-poi" && (
                   <div className="bg-[#E8F0FF] rounded-lg p-1">
@@ -2233,6 +2354,15 @@ const TourDetails = () => {
                           )}
                         </div>
                       </div>
+                      <div className="mt-1">
+  <button
+   onClick={() => navigate("/alert")}
+    className={`w-full  font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90`}
+  >
+    Customize your tour on chargeable basis
+  </button>
+</div>
+
                     </div>
                   </div>
                 )}
@@ -2315,6 +2445,15 @@ const TourDetails = () => {
                         </div>
                       </div>
                     </div>
+                    <div className="mt-1">
+  <button
+   onClick={() => navigate("/alert")}
+    className={`w-full  font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90`}
+  >
+    Customize your tour on chargeable basis
+  </button>
+</div>
+
                   </div>
                 )}
 
@@ -2340,6 +2479,15 @@ const TourDetails = () => {
                         </div>
                       </div>
                     </div>
+                    <div className="mt-1">
+  <button
+   onClick={() => navigate("/alert")}
+    className={`w-full  font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90`}
+  >
+    Customize your tour on chargeable basis
+  </button>
+</div>
+
                   </div>
                 )}
               </div>
@@ -2355,7 +2503,7 @@ const TourDetails = () => {
                         isGroupTour={isGroupTour}
                         selectedCostMonth={selectedCostMonth}
                         selectedCostDate={selectedCostDate}
-                        selectedDeparture={selectedDeparture}  // ← This must be passed
+                        selectedDeparture={selectedDeparture}  
                         currentImageIndex={currentImageIndex}
                         tourImages={tour?.images || []}
                       />
@@ -2388,14 +2536,26 @@ const TourDetails = () => {
                   </PDFDownloadLink>
                 </div>
 
-                {/* <div className="w-32 border border-blue-700 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-3 flex items-center justify-center gap-2 transition-colors text-sm">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
-                  Email
-                </button>
-              </div> */}
+           {/* Email Button */}
+<div className="w-32 border border-blue-700 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+  <button 
+    onClick={() => setShowEmailModal(true)}
+    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-3 flex items-center justify-center gap-2 transition-colors text-sm"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+    </svg>
+    Email
+  </button>
+</div>
+
+{/* Email Modal */}
+<EmailModal
+  isOpen={showEmailModal}
+  onClose={() => setShowEmailModal(false)}
+  onSubmit={handleEmailSubmit}
+  tour={tour}
+/>
 
                 <div className="w-32 border border-red-700 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                   <button
