@@ -12,6 +12,8 @@ import axios from 'axios';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { AlertCircle } from "lucide-react";
 
+
+
 const CheckoutPage = () => {
   const navigate = useNavigate();
   const location = useLocation();

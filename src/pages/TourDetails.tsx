@@ -1654,12 +1654,12 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                             {selectedDeparture ? (
                               <div className="border-2 border-black overflow-hidden animate-fadeIn">
                                 {/* HEADER */}
-                                <div className="grid grid-cols-4 bg-[#0A1D4A] text-white font-semibold text-center">
-                                  <div className="p-2 border-r-2 border-white">Particulars</div>
-                                  <div className="p-2 border-r-2 border-white">Gross Rate</div>
-                                  <div className="p-2 border-r-2 border-white">Part Payment Discount</div>
-                                  <div className="p-2">Full Payment Discount</div>
-                                </div>
+                               <div className="grid grid-cols-4 bg-[#0A1D4A] text-white font-semibold text-center">
+                                      <div className="p-2 border-r-2 border-white">Particulars - Tour Cost</div>
+                                      <div className="p-2 border-r-2 border-white">3 Star</div>
+                                      <div className="p-2 border-r-2 border-white">4 Star</div>
+                                      <div className="p-2">5 Star</div>
+                                    </div>
 
                                 {/* ROWS */}
                                 {[
@@ -1930,7 +1930,7 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                       {/* Tour Cost EMI Remarks */}
                       <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
                         <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
-                          Tour Cost EMI
+                           EMI Remarks
                         </div>
                         <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
                           <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
@@ -2037,7 +2037,7 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                     {/* Flights Section */}
                     <div className="bg-[#FFEBEE] rounded-lg p-1 mb-1 w-full">
                       <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
-                        Flight Transport Details
+                        Flight Details
                       </div>
 
                       <div className="border-2 border-[#1e3a8a] rounded-t-none border-t-0 rounded-lg overflow-hidden w-full">
@@ -2172,7 +2172,7 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                                 </div>
                               ) : (
                                 <div className="flex items-center justify-center h-full min-h-[200px]">
-                                  <p className="text-gray-500 text-lg">No transport information available</p>
+                                  <p className="text-gray-500 text-lg">No information available</p>
                                 </div>
                               )}
                             </div>
