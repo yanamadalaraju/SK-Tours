@@ -21,11 +21,11 @@ const CheckoutPage = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   
-  // New state for custom payment amount
+  // State for payment amount
   const [showCustomAmountModal, setShowCustomAmountModal] = useState(false);
-  const [customAdvanceAmount, setCustomAdvanceAmount] = useState('');
-  const [customAdvancePercentage, setCustomAdvancePercentage] = useState(20);
-  const [paymentType, setPaymentType] = useState('default'); // 'default' or 'custom'
+  const [customPaymentAmount, setCustomPaymentAmount] = useState('');
+  const [paymentType, setPaymentType] = useState('full'); // 'full', 'custom', or 'partial'
+  const [isPartialPayment, setIsPartialPayment] = useState(false);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -45,24 +45,24 @@ const CheckoutPage = () => {
   // Initialize tour data
   useEffect(() => {
     if (location.state?.tour) {
-      setTourData(location.state.tour);
-      // Initialize custom amount based on tour data
-      if (location.state.tour.advance_amount) {
-        const totalTourCost = location.state.tour.total_price_value || location.state.tour.priceValue || parsePrice(location.state.tour.price);
-        const percentage = Math.round((location.state.tour.advance_amount / totalTourCost) * 100);
-        setCustomAdvancePercentage(percentage);
-      }
+      const tour = location.state.tour;
+      setTourData(tour);
+      
+      // Initialize with full amount by default
+      const totalTourCost = tour.total_price_value || tour.priceValue || parsePrice(tour.price);
+      setCustomPaymentAmount(totalTourCost.toString());
+      setPaymentType('full');
+      
       setLoading(false);
     } else {
       const savedTour = localStorage.getItem('selectedTour');
       if (savedTour) {
         const parsedTour = JSON.parse(savedTour);
         setTourData(parsedTour);
-        if (parsedTour.advance_amount) {
-          const totalTourCost = parsedTour.total_price_value || parsedTour.priceValue || parsePrice(parsedTour.price);
-          const percentage = Math.round((parsedTour.advance_amount / totalTourCost) * 100);
-          setCustomAdvancePercentage(percentage);
-        }
+        
+        const totalTourCost = parsedTour.total_price_value || parsedTour.priceValue || parsePrice(parsedTour.price);
+        setCustomPaymentAmount(totalTourCost.toString());
+        setPaymentType('full');
       }
       setLoading(false);
     }
@@ -70,40 +70,48 @@ const CheckoutPage = () => {
 
   // Handle custom amount input
   const handleCustomAmountChange = (value) => {
-    setCustomAdvanceAmount(value);
+    setCustomPaymentAmount(value);
+    
     if (tourData) {
-      const totalTourCost = tourData.total_price_value || tourData.priceValue || parsePrice(tourData.price);
-      const percentage = Math.round((parseFloat(value) / totalTourCost) * 100);
-      setCustomAdvancePercentage(percentage);
+      const totalTourCost = getTotalTourCost();
+      const enteredAmount = parseFloat(value) || 0;
+      
+      // Determine payment type based on amount
+      if (enteredAmount >= totalTourCost) {
+        setPaymentType('full');
+        setIsPartialPayment(false);
+      } else if (enteredAmount > 0 && enteredAmount < totalTourCost) {
+        setPaymentType('partial');
+        setIsPartialPayment(true);
+      }
     }
   };
 
-  // Calculate default 20% amount
-  const getDefaultAdvanceAmount = () => {
+  // Get total tour cost
+  const getTotalTourCost = () => {
     if (!tourData) return 0;
-    const totalTourCost = tourData.total_price_value || tourData.priceValue || parsePrice(tourData.price);
-    return Math.round((totalTourCost * 20) / 100);
+    return tourData.total_price_value || tourData.priceValue || parsePrice(tourData.price);
   };
 
-  // Get current advance amount based on payment type
-  const getCurrentAdvanceAmount = () => {
+  // Get current payment amount
+  const getCurrentPaymentAmount = () => {
     if (!tourData) return 0;
     
-    if (paymentType === 'custom' && customAdvanceAmount) {
-      return Math.round(parseFloat(customAdvanceAmount));
+    if (paymentType === 'custom' || paymentType === 'partial') {
+      return Math.round(parseFloat(customPaymentAmount) || 0);
     }
     
-    return getDefaultAdvanceAmount();
+    return getTotalTourCost();
   };
 
   // Validate custom amount
   const validateCustomAmount = () => {
     if (!tourData) return false;
     
-    const totalTourCost = tourData.total_price_value || tourData.priceValue || parsePrice(tourData.price);
-    const minAmount = Math.round((totalTourCost * 20) / 100);
+    const totalTourCost = getTotalTourCost();
+    const minAmount = 1; // Minimum ₹1
     const maxAmount = totalTourCost;
-    const enteredAmount = parseFloat(customAdvanceAmount);
+    const enteredAmount = parseFloat(customPaymentAmount);
     
     if (isNaN(enteredAmount)) {
       alert('Please enter a valid amount');
@@ -111,7 +119,7 @@ const CheckoutPage = () => {
     }
     
     if (enteredAmount < minAmount) {
-      alert(`Minimum advance amount is ${formatPrice(minAmount)} (20% of tour cost)`);
+      alert(`Minimum payment amount is ${formatPrice(minAmount)}`);
       return false;
     }
     
@@ -126,7 +134,17 @@ const CheckoutPage = () => {
   // Handle confirm custom amount
   const handleConfirmCustomAmount = () => {
     if (validateCustomAmount()) {
-      setPaymentType('custom');
+      const totalTourCost = getTotalTourCost();
+      const enteredAmount = parseFloat(customPaymentAmount);
+      
+      if (enteredAmount >= totalTourCost) {
+        setPaymentType('full');
+        setIsPartialPayment(false);
+      } else {
+        setPaymentType('partial');
+        setIsPartialPayment(true);
+      }
+      
       setShowCustomAmountModal(false);
     }
   };
@@ -152,12 +170,12 @@ const CheckoutPage = () => {
     
     // Remove currency symbols, commas, and spaces
     const numericString = priceString
+      .toString()
       .replace(/[₹$,]/g, '')
       .replace(/\s+/g, '')
       .trim();
     
-    // Parse as float and round to 2 decimal places
-    return Math.round(parseFloat(numericString) * 100) / 100;
+    return parseFloat(numericString) || 0;
   };
 
   // Format price to display
@@ -165,7 +183,13 @@ const CheckoutPage = () => {
     return `₹${parseFloat(price).toLocaleString('en-IN')}`;
   };
 
-  // Updated handlePhonePePayment function
+  // Calculate percentage
+  const calculatePercentage = (amount) => {
+    const total = getTotalTourCost();
+    return total > 0 ? Math.round((amount / total) * 100) : 0;
+  };
+
+  // Handle payment
   const handlePhonePePayment = async (e) => {
     e.preventDefault();
     setSubmitting(true);
@@ -202,29 +226,28 @@ const CheckoutPage = () => {
       return;
     }
 
-    // Get current advance amount
-    const totalTourCost = tourData.total_price_value || tourData.priceValue || parsePrice(tourData.price);
-    let advanceAmount, advancePercentage;
-    
-    if (paymentType === 'custom' && customAdvanceAmount) {
-      advanceAmount = Math.round(parseFloat(customAdvanceAmount));
-      advancePercentage = Math.round((advanceAmount / totalTourCost) * 100);
-    } else {
-      advancePercentage = 20;
-      advanceAmount = Math.round((totalTourCost * advancePercentage) / 100);
+    // Get current payment amount
+    const totalTourCost = getTotalTourCost();
+    let paymentAmount = getCurrentPaymentAmount();
+    const paymentPercentage = calculatePercentage(paymentAmount);
+    const isFullPayment = paymentAmount >= totalTourCost;
+
+    if (paymentAmount <= 0) {
+      alert('Please enter a valid payment amount');
+      setSubmitting(false);
+      return;
     }
 
     try {
-      const paymentDescription = `${advancePercentage}% Advance Payment for ${tourData.code || tourData.title}`;
+      const paymentDescription = isFullPayment 
+        ? `Full Payment for ${tourData.code || tourData.title}`
+        : `${paymentPercentage}% Partial Payment for ${tourData.code || tourData.title}`;
       
-      if (isNaN(advanceAmount) || advanceAmount <= 0) {
-        throw new Error('Invalid payment amount. Please try again.');
-      }
-
       console.log('Payment processing:', {
-        amount: advanceAmount,
+        amount: paymentAmount,
         totalTourCost: totalTourCost,
-        advancePercentage: advancePercentage,
+        paymentPercentage: paymentPercentage,
+        isFullPayment: isFullPayment,
         description: paymentDescription,
         paymentType: paymentType
       });
@@ -242,8 +265,8 @@ const CheckoutPage = () => {
           
           // Price details
           total_tour_cost: totalTourCost,
-          advance_percentage: advancePercentage,
-          advance_amount: advanceAmount,
+          advance_percentage: paymentPercentage,
+          advance_amount: paymentAmount,
           emi_price: tourData.emiPriceValue || 0,
           
           // Customer details from form
@@ -270,14 +293,14 @@ const CheckoutPage = () => {
 
       const checkoutId = checkoutResponse.data.checkout_id;
 
-      // Step 2: Create PhonePe order with advance amount
+      // Step 2: Create PhonePe order
       const merchantOrderId = `BOOK_${checkoutId}_${Date.now()}`;
       
       const paymentResponse = await axios.post(
         `${BASE_URL}/api/phonepe/orders`,
         {
           action: 'create-order',
-          amount: advanceAmount,
+          amount: paymentAmount,
           currency: "INR",
           environment: "test",
           merchantOrderId: merchantOrderId,
@@ -286,7 +309,9 @@ const CheckoutPage = () => {
             email: formData.email,
             phone: formData.phone,
             checkout_id: checkoutId,
-            tour_code: tourData.code || ''
+            tour_code: tourData.code || '',
+            payment_type: isFullPayment ? 'full' : 'partial',
+            payment_percentage: paymentPercentage
           }
         }
       );
@@ -301,22 +326,24 @@ const CheckoutPage = () => {
           }
         );
         
-        // Save booking details to localStorage for payment result page
+        // Save booking details to localStorage
         const bookingData = {
           tour: {
             ...tourData,
-            advance_percentage: advancePercentage,
-            advance_amount: advanceAmount,
+            advance_percentage: paymentPercentage,
+            advance_amount: paymentAmount,
+            is_full_payment: isFullPayment
           },
           customer: formData,
           checkout_id: checkoutId,
           timestamp: new Date().toISOString(),
-          amount: advanceAmount,
+          amount: paymentAmount,
           total_tour_cost: totalTourCost,
-          advance_percentage: advancePercentage,
+          payment_percentage: paymentPercentage,
+          is_full_payment: isFullPayment,
           merchant_order_id: paymentResponse.data.merchantOrderId,
-          payment_type: paymentType,
-          custom_amount: paymentType === 'custom' ? customAdvanceAmount : null
+          payment_type: isFullPayment ? 'full' : 'partial',
+          custom_amount: paymentType === 'custom' || paymentType === 'partial' ? customPaymentAmount : null
         };
         
         localStorage.setItem('currentBooking', JSON.stringify(bookingData));
@@ -337,7 +364,7 @@ const CheckoutPage = () => {
     }
   };
 
-  // Rest of the loading and no-tour handling remains the same...
+  // Loading and no-tour handling
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -367,11 +394,11 @@ const CheckoutPage = () => {
   }
 
   // Calculate amounts
-  const totalTourCost = tourData.total_price_value || tourData.priceValue || parsePrice(tourData.price);
-  const minAdvanceAmount = Math.round((totalTourCost * 20) / 100);
-  const advanceAmount = getCurrentAdvanceAmount();
-  const advancePercentage = Math.round((advanceAmount / totalTourCost) * 100);
-  const balanceAmount = totalTourCost - advanceAmount;
+  const totalTourCost = getTotalTourCost();
+  const paymentAmount = getCurrentPaymentAmount();
+  const paymentPercentage = calculatePercentage(paymentAmount);
+  const balanceAmount = totalTourCost - paymentAmount;
+  const isFullPayment = paymentAmount >= totalTourCost;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -395,10 +422,10 @@ const CheckoutPage = () => {
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h1 className="text-3xl font-bold text-gray-800 mb-2">Complete Your Booking</h1>
-                  <p className="text-gray-600">Secure your spot with advance payment</p>
+                  <p className="text-gray-600">Pay any amount - from partial to full payment</p>
                 </div>
                 <div className="bg-blue-50 px-4 py-2 rounded-lg border border-blue-200">
-                  <span className="text-sm font-semibold text-blue-700">Advance Payment Only</span>
+                  <span className="text-sm font-semibold text-blue-700">Flexible Payment</span>
                 </div>
               </div>
               
@@ -440,60 +467,67 @@ const CheckoutPage = () => {
                     <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
                     <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd" />
                   </svg>
-                  Advance Payment Amount
+                  Payment Amount
                 </h2>
                 
-                {/* Default 20% Option */}
+                {/* Full Payment Option */}
                 <div className="mb-4">
-                  <div className={`flex items-center justify-between p-4 border rounded-lg cursor-pointer transition-all ${paymentType === 'default' ? 'border-[#2E4D98] bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}
+                  <div className={`flex items-center justify-between p-4 border rounded-lg cursor-pointer transition-all ${paymentType === 'full' ? 'border-[#2E4D98] bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}
                     onClick={() => {
-                      setPaymentType('default');
-                      setCustomAdvanceAmount('');
+                      setPaymentType('full');
+                      setCustomPaymentAmount(totalTourCost.toString());
+                      setIsPartialPayment(false);
                     }}>
                     <div className="flex items-center gap-3">
-                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentType === 'default' ? 'border-[#2E4D98] bg-[#2E4D98]' : 'border-gray-300'}`}>
-                        {paymentType === 'default' && (
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentType === 'full' ? 'border-[#2E4D98] bg-[#2E4D98]' : 'border-gray-300'}`}>
+                        {paymentType === 'full' && (
                           <div className="w-2 h-2 rounded-full bg-white"></div>
                         )}
                       </div>
                       <div>
-                        <h3 className="font-medium text-gray-800">Standard Advance (20%)</h3>
-                        <p className="text-sm text-gray-600">Pay minimum required amount now</p>
+                        <h3 className="font-medium text-gray-800">Full Payment</h3>
+                        <p className="text-sm text-gray-600">Pay the complete amount now</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-lg font-bold text-gray-900">{formatPrice(minAdvanceAmount)}</div>
-                      <div className="text-sm text-gray-600">20% of total</div>
+                      <div className="text-lg font-bold text-gray-900">{formatPrice(totalTourCost)}</div>
+                      <div className="text-sm text-gray-600">100% of total</div>
                     </div>
                   </div>
                 </div>
                 
                 {/* Custom Amount Option */}
                 <div>
-                  <div className={`p-4 border rounded-lg transition-all ${paymentType === 'custom' ? 'border-[#2E4D98] bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}
+                  <div className={`p-4 border rounded-lg transition-all ${paymentType === 'partial' || paymentType === 'custom' ? 'border-[#2E4D98] bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}
                     onClick={() => setShowCustomAmountModal(true)}>
                     <div className="flex items-center gap-3 cursor-pointer">
-                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentType === 'custom' ? 'border-[#2E4D98] bg-[#2E4D98]' : 'border-gray-300'}`}>
-                        {paymentType === 'custom' && (
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentType === 'partial' || paymentType === 'custom' ? 'border-[#2E4D98] bg-[#2E4D98]' : 'border-gray-300'}`}>
+                        {(paymentType === 'partial' || paymentType === 'custom') && (
                           <div className="w-2 h-2 rounded-full bg-white"></div>
                         )}
                       </div>
                       <div>
-                        <h3 className="font-medium text-gray-800">Custom Advance Amount</h3>
-                        <p className="text-sm text-gray-600">Pay more than 20% (up to full amount)</p>
+                        <h3 className="font-medium text-gray-800">Custom Payment Amount</h3>
+                        <p className="text-sm text-gray-600">Pay any amount you want (partial or full)</p>
                       </div>
                     </div>
                     
-                    {paymentType === 'custom' && customAdvanceAmount && (
+                    {(paymentType === 'partial' || paymentType === 'custom') && customPaymentAmount && (
                       <div className="mt-3 pl-8">
                         <div className="bg-white p-3 rounded-lg border">
                           <div className="flex justify-between items-center">
                             <span className="text-gray-700">Selected Amount:</span>
-                            <span className="text-lg font-bold text-[#2E4D98]">{formatPrice(customAdvanceAmount)}</span>
+                            <span className="text-lg font-bold text-[#2E4D98]">{formatPrice(customPaymentAmount)}</span>
                           </div>
                           <div className="flex justify-between items-center text-sm text-gray-600 mt-1">
                             <span>Percentage:</span>
-                            <span>{customAdvancePercentage}% of total</span>
+                            <span>{paymentPercentage}% of total</span>
+                          </div>
+                          <div className="flex justify-between items-center text-sm text-gray-600 mt-1">
+                            <span>Payment Type:</span>
+                            <span className={`font-semibold ${isFullPayment ? 'text-green-600' : 'text-yellow-600'}`}>
+                              {isFullPayment ? 'Full Payment' : 'Partial Payment'}
+                            </span>
                           </div>
                         </div>
                         <button
@@ -512,24 +546,26 @@ const CheckoutPage = () => {
                 </div>
                 
                 <p className="text-sm text-gray-500 mt-3">
-                  💡 <strong>Tip:</strong> Paying more now reduces your balance amount later. Minimum advance payment is 20%.
+                  💡 <strong>Flexible Payment:</strong> Pay any amount you want. You can pay partial amount now and the rest later.
                 </p>
               </div>
               
               {/* Payment Information Notice */}
-              <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8">
-                <div className="flex">
-                  <div className="flex-shrink-0">
-                    <AlertCircle className="h-5 w-5 text-yellow-400" />
-                  </div>
-                  <div className="ml-3">
-                    <p className="text-sm text-yellow-700">
-                      <strong>Important:</strong> You are paying {advancePercentage}% ({formatPrice(advanceAmount)}) as advance now. 
-                      The remaining {formatPrice(balanceAmount)} ({100 - advancePercentage}%) will be payable before the tour departure date.
-                    </p>
+              {isPartialPayment && (
+                <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8">
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      <AlertCircle className="h-5 w-5 text-yellow-400" />
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm text-yellow-700">
+                        <strong>Note:</strong> You are paying {paymentPercentage}% ({formatPrice(paymentAmount)}) now. 
+                        The remaining {formatPrice(balanceAmount)} ({100 - paymentPercentage}%) will be payable before the tour departure date.
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
               
               {/* Booking Form */}
               <form onSubmit={handlePhonePePayment} className="space-y-8">
@@ -736,8 +772,7 @@ const CheckoutPage = () => {
                     <a href="/privacy" className="text-[#2E4D98] hover:underline font-medium">
                       Privacy Policy
                     </a>
-                    . I understand that I'm paying {advancePercentage}% as advance and the remaining amount 
-                    must be paid before the tour departure date. <span className="text-red-500">*</span>
+                    . {isPartialPayment && `I understand that I'm paying ${paymentPercentage}% now and the remaining amount must be paid before the tour departure date.`} <span className="text-red-500">*</span>
                   </Label>
                 </div>
                 
@@ -754,7 +789,7 @@ const CheckoutPage = () => {
                         Processing Payment...
                       </div>
                     ) : (
-                      `Pay ${advancePercentage}% Advance - ${formatPrice(advanceAmount)}`
+                      `Pay ${isFullPayment ? 'Full Amount' : `${paymentPercentage}%`} - ${formatPrice(paymentAmount)}`
                     )}
                   </Button>
                   <p className="text-center text-sm text-gray-500 mt-3">
@@ -781,32 +816,36 @@ const CheckoutPage = () => {
                 
                 <div className="flex justify-between items-center py-3 border-b">
                   <div>
-                    <span className="text-blue-600 font-semibold">Advance Payment ({advancePercentage}%)</span>
+                    <span className="text-blue-600 font-semibold">
+                      {isFullPayment ? 'Full Payment' : `Partial Payment (${paymentPercentage}%)`}
+                    </span>
                     <p className="text-sm text-gray-500">Pay now to confirm your booking</p>
                   </div>
-                  <span className="text-xl font-bold text-blue-600">{formatPrice(advanceAmount)}</span>
+                  <span className="text-xl font-bold text-blue-600">{formatPrice(paymentAmount)}</span>
                 </div>
                 
-                <div className="flex justify-between items-center py-3">
-                  <div>
-                    <span className="text-gray-600">Balance to Pay Later</span>
-                    <p className="text-sm text-gray-500">Payable before departure</p>
+                {!isFullPayment && (
+                  <div className="flex justify-between items-center py-3">
+                    <div>
+                      <span className="text-gray-600">Balance to Pay Later</span>
+                      <p className="text-sm text-gray-500">Payable before departure</p>
+                    </div>
+                    <span className="text-lg font-semibold text-gray-700">{formatPrice(balanceAmount)}</span>
                   </div>
-                  <span className="text-lg font-semibold text-gray-700">{formatPrice(balanceAmount)}</span>
-                </div>
+                )}
                 
                 <div className="bg-blue-50 rounded-xl p-4 mt-6 border border-blue-100">
                   <div className="flex justify-between items-center">
                     <span className="text-lg font-bold text-gray-800">Amount to Pay Now</span>
-                    <span className="text-2xl font-bold text-[#E53C42]">{formatPrice(advanceAmount)}</span>
+                    <span className="text-2xl font-bold text-[#E53C42]">{formatPrice(paymentAmount)}</span>
                   </div>
                   <p className="text-sm text-gray-600 mt-2 text-center">
-                    {advancePercentage}% of total cost
+                    {isFullPayment ? '100% of total cost' : `${paymentPercentage}% of total cost`}
                   </p>
                 </div>
               </div>
               
-              {/* Help sections remain the same... */}
+              {/* Help sections */}
               <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
                 <div className="flex items-start gap-3">
                   <div className="bg-green-100 p-2 rounded-lg">
@@ -817,7 +856,7 @@ const CheckoutPage = () => {
                   <div>
                     <h3 className="font-semibold text-green-800 mb-1">✅ Booking Protection</h3>
                     <p className="text-sm text-green-700">
-                      Free cancellation up to 48 hours before departure. Your advance payment is fully refundable.
+                      Free cancellation up to 48 hours before departure. Your payment is fully refundable.
                     </p>
                   </div>
                 </div>
@@ -849,9 +888,9 @@ const CheckoutPage = () => {
       <Dialog open={showCustomAmountModal} onOpenChange={setShowCustomAmountModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Enter Custom Advance Amount</DialogTitle>
+            <DialogTitle>Enter Payment Amount</DialogTitle>
             <DialogDescription>
-              Enter the amount you want to pay as advance (minimum {formatPrice(minAdvanceAmount)})
+              Enter the amount you want to pay (any amount from ₹1 to full amount)
             </DialogDescription>
           </DialogHeader>
           
@@ -861,63 +900,62 @@ const CheckoutPage = () => {
                 <span className="text-gray-700">Total Tour Cost:</span>
                 <span className="font-bold">{formatPrice(totalTourCost)}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-700">Minimum 20%:</span>
-                <span className="font-bold text-green-600">{formatPrice(minAdvanceAmount)}</span>
+              <div className="flex justify-between text-sm text-gray-600">
+                <span>Minimum:</span>
+                <span>₹1</span>
               </div>
             </div>
             
             <div>
               <Label htmlFor="customAmount" className="text-gray-700 font-medium mb-2 block">
-                Enter Advance Amount (₹)
+                Enter Payment Amount (₹)
               </Label>
               <Input
                 id="customAmount"
                 type="number"
-                value={customAdvanceAmount}
+                value={customPaymentAmount}
                 onChange={(e) => handleCustomAmountChange(e.target.value)}
-                placeholder={`Enter amount (min: ${formatPrice(minAdvanceAmount)})`}
+                placeholder={`Enter amount (max: ${formatPrice(totalTourCost)})`}
                 className="h-12 text-lg"
-                min={minAdvanceAmount}
+                min="1"
                 max={totalTourCost}
                 step="100"
               />
               <div className="flex justify-between text-sm text-gray-500 mt-2">
-                <span>Min: {formatPrice(minAdvanceAmount)}</span>
+                <span>Min: ₹1</span>
                 <span>Max: {formatPrice(totalTourCost)}</span>
               </div>
             </div>
             
-            {customAdvanceAmount && !isNaN(parseFloat(customAdvanceAmount)) && (
+            {customPaymentAmount && !isNaN(parseFloat(customPaymentAmount)) && (
               <div className="bg-gray-50 p-3 rounded-lg">
                 <div className="grid grid-cols-2 gap-4 text-center">
                   <div>
-                    <div className="text-sm text-gray-600">Your Advance</div>
+                    <div className="text-sm text-gray-600">Your Payment</div>
                     <div className="text-xl font-bold text-[#2E4D98]">
-                      {formatPrice(customAdvanceAmount)}
+                      {formatPrice(customPaymentAmount)}
                     </div>
                   </div>
                   <div>
                     <div className="text-sm text-gray-600">Percentage</div>
                     <div className="text-xl font-bold text-[#2E4D98]">
-                      {customAdvancePercentage}%
+                      {paymentPercentage}%
                     </div>
                   </div>
                 </div>
                 <div className="mt-3">
-                  <div className="text-sm text-gray-600">Balance to Pay Later:</div>
-                  <div className="text-lg font-bold text-gray-800">
-                    {formatPrice(totalTourCost - parseFloat(customAdvanceAmount))}
+                  <div className={`text-sm ${isFullPayment ? 'text-green-600' : 'text-yellow-600'} font-medium`}>
+                    {isFullPayment ? '✅ Full Payment' : '⏳ Partial Payment'}
                   </div>
+                  {!isFullPayment && (
+                    <div className="mt-2">
+                      <div className="text-sm text-gray-600">Balance to Pay Later:</div>
+                      <div className="text-lg font-bold text-gray-800">
+                        {formatPrice(totalTourCost - parseFloat(customPaymentAmount))}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
-            )}
-            
-            {customAdvanceAmount && parseFloat(customAdvanceAmount) < minAdvanceAmount && (
-              <div className="bg-red-50 border border-red-200 p-3 rounded-lg">
-                <p className="text-red-700 text-sm">
-                  ⚠️ Amount must be at least {formatPrice(minAdvanceAmount)} (20% of total)
-                </p>
               </div>
             )}
           </div>
@@ -933,7 +971,7 @@ const CheckoutPage = () => {
             <Button
               type="button"
               onClick={handleConfirmCustomAmount}
-              disabled={!customAdvanceAmount || parseFloat(customAdvanceAmount) < minAdvanceAmount}
+              disabled={!customPaymentAmount || parseFloat(customPaymentAmount) < 1}
             >
               Use This Amount
             </Button>

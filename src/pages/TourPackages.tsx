@@ -492,43 +492,36 @@ const TourPackages = () => {
 
  // In TourPackages.jsx, update the handleBookNowClick function:
 
-const handleBookNowClick = (tour) => {
-    // Calculate 20% of the tour price
+  // In TourPackages.jsx, update the handleBookNowClick function:
+  const handleBookNowClick = (tour) => {
+    // Remove the 20% calculation and use the full tour price
     const totalPriceValue = tour.priceValue || 0;
-    const advancePercentage = 20;
-    const advanceAmount = Math.round((totalPriceValue * advancePercentage) / 100);
-    const balanceAmount = totalPriceValue - advanceAmount;
     
     // Parse EMI price if it's a string
     const emiPriceValue = typeof tour.emiPriceValue === 'string' ? 
-        parseFloat(tour.emiPriceValue.replace(/[₹$,]/g, '')) : 
-        tour.emiPriceValue || 0;
+      parseFloat(tour.emiPriceValue.replace(/[₹$,]/g, '')) : 
+      tour.emiPriceValue || 0;
     
-    // Create modified tour object with advance payment info
-    const tourWithAdvance = {
-        ...tour,
-        total_price: tour.price, // Original price string
-        total_price_value: totalPriceValue, // Original price numeric
-        advance_percentage: advancePercentage,
-        advance_amount: advanceAmount,
-        advance_price: `₹${advanceAmount.toLocaleString()}`, // Formatted advance amount
-        balance_amount: balanceAmount,
-        balance_price: `₹${balanceAmount.toLocaleString()}`,
-        emi_price: emiPriceValue, // Numeric EMI value
-        payment_type: 'advance' // Indicate this is an advance payment
+    // Create tour object without advance calculation
+    const tourWithFullAmount = {
+      ...tour,
+      total_price: tour.price, // Original price string
+      total_price_value: totalPriceValue, // Original price numeric
+      // REMOVE all advance-related fields - user will decide at checkout
+      payment_type: 'full' // Indicate this is full amount (user will decide)
     };
     
     // Save to localStorage as backup
-    localStorage.setItem('selectedTour', JSON.stringify(tourWithAdvance));
+    localStorage.setItem('selectedTour', JSON.stringify(tourWithFullAmount));
     
     // Navigate to checkout page with tour data
     navigate('/checkout', { 
-        state: { 
-            tour: tourWithAdvance,
-            paymentType: 'advance'
-        } 
+      state: { 
+        tour: tourWithFullAmount,
+        // No paymentType specified - user will choose in checkout
+      } 
     });
-};
+  };
 
     // Function to handle enquiry navigation
   const handleEnquiryClick = (tour: any) => {
