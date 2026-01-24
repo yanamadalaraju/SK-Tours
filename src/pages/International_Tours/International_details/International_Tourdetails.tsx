@@ -488,7 +488,6 @@ const [autoScrollInterval, setAutoScrollInterval] = useState(null);
         return {
           loanAmount: "Variable",
           options: emiOptionsArray.map((option) => ({
-            particulars: option.particulars || 'Per Month Payment',
             loanAmount: formatPrice(option.loan_amount || '0'),
             months: option.months || 0,
             emi: formatPrice(option.emi)
@@ -1308,11 +1307,8 @@ useEffect(() => {
 
                       <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg w-full flex flex-col min-h-[680px] max-h-[780px] overflow-hidden">
                         <div className="flex-1 overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-                          {/* Dynamically generate month tabs based on available departure data */}
                           <div className="flex flex-wrap gap-2 mb-2">
-                            {/* First, calculate which months actually have departure data */}
                             {(() => {
-                              // Get unique months from departure data
                               const availableMonths = tour.departures.data
                                 .map((dep) => dep.month)
                                 .filter((month, index, self) =>
@@ -1416,9 +1412,9 @@ useEffect(() => {
                                     {/* HEADER */}
                                     <div className="grid grid-cols-4 bg-[#0A1D4A] text-white font-semibold text-center">
                                       <div className="p-2 border-r-2 border-white">Particulars - Tour Cost</div>
-                                      <div className="p-2 border-r-2 border-white">3 Star</div>
-                                      <div className="p-2 border-r-2 border-white">4 Star</div>
-                                      <div className="p-2">5 Star</div>
+                                      <div className="p-2 border-r-2 border-white">Standard</div>
+                                      <div className="p-2 border-r-2 border-white">Deluxe</div>
+                                      <div className="p-2">Luxury</div>
                                     </div>
 
                                     {/* ROWS */}
@@ -1507,14 +1503,11 @@ useEffect(() => {
                       Tour Cost
                     </div>
 
-                    <div className="border rounded-b-lg rounded-t overflow-hidden -mt-1">
-                      {/* Group Tour Cost Section - Show only for Group-like tours */}
+                    <div className="border rounded-b-lg rounded-t-o overflow-hidden -mt-1.5">
                       {isGroupTour ? (
-                        <div className="mb-4">
-                          {/* Month and Date Selection */}
-                          <div className="p-4 mb-4 border-2 border-black rounded-lg">
-                            <div className="grid grid-cols-2 gap-4 mb-4">
-                              {/* MONTH */}
+                        <div className="mb-0">
+<div className="p-4 border-2 border-black border-t-0 rounded-b-lg">
+                              <div className="grid grid-cols-2 gap-4 mb-4">
                               <div>
                                 <label className="block text-gray-700 font-bold mb-2">Month</label>
                                 <select
@@ -1559,9 +1552,9 @@ useEffect(() => {
                                 {/* HEADER */}
                                 <div className="grid grid-cols-4 bg-[#0A1D4A] text-white font-semibold text-center">
                                   <div className="p-2 border-r-2 border-white">Particulars - Tour Cost</div>
-                                  <div className="p-2 border-r-2 border-white">3 Star</div>
-                                  <div className="p-2 border-r-2 border-white">4 Star</div>
-                                  <div className="p-2">5 Star</div>
+                                  <div className="p-2 border-r-2 border-white">Standard</div>
+                                  <div className="p-2 border-r-2 border-white">Deluxe</div>
+                                  <div className="p-2">Luxury</div>
                                 </div>
 
                                 {/* ROWS */}
@@ -1696,142 +1689,184 @@ useEffect(() => {
                         </div>
                       )}
 
-                      {/* Optional Tour Section */}
-                      {tour.optionalTours && tour.optionalTours.length > 0 && (
-                        <div className='mb-1 mt-4'>
-                          <div className="bg-red-600 text-white text-center font-bold text-xl rounded-t-lg py-3 mb-1">
-                            Optional Tour
-                          </div>
-                          <div className="overflow-x-auto">
-                            <table className="w-full border-collapse">
-                              <thead>
-                                <tr className="bg-[#2E4D98]">
-                                  <th className="border border-white px-4 py-3 text-left font-semibold text-white w-[70%]">
-                                    Tour Name
-                                  </th>
-                                  <th className="border border-white px-4 py-3 text-left font-semibold text-white w-[15%]">
-                                    Adult Price
-                                  </th>
-                                  <th className="border border-white px-4 py-3 text-left font-semibold text-white w-[15%]">
-                                    Child Price
-                                  </th>
-                                </tr>
-                              </thead>
-                              <tbody className="border-2 border-[#1e3a8a] border-t-0">
-                                {tour.optionalTours.map((optTour, index) => (
-                                  <tr key={index} className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}>
-                                    <td className="border border-black px-4 py-2">{optTour.tourName}</td>
-                                    <td className="border border-black px-4 py-2 border-l-0">{optTour.adultPrice}</td>
-                                    <td className="border border-black px-4 py-2 border-l-0">{optTour.childPrice}</td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        </div>
-                      )}
 
-                      {/* EMI Options Section */}
-                      {tour.emiOptions && tour.emiOptions.options && tour.emiOptions.options.length > 0 && (
-                        <div className='mb-1 mt-4'>
-                          <div className="bg-red-600 text-white text-center font-bold text-xl rounded-t-lg py-3 mb-1">
-                            EMI Options
-                          </div>
-                          <div className="overflow-x-auto">
-                            <table className="w-full border-collapse">
-                              <thead>
-                                <tr className="bg-[#2E4D98]">
-                                  <th className="border border-white px-4 py-3 text-left font-semibold text-white w-[40%]">
-                                    Particulars
-                                  </th>
-                                  <th className="border border-white px-4 py-3 text-center font-semibold text-white w-[20%]">
-                                    Loan Amount
-                                  </th>
-                                  <th className="border border-white px-4 py-3 text-center font-semibold text-white w-[20%]">
-                                    Months
-                                  </th>
-                                  <th className="border border-white px-4 py-3 text-center font-semibold text-white w-[20%]">
-                                    EMI
-                                  </th>
-                                </tr>
-                              </thead>
-                              <tbody className="border-2 border-[#1e3a8a] border-t-0">
-                                {tour.emiOptions.options.map((emi, index) => (
-                                  <tr key={index} className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}>
-                                    <td className="border border-black px-4 py-2 font-bold text-base">
-                                      {emi.particulars}
-                                    </td>
-                                    <td className="border border-black px-4 py-2 border-l-0 text-center">
-                                      {emi.loanAmount}
-                                    </td>
-                                    <td className="border border-black px-4 py-2 border-l-0 text-center">
-                                      {emi.months}
-                                    </td>
-                                    <td className="border border-black px-4 py-2 border-l-0 text-center">
-                                      {emi.emi}
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        </div>
-                      )}
+      
+           <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
+  <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
+    Tour Cost Remarks
+  </div>
+  <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
+    <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+      {tour.tourCost.remarks && tour.tourCost.remarks.length > 0 ? (
+        <ul className="space-y-2 w-full">
+          {tour.tourCost.remarks.map((remark, index) => (
+            <li key={index} className="flex items-start gap-2 w-full">
+              <span className="text-gray-700 whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
+                {remark}
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div className="flex items-center justify-center h-full">
+          <span className="text-gray-500 italic">No tour cost remarks available</span>
+        </div>
+      )}
+    </div>
+  </div>
+</div>
 
-                      {/* Tour Cost Remarks and EMI Remarks */}
-                      <div className="flex gap-1 mt-1 w-full">
-                        {/* Tour Cost Remarks */}
-                        <div className="bg-[#E8F0FF] rounded-lg w-1/2 overflow-x-hidden">
-                          <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
-                            Tour Cost Remarks
-                          </div>
-                          <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-                            <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-                              {tour.tourCost.remarks && tour.tourCost.remarks.length > 0 ? (
-                                <ul className="space-y-2 w-full">
-                                  {tour.tourCost.remarks.map((remark, index) => (
-                                    <li key={index} className="flex items-start gap-2 w-full">
-                                      <span className="text-gray-700 whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
-                                        {remark}
-                                      </span>
-                                    </li>
-                                  ))}
-                                </ul>
-                              ) : (
-                                <div className="flex items-center justify-center h-full">
-                                  <span className="text-gray-500 italic">No tour cost remarks available</span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
+<div className='mt-1'>
+  <div className="flex flex-col lg:flex-row gap-1">
+    {/* Optional Tour Table (50% width) */}
+    <div className='flex-1 min-w-0 lg:w-1/2'>
+      <div className="bg-red-600 text-white text-center font-bold text-xl rounded-t-lg py-3 mb-1">
+        Optional Tour
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="bg-[#2E4D98]">
+              <th className="border border-white px-4 py-3 text-left font-semibold text-white w-[40%] lg:w-[50%]">
+                Tour Name
+              </th>
+              <th className="border border-white px-4 py-3 text-left font-semibold text-white w-[30%] lg:w-[25%]">
+                Adult Price
+              </th>
+              <th className="border border-white px-4 py-3 text-left font-semibold text-white w-[30%] lg:w-[25%]">
+                Child Price
+              </th>
+            </tr>
+          </thead>
+          <tbody className="border-2 border-[#1e3a8a] border-t-0">
+            {(() => {
+              // Get the maximum row count between both tables
+              const optionalTourCount = tour.optionalTours ? tour.optionalTours.length : 0;
+              const emiCount = tour.emiOptions && tour.emiOptions.options ? tour.emiOptions.options.length : 0;
+              const maxRows = Math.max(optionalTourCount, emiCount, 1); // At least show 1 row
+              
+              const rows = [];
+              for (let i = 0; i < maxRows; i++) {
+                const optTour = tour.optionalTours && tour.optionalTours[i];
+                rows.push(
+                  <tr key={i} className={i % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}>
+                    <td className="border border-black px-4 py-2">{optTour ? optTour.tourName : "N/A"}</td>
+                    <td className="border border-black px-4 py-2 border-l-0">{optTour ? optTour.adultPrice : "N/A"}</td>
+                    <td className="border border-black px-4 py-2 border-l-0">{optTour ? optTour.childPrice : "N/A"}</td>
+                  </tr>
+                );
+              }
+              return rows;
+            })()}
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-                        {/* Tour Cost EMI Remarks */}
-                        <div className="bg-[#E8F0FF] rounded-lg w-1/2 overflow-x-hidden">
-                          <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
-                            Tour Cost EMI
-                          </div>
-                          <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-                            <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-                              {tour.emiRemarks && tour.emiRemarks.length > 0 ? (
-                                <ul className="space-y-2 w-full">
-                                  {tour.emiRemarks.map((remark, index) => (
-                                    <li key={index} className="flex items-start gap-2 w-full">
-                                      <span className="text-gray-700 whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
-                                        {remark}
-                                      </span>
-                                    </li>
-                                  ))}
-                                </ul>
-                              ) : (
-                                <div className="flex items-center justify-center h-full">
-                                  <span className="text-gray-500 italic">No EMI remarks available</span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+    {/* EMI Options Table (50% width) */}
+    <div className='flex-1 min-w-0 lg:w-1/2'>
+      <div className="bg-red-600 text-white text-center font-bold text-xl rounded-t-lg py-3 mb-1">
+        EMI Options
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="bg-[#2E4D98]">
+              <th className="border border-white px-4 py-3 text-center font-semibold text-white w-[33.33%]">
+                Loan Amount
+              </th>
+              <th className="border border-white px-4 py-3 text-center font-semibold text-white w-[33.33%]">
+                Months
+              </th>
+              <th className="border border-white px-4 py-3 text-center font-semibold text-white w-[33.33%]">
+                EMI
+              </th>
+            </tr>
+          </thead>
+          <tbody className="border-2 border-[#1e3a8a] border-t-0">
+            {(() => {
+              // Get the maximum row count between both tables
+              const optionalTourCount = tour.optionalTours ? tour.optionalTours.length : 0;
+              const emiCount = tour.emiOptions && tour.emiOptions.options ? tour.emiOptions.options.length : 0;
+              const maxRows = Math.max(optionalTourCount, emiCount, 1); // At least show 1 row
+              
+              const rows = [];
+              for (let i = 0; i < maxRows; i++) {
+                const emi = tour.emiOptions && tour.emiOptions.options && tour.emiOptions.options[i];
+                rows.push(
+                  <tr key={i} className={i % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}>
+                    <td className="border border-black px-4 py-2 border-l-0 text-center">
+                      {emi ? emi.loanAmount : "N/A"}
+                    </td>
+                    <td className="border border-black px-4 py-2 border-l-0 text-center">
+                      {emi ? emi.months : "N/A"}
+                    </td>
+                    <td className="border border-black px-4 py-2 border-l-0 text-center">
+                      {emi ? emi.emi : "N/A"}
+                    </td>
+                  </tr>
+                );
+              }
+              return rows;
+            })()}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+  <div className="flex gap-1 mt-1 w-full">
+  <div className="bg-[#E8F0FF] rounded-lg w-1/2 overflow-x-hidden">
+    <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
+      Optional Tour Remarks
+    </div>
+    <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
+      <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+        {tour.optionalTourRemarks && tour.optionalTourRemarks.length > 0 ? (
+          <ul className="space-y-2 w-full">
+            {tour.optionalTourRemarks.map((remark: string, index: number) => (
+              <li key={index} className="flex items-start gap-2 w-full">
+                <span className="text-gray-700 whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
+                  {remark}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="flex items-center justify-center h-full">
+            <span className="text-gray-500 italic">No optional tour remarks available</span>
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+
+  {/* EMI Remarks - 50% width */}
+  <div className="bg-[#E8F0FF] rounded-lg w-1/2 overflow-x-hidden">
+    <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
+      EMI Remarks
+    </div>
+    <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
+      <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+        {tour.emiRemarks && tour.emiRemarks.length > 0 ? (
+          <ul className="space-y-2 w-full">
+            {tour.emiRemarks.map((remark, index) => (
+              <li key={index} className="flex items-start gap-2 w-full">
+                <span className="text-gray-700 whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
+                  {remark}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="flex items-center justify-center h-full">
+            <span className="text-gray-500 italic">No EMI remarks available</span>
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+</div>
                     </div>
                   </div>
                 )}
@@ -1905,95 +1940,132 @@ useEffect(() => {
                           {isGroupTour ? (
                             // Group Tour - Table Structure
                             <div className="overflow-x-auto border shadow-sm">
-                              <table className="w-full border-collapse table-fixed">
-                                <thead>
-                                  <tr className="bg-[red]">
-                                    <th className="border border-black px-3 py-3 text-left font-semibold text-white text-base h-9 w-1/9">
-                                      Airlines
-                                    </th>
-                                    <th className="border border-black px-4 py-3 text-left font-semibold text-white text-base h-9 w-1/9">
-                                      Flight No
-                                    </th>
-                                    <th className="border border-black px-4 py-3 text-left font-semibold text-white text-base h-9 w-1/9">
-                                      From
-                                    </th>
-                                    <th className="border border-black px-4 py-3 text-left font-semibold text-white text-base h-9 w-1/9">
-                                      Date
-                                    </th>
-                                    <th className="border border-black px-4 py-3 text-left font-semibold text-white text-base h-9 w-1/9">
-                                      Time
-                                    </th>
-                                    <th className="border border-black px-4 py-3 text-left font-semibold text-white text-base h-9 w-1/9">
-                                      To
-                                    </th>
-                                    <th className="border border-black px-4 py-3 text-left font-semibold text-white text-base h-9 w-1/9">
-                                      Date
-                                    </th>
-                                    <th className="border border-black px-4 py-3 text-left font-semibold text-white text-base h-9 w-1/9">
-                                      Time
-                                    </th>
-                                    <th className="border border-black px-4 py-3 text-left font-semibold text-white text-base h-9 w-1/9">
-                                      Via
-                                    </th>
-                                  </tr>
-                                </thead>
+   <table className="w-full border-collapse table-fixed">
+  <thead>
+    <tr className="bg-[red]">
+      <th className="border border-black px-3 py-3 text-center font-semibold text-white text-sm h-9 w-[14%]">
+        Airlines
+      </th>
+      <th className="border border-black px-4 py-3 text-center font-semibold text-white text-sm h-9 w-[11%]">
+        Flight No
+      </th>
+      <th className="border border-black px-4 py-3 text-center font-semibold text-white text-sm h-9 w-[14%]">
+        From
+      </th>
+      <th className="border border-black px-4 py-3 text-center font-semibold text-white text-sm h-9 w-[12%]">
+        Date
+      </th>
+      <th className="border border-black px-4 py-3 text-center font-semibold text-white text-sm h-9 w-[12%]">
+        Time
+      </th>
+      <th className="border border-black px-4 py-3 text-center font-semibold text-white text-sm h-9 w-[14%]">
+        To
+      </th>
+      <th className="border border-black px-4 py-3 text-center font-semibold text-white text-sm h-9 w-[12%]">
+        Date
+      </th>
+      <th className="border border-black px-4 py-3 text-center font-semibold text-white text-sm h-9 w-[12%]">
+        Time
+      </th>
+    </tr>
+  </thead>
 
-                                <tbody>
-                                  {tour.airlines.tableData && tour.airlines.tableData.length > 0 ? (
-                                    tour.airlines.tableData.map((flight, index) => (
-                                      <tr key={index} className={index % 2 === 0 ? 'bg-[#FFEBEE]' : 'bg-[#FFEBEE]/80'}>
-                                        <td className="border border-black px-4 py-3 text-center h-9 w-1/9">
-                                          {flight.airline || ''}
-                                        </td>
-                                        <td className="border border-black px-4 py-3 text-center h-9 w-1/9">
-                                          {flight.flightNo || ''}
-                                        </td>
-                                        <td className="border border-black px-4 py-3 text-center h-9 w-1/9">
-                                          {flight.from || ''}
-                                        </td>
-                                        <td className="border border-black px-4 py-3 text-center h-9 w-1/9">
-                                          {flight.depDate || ''}
-                                        </td>
-                                        <td className="border border-black px-4 py-3 text-center h-9 w-1/9">
-                                          {flight.depTime || ''}
-                                        </td>
-                                        <td className="border border-black px-4 py-3 text-center h-9 w-1/9">
-                                          {flight.to || ''}
-                                        </td>
-                                        <td className="border border-black px-4 py-3 text-center h-9 w-1/9">
-                                          {flight.arrDate || ''}
-                                        </td>
-                                        <td className="border border-black px-4 py-3 text-center h-9 w-1/9">
-                                          {flight.arrTime || ''}
-                                        </td>
-                                        <td className="border border-black px-4 py-3 text-center h-9 w-1/9">
-                                          {flight.via || ''}
-                                        </td>
-                                      </tr>
-                                    ))
-                                  ) : (
-                                    // Show empty rows if no data
-                                    [1, 2, 3, 4].map((row, index) => (
-                                      <tr key={index} className={index % 2 === 0 ? 'bg-[#FFEBEE]' : 'bg-[#FFEBEE]/80'}>
-                                        <td className="border border-black px-4 py-3 text-center h-9 w-1/9">&nbsp;</td>
-                                        <td className="border border-black px-4 py-3 text-center h-9 w-1/9">&nbsp;</td>
-                                        <td className="border border-black px-4 py-3 text-center h-9 w-1/9">&nbsp;</td>
-                                        <td className="border border-black px-4 py-3 text-center h-9 w-1/9">&nbsp;</td>
-                                        <td className="border border-black px-4 py-3 text-center h-9 w-1/9">&nbsp;</td>
-                                        <td className="border border-black px-4 py-3 text-center h-9 w-1/9">&nbsp;</td>
-                                        <td className="border border-black px-4 py-3 text-center h-9 w-1/9">&nbsp;</td>
-                                        <td className="border border-black px-4 py-3 text-center h-9 w-1/9">&nbsp;</td>
-                                        <td className="border border-black px-4 py-3 text-center h-9 w-1/9">&nbsp;</td>
-                                      </tr>
-                                    ))
-                                  )}
-                                </tbody>
-                              </table>
+  <tbody>
+    {tour.airlines.tableData && tour.airlines.tableData.length > 0 ? (
+      tour.airlines.tableData.map((flight, index) => {
+        // Format date to Indian format (dd-mm-yyyy)
+        const formatDateToIndian = (dateString) => {
+          if (!dateString) return '';
+          try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return dateString;
+            
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}-${month}-${year}`;
+          } catch (error) {
+            return dateString;
+          }
+        };
+
+        // Format time to AM/PM format (HH:MM AM/PM)
+        const formatTimeToAMPM = (timeString) => {
+          if (!timeString) return '';
+          try {
+            // If time is in HH:MM:SS or HH:MM format
+            if (timeString.includes(':')) {
+              const timeParts = timeString.split(':');
+              if (timeParts.length >= 2) {
+                let hours = parseInt(timeParts[0], 10);
+                const minutes = timeParts[1];
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+                
+                // Convert 24-hour to 12-hour format
+                hours = hours % 12;
+                hours = hours === 0 ? 12 : hours; // 0 should be 12 for 12 AM
+                
+                return `${hours}:${minutes} ${ampm}`;
+              }
+            }
+            // If it's already in some other format, return as is
+            return timeString;
+          } catch (error) {
+            return timeString;
+          }
+        };
+
+        return (
+          <tr key={index} className={index % 2 === 0 ? 'bg-[#FFEBEE]' : 'bg-[#FFEBEE]/80'}>
+            <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[14%]">
+              {flight.airline || ''}
+            </td>
+            <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[11%]">
+              {flight.flightNo || ''}
+            </td>
+            <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[14%]">
+              {flight.from || ''}
+            </td>
+            <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[12%]">
+              {formatDateToIndian(flight.depDate) || ''}
+            </td>
+            <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[12%]">
+              {formatTimeToAMPM(flight.depTime) || ''}
+            </td>
+            <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[14%]">
+              {flight.to || ''}
+            </td>
+            <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[12%]">
+              {formatDateToIndian(flight.arrDate) || ''}
+            </td>
+            <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[12%]">
+              {formatTimeToAMPM(flight.arrTime) || ''}
+            </td>
+          </tr>
+        );
+      })
+    ) : (
+      // Show empty rows if no data
+      [1, 2, 3, 4].map((row, index) => (
+        <tr key={index} className={index % 2 === 0 ? 'bg-[#FFEBEE]' : 'bg-[#FFEBEE]/80'}>
+          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[11%]">&nbsp;</td>
+          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[11%]">&nbsp;</td>
+          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[14%]">&nbsp;</td>
+          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[10%]">&nbsp;</td>
+          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[12%]">&nbsp;</td>
+          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[14%]">&nbsp;</td>
+          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[10%]">&nbsp;</td>
+          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[12%]">&nbsp;</td>
+        </tr>
+      ))
+    )}
+  </tbody>
+</table>
 
                               {/* Description Area for Group Tours */}
                               {tour.airlines.tableData && tour.airlines.tableData.some((flight) => flight.description) && (
                                 <div className="mt-4 p-4 bg-[#E8F0FF]  border border-gray-200 rounded-lg">
-                                  <h4 className="font-bold text-lg mb-3 text-center text-red-600">Additional Information</h4>
+                                  <h4 className="font-bold text-lg mb-2 text-center text-red-600">Additional Information</h4>
                                   <div className="space-y-4">
                                     {tour.airlines.tableData.map((flight, index) => (
                                       flight.description && (
@@ -2133,7 +2205,7 @@ useEffect(() => {
                           <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg overflow-hidden w-full">
                             <div className="min-h-[150px] max-h-[200px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
                               <ul className="space-y-2 w-full">
-                                {[...tour.hotels.remarks, ...tour.airlines.remarks].map((remark, index) => (
+                                {[...tour.hotels.remarks].map((remark, index) => (
                                   <li key={index} className="flex items-start gap-1 w-full">
                                     <span className="text-gray-700 break-words whitespace-pre-wrap text-justify w-full">
                                       {remark}
@@ -2149,7 +2221,7 @@ useEffect(() => {
                   </div>
                 )}
 
-          {/* Visa Tab - Updated with dynamic data */}
+{/* Visa Tab - Updated with dynamic data */}
 {activeTab === "visa" && (
   <div className="bg-[#E8F0FF] rounded-lg p-1">
     {/* Header */}
@@ -2177,20 +2249,17 @@ useEffect(() => {
           "Visa Fees": "fees",
           "Submission & Pick Up": "time"
         };
-
         const tabKey = tabMap[label];
         const isLastTab = idx === 6;
-
         return (
           <button
             key={label}
             onClick={() => setActiveVisaTab(tabKey)}
-            className={`px-2 py-3 text-sm font-semibold text-center whitespace-nowrap border-r border-black last:border-r-0 transition 
+            className={`px-2 py-3 text-sm font-semibold text-center whitespace-nowrap border-r border-black last:border-r-0 transition
               ${activeVisaTab === tabKey
                 ? "bg-[#A72703] text-white"
                 : "bg-[#FFE797] text-gray-800"
-              }
-            `}
+              }`}
             style={{
               flex: isLastTab ? '1.3' : '1'
             }}
@@ -2201,17 +2270,16 @@ useEffect(() => {
       })}
     </div>
 
-    {/* Content based on active visa tab */}
-    
-    {/* Tourist Visa Tab */}
-    {activeVisaTab === 'tourist' && (
-      <div className="space-y-4">
+    {/* Tab Content */}
+    <div className="space-y-0">
+      {/* Tourist Visa Tab */}
+      {activeVisaTab === 'tourist' && (
         <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg w-full flex flex-col min-h-[280px] max-h-[280px] overflow-hidden">
           <div className="flex-1 overflow-y-auto p-2 bg-[#FFEBEE] w-full">
             <div className="space-y-4 w-full">
               {tour.visaDetails.tourist.length > 0 ? (
                 tour.visaDetails.tourist.map((description, index) => (
-                  <div key={index} className="border border-gray-200 rounded-lg p-2 w-full">
+                  <div key={index} className="w-full">
                     <div className="flex items-start w-full">
                       <div className="flex-1 min-w-0">
                         <p className="text-gray-700 break-words whitespace-pre-wrap text-justify w-full">
@@ -2229,41 +2297,21 @@ useEffect(() => {
             </div>
           </div>
         </div>
+      )}
 
-        {/* Visa Remarks for Tourist Tab */}
-        {tour.visaForms.length > 0 && tour.visaForms[0].remarks && tour.visaForms[0].remarks.trim() !== "" && (
-          <div className="bg-[#E8F0FF] rounded-lg p-1 mt-2">
-            <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
-              Visa Remarks
-            </div>
-            <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-              <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-4 bg-[#FFEBEE] w-full">
-                <div className="whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
-                  {tour.visaForms[0].remarks}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    )}
-
-    {/* Transit Visa Tab */}
-    {activeVisaTab === 'transit' && (
-      <div className="space-y-4">
+      {/* Transit Visa Tab */}
+      {activeVisaTab === 'transit' && (
         <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg w-full flex flex-col min-h-[280px] max-h-[280px] overflow-hidden">
           <div className="flex-1 overflow-y-auto p-2 bg-[#FFEBEE] w-full">
             <div className="space-y-4 w-full">
               {tour.visaDetails.transit.length > 0 ? (
                 tour.visaDetails.transit.map((description, index) => (
-                  <div key={index} className="border border-gray-200 rounded-lg p-2 w-full">
                     <div className="flex items-start w-full">
                       <div className="flex-1 min-w-0">
                         <p className="text-gray-700 break-words whitespace-pre-wrap text-justify w-full">
-                          {description}
-                        </p>
-                      </div>
-                    </div>
+                      {description}
+                    </p>
+                  </div>
                   </div>
                 ))
               ) : (
@@ -2274,41 +2322,21 @@ useEffect(() => {
             </div>
           </div>
         </div>
+      )}
 
-        {/* Visa Remarks for Transit Tab */}
-        {tour.visaForms.length > 0 && tour.visaForms[0].remarks && tour.visaForms[0].remarks.trim() !== "" && (
-          <div className="bg-[#E8F0FF] rounded-lg p-1 mt-1">
-            <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
-              Visa Remarks
-            </div>
-            <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-              <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-4 bg-[#FFEBEE] w-full">
-                <div className="whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
-                  {tour.visaForms[0].remarks}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    )}
-
-    {/* Business Visa Tab */}
-    {activeVisaTab === 'business' && (
-      <div className="space-y-4">
+      {/* Business Visa Tab */}
+      {activeVisaTab === 'business' && (
         <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg w-full flex flex-col min-h-[280px] max-h-[280px] overflow-hidden">
           <div className="flex-1 overflow-y-auto p-2 bg-[#FFEBEE] w-full">
             <div className="space-y-4 w-full">
               {tour.visaDetails.business.length > 0 ? (
                 tour.visaDetails.business.map((description, index) => (
-                  <div key={index} className="border border-gray-200 rounded-lg p-2 w-full">
                     <div className="flex items-start w-full">
                       <div className="flex-1 min-w-0">
                         <p className="text-gray-700 break-words whitespace-pre-wrap text-justify w-full">
-                          {description}
-                        </p>
-                      </div>
-                    </div>
+                      {description}
+                    </p>
+                  </div>
                   </div>
                 ))
               ) : (
@@ -2319,347 +2347,262 @@ useEffect(() => {
             </div>
           </div>
         </div>
+      )}
 
-        {/* Visa Remarks for Business Tab */}
-        {tour.visaForms.length > 0 && tour.visaForms[0].remarks && tour.visaForms[0].remarks.trim() !== "" && (
-          <div className="bg-[#E8F0FF] rounded-lg p-1 mt-2">
-            <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
-              Visa Remarks
-            </div>
-            <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-              <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-4 bg-[#FFEBEE] w-full">
-                <div className="whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
-                  {tour.visaForms[0].remarks}
-                </div>
-              </div>
-            </div>
+      {/* Visa Forms Tab */}
+      {activeVisaTab === 'forms' && (
+        <div className="space-y-1 mt-1">
+          <div className="overflow-x-auto w-full">
+            <table className="w-full border-collapse min-w-max border border-gray-300">
+              <thead>
+                <tr className="bg-[#2E4D98]">
+                  <th className="border border-white px-2 py-3 text-left text-white w-[70%] h-12">
+                    Visa Type
+                  </th>
+                  <th className="border border-white px-2 py-3 text-center text-white w-[15%] h-12">
+                    Action 1
+                  </th>
+                  <th className="border border-white px-2 py-3 text-center text-white w-[15%] h-12">
+                    Action 2
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="border-2 border-[#1e3a8a] border-t-0">
+                {/* Tourist */}
+                <tr className="bg-[#FFEBEE]">
+                  <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap w-[70%] h-10">
+                    Tourist Visa Form Download
+                  </td>
+                  <td className="border border-black px-2 py-2 text-center bg-red-600 text-white cursor-pointer hover:bg-red-700">
+                    {tour.visaForms?.[0]?.action1FileUrl ? (
+                      <a href={`${BASE_URL}${tour.visaForms[0].action1FileUrl}`} download className="block w-full h-full">
+                        Download
+                      </a>
+                    ) : "Download"}
+                  </td>
+                  <td className="border border-black px-2 py-2 text-center bg-amber-800 text-white cursor-pointer hover:bg-amber-900">
+                    {tour.visaForms?.[0]?.action2FileUrl ? (
+                      <a href={`${BASE_URL}${tour.visaForms[0].action2FileUrl}`} download className="block w-full h-full">
+                        Fill Manually
+                      </a>
+                    ) : "Fill Manually"}
+                  </td>
+                </tr>
+                {/* Transit */}
+                <tr className="bg-[#FFEBEE]">
+                  <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap w-[70%] h-10">
+                    Transit Visa Form Download
+                  </td>
+                  <td className="border border-black px-2 py-2 text-center bg-red-600 text-white cursor-pointer hover:bg-red-700">
+                    {tour.visaForms?.[1]?.action1FileUrl ? (
+                      <a href={`${BASE_URL}${tour.visaForms[1].action1FileUrl}`} download className="block w-full h-full">
+                        Download
+                      </a>
+                    ) : "Download"}
+                  </td>
+                  <td className="border border-black px-2 py-2 text-center bg-amber-800 text-white cursor-pointer hover:bg-amber-900">
+                    {tour.visaForms?.[1]?.action2FileUrl ? (
+                      <a href={`${BASE_URL}${tour.visaForms[1].action2FileUrl}`} download className="block w-full h-full">
+                        Fill Manually
+                      </a>
+                    ) : "Fill"}
+                  </td>
+                </tr>
+                {/* Business */}
+                <tr className="bg-[#FFEBEE]">
+                  <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap w-[70%] h-10">
+                    Business Visa Form Download
+                  </td>
+                  <td className="border border-black px-2 py-2 text-center bg-red-600 text-white cursor-pointer hover:bg-red-700">
+                    {tour.visaForms?.[2]?.action1FileUrl ? (
+                      <a href={`${BASE_URL}${tour.visaForms[2].action1FileUrl}`} download className="block w-full h-full">
+                        Download
+                      </a>
+                    ) : "Download"}
+                  </td>
+                  <td className="border border-black px-2 py-2 text-center bg-amber-800 text-white cursor-pointer hover:bg-amber-900">
+                    {tour.visaForms?.[2]?.action2FileUrl ? (
+                      <a href={`${BASE_URL}${tour.visaForms[2].action2FileUrl}`} download className="block w-full h-full">
+                        Fill Manually
+                      </a>
+                    ) : "Fill Manually"}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-        )}
-      </div>
-    )}
+        </div>
+      )}
 
-    {/* Visa Forms Tab */}
-    {activeVisaTab === 'forms' && (
-      <div className="space-y-4 mt-1">
+      {/* Photo Tab */}
+      {activeVisaTab === 'photo' && (
         <div className="overflow-x-auto w-full">
-          <table className="w-full border-collapse min-w-max border border-gray-300">
+          <table className="w-full border-collapse min-w-[600px] max-w-6xl border border-gray-300 mt-1">
             <thead>
               <tr className="bg-[#2E4D98]">
-                <th className="border border-white px-2 py-3 text-left text-white w-[70%] h-12">
-                  Visa Type
-                </th>
-                <th className="border border-white px-2 py-3 text-left text-white w-[15%] h-12">
-                  Action 1
-                </th>
-                <th className="border border-white px-2 py-3 text-left text-white w-[15%] h-12">
-                  Action 2
+                <th className="border border-white px-4 py-3 text-center text-white" colSpan={8}>
+                  Photo Specification
                 </th>
               </tr>
             </thead>
             <tbody className="border-2 border-[#1e3a8a] border-t-0">
-              {tour.visaForms.length > 0 ? (
-                tour.visaForms.map((form, index) => (
-                  <tr key={index} className="bg-[#FFEBEE]">
-                    <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap w-[70%] h-10">
-                      {form.downloadText}
-                    </td>
-                    <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap w-[15%] h-10 text-center bg-red-600 text-white cursor-pointer hover:bg-red-700">
-                      {form.action1FileUrl ? (
-                        <a
-                          href={`${BASE_URL}${form.action1FileUrl}`}
-                          download
-                          className="block w-full h-full"
-                        >
-                          {form.downloadAction}
-                        </a>
-                      ) : (
-                        form.downloadAction
-                      )}
-                    </td>
-                    <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap w-[15%] h-10 text-center bg-amber-800 text-white cursor-pointer hover:bg-amber-900">
-                      {form.action2FileUrl ? (
-                        <a
-                          href={`${BASE_URL}${form.action2FileUrl}`}
-                          download
-                          className="block w-full h-full"
-                        >
-                          {form.fillAction}
-                        </a>
-                      ) : (
-                        form.fillAction
-                      )}
+              {tour.visaDetails.photo.length > 0 ? (
+                tour.visaDetails.photo.map((spec, index) => (
+                  <tr key={index} className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}>
+                    <td className="border border-black px-4 py-3 break-words whitespace-normal text-justify" colSpan={8}>
+                      {spec}
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr className="bg-[#FFEBEE]">
-<td colSpan={3} className="border border-black px-2 py-2 text-center h-10">
-                    No visa forms available
+                  <td className="border border-black px-4 py-3 text-center whitespace-normal" colSpan={8}>
+                    No photo specifications available
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
-
-        {/* Visa Remarks for Forms Tab */}
-        {tour.visaForms.length > 0 && tour.visaForms[0].remarks && tour.visaForms[0].remarks.trim() !== "" && (
-          <div className="bg-[#E8F0FF] rounded-lg p-1 mt-1">
-            <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
-              Visa Remarks
-            </div>
-            <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-              <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-4 bg-[#FFEBEE] w-full">
-                <div className="whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
-                  {tour.visaForms[0].remarks}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    )}
-
-    {/* Photo Tab */}
-    {activeVisaTab === 'photo' && (
-      <div className="space-y-4">
-      <div className="overflow-x-auto w-full">
-  <table className="w-full border-collapse min-w-[600px] max-w-6xl border border-gray-300 mt-1">
-    <thead>
-      <tr className="bg-[#2E4D98]">
-        <th className="border border-white px-4 py-3 text-center text-white" colSpan={8}>
-          Photo Specification
-        </th>
-      </tr>
-    </thead>
-    <tbody className="border-2 border-[#1e3a8a] border-t-0">
-      {tour.visaDetails.photo.length > 0 ? (
-        tour.visaDetails.photo.map((spec, index) => (
-          <tr key={index} className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}>
-            <td className="border border-black px-4 py-3 break-words whitespace-normal text-justify" colSpan={8}>
-              {spec}
-            </td>
-          </tr>
-        ))
-      ) : (
-        <tr className="bg-[#FFEBEE]">
-          <td className="border border-black px-4 py-3 text-center whitespace-normal" colSpan={8}>
-            No photo specifications available
-          </td>
-        </tr>
       )}
-    </tbody>
-  </table>
+
+      {/* Visa Fees Tab */}
+      {activeVisaTab === 'fees' && (
+        <div className="space-y-1 mt-1">
+          <div className="overflow-x-auto w-full">
+            {/* Sub-tabs for fee types */}
+            <div className="flex bg-white border border-black rounded-t-lg overflow-hidden mb-0">
+              {[
+                "Tourist Visa fees",
+                "Transit Visa fees",
+                "Business Visa fees",
+                "Visa fees & VFS & Other Charges"
+              ].map((label, idx) => {
+                const tabMap = {
+                  "Tourist Visa fees": "tourist",
+                  "Transit Visa fees": "transit",
+                  "Business Visa fees": "business",
+                  "Visa fees & VFS & Other Charges": "charges"
+                };
+                const tabKey = tabMap[label];
+                const isLastTab = idx === 3;
+                const isActive = activeVisaFeeType === tabKey && tabKey !== 'charges';
+                return (
+                  <button
+                    key={label}
+                    onClick={() => {
+                      if (tabKey !== 'charges') setActiveVisaFeeType(tabKey);
+                    }}
+                    className={`px-2 py-3 text-sm font-semibold text-center whitespace-nowrap border-r border-black last:border-r-0 transition
+                      ${isActive ? "bg-[#A72703] text-white" : "bg-[#FFE797] text-gray-800 hover:bg-[#FFE797]/90"}
+                      ${tabKey === 'charges' ? 'cursor-default' : 'cursor-pointer'}`}
+                    style={{ flex: isLastTab ? '1.3' : '1' }}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+
+            <table className="w-full border-collapse border border-gray-300 border-t-0">
+              <tbody className="border-1 border-[#1e3a8a]">
+                {activeVisaFeeType && tour.visaFees?.length > 0 ? (
+                  tour.visaFees.map((fee, index) => (
+                    <tr key={index} className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}>
+                      <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap w-[47%]">
+                        {activeVisaFeeType === 'tourist' && (fee.tourist || 'Free Flow Entry')}
+                        {activeVisaFeeType === 'transit' && (fee.transit || 'Free Flow Entry')}
+                        {activeVisaFeeType === 'business' && (fee.business || 'Free Flow Entry')}
+                      </td>
+                      <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap w-[20%] text-center">
+                        {activeVisaFeeType === 'tourist' && (fee.touristCharges || 'N/A')}
+                        {activeVisaFeeType === 'transit' && (fee.transitCharges || 'N/A')}
+                        {activeVisaFeeType === 'business' && (fee.businessCharges || 'N/A')}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr className="bg-[#FFEBEE]">
+                    <td className="border border-black px-4 py-3 text-center" colSpan={2}>
+                      {activeVisaFeeType ? 'No fee data available' : 'Select a visa type to view fees'}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Submission & Pick Up Tab */}
+      {activeVisaTab === 'time' && (
+        <div className="space-y-1 mt-1">
+          <div className="overflow-x-auto w-full">
+            <div className="flex bg-white border border-black rounded-t-lg overflow-hidden mb-0">
+              {["Tourist Visa", "Transit Visa", "Business Visa"].map((label) => {
+                const tabMap = { "Tourist Visa": "tourist", "Transit Visa": "transit", "Business Visa": "business" };
+                const tabKey = tabMap[label];
+                const isActive = activeVisaFeeType === tabKey;
+                return (
+                  <button
+                    key={label}
+                    onClick={() => setActiveVisaFeeType(tabKey)}
+                    className={`px-2 py-3 text-sm font-semibold text-center whitespace-nowrap border-r border-black last:border-r-0 transition
+                      ${isActive ? "bg-[#A72703] text-white" : "bg-[#FFE797] text-gray-800 hover:bg-[#FFE797]/90"}`}
+                    style={{ flex: '1' }}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+
+            <table className="w-full border-collapse border border-gray-300 border-t-0">
+              <tbody className="border-1 border-[#1e3a8a]">
+                {activeVisaFeeType && tour.visaSubmission?.length > 0 ? (
+                  tour.visaSubmission.map((sub, index) => (
+                    <tr key={index} className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}>
+                      <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap w-[67%]">
+                        {sub.label || 'N/A'}
+                      </td>
+                      <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap w-[53%] text-center">
+                        {activeVisaFeeType === 'tourist' && (sub.tourist || 'N/A')}
+                        {activeVisaFeeType === 'transit' && (sub.transit || 'N/A')}
+                        {activeVisaFeeType === 'business' && (sub.business || 'N/A')}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr className="bg-[#FFEBEE]">
+                    <td className="border border-black px-4 py-3 text-center" colSpan={2}>
+                      {activeVisaFeeType ? 'No submission information available' : 'Select a visa type to view processing times'}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+<div className="space-y-3">
+<div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
+    <div className="bg-red-600 text-white text-center font-bold text-xl py-3 rounded-t-lg w-full">
+      Visa Remarks
+    </div>                 
+        <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
+          <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-1 bg-[#FFEBEE] w-full">
+            <div className="whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
+              {tour.visaForms?.[0]?.remarks || "No remarks available"}
+            </div>
+          </div>
+        </div>
+      </div>
 </div>
-        {/* Visa Remarks for Photo Tab */}
-        {tour.visaForms.length > 0 && tour.visaForms[0].remarks && tour.visaForms[0].remarks.trim() !== "" && (
-          <div className="bg-[#E8F0FF] rounded-lg p-1 mt-2">
-            <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
-              Visa Remarks
-            </div>
-            <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-              <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-4 bg-[#FFEBEE] w-full">
-                <div className="whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
-                  {tour.visaForms[0].remarks}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    )}
 
-    {/* Visa Fees Tab */}
-    {activeVisaTab === 'fees' && (
-      <div className="space-y-4 mt-1">
-        <div className="overflow-x-auto w-full">
-          {/* Visa Type Selection Header - Same style as main tabs */}
-          <div className="flex bg-white border border-black rounded-t-lg overflow-hidden mb-0">
-            {[
-              "Tourist Visa fees",
-              "Transit Visa fees",
-              "Business Visa fees",
-              "Visa fees & VFS & Other Charges"
-            ].map((label, idx) => {
-              const tabMap = {
-                "Tourist Visa fees": "tourist",
-                "Transit Visa fees": "transit",
-                "Business Visa fees": "business",
-                "Visa fees & VFS & Other Charges": "charges"
-              };
-
-              const tabKey = tabMap[label];
-              const isLastTab = idx === 3;
-
-              // Determine which button should be active
-              let isActive = false;
-              if (tabKey === 'tourist' && activeVisaFeeType === 'tourist') isActive = true;
-              if (tabKey === 'transit' && activeVisaFeeType === 'transit') isActive = true;
-              if (tabKey === 'business' && activeVisaFeeType === 'business') isActive = true;
-
-              return (
-                <button
-                  key={label}
-                  onClick={() => {
-                    if (tabKey !== 'charges') {
-                      setActiveVisaFeeType(tabKey);
-                    }
-                  }}
-                  className={`px-2 py-3 text-sm font-semibold text-center whitespace-nowrap border-r border-black last:border-r-0 transition 
-                    ${(isActive && tabKey !== 'charges')
-                      ? "bg-[#A72703] text-white"
-                      : "bg-[#FFE797] text-gray-800 hover:bg-[#FFE797]/90"
-                    }
-                    ${tabKey === 'charges' ? 'cursor-default hover:bg-[#FFE797]' : 'cursor-pointer'}
-                  `}
-                  style={{
-                    flex: isLastTab ? '1.3' : '1'
-                  }}
-                >
-                  {label}
-                </button>
-              );
-            })}
-          </div>
-
-          <table className="w-full border-collapse border border-gray-300 border-t-0">
-            <tbody className="border-1 border-[#1e3a8a]">
-              {/* Show only actual data if available */}
-              {activeVisaFeeType && tour.visaFees.length > 0 ? (
-                tour.visaFees.map((fee, index) => (
-                  <tr key={index} className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}>
-                    {/* Free Flow Entry Column */}
-                    <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap w-[47%]">
-                      {activeVisaFeeType === 'tourist' && (fee.tourist || 'Free Flow Entry')}
-                      {activeVisaFeeType === 'transit' && (fee.transit || 'Free Flow Entry')}
-                      {activeVisaFeeType === 'business' && (fee.business || 'Free Flow Entry')}
-                    </td>
-
-                    {/* Visa Type Charges Column */}
-                    <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap w-[20%] text-center">
-                      {activeVisaFeeType === 'tourist' && (fee.touristCharges || 'N/A')}
-                      {activeVisaFeeType === 'transit' && (fee.transitCharges || 'N/A')}
-                      {activeVisaFeeType === 'business' && (fee.businessCharges || 'N/A')}
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                // Show message when no data or no visa type selected
-                <tr className="bg-[#FFEBEE]">
-                  <td className="border border-black px-4 py-3 text-center" colSpan= {3}>
-                    {activeVisaFeeType ? 'No fee data available' : 'Select a visa type to view fees'}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Visa Remarks for Fees Tab */}
-        {tour.visaForms.length > 0 && tour.visaForms[0].remarks && tour.visaForms[0].remarks.trim() !== "" && (
-          <div className="bg-[#E8F0FF] rounded-lg p-1">
-            <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
-              Visa Remarks
-            </div>
-            <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-              <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-4 bg-[#FFEBEE] w-full">
-                <div className="whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
-                  {tour.visaForms[0].remarks}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    )}
-
-    {/* Submission & Pick Up Tab */}
-    {activeVisaTab === 'time' && (
-      <div className="space-y-4 mt-1">
-        <div className="overflow-x-auto w-full">
-          {/* Visa Type Selection Header - Same style as main tabs */}
-          <div className="flex bg-white border border-black rounded-t-lg overflow-hidden mb-0">
-            {[
-              "Tourist Visa",
-              "Transit Visa",
-              "Business Visa",
-            ].map((label, idx) => {
-              const tabMap = {
-                "Tourist Visa": "tourist",
-                "Transit Visa": "transit",
-                "Business Visa": "business",
-              };
-
-              const tabKey = tabMap[label];
-              const isActive = activeVisaFeeType === tabKey;
-
-              return (
-                <button
-                  key={label}
-                  onClick={() => setActiveVisaFeeType(tabKey)}
-                  className={`px-2 py-3 text-sm font-semibold text-center whitespace-nowrap border-r border-black last:border-r-0 transition 
-                    ${isActive ? "bg-[#A72703] text-white" : "bg-[#FFE797] text-gray-800 hover:bg-[#FFE797]/90"}
-                  `}
-                  style={{
-                    flex: '1'
-                  }}
-                >
-                  {label}
-                </button>
-              );
-            })}
-          </div>
-
-          <table className="w-full border-collapse border border-gray-300 border-t-0">
-            <tbody className="border-1 border-[#1e3a8a]">
-              {/* Show only actual data if available */}
-              {activeVisaFeeType && tour.visaSubmission && tour.visaSubmission.length > 0 ? (
-                tour.visaSubmission.map((sub, index) => (
-                  <tr key={index} className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}>
-                    {/* Left column - Processing Time label */}
-                    <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap w-[67%]">
-                      {sub.label || 'N/A'}
-                    </td>
-
-                    {/* Right column - Selected Visa Type data */}
-                    <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap w-[53%] text-center">
-                      {activeVisaFeeType === 'tourist' && (sub.tourist || 'N/A')}
-                      {activeVisaFeeType === 'transit' && (sub.transit || 'N/A')}
-                      {activeVisaFeeType === 'business' && (sub.business || 'N/A')}
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                // Show message when no data or no visa type selected
-                <tr className="bg-[#FFEBEE]">
-                  <td className="border border-black px-4 py-3 text-center" colSpan= {2}>
-                    {activeVisaFeeType ? 'No submission information available' : 'Select a visa type to view processing times'}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {tour.visaForms.length > 0 && tour.visaForms[0].remarks && tour.visaForms[0].remarks.trim() !== "" && (
-          <div className="bg-[#E8F0FF] rounded-lg p-1 mt-2">
-            <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
-              Visa Remarks
-            </div>
-            <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-              <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-4 bg-[#FFEBEE] w-full">
-                <div className="whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
-                  {tour.visaForms[0].remarks}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    )}
+    </div>
   </div>
 )}
-
                 {/* Book p./Canc p. Tab */}
                 {activeTab === "book-p./canc-p." && (
                   <div className="bg-[#E8F0FF] rounded-lg p-1">
@@ -2686,7 +2629,7 @@ useEffect(() => {
                               {tour.booking.items.map((text, i) => (
                                 <div
                                   key={i}
-                                  className="flex items-center p-2 bg-blue-50 border border-blue-300 rounded-lg min-h-[72px]"
+                                  className="flex items-center p-2 min-h-[72px]"
                                 >
                                   <span className="text-gray-700 text-sm text-justify w-full">
                                     {text}
@@ -2701,7 +2644,7 @@ useEffect(() => {
                               {tour.booking.amountDetails.map((amt, i) => (
                                 <div
                                   key={i}
-                                  className="flex items-center justify-center bg-white border border-blue-300 rounded-lg min-h-[72px]"
+                                  className="flex items-center justify-center  rounded-lg min-h-[72px]"
                                 >
                                   <span className="text-sm font-bold text-green-600">
                                     {amt}
@@ -2730,7 +2673,7 @@ useEffect(() => {
                               {tour.cancellation.policies.map((text, i) => (
                                 <div
                                   key={i}
-                                  className="flex items-center p-2 bg-[#EAD2C0] border border-[#A72703] rounded-lg min-h-[72px]"
+                                  className="flex items-center p-2  rounded-lg min-h-[72px]"
                                 >
                                   <span className="text-gray-800 text-sm text-justify w-full">
                                     {text}
@@ -2745,7 +2688,7 @@ useEffect(() => {
                               {tour.cancellation.charges.map((amt, i) => (
                                 <div
                                   key={i}
-                                  className="flex items-center justify-center bg-[#EAD2C0] border border-[#A72703] rounded-lg min-h-[72px]"
+                                  className="flex items-center justify-center  min-h-[72px]"
                                 >
                                   <span className="text-sm font-bold text-[#A72703]">
                                     {amt}
@@ -2765,7 +2708,7 @@ useEffect(() => {
                           Booking Policy Remarks
                         </div>
                         <div className="border-2 border-[#1e3a8a] border-t-0 rounded-b-lg overflow-hidden">
-                          <div className="min-h-[150px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] rounded-b-lg">
+                          <div className="min-h-[160px] max-h-[160px] overflow-y-auto p-2 bg-[#FFEBEE] rounded-b-lg">
                             {tour.bookingRemarks && tour.bookingRemarks.length > 0 ? (
                               <ul className="space-y-2">
                                 {tour.bookingRemarks.map((remark, index) => (
@@ -2792,7 +2735,7 @@ useEffect(() => {
                           Cancellation Policy Remarks
                         </div>
                         <div className="border-2 border-[#1e3a8a] border-t-0 rounded-b-lg overflow-hidden">
-                          <div className="min-h-[150px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] rounded-b-lg">
+                          <div className="min-h-[160px] max-h-[160px] overflow-y-auto p-2 bg-[#FFEBEE] rounded-b-lg">
                             {tour.cancellationRemarks && tour.cancellationRemarks.length > 0 ? (
                               <ul className="space-y-2">
                                 {tour.cancellationRemarks.map((remark, index) => (
@@ -2827,7 +2770,7 @@ useEffect(() => {
                     <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg">
                       <div className="min-h-[300px] max-h-[320px] overflow-y-auto p-1 bg-[#FFEBEE]">
                         <div className="space-y-4 p-0">
-                          <div className="p-2 bg-blue-50 rounded-lg border border-blue-200">
+                          <div className="p-2">
                             <ul className="space-y-2 text-gray-700">
                               {tour.instructions.map((instruction, index) => (
                                 <li key={index} className="text-justify whitespace-normal">

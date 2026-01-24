@@ -16,68 +16,17 @@ import { IoArrowBack } from "react-icons/io5";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import axios from "axios";
+import { 
+  Seat, 
+  PassengerDetails, 
+  ContactInfo, 
+  SeatSelectionProps,
+  FlightTravellerDetail,
+  BookingResponse,
+  BookingDetailsResponse
+} from "./types";
 
-interface Seat {
-  id: string;
-  row: number;
-  column: string;
-  status: 'available' | 'selected' | 'booked' | 'blocked' | 'infant_lap';
-  price: number;
-  type: 'window' | 'aisle' | 'middle';
-  seatNumber: string;
-  passengerType?: 'adult' | 'child' | 'infant';
-  passengerId?: number;
-  flightType: 'onward' | 'return';
-}
-
-interface PassengerDetails {
-  id: number;
-  type: 'adult' | 'child' | 'infant';
-  name: string;
-  firstName: string;
-  middleName: string;
-  lastName: string;
-  age: number;
-  dob: string;
-  gender: 'Mr' | 'Mrs' | 'Ms' | 'Mstr';
-  seatNumber?: string;
-  returnSeatNumber?: string;
-  requiresSeat: boolean;
-  icon: React.ReactNode;
-  isInfantOnLap?: boolean;
-  lapOfPassengerId?: number;
-  passportNo?: string;
-  passportExpireDate?: string;
-}
-
-interface SeatSelectionProps {
-  flightData: any;
-  fareQuoteData: any;
-  passengers: {
-    adults: number;
-    children: number;
-    infants: number;
-  };
-  passengerDetailsFromSearch?: any[];
-  onBack: () => void;
-  onBookingComplete: (bookingResponse: any) => void;
-  bookingTokenId: string;
-  token: string;
-  endUserIp: string;
-  staticParam: string;
-  contactInfo?: {
-    name: string;
-    email: string;
-    phone: string;
-  };
-}
-
-interface ContactInfo {
-  name: string;
-  email: string;
-  phone: string;
-}
-
+// Update the component to use the imported types
 const SeatSelection: React.FC<SeatSelectionProps> = ({
   flightData,
   fareQuoteData,

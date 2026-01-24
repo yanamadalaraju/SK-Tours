@@ -1496,9 +1496,9 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                                     {/* HEADER */}
                                     <div className="grid grid-cols-4 bg-[#0A1D4A] text-white font-semibold text-center">
                                       <div className="p-2 border-r-2 border-white">Particulars - Tour Cost</div>
-                                      <div className="p-2 border-r-2 border-white">3 Star</div>
-                                      <div className="p-2 border-r-2 border-white">4 Star</div>
-                                      <div className="p-2">5 Star</div>
+                                      <div className="p-2 border-r-2 border-white">Standard</div>
+                                      <div className="p-2 border-r-2 border-white">Deluxe</div>
+                                      <div className="p-2">Luxury</div>
                                     </div>
 
                                     {/* ROWS */}
@@ -1656,9 +1656,9 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                                 {/* HEADER */}
                                <div className="grid grid-cols-4 bg-[#0A1D4A] text-white font-semibold text-center">
                                       <div className="p-2 border-r-2 border-white">Particulars - Tour Cost</div>
-                                      <div className="p-2 border-r-2 border-white">3 Star</div>
-                                      <div className="p-2 border-r-2 border-white">4 Star</div>
-                                      <div className="p-2">5 Star</div>
+                                      <div className="p-2 border-r-2 border-white">Standard</div>
+                                      <div className="p-2 border-r-2 border-white">Deluxe</div>
+                                      <div className="p-2">Luxury</div>
                                     </div>
 
                                 {/* ROWS */}
@@ -2045,92 +2045,129 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                           {isGroupTour ? (
                             // ===== GROUP TOUR - TABLE STRUCTURE =====
                             <div className="overflow-x-auto border shadow-sm">
-                              <table className="w-full border-collapse table-fixed">
-                                {/* ===== TABLE HEADER ===== */}
-                                <thead>
-                                  <tr className="bg-[red]">
-                                    <th className="border border-black px-3 py-3 text-left font-semibold text-white text-base h-9 w-1/9">
-                                      Airlines
-                                    </th>
-                                    <th className="border border-black px-4 py-3 text-left font-semibold text-white text-base h-9 w-1/9">
-                                      Flight No
-                                    </th>
-                                    <th className="border border-black px-4 py-3 text-left font-semibold text-white text-base h-9 w-1/9">
-                                      From
-                                    </th>
-                                    <th className="border border-black px-4 py-3 text-left font-semibold text-white text-base h-9 w-1/9">
-                                      Date
-                                    </th>
-                                    <th className="border border-black px-4 py-3 text-left font-semibold text-white text-base h-9 w-1/9">
-                                      Time
-                                    </th>
-                                    <th className="border border-black px-4 py-3 text-left font-semibold text-white text-base h-9 w-1/9">
-                                      To
-                                    </th>
-                                    <th className="border border-black px-4 py-3 text-left font-semibold text-white text-base h-9 w-1/9">
-                                      Date
-                                    </th>
-                                    <th className="border border-black px-4 py-3 text-left font-semibold text-white text-base h-9 w-1/9">
-                                      Time
-                                    </th>
-                                    <th className="border border-black px-4 py-3 text-left font-semibold text-white text-base h-9 w-1/9">
-                                      Via
-                                    </th>
-                                  </tr>
-                                </thead>
+                        <table className="w-full border-collapse table-fixed">
+  {/* ===== TABLE HEADER ===== */}
+  <thead>
+    <tr className="bg-[red]">
+      <th className="border border-black px-3 py-3 text-center font-semibold text-white text-sm h-9 w-[12%]">
+        Airlines
+      </th>
+      <th className="border border-black px-4 py-3 text-center font-semibold text-white text-sm h-9 w-[12%]">
+        Flight No
+      </th>
+      <th className="border border-black px-4 py-3 text-center font-semibold text-white text-sm h-9 w-[15%]">
+        From
+      </th>
+      <th className="border border-black px-4 py-3 text-center font-semibold text-white text-sm h-9 w-[10%]">
+        Date
+      </th>
+      <th className="border border-black px-4 py-3 text-center font-semibold text-white text-sm h-9 w-[8%]">
+        Time
+      </th>
+      <th className="border border-black px-4 py-3 text-center font-semibold text-white text-sm h-9 w-[15%]">
+        To
+      </th>
+      <th className="border border-black px-4 py-3 text-center font-semibold text-white text-sm h-9 w-[10%]">
+        Date
+      </th>
+      <th className="border border-black px-4 py-3 text-center font-semibold text-white text-sm h-9 w-[8%]">
+        Time
+      </th>
+    </tr>
+  </thead>
 
-                                {/* ===== TABLE BODY - DYNAMIC DATA ===== */}
-                                <tbody>
-                                  {tour.airlines.tableData && tour.airlines.tableData.length > 0 ? (
-                                    tour.airlines.tableData.map((flight: any, index: number) => (
-                                      <tr key={index} className={index % 2 === 0 ? 'bg-[#FFEBEE]' : 'bg-[#FFEBEE]/80'}>
-                                        <td className="border border-black px-4 py-3 text-center h-9 w-1/9">
-                                          {flight.airline || ''}
-                                        </td>
-                                        <td className="border border-black px-4 py-3 text-center h-9 w-1/9">
-                                          {flight.flightNo || ''}
-                                        </td>
-                                        <td className="border border-black px-4 py-3 text-center h-9 w-1/9">
-                                          {flight.from || ''}
-                                        </td>
-                                        <td className="border border-black px-4 py-3 text-center h-9 w-1/9">
-                                          {flight.depDate || ''}
-                                        </td>
-                                        <td className="border border-black px-4 py-3 text-center h-9 w-1/9">
-                                          {flight.depTime || ''}
-                                        </td>
-                                        <td className="border border-black px-4 py-3 text-center h-9 w-1/9">
-                                          {flight.to || ''}
-                                        </td>
-                                        <td className="border border-black px-4 py-3 text-center h-9 w-1/9">
-                                          {flight.arrDate || ''}
-                                        </td>
-                                        <td className="border border-black px-4 py-3 text-center h-9 w-1/9">
-                                          {flight.arrTime || ''}
-                                        </td>
-                                        <td className="border border-black px-4 py-3 text-center h-9 w-1/9">
-                                          {flight.via || ''}
-                                        </td>
-                                      </tr>
-                                    ))
-                                  ) : (
-                                    // Show empty rows if no data
-                                    [1, 2, 3, 4].map((row, index) => (
-                                      <tr key={index} className={index % 2 === 0 ? 'bg-[#FFEBEE]' : 'bg-[#FFEBEE]/80'}>
-                                        <td className="border border-black px-4 py-3 text-center h-9 w-1/9">&nbsp;</td>
-                                        <td className="border border-black px-4 py-3 text-center h-9 w-1/9">&nbsp;</td>
-                                        <td className="border border-black px-4 py-3 text-center h-9 w-1/9">&nbsp;</td>
-                                        <td className="border border-black px-4 py-3 text-center h-9 w-1/9">&nbsp;</td>
-                                        <td className="border border-black px-4 py-3 text-center h-9 w-1/9">&nbsp;</td>
-                                        <td className="border border-black px-4 py-3 text-center h-9 w-1/9">&nbsp;</td>
-                                        <td className="border border-black px-4 py-3 text-center h-9 w-1/9">&nbsp;</td>
-                                        <td className="border border-black px-4 py-3 text-center h-9 w-1/9">&nbsp;</td>
-                                        <td className="border border-black px-4 py-3 text-center h-9 w-1/9">&nbsp;</td>
-                                      </tr>
-                                    ))
-                                  )}
-                                </tbody>
-                              </table>
+  {/* ===== TABLE BODY - DYNAMIC DATA ===== */}
+  <tbody>
+    {tour.airlines.tableData && tour.airlines.tableData.length > 0 ? (
+      tour.airlines.tableData.map((flight: any, index: number) => {
+        // Format date to Indian format (dd-mm-yyyy)
+        const formatDateToIndian = (dateString: string) => {
+          if (!dateString) return '';
+          try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return dateString;
+            
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}-${month}-${year}`;
+          } catch (error) {
+            return dateString;
+          }
+        };
+
+        // Format time to AM/PM format (HH:MM AM/PM)
+        const formatTimeToAMPM = (timeString: string) => {
+          if (!timeString) return '';
+          try {
+            // If time is in HH:MM:SS or HH:MM format
+            if (timeString.includes(':')) {
+              const timeParts = timeString.split(':');
+              if (timeParts.length >= 2) {
+                let hours = parseInt(timeParts[0], 10);
+                const minutes = timeParts[1];
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+                
+                // Convert 24-hour to 12-hour format
+                hours = hours % 12;
+                hours = hours === 0 ? 12 : hours; // 0 should be 12 for 12 AM
+                
+                return `${hours}:${minutes} ${ampm}`;
+              }
+            }
+            // If it's already in some other format, return as is
+            return timeString;
+          } catch (error) {
+            return timeString;
+          }
+        };
+
+        return (
+          <tr key={index} className={index % 2 === 0 ? 'bg-[#FFEBEE]' : 'bg-[#FFEBEE]/80'}>
+            <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[12%]">
+              {flight.airline || ''}
+            </td>
+            <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[12%]">
+              {flight.flightNo || ''}
+            </td>
+            <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[15%]">
+              {flight.from || ''}
+            </td>
+            <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[10%]">
+              {formatDateToIndian(flight.depDate) || ''}
+            </td>
+            <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[8%]">
+              {formatTimeToAMPM(flight.depTime) || ''}
+            </td>
+            <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[15%]">
+              {flight.to || ''}
+            </td>
+            <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[10%]">
+              {formatDateToIndian(flight.arrDate) || ''}
+            </td>
+            <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[8%]">
+              {formatTimeToAMPM(flight.arrTime) || ''}
+            </td>
+          </tr>
+        );
+      })
+    ) : (
+      // Show empty rows if no data
+      [1, 2, 3, 4].map((row, index) => (
+        <tr key={index} className={index % 2 === 0 ? 'bg-[#FFEBEE]' : 'bg-[#FFEBEE]/80'}>
+          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[12%]">&nbsp;</td>
+          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[12%]">&nbsp;</td>
+          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[15%]">&nbsp;</td>
+          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[10%]">&nbsp;</td>
+          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[8%]">&nbsp;</td>
+          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[15%]">&nbsp;</td>
+          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[10%]">&nbsp;</td>
+          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[8%]">&nbsp;</td>
+        </tr>
+      ))
+    )}
+  </tbody>
+</table>
 
                               {/* ===== DESCRIPTION AREA FOR GROUP TOURS ===== */}
                               {tour.airlines.tableData && tour.airlines.tableData.some((flight: any) => flight.description) && (
@@ -2294,11 +2331,11 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                           <h3 className="text-xl font-bold">Booking Policy</h3>
                         </div>
                         <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-white overflow-hidden">
-                          <div className="h-full overflow-y-auto">
-                            <div className="p-1 space-y-1">
+                          <div className="h-full overflow-y-auto bg-[#FFEBEE]">
+                            <div className="p-1 space-y-1"> 
                               {tour.booking.items.map((item: string, index: number) => (
-                                <div key={index} className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg border border-blue-300">
-                                  <span className="text-gray-700 text-sm whitespace-normal text-justify w-full">
+                                <div key={index} className="flex items-start gap-3 p-2">
+                                  <span className="text-gray-700 text-[15px] whitespace-normal text-justify w-full">
                                     {item}
                                   </span>
                                 </div>
@@ -2313,11 +2350,11 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                         <div className="bg-[#2E4D98] text-white text-center py-3 rounded-t-lg">
                           <h3 className="text-xl font-bold">Amount Details</h3>
                         </div>
-                        <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-white overflow-hidden">
-                          <div className="h-full overflow-y-auto">
+                        <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-white overflow-hidden ">
+                          <div className="h-full overflow-y-auto bg-[#FFEBEE]">
                             <div className="p-1 grid gap-1">
                               {tour.booking.amountDetails.map((amount: string, index: number) => (
-                                <div key={index} className="flex items-center justify-center p-3 bg-white rounded-lg border border-blue-300">
+                                <div key={index} className="flex items-center justify-center p-3">
                                   <div className="text-center w-full">
                                     <span className="text-sm font-bold text-green-600">
                                       {amount}
@@ -2378,15 +2415,15 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                         <div className="bg-[#A72703] text-white text-center py-3 rounded-t-lg">
                           <h3 className="text-xl font-bold">Cancellation Policy</h3>
                         </div>
-                        <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-[#E8F0FF] overflow-hidden">
+                        <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-[#FFEBEE] overflow-hidden">
                           <div className="h-full overflow-y-auto p-1">
                             <div className="space-y-1">
                               {tour.cancellation.policies.map((item: string, index: number) => (
                                 <div
                                   key={index}
-                                  className="flex items-start gap-3 p-3 bg-[#EAD2C0] rounded-lg border border-[#A72703]"
+                                  className="flex items-start gap-3 p-2"
                                 >
-                                  <span className="text-gray-800 text-sm whitespace-normal text-justify w-full">
+                                  <span className="text-gray-800  text-[15px] whitespace-normal text-justify w-full">
                                     {item}
                                   </span>
                                 </div>
@@ -2401,13 +2438,13 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                         <div className="bg-[#A72703] text-white text-center py-3 rounded-t-lg">
                           <h3 className="text-xl font-bold">Charges</h3>
                         </div>
-                        <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-[#E8F0FF] overflow-hidden">
+                        <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-[#FFEBEE] overflow-hidden">
                           <div className="h-full overflow-y-auto p-1">
                             <div className="grid gap-1">
                               {tour.cancellation.charges.map((charge: string, index: number) => (
                                 <div
                                   key={index}
-                                  className="flex items-center justify-center p-3 bg-[#EAD2C0] rounded-lg border border-[#A72703]"
+                                  className="flex items-center justify-center p-3"
                                 >
                                   <span className="text-sm font-bold text-[#A72703] text-center w-full">
                                     {charge}

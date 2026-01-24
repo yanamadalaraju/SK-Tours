@@ -5,194 +5,38 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SeatSelection from "./SeatSelection";
 import BookingConfirmation from './BookingConfirmation';
-
-// Define types for API responses
-interface Airport {
-  airport_name: string;
-  airport_code: string;
-  city_name: string;
-  city_code: string;
-}
-
-interface DateResponse {
-  onward_date?: string;
-  return_date?: string;
-}
-
-interface DepartureResponse {
-  replyCode: string;
-  replyMsg: string;
-  data: Airport[];
-}
-
-interface DateListResponse {
-  replyCode: string;
-  replyMsg: string;
-  data: DateResponse[];
-}
-
-interface StopData {
-  city_name: string;
-  city_code: string;
-  stop_duration: string;
-  arrival_time: string;
-  arrival_date: string;
-  arrival_terminal: string;
-  departure_time: string;
-  departure_date: string;
-  departure_terminal: string;
-}
-
-interface ConnectingFlight {
-  flight_number: string;
-  airline_name: string;
-  airline_code: string;
-  departure_city_name: string;
-  departure_city_code: string;
-  departure_airport_name: string;
-  departure_airport_code: string;
-  departure_terminal_no: string;
-  departure_date: string;
-  departure_time: string;
-  arrival_city_name: string;
-  arrival_city_code: string;
-  arrival_airport_code: string;
-  arrival_airport_name?: string;
-  arrival_terminal_no: string;
-  arrival_date: string;
-  arrival_time: string;
-}
-
-interface FareClass {
-  Class_Code: string;
-  Class_Desc: string;
-}
-
-interface ReturnFlightData {
-  return_flight_number: string;
-  return_trip_duration: number;
-  return_dep_date: string;
-  return_dep_city_name: string;
-  return_dep_city_code: string;
-  return_dep_airport_name: string;
-  return_dep_airport_code: string;
-  return_dep_terminal_no: string;
-  return_dep_time: string;
-  return_arr_date: string;
-  return_arr_city_name: string;
-  return_arr_city_code: string;
-  return_arr_airport_name: string;
-  return_arr_airport_code: string;
-  return_arr_terminal_no: string;
-  return_arr_time: string;
-}
-
-interface PriceBreakup {
-  base_fare: number;
-  fee_taxes?: number;
-  service_charge?: number;
-  discount?: number;
-}
-
-interface FlightSearchResult {
-  id: string;
-  flight_number: string;
-  airline_name: string;
-  airline_code: string;
-  dep_city_name: string;
-  dep_city_code: string;
-  dep_airport_name: string;
-  dep_airport_code: string;
-  dep_terminal_no: string;
-  onward_date: string;
-  dep_time: string;
-  arr_city_name: string;
-  arr_city_code: string;
-  arr_airport_name: string;
-  arr_airport_code: string;
-  arr_terminal_no: string;
-  arr_date: string;
-  arr_time: string;
-  duration: string;
-  trip_type: number;
-  international_flight_staus: number;
-  check_in_baggage_adult: string;
-  check_in_baggage_children: string;
-  check_in_baggage_infant: string;
-  cabin_baggage_adult: string;
-  cabin_baggage_children: string;
-  cabin_baggage_infant: string;
-  available_seats: number;
-  total_payable_price: number;
-  per_adult_child_price: number;
-  per_infant_price: number;
-  price_breakup: PriceBreakup;
-  no_of_stop: number;
-  stop_data: StopData[];
-  return_flight_data?: ReturnFlightData;
-  return_no_of_stop: number;
-  return_stop_data: StopData[];
-  onward_connecting: ConnectingFlight[];
-  return_connecting: ConnectingFlight[];
-  static: string;
-  FareClasses: FareClass[];
-  ProductClass: string;
-}
-
-interface SearchResponse {
-  errorCode: number;
-  data: FlightSearchResult[];
-  booking_token_id: string;
-}
-
-interface PassengerDetails {
-  id: number;
-  type: 'adult' | 'child' | 'infant';
-  name: string;
-  firstName: string;
-  middleName: string;
-  lastName: string;
-  age: number;
-  dob: string;
-  gender: 'Mr' | 'Mrs' | 'Ms' | 'Mstr';
-  seatNumber?: string;
-  returnSeatNumber?: string;
-  requiresSeat: boolean;
-  icon: React.ReactNode;
-  isInfantOnLap?: boolean;
-  lapOfPassengerId?: number;
-  passportNo?: string;
-  passportExpireDate?: string;
-}
-
-interface ContactInfo {
-  name: string;
-  email: string;
-  phone: string;
-}
+import { 
+  Airport, 
+  SearchResponse, 
+  FlightSearchResult,
+  ContactInfo,
+  PassengerDetails,
+  SearchStep
+} from "./types";
+import { styles } from "./styles";
 
 const FlightHotels: React.FC = () => {
-  // Search states
-  const [from, setFrom] = useState("Bengaluru, India");
-  const [to, setTo] = useState("New Delhi, India");
-  const [fromCode, setFromCode] = useState("BLR");
-  const [toCode, setToCode] = useState("DEL");
+  // Search states - Updated to match your successful Postman test
+  const [from, setFrom] = useState("Varanasi, India");
+  const [to, setTo] = useState("Patna, India");
+  const [fromCode, setFromCode] = useState("VNS");
+  const [toCode, setToCode] = useState("PAT");
   const [showDepart, setShowDepart] = useState(false);
   const [showReturn, setShowReturn] = useState(false);
   const [showTravellers, setShowTravellers] = useState(false);
   const [showFromSearch, setShowFromSearch] = useState(false);
   const [showToSearch, setShowToSearch] = useState(false);
-  const [departDate, setDepartDate] = useState("Wed, 21 Jan 26");
+  const [departDate, setDepartDate] = useState("Sun, 1 Jun 26");
   const [returnDate, setReturnDate] = useState("Select Return");
-  const [departDateApi, setDepartDateApi] = useState("2026-01-21");
+  const [departDateApi, setDepartDateApi] = useState("2026-06-01");
   const [returnDateApi, setReturnDateApi] = useState("");
   const [adults, setAdults] = useState(1);
   const [children, setChildren] = useState(0);
   const [infants, setInfants] = useState(0);
   const [travelClass, setTravelClass] = useState("Economy/Pt");
   const [showResults, setShowResults] = useState(false);
-  const [currentMonth, setCurrentMonth] = useState<Date>(new Date(2026, 0, 1));
-  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date(2026, 0, 21));
+  const [currentMonth, setCurrentMonth] = useState<Date>(new Date(2026, 5, 1)); // June 2026
+  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date(2026, 5, 1));
   const [fareType, setFareType] = useState("Regular");
   const [activeFilters, setActiveFilters] = useState<string[]>(["NON STOP"]);
   const [showMoreFilters, setShowMoreFilters] = useState(false);
@@ -214,9 +58,8 @@ const FlightHotels: React.FC = () => {
   const [loadingSearch, setLoadingSearch] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [bookingTokenId, setBookingTokenId] = useState<string>("");
-
-  // Flow control states
-  const [currentStep, setCurrentStep] = useState<'search' | 'seat-selection' | 'confirmation'>('search');
+  const [tripType, setTripType] = useState<"0" | "1">("0");
+  const [currentStep, setCurrentStep] = useState<SearchStep>('search');
   const [selectedFlightForSeats, setSelectedFlightForSeats] = useState<FlightSearchResult | null>(null);
   const [fareQuoteData, setFareQuoteData] = useState<any>(null);
   const [loadingSeats, setLoadingSeats] = useState(false);
@@ -236,10 +79,27 @@ const FlightHotels: React.FC = () => {
     const tempFromCode = fromCode;
     const tempTo = to;
     const tempToCode = toCode;
+    
     setFrom(tempTo);
     setFromCode(tempToCode);
     setTo(tempFrom);
     setToCode(tempFromCode);
+    
+    // Fetch arrival cities for the new "from" location
+    if (tempToCode) {
+      fetchArrivalCities(tempToCode);
+    }
+  };
+
+  const logSearchCriteria = () => {
+    console.log("=== SEARCH CRITERIA ===");
+    console.log("From:", from, "Code:", fromCode);
+    console.log("To:", to, "Code:", toCode);
+    console.log("Depart Date API:", departDateApi);
+    console.log("Return Date API:", returnDateApi);
+    console.log("Trip Type:", tripType);
+    console.log("Passengers - Adults:", adults, "Children:", children, "Infants:", infants);
+    console.log("=====================");
   };
 
   const handleSearch = async () => {
@@ -253,9 +113,11 @@ const FlightHotels: React.FC = () => {
     setShowResults(true);
     setBookingTokenId("");
 
+    logSearchCriteria();
+
     try {
       const searchPayload = {
-        trip_type: 1,
+        trip_type: parseInt(tripType), // Convert to number
         end_user_ip: "183.83.43.117",
         token: "3-1-NEWTEST-dmjkwj78BJHk8",
         dep_city_code: fromCode,
@@ -267,29 +129,53 @@ const FlightHotels: React.FC = () => {
         infant: infants,
       };
 
+      console.log("Search payload:", JSON.stringify(searchPayload, null, 2));
+
       const res = await fetch("https://devapi.flightapi.co.in/v1/fbapi/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(searchPayload),
       });
 
-      const data: SearchResponse = await res.json();
+      const responseText = await res.text();
+      console.log("Raw response:", responseText);
 
-      if (data.errorCode === 0 && data.data && data.data.length > 0) {
-        setSearchResults(data.data);
-        if (data.booking_token_id) {
-          setBookingTokenId(data.booking_token_id);
+      let data: SearchResponse;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error("Failed to parse JSON:", parseError);
+        throw new Error("Invalid response from server");
+      }
+
+      console.log("Parsed response:", data);
+
+      // Check if data exists and has flights
+      if (data.errorCode === 0) {
+        if (data.data && Array.isArray(data.data) && data.data.length > 0) {
+          console.log(`Found ${data.data.length} flights`);
+          setSearchResults(data.data);
+          
+          if (data.booking_token_id) {
+            setBookingTokenId(data.booking_token_id);
+            console.log("Booking token ID:", data.booking_token_id);
+          } else {
+            console.warn("No booking_token_id in response");
+          }
         } else {
-          console.warn("No booking_token_id in response");
+          console.log("No flights found in data array");
+          setSearchResults([]);
+          setSearchError("No flights found for the selected criteria");
         }
       } else {
+        console.log("Error code not 0:", data.errorCode);
         setSearchResults([]);
-        setSearchError("No flights found for the selected criteria");
+        setSearchError(data.replyMsg || "Failed to search flights");
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Search error:", err);
-      setSearchError("Failed to search flights. Please try again.");
       setSearchResults([]);
+      setSearchError(err.message || "Failed to search flights. Please try again.");
     } finally {
       setLoadingSearch(false);
     }
@@ -333,6 +219,14 @@ const FlightHotels: React.FC = () => {
   }, [fromCode, toCode]);
 
   useEffect(() => {
+    // Clear return date when switching to one-way
+    if (tripType === "0") {
+      setReturnDate("Select Return");
+      setReturnDateApi("");
+    }
+  }, [tripType]);
+
+  useEffect(() => {
     if (searchFromQuery) {
       const filtered = departureCities.filter(
         (city) =>
@@ -358,25 +252,24 @@ const FlightHotels: React.FC = () => {
     }
   }, [searchToQuery, arrivalCities]);
 
-  const fetchDepartureCities = async () => {
+  const fetchDepartureCities = async (tripTypeParam?: "0" | "1") => {
+    const currentTripType = tripTypeParam || tripType;
     setLoadingDepartures(true);
     try {
       const res = await fetch("https://devapi.flightapi.co.in/v1/fbapi/dep_city", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          trip_type: 1,
+          trip_type: parseInt(currentTripType),
           end_user_ip: "183.83.43.117",
           token: "3-1-NEWTEST-dmjkwj78BJHk8",
         }),
       });
-      const data: DepartureResponse = await res.json();
+      const data = await res.json();
+      console.log("Departure cities response:", data);
       if (data.replyCode === "success" && data.data?.length > 0) {
         setDepartureCities(data.data);
         setFilteredDepartures(data.data);
-        const def = data.data[0];
-        setFrom(`${def.city_name}, India`);
-        setFromCode(def.city_code);
       }
     } catch (err) {
       console.error("dep_city error", err);
@@ -392,19 +285,17 @@ const FlightHotels: React.FC = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          trip_type: 1,
+          trip_type: parseInt(tripType),
           end_user_ip: "183.83.43.117",
           token: "3-1-NEWTEST-dmjkwj78BJHk8",
           city_code: cityCode,
         }),
       });
-      const data: DepartureResponse = await res.json();
+      const data = await res.json();
+      console.log("Arrival cities response:", data);
       if (data.replyCode === "success" && data.data?.length > 0) {
         setArrivalCities(data.data);
         setFilteredArrivals(data.data);
-        const def = data.data[0];
-        setTo(`${def.city_name}, India`);
-        setToCode(def.city_code);
       }
     } catch (err) {
       console.error("arr_city error", err);
@@ -416,46 +307,72 @@ const FlightHotels: React.FC = () => {
   const fetchOnwardDates = async (dep: string, arr: string) => {
     setLoadingOnwardDates(true);
     try {
+      const payload = {
+        trip_type: parseInt(tripType),
+        end_user_ip: "183.83.43.117",
+        token: "3-1-NEWTEST-dmjkwj78BJHk8",
+        dep_city_code: dep,
+        arr_city_code: arr,
+      };
+      
+      console.log("Onward dates payload:", JSON.stringify(payload, null, 2));
+      
       const res = await fetch("https://devapi.flightapi.co.in/v1/fbapi/onward_date", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          trip_type: 1,
-          end_user_ip: "183.83.43.117",
-          token: "3-1-NEWTEST-dmjkwj78BJHk8",
-          dep_city_code: dep,
-          arr_city_code: arr,
-        }),
+        body: JSON.stringify(payload),
       });
-      const data: DateListResponse = await res.json();
+      
+      const responseText = await res.text();
+      console.log("Onward dates raw response:", responseText);
+      
+      const data = JSON.parse(responseText);
+      console.log("Onward dates parsed response:", data);
+      
       if (data.replyCode === "success") {
         const dates = data.data
-          .map((d) => d.onward_date)
-          .filter((d): d is string => !!d);
+          .map((d: any) => d.onward_date)
+          .filter((d: string | undefined): d is string => !!d);
+        
+        console.log("Available onward dates:", dates);
         setOnwardDates(dates);
+        
         if (dates.length > 0) {
-          const first = dates[0];
-          setDepartDateApi(first);
-          setDepartDate(formatApiDate(first));
-          setSelectedDate(new Date(first));
-          setCurrentMonth(new Date(first));
+          // Check if current departDateApi is in the available dates
+          if (!dates.includes(departDateApi)) {
+            const first = dates[0];
+            setDepartDateApi(first);
+            setDepartDate(formatApiDate(first));
+            setSelectedDate(new Date(first));
+            setCurrentMonth(new Date(first));
+            console.log("Set departure date to:", first);
+          }
+        } else {
+          console.warn("No onward dates available");
         }
+      } else {
+        console.warn("Failed to fetch onward dates:", data.replyMsg);
       }
     } catch (err) {
-      console.error("onward_date error", err);
+      console.error("onward_date error:", err);
     } finally {
       setLoadingOnwardDates(false);
     }
   };
 
   const fetchReturnDates = async (dep: string, arr: string, onward: string) => {
+    // Only fetch return dates for round trips
+    if (tripType === "0") {
+      return;
+    }
+    
     setLoadingReturnDates(true);
     try {
       const res = await fetch("https://devapi.flightapi.co.in/v1/fbapi/return_date", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          trip_type: 1,
+          trip_type: parseInt(tripType),
           end_user_ip: "183.83.43.117",
           token: "3-1-NEWTEST-dmjkwj78BJHk8",
           dep_city_code: dep,
@@ -463,11 +380,12 @@ const FlightHotels: React.FC = () => {
           onward_date: onward,
         }),
       });
-      const data: DateListResponse = await res.json();
+      const data = await res.json();
+      console.log("Return dates response:", data);
       if (data.replyCode === "success") {
         const dates = data.data
-          .map((d) => d.return_date)
-          .filter((d): d is string => !!d);
+          .map((d: any) => d.return_date)
+          .filter((d: string | undefined): d is string => !!d);
         setReturnDates(dates);
         if (dates.length > 0) {
           const first = dates[0];
@@ -487,15 +405,28 @@ const FlightHotels: React.FC = () => {
   };
 
   const handleFromSelect = (city: Airport) => {
+    console.log("Selected departure city:", {
+      city_name: city.city_name,
+      airport_code: city.airport_code,
+      city_code: city.city_code
+    });
     setFrom(`${city.city_name}, India`);
-    setFromCode(city.city_code);
+    setFromCode(city.airport_code);
     setShowFromSearch(false);
     setSearchFromQuery("");
+    
+    // Fetch arrival cities for the selected departure
+    fetchArrivalCities(city.airport_code);
   };
 
   const handleToSelect = (city: Airport) => {
+    console.log("Selected arrival city:", {
+      city_name: city.city_name,
+      airport_code: city.airport_code,
+      city_code: city.city_code
+    });
     setTo(`${city.city_name}, India`);
-    setToCode(city.city_code);
+    setToCode(city.airport_code);
     setShowToSearch(false);
     setSearchToQuery("");
   };
@@ -523,7 +454,9 @@ const FlightHotels: React.FC = () => {
       setDepartDate(display);
       setDepartDateApi(apiDate);
       setShowDepart(false);
-      if (fromCode && toCode) fetchReturnDates(fromCode, toCode, apiDate);
+      if (fromCode && toCode && tripType === "1") {
+        fetchReturnDates(fromCode, toCode, apiDate);
+      }
     } else if (showReturn) {
       setReturnDate(display);
       setReturnDateApi(apiDate);
@@ -536,21 +469,34 @@ const FlightHotels: React.FC = () => {
     setLoadingSeats(true);
     
     try {
-      const fareQuotePayload = {
+      // First, make sure we have a booking token
+      if (!bookingTokenId) {
+        console.warn("No booking token ID available. Trying to get one...");
+        // You might need to call search API again or handle this differently
+        alert("Please search for flights again before selecting a flight.");
+        return;
+      }
+
+      // Build payload based on the Postman example
+      const fareQuotePayload: any = {
         id: flight.id,
         end_user_ip: "183.83.43.117",
         token: "3-1-NEWTEST-dmjkwj78BJHk8",
         adult_children: adults + children,
         infant: infants,
         onward_date: departDateApi,
-        return_date: returnDateApi || "",
         static: flight.static,
-        ...(bookingTokenId && { booking_token_id: bookingTokenId })
+        booking_token_id: bookingTokenId // Always include booking token
       };
 
-      console.log("Calling fare_quote API with:", fareQuotePayload);
+      // Only add return_date if it exists (for round trips)
+      if (returnDateApi && tripType === "1") {
+        fareQuotePayload.return_date = returnDateApi;
+      }
 
-      const res = await fetch("https://devapi.flightapi.co.in/v1/fbapi/fare_quote", {
+      console.log("Calling fare_quote API with payload:", JSON.stringify(fareQuotePayload, null, 2));
+
+      const response = await fetch("https://devapi.flightapi.co.in/v1/fbapi/fare_quote", {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
@@ -559,26 +505,62 @@ const FlightHotels: React.FC = () => {
         body: JSON.stringify(fareQuotePayload),
       });
 
-      if (!res.ok) {
-        throw new Error(`API error: ${res.status}`);
+      const responseText = await response.text();
+      console.log("Fare quote API raw response:", responseText);
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error("Failed to parse fare quote response:", parseError);
+        throw new Error("Invalid JSON response from server");
       }
 
-      const data = await res.json();
-      console.log("Fare quote API response:", data);
+      console.log("Fare quote API parsed response:", data);
 
-      if (data.errorCode === 0) {
+      if (data.errorCode === 0 && data.data) {
+        // Success - prepare data for seat selection
+        const seatSelectionData = {
+          // Flight info
+          flight: {
+            ...flight,
+            total_payable_price: data.data.total_payable_price || flight.total_payable_price,
+            available_seats: data.data.available_seats || flight.available_seats,
+            per_adult_child_price: data.data.per_adult_child_price,
+            per_infant_price: data.data.per_infant_price
+          },
+          // Fare quote data
+          fareQuote: data.data,
+          // Booking info
+          bookingInfo: {
+            booking_token_id: bookingTokenId,
+            static: flight.static,
+            onward_date: departDateApi,
+            return_date: returnDateApi || "",
+            adult_children: adults + children,
+            infant: infants
+          },
+          // Passenger counts
+          passengers: {
+            adults,
+            children,
+            infants
+          }
+        };
+
+        console.log("Prepared seat selection data:", seatSelectionData);
+        
         setSelectedFlightForSeats(flight);
-        setFareQuoteData({
-          ...data.data,
-          booking_token_id: bookingTokenId
-        });
+        setFareQuoteData(seatSelectionData);
         setCurrentStep('seat-selection');
       } else {
-        alert(`Failed to fetch seat details: ${data.message || "Unknown error"}`);
+        console.error("Fare quote API returned error:", data);
+        const errorMessage = data.message || data.replyMsg || "Failed to fetch fare quote";
+        alert(`Error: ${errorMessage}. Error code: ${data.errorCode}`);
       }
     } catch (err: any) {
-      console.error("Fare quote error:", err);
-      alert(`Error: ${err.message || "Failed to fetch seat information"}`);
+      console.error("Error in handleSelectFlight:", err);
+      alert(`Failed to proceed: ${err.message || "Unknown error occurred"}`);
     } finally {
       setLoadingSeats(false);
     }
@@ -624,7 +606,7 @@ const FlightHotels: React.FC = () => {
     const days = [];
 
     for (let i = 0; i < firstDay; i++) {
-      days.push(<div key={`empty-${i}`} style={emptyDayStyle} />);
+      days.push(<div key={`empty-${i}`} style={styles.emptyDayStyle} />);
     }
 
     for (let day = 1; day <= daysInMonth; day++) {
@@ -642,7 +624,7 @@ const FlightHotels: React.FC = () => {
           key={day}
           disabled={!isAvailable}
           style={{
-            ...dayStyle,
+            ...styles.dayStyle,
             ...(isAvailable
               ? {
                   border: "2px solid #008cff",
@@ -676,10 +658,10 @@ const FlightHotels: React.FC = () => {
   };
 
   const renderFlightCard = (flight: FlightSearchResult) => {
-    const isRoundTrip = flight.trip_type === 2 || !!flight.return_flight_data;
+    const isRoundTrip = flight.trip_type === 1 || !!flight.return_flight_data;
 
     return (
-      <div key={flight.id} style={flightCard}>
+      <div key={flight.id} style={styles.flightCard}>
         <div style={{ flex: 1 }}>
           {/* Onward Flight */}
           <div style={{ marginBottom: isRoundTrip ? "20px" : "0" }}>
@@ -772,7 +754,7 @@ const FlightHotels: React.FC = () => {
 
           <button 
             style={{
-              ...selectBtn,
+              ...styles.selectBtn,
               ...(loadingSeats && selectedFlightForSeats?.id === flight.id 
                 ? { backgroundColor: "#ccc", cursor: "not-allowed" } 
                 : {})
@@ -795,36 +777,100 @@ const FlightHotels: React.FC = () => {
       {currentStep === 'search' && (
         <>
           {/* SEARCH CARD */}
-          <div style={cardStyle}>
-            <div style={tabStyle}>
+          <div style={styles.cardStyle}>
+            <div style={styles.tabStyle}>
               <MdFlightTakeoff /> Flights
             </div>
 
-            <div style={row}>
+            <div style={{ 
+              marginBottom: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '16px'
+            }}>
+              <label style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                cursor: 'pointer'
+              }}>
+                <input
+                  type="radio"
+                  name="tripType"
+                  checked={tripType === "0"}
+                  onChange={() => {
+                    setTripType("0");
+                    // Clear return date when switching to one-way
+                    setReturnDate("Select Return");
+                    setReturnDateApi("");
+                    // Refresh departure cities based on trip type
+                    fetchDepartureCities("0");
+                    // Clear arrival cities
+                    setArrivalCities([]);
+                    // Reset to defaults
+                    setFrom("Varanasi, India");
+                    setFromCode("VNS");
+                    setTo("Patna, India");
+                    setToCode("PAT");
+                  }}
+                  style={{ width: '18px', height: '18px' }}
+                />
+                <span style={{ fontSize: '14px', fontWeight: '500' }}>One Way</span>
+              </label>
+              
+              <label style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                cursor: 'pointer'
+              }}>
+                <input
+                  type="radio"
+                  name="tripType"
+                  checked={tripType === "1"}
+                  onChange={() => {
+                    setTripType("1");
+                    // Refresh departure cities based on trip type
+                    fetchDepartureCities("1");
+                    // Clear arrival cities
+                    setArrivalCities([]);
+                    // Reset to defaults
+                    setFrom("Ahmedabad, India");
+                    setFromCode("AMD");
+                    setTo("Patna, India");
+                    setToCode("PAT");
+                  }}
+                  style={{ width: '18px', height: '18px' }}
+                />
+                <span style={{ fontSize: '14px', fontWeight: '500' }}>Round Trip</span>
+              </label>
+            </div>
+
+            <div style={styles.row}>
               {/* FROM */}
               <div style={{ position: "relative", flex: 1 }}>
-                <div style={boxStyle} onClick={() => setShowFromSearch(true)}>
+                <div style={styles.boxStyle} onClick={() => setShowFromSearch(true)}>
                   <small style={{ color: "#666", fontSize: "12px" }}>FROM</small>
                   <h3 style={{ margin: "4px 0" }}>{from}</h3>
                   <p style={{ fontSize: "12px", color: "#666", margin: 0 }}>{fromCode}</p>
                 </div>
 
                 {showFromSearch && (
-                  <div style={citySearchModal}>
+                  <div style={styles.citySearchModal}>
                     <input
                       type="text"
                       placeholder="Search departure city..."
-                      style={searchInput}
+                      style={styles.searchInput}
                       value={searchFromQuery}
                       onChange={(e) => setSearchFromQuery(e.target.value)}
                       autoFocus
                     />
-                    <div style={cityList}>
+                    <div style={styles.cityList}>
                       {loadingDepartures ? (
                         <div style={{ padding: "20px", textAlign: "center" }}>Loading...</div>
                       ) : filteredDepartures.length > 0 ? (
                         filteredDepartures.map((city) => (
-                          <div key={city.city_code} style={cityItem} onClick={() => handleFromSelect(city)}>
+                          <div key={city.airport_code} style={styles.cityItem} onClick={() => handleFromSelect(city)}>
                             <div>
                               <strong>{city.city_name}</strong>
                               <p style={{ fontSize: "12px", color: "#666", margin: 0 }}>
@@ -838,7 +884,7 @@ const FlightHotels: React.FC = () => {
                       )}
                     </div>
                     <button
-                      style={closeBtn}
+                      style={styles.closeBtn}
                       onClick={() => {
                         setShowFromSearch(false);
                         setSearchFromQuery("");
@@ -850,34 +896,34 @@ const FlightHotels: React.FC = () => {
                 )}
               </div>
 
-              <div style={swapStyle} onClick={swapLocations}>
+              <div style={styles.swapStyle} onClick={swapLocations}>
                 <HiOutlineSwitchHorizontal />
               </div>
 
               {/* TO */}
               <div style={{ position: "relative", flex: 1 }}>
-                <div style={boxStyle} onClick={() => setShowToSearch(true)}>
+                <div style={styles.boxStyle} onClick={() => setShowToSearch(true)}>
                   <small style={{ color: "#666", fontSize: "12px" }}>TO</small>
                   <h3 style={{ margin: "4px 0" }}>{to}</h3>
                   <p style={{ fontSize: "12px", color: "#666", margin: 0 }}>{toCode}</p>
                 </div>
 
                 {showToSearch && (
-                  <div style={citySearchModal}>
+                  <div style={styles.citySearchModal}>
                     <input
                       type="text"
                       placeholder="Search arrival city..."
-                      style={searchInput}
+                      style={styles.searchInput}
                       value={searchToQuery}
                       onChange={(e) => setSearchToQuery(e.target.value)}
                       autoFocus
                     />
-                    <div style={cityList}>
+                    <div style={styles.cityList}>
                       {loadingArrivals ? (
                         <div style={{ padding: "20px", textAlign: "center" }}>Loading...</div>
                       ) : filteredArrivals.length > 0 ? (
                         filteredArrivals.map((city) => (
-                          <div key={city.city_code} style={cityItem} onClick={() => handleToSelect(city)}>
+                          <div key={city.airport_code} style={styles.cityItem} onClick={() => handleToSelect(city)}>
                             <div>
                               <strong>{city.city_name}</strong>
                               <p style={{ fontSize: "12px", color: "#666", margin: 0 }}>
@@ -891,7 +937,7 @@ const FlightHotels: React.FC = () => {
                       )}
                     </div>
                     <button
-                      style={closeBtn}
+                      style={styles.closeBtn}
                       onClick={() => {
                         setShowToSearch(false);
                         setSearchToQuery("");
@@ -903,13 +949,19 @@ const FlightHotels: React.FC = () => {
                 )}
               </div>
 
-              <div style={boxStyle} onClick={() => setShowDepart(true)}>
+              <div style={styles.boxStyle} onClick={() => setShowDepart(true)}>
                 <small style={{ color: "#666", fontSize: "12px" }}>DEPART</small>
                 <h3 style={{ margin: "4px 0" }}>{departDate}</h3>
                 {loadingOnwardDates && <small style={{ color: "#008cff" }}>Loading...</small>}
               </div>
 
-              <div style={boxStyle} onClick={() => setShowReturn(true)}>
+              <div 
+                style={{
+                  ...styles.boxStyle,
+                  ...(tripType === "0" ? { opacity: 0.5, cursor: "not-allowed" } : {})
+                }} 
+                onClick={() => tripType === "1" && setShowReturn(true)}
+              >
                 <small style={{ color: "#666", fontSize: "12px" }}>RETURN</small>
                 <h3
                   style={{
@@ -917,12 +969,12 @@ const FlightHotels: React.FC = () => {
                     color: returnDate === "Select Return" ? "#888" : "#000",
                   }}
                 >
-                  {returnDate}
+                  {tripType === "0" ? "Not required" : returnDate}
                 </h3>
-                {loadingReturnDates && <small style={{ color: "#008cff" }}>Loading...</small>}
+                {loadingReturnDates && tripType === "1" && <small style={{ color: "#008cff" }}>Loading...</small>}
               </div>
 
-              <div style={boxStyle} onClick={() => setShowTravellers(true)}>
+              <div style={styles.boxStyle} onClick={() => setShowTravellers(true)}>
                 <small style={{ color: "#666", fontSize: "12px" }}>PASSENGERS & CLASS</small>
                 <h3 style={{ margin: "4px 0" }}>
                   {adults + children + infants}{" "}
@@ -930,7 +982,7 @@ const FlightHotels: React.FC = () => {
                 </h3>
               </div>
 
-              <button style={searchBtn} onClick={handleSearch} disabled={loadingSearch}>
+              <button style={styles.searchBtn} onClick={handleSearch} disabled={loadingSearch}>
                 {loadingSearch ? "SEARCHING..." : "SEARCH"}
               </button>
             </div>
@@ -945,8 +997,8 @@ const FlightHotels: React.FC = () => {
                   <button
                     key={type}
                     style={{
-                      ...fareTypeBtn,
-                      ...(fareType === type ? activeFareTypeBtn : {}),
+                      ...styles.fareTypeBtn,
+                      ...(fareType === type ? styles.activeFareTypeBtn : {}),
                     }}
                     onClick={() => setFareType(type)}
                   >
@@ -959,13 +1011,13 @@ const FlightHotels: React.FC = () => {
 
           {/* RESULTS SECTION */}
           {showResults && (
-            <div style={resultsWrap}>
+            <div style={styles.resultsWrap}>
               <h2 style={{ fontSize: "24px", marginBottom: "20px" }}>
-                Flights from {from.split(",")[0]} to {to.split(",")[0]}
+                {tripType === "0" ? "One Way" : "Round Trip"} Flights from {from.split(",")[0]} to {to.split(",")[0]}
               </h2>
 
               {/* Applied Filters Section */}
-              <div style={filtersSection}>
+              <div style={styles.filtersSection}>
                 <h3 style={{ fontSize: "16px", marginBottom: "12px" }}>Applied Filters</h3>
                 <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                   {visibleFilters.map((filter, index) => {
@@ -973,7 +1025,7 @@ const FlightHotels: React.FC = () => {
                       return (
                         <button
                           key={filter}
-                          style={filterBtn}
+                          style={styles.filterBtn}
                           onClick={() => setShowMoreFilters(!showMoreFilters)}
                         >
                           {showMoreFilters ? "Show Less" : "+2 more"}
@@ -985,7 +1037,7 @@ const FlightHotels: React.FC = () => {
                     return (
                       <button
                         key={filter}
-                        style={isActive ? activeFilterBtn : filterBtn}
+                        style={isActive ? styles.activeFilterBtn : styles.filterBtn}
                         onClick={() => toggleFilter(filter)}
                       >
                         {filter}
@@ -1027,7 +1079,7 @@ const FlightHotels: React.FC = () => {
                 <>
                   {/* Price Range */}
                   {searchResults.length > 0 && (
-                    <div style={priceRangeStyle}>
+                    <div style={styles.priceRangeStyle}>
                       <span>Total Price for {adults + children + infants} passenger{(adults + children + infants) > 1 ? 's' : ''}</span>
                       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                         <span style={{ color: "#008cff", fontSize: "18px", fontWeight: "bold" }}>
@@ -1042,7 +1094,7 @@ const FlightHotels: React.FC = () => {
                   )}
 
                   {/* Flights List */}
-                  <div style={flightsContainer}>
+                  <div style={styles.flightsContainer}>
                     {searchResults.length > 0 ? (
                       searchResults.map(renderFlightCard)
                     ) : (
@@ -1060,22 +1112,22 @@ const FlightHotels: React.FC = () => {
           {/* CALENDAR MODAL */}
           {(showDepart || showReturn) && (
             <div
-              style={modalOverlay}
+              style={styles.modalOverlay}
               onClick={() => {
                 if (showDepart) setShowDepart(false);
                 if (showReturn) setShowReturn(false);
               }}
             >
-              <div style={calendarModal} onClick={(e) => e.stopPropagation()}>
-                <div style={calendarHeader}>
-                  <button onClick={prevMonth} style={navButton}>
+              <div style={styles.calendarModal} onClick={(e) => e.stopPropagation()}>
+                <div style={styles.calendarHeader}>
+                  <button onClick={prevMonth} style={styles.navButton}>
                     &lt;
                   </button>
                   <h3 style={{ margin: 0 }}>
                     {currentMonth.toLocaleString("default", { month: "long" })}{" "}
                     {currentMonth.getFullYear()}
                   </h3>
-                  <button onClick={nextMonth} style={navButton}>
+                  <button onClick={nextMonth} style={styles.navButton}>
                     &gt;
                   </button>
                 </div>
@@ -1084,15 +1136,15 @@ const FlightHotels: React.FC = () => {
                   Only highlighted dates (blue border) are available
                 </p>
 
-                <div style={weekDaysStyle}>
+                <div style={styles.weekDaysStyle}>
                   {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-                    <div key={day} style={weekDayStyle}>
+                    <div key={day} style={styles.weekDayStyle}>
                       {day}
                     </div>
                   ))}
                 </div>
 
-                <div style={calendarGrid}>{renderCalendar()}</div>
+                <div style={styles.calendarGrid}>{renderCalendar()}</div>
 
                 {showDepart && onwardDates.length === 0 && (
                   <p style={{ textAlign: "center", color: "#888", margin: "20px 0" }}>
@@ -1107,7 +1159,7 @@ const FlightHotels: React.FC = () => {
                 )}
 
                 <button
-                  style={closeBtn}
+                  style={styles.closeBtn}
                   onClick={() => {
                     if (showDepart) setShowDepart(false);
                     if (showReturn) setShowReturn(false);
@@ -1121,50 +1173,50 @@ const FlightHotels: React.FC = () => {
 
           {/* TRAVELLERS MODAL */}
           {showTravellers && (
-            <div style={modalOverlay} onClick={() => setShowTravellers(false)}>
-              <div style={modal} onClick={(e) => e.stopPropagation()}>
+            <div style={styles.modalOverlay} onClick={() => setShowTravellers(false)}>
+              <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
                 <h3 style={{ marginBottom: "20px" }}>Travellers & Class</h3>
 
-                <div style={counterRow}>
+                <div style={styles.counterRow}>
                   <span style={{ fontWeight: "500" }}>Adults (12y+)</span>
                   <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                    <button onClick={() => setAdults(Math.max(1, adults - 1))} style={counterButton}>
+                    <button onClick={() => setAdults(Math.max(1, adults - 1))} style={styles.counterButton}>
                       -
                     </button>
                     <span style={{ fontSize: "16px", fontWeight: "bold", minWidth: "30px", textAlign: "center" }}>
                       {adults}
                     </span>
-                    <button onClick={() => setAdults(adults + 1)} style={counterButton}>
+                    <button onClick={() => setAdults(adults + 1)} style={styles.counterButton}>
                       +
                     </button>
                   </div>
                 </div>
 
-                <div style={counterRow}>
+                <div style={styles.counterRow}>
                   <span style={{ fontWeight: "500" }}>Children (2y-12y)</span>
                   <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                    <button onClick={() => setChildren(Math.max(0, children - 1))} style={counterButton}>
+                    <button onClick={() => setChildren(Math.max(0, children - 1))} style={styles.counterButton}>
                       -
                     </button>
                     <span style={{ fontSize: "16px", fontWeight: "bold", minWidth: "30px", textAlign: "center" }}>
                       {children}
                     </span>
-                    <button onClick={() => setChildren(children + 1)} style={counterButton}>
+                    <button onClick={() => setChildren(children + 1)} style={styles.counterButton}>
                       +
                     </button>
                   </div>
                 </div>
 
-                <div style={counterRow}>
+                <div style={styles.counterRow}>
                   <span style={{ fontWeight: "500" }}>Infants (Below 2y)</span>
                   <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                    <button onClick={() => setInfants(Math.max(0, infants - 1))} style={counterButton}>
+                    <button onClick={() => setInfants(Math.max(0, infants - 1))} style={styles.counterButton}>
                       -
                     </button>
                     <span style={{ fontSize: "16px", fontWeight: "bold", minWidth: "30px", textAlign: "center" }}>
                       {infants}
                     </span>
-                    <button onClick={() => setInfants(infants + 1)} style={counterButton}>
+                    <button onClick={() => setInfants(infants + 1)} style={styles.counterButton}>
                       +
                     </button>
                   </div>
@@ -1175,7 +1227,7 @@ const FlightHotels: React.FC = () => {
                     Class
                   </label>
                   <select
-                    style={classSelect}
+                    style={styles.classSelect}
                     value={travelClass}
                     onChange={(e) => setTravelClass(e.target.value)}
                   >
@@ -1185,7 +1237,7 @@ const FlightHotels: React.FC = () => {
                   </select>
                 </div>
 
-                <button style={closeBtn} onClick={() => setShowTravellers(false)}>
+                <button style={styles.closeBtn} onClick={() => setShowTravellers(false)}>
                   Done
                 </button>
               </div>
@@ -1195,7 +1247,7 @@ const FlightHotels: React.FC = () => {
           {/* OVERLAY FOR CITY SEARCH */}
           {(showFromSearch || showToSearch) && (
             <div
-              style={modalOverlay}
+              style={styles.modalOverlay}
               onClick={() => {
                 if (showFromSearch) {
                   setShowFromSearch(false);
@@ -1208,23 +1260,12 @@ const FlightHotels: React.FC = () => {
               }}
             />
           )}
-
-          <Footer />
         </>
       )}
 
       {/* Show Seat Selection when in seat-selection step */}
       {currentStep === 'seat-selection' && selectedFlightForSeats && fareQuoteData && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'white',
-          zIndex: 2000,
-          overflow: 'auto'
-        }}>
+        <div style={styles.stepContainer}>
           <SeatSelection
             flightData={selectedFlightForSeats}
             fareQuoteData={fareQuoteData}
@@ -1246,16 +1287,7 @@ const FlightHotels: React.FC = () => {
 
       {/* Show Booking Confirmation when in confirmation step */}
       {currentStep === 'confirmation' && bookingData && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'white',
-          zIndex: 2000,
-          overflow: 'auto'
-        }}>
+        <div style={styles.stepContainer}>
           <BookingConfirmation
             bookingData={bookingData}
             referenceId={bookingReferenceId}
@@ -1270,336 +1302,6 @@ const FlightHotels: React.FC = () => {
       {currentStep === 'search' && <Footer />}
     </div>
   );
-};
-
-// ────────────────────────────────────────────────
-// STYLES
-const cardStyle: React.CSSProperties = {
-  background: "#fff",
-  margin: "20px auto",
-  padding: "24px",
-  borderRadius: "12px",
-  maxWidth: "1200px",
-  width: "100%",
-  position: "relative",
-  zIndex: 100,
-};
-
-const tabStyle = {
-  color: "#008cff",
-  fontWeight: 600,
-  marginBottom: 12,
-  display: "flex",
-  alignItems: "center",
-  gap: "8px",
-};
-
-const row = {
-  display: "flex",
-  gap: "16px",
-  alignItems: "center",
-  flexWrap: "wrap",
-  position: "relative",
-};
-
-const boxStyle: React.CSSProperties = {
-  border: "1px solid #ddd",
-  borderRadius: 8,
-  padding: "12px",
-  cursor: "pointer",
-  minWidth: "160px",
-  flex: 1,
-  backgroundColor: "#fff",
-  transition: "border-color 0.2s",
-};
-
-const swapStyle = {
-  cursor: "pointer",
-  fontSize: 24,
-  color: "#666",
-  background: "#f5f5f5",
-  borderRadius: "50%",
-  padding: "8px",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-};
-
-const searchBtn = {
-  background: "#008cff",
-  color: "#fff",
-  border: "none",
-  padding: "14px 32px",
-  borderRadius: 8,
-  cursor: "pointer",
-  fontSize: "16px",
-  fontWeight: "bold",
-  transition: "background-color 0.2s",
-  minWidth: "140px",
-};
-
-const resultsWrap = {
-  maxWidth: 1200,
-  margin: "20px auto",
-  width: "100%",
-  padding: "0 16px",
-};
-
-const flightsContainer = {
-  display: "flex",
-  flexDirection: "column",
-  gap: "16px",
-  marginTop: "20px",
-};
-
-const flightCard = {
-  background: "#fff",
-  padding: "20px",
-  borderRadius: "12px",
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "flex-start",
-  border: "1px solid #eee",
-};
-
-const selectBtn = {
-  background: "#008cff",
-  color: "#fff",
-  border: "none",
-  padding: "12px 32px",
-  borderRadius: "6px",
-  cursor: "pointer",
-  fontWeight: "bold",
-  fontSize: "14px",
-  marginTop: "10px",
-};
-
-const modalOverlay = {
-  position: "fixed",
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  zIndex: 1000,
-};
-
-const calendarModal = {
-  background: "#fff",
-  padding: "24px",
-  borderRadius: "12px",
-  width: "350px",
-  maxWidth: "90vw",
-  boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
-  zIndex: 1001,
-};
-
-const calendarHeader = {
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-  marginBottom: "20px",
-};
-
-const navButton = {
-  background: "none",
-  border: "none",
-  fontSize: "20px",
-  cursor: "pointer",
-  padding: "8px 12px",
-  borderRadius: "4px",
-  color: "#008cff",
-  fontWeight: "bold",
-};
-
-const weekDaysStyle = {
-  display: "grid",
-  gridTemplateColumns: "repeat(7, 1fr)",
-  gap: "4px",
-  marginBottom: "12px",
-};
-
-const weekDayStyle = {
-  textAlign: "center",
-  fontWeight: "bold",
-  fontSize: "12px",
-  color: "#666",
-  padding: "4px",
-};
-
-const calendarGrid = {
-  display: "grid",
-  gridTemplateColumns: "repeat(7, 1fr)",
-  gap: "4px",
-};
-
-const dayStyle: React.CSSProperties = {
-  padding: "12px 4px",
-  border: "none",
-  background: "none",
-  cursor: "pointer",
-  borderRadius: "4px",
-  fontSize: "14px",
-  minWidth: "36px",
-};
-
-const emptyDayStyle = {
-  padding: "12px 4px",
-};
-
-const modal = {
-  background: "#fff",
-  padding: "24px",
-  borderRadius: "12px",
-  width: "360px",
-  maxWidth: "90vw",
-  boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
-  zIndex: 1001,
-};
-
-const closeBtn = {
-  marginTop: "20px",
-  width: "100%",
-  padding: "12px",
-  background: "#008cff",
-  color: "#fff",
-  border: "none",
-  borderRadius: "6px",
-  cursor: "pointer",
-  fontSize: "16px",
-  fontWeight: "bold",
-};
-
-const counterRow = {
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-  margin: "16px 0",
-  padding: "12px",
-  borderBottom: "1px solid #eee",
-};
-
-const counterButton = {
-  width: "32px",
-  height: "32px",
-  borderRadius: "50%",
-  border: "2px solid #008cff",
-  background: "#fff",
-  color: "#008cff",
-  fontSize: "18px",
-  cursor: "pointer",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  fontWeight: "bold",
-};
-
-const citySearchModal = {
-  position: "absolute",
-  top: "100%",
-  left: 0,
-  right: 0,
-  background: "#fff",
-  borderRadius: "8px",
-  boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
-  marginTop: "4px",
-  zIndex: 1002,
-  maxHeight: "400px",
-  overflow: "hidden",
-};
-
-const searchInput = {
-  width: "100%",
-  padding: "12px 16px",
-  border: "1px solid #ddd",
-  borderRadius: "4px",
-  fontSize: "14px",
-  margin: "8px",
-  boxSizing: "border-box" as const,
-};
-
-const cityList = {
-  maxHeight: "300px",
-  overflowY: "auto" as const,
-};
-
-const cityItem = {
-  padding: "12px 16px",
-  borderBottom: "1px solid #eee",
-  cursor: "pointer",
-  transition: "background-color 0.2s",
-};
-
-const fareTypeBtn = {
-  padding: "8px 16px",
-  background: "#f5f5f5",
-  border: "1px solid #ddd",
-  borderRadius: "4px",
-  cursor: "pointer",
-  fontSize: "14px",
-  color: "#666",
-  transition: "all 0.2s",
-};
-
-const activeFareTypeBtn = {
-  background: "#008cff",
-  color: "#fff",
-  borderColor: "#008cff",
-};
-
-const filtersSection = {
-  background: "#f8f9fa",
-  padding: "16px",
-  borderRadius: "8px",
-  marginBottom: "16px",
-  border: "1px solid #e9ecef",
-};
-
-const activeFilterBtn = {
-  background: "#008cff",
-  color: "#fff",
-  border: "none",
-  padding: "8px 16px",
-  borderRadius: "20px",
-  cursor: "pointer",
-  fontSize: "14px",
-  fontWeight: "500",
-  transition: "all 0.2s",
-};
-
-const filterBtn: React.CSSProperties = {
-  background: "#fff",
-  color: "#333",
-  border: "1px solid #ddd",
-  padding: "8px 16px",
-  borderRadius: "20px",
-  cursor: "pointer",
-  fontSize: "14px",
-  fontWeight: "500",
-  transition: "all 0.2s",
-};
-
-const priceRangeStyle = {
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-  padding: "16px",
-  background: "#fff",
-  borderRadius: "8px",
-  marginBottom: "16px",
-  border: "1px solid #e9ecef",
-};
-
-const classSelect = {
-  width: "100%",
-  padding: "12px",
-  borderRadius: "6px",
-  border: "1px solid #ddd",
-  fontSize: "14px",
-  backgroundColor: "#fff",
-  cursor: "pointer",
 };
 
 export default FlightHotels;
