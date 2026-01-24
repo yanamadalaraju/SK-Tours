@@ -1004,12 +1004,12 @@ const handleBookNowClick = (tour) => {
                                                           Book Now
                                                       </Button>
                           
-                                                       <Button
+                                                       {/* <Button
                                                         size="sm"
                                                         variant="outline"
                                                         className="w-full border-green-600 text-green-600 hover:bg-green-50 hover:border-green-700 hover:text-green-700"
                                                         onClick={() => handleEnquiryClick(tour)}
-                                                      >
+                                                      > */}
                                                         {/* <svg 
                                                           xmlns="http://www.w3.org/2000/svg" 
                                                           className="h-4 w-4 mr-2" 
@@ -1024,8 +1024,8 @@ const handleBookNowClick = (tour) => {
                                                             d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" 
                                                           />
                                                         </svg> */}
-                                                         Enquiry
-                                                      </Button>
+                                                         {/* Enquiry
+                                                      </Button> */}
                         </div>
                       </div>
                     </div>

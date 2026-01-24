@@ -988,14 +988,14 @@ const handleBookNowClick = (tour) => {
                               Book Now
                             </Button>
                             
-                                <Button
+                                {/* <Button
                                     size="sm"
                                     variant="outline"
                                     className="w-full border-green-600 text-green-600 hover:bg-green-50 hover:border-green-700 hover:text-green-700"
                                     onClick={() => handleEnquiryClick(tour)}
                                   >
                                     Enquiry
-                                </Button>
+                                </Button> */}
                           </div>
                         </div>
                       </div>
