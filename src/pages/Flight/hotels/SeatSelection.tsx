@@ -26,12 +26,10 @@ import {
   BookingDetailsResponse
 } from "./types";
 
-// Update the component to use the imported types
 const SeatSelection: React.FC<SeatSelectionProps> = ({
   flightData,
   fareQuoteData,
   passengers,
-  passengerDetailsFromSearch,
   onBack,
   onBookingComplete,
   bookingTokenId,
@@ -40,11 +38,9 @@ const SeatSelection: React.FC<SeatSelectionProps> = ({
   staticParam,
   contactInfo
 }) => {
-  const [onwardSeats, setOnwardSeats] = useState<Seat[]>([]);
-  const [returnSeats, setReturnSeats] = useState<Seat[]>([]);
   const [selectedOnwardSeats, setSelectedOnwardSeats] = useState<Seat[]>([]);
   const [selectedReturnSeats, setSelectedReturnSeats] = useState<Seat[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [bookingLoading, setBookingLoading] = useState(false);
   const [totalPrice, setTotalPrice] = useState(fareQuoteData?.total_payable_price || 0);
   const [activePassengerId, setActivePassengerId] = useState<number | null>(null);
@@ -52,336 +48,123 @@ const SeatSelection: React.FC<SeatSelectionProps> = ({
   const [passengerDetails, setPassengerDetails] = useState<PassengerDetails[]>([]);
   const [bookingError, setBookingError] = useState<string | null>(null);
   const [editingContact, setEditingContact] = useState(false);
-  const [contactDetails, setContactDetails] = useState<ContactInfo>({
+  const [contactDetails, setContactDetails] = useState<ContactInfo>(contactInfo || {
     name: "",
     email: "",
     phone: ""
   });
   const [showPassengerDetails, setShowPassengerDetails] = useState(true);
-  const [editingPassengerId, setEditingPassengerId] = useState<number | null>(null);
-  const [editingPassengerData, setEditingPassengerData] = useState<Partial<PassengerDetails>>({});
   
   const totalBookSeats = passengers.adults + passengers.children + passengers.infants;
   const totalPhysicalSeats = passengers.adults + passengers.children;
+  
+  // Check if it's a round trip
+  const isRoundTrip = flightData?.trip_type === 1;
 
-  const isRoundTrip = flightData?.trip_type === 2 || !!flightData?.return_flight_data;
-
-  // Initialize passenger details with input fields
+  // Initialize passenger details
   useEffect(() => {
-    if (passengerDetailsFromSearch && passengerDetailsFromSearch.length > 0) {
-      // Use provided data but make it editable
-      const details = passengerDetailsFromSearch.map((passenger, index) => ({
-        id: index + 1,
-        type: passenger.age >= 12 ? 'adult' : passenger.age >= 2 ? 'child' : 'infant',
-        name: `${passenger.first_name} ${passenger.last_name}`,
-        firstName: passenger.first_name || '',
-        middleName: passenger.middle_name || '',
-        lastName: passenger.last_name || '',
-        age: passenger.age || 0,
-        dob: passenger.dob || '',
-        gender: (passenger.gender as 'Mr' | 'Mrs' | 'Ms' | 'Mstr') || 'Mr',
-        requiresSeat: passenger.age >= 2,
-        icon: passenger.age >= 12 ? <MdPerson /> : 
-              passenger.age >= 2 ? <MdChildCare /> : <MdBabyChangingStation />,
-        isInfantOnLap: passenger.age < 2,
-        lapOfPassengerId: passenger.age < 2 ? 1 : undefined,
-        passportNo: passenger.passport_no || '',
-        passportExpireDate: passenger.passport_expire_date || ''
-      }));
-      
-      setPassengerDetails(details);
-    } else {
-      // Create editable default passenger details
-      const details: PassengerDetails[] = [];
-      let id = 1;
-      
-      // Add adults
-      for (let i = 0; i < passengers.adults; i++) {
-        details.push({
-          id: id++,
-          type: 'adult',
-          name: '',
-          firstName: '',
-          middleName: '',
-          lastName: '',
-          age: 0,
-          dob: '',
-          gender: 'Mr',
-          requiresSeat: true,
-          icon: <MdPerson />,
-          passportNo: '',
-          passportExpireDate: ''
-        });
-      }
-      
-      // Add children
-      for (let i = 0; i < passengers.children; i++) {
-        details.push({
-          id: id++,
-          type: 'child',
-          name: '',
-          firstName: '',
-          middleName: '',
-          lastName: '',
-          age: 0,
-          dob: '',
-          gender: 'Mstr',
-          requiresSeat: true,
-          icon: <MdChildCare />,
-          passportNo: '',
-          passportExpireDate: ''
-        });
-      }
-      
-      // Add infants
-      for (let i = 0; i < passengers.infants; i++) {
-        details.push({
-          id: id++,
-          type: 'infant',
-          name: '',
-          firstName: '',
-          middleName: '',
-          lastName: '',
-          age: 0,
-          dob: '',
-          gender: 'Mstr',
-          requiresSeat: false,
-          icon: <MdBabyChangingStation />,
-          isInfantOnLap: true,
-          lapOfPassengerId: 1,
-          passportNo: '',
-          passportExpireDate: ''
-        });
-      }
-      
-      setPassengerDetails(details);
-    }
+    const details: PassengerDetails[] = [];
+    let id = 1;
     
-    const firstPassengerWithSeat = passengerDetails.find(p => p.requiresSeat);
-    if (firstPassengerWithSeat) {
-      setActivePassengerId(firstPassengerWithSeat.id);
-    }
-  }, [passengerDetailsFromSearch, passengers]);
-
-  useEffect(() => {
-    if (contactInfo) {
-      setContactDetails(contactInfo);
-    } else {
-      setContactDetails({
-        name: "",
-        email: "",
-        phone: ""
-      });
-    }
-  }, [contactInfo]);
-
-  useEffect(() => {
-    if (fareQuoteData && passengerDetails.length > 0) {
-      generateSeatLayouts();
-    }
-  }, [fareQuoteData, passengerDetails]);
-
-  const generateSeatLayouts = () => {
-    const onwardSeatsLayout = generateFlightSeats('onward');
-    setOnwardSeats(onwardSeatsLayout);
-    
-    if (isRoundTrip) {
-      const returnSeatsLayout = generateFlightSeats('return');
-      setReturnSeats(returnSeatsLayout);
-    }
-    
-    setLoading(false);
-  };
-
-  const generateFlightSeats = (flightType: 'onward' | 'return'): Seat[] => {
-    const availableSeats = fareQuoteData?.available_seats || 97;
-    const rows = Math.ceil(availableSeats / 6);
-    const columns = ['A', 'B', 'C', 'D', 'E', 'F'];
-    const generatedSeats: Seat[] = [];
-    
-    let seatCount = 0;
-    for (let row = 1; row <= rows && seatCount < availableSeats; row++) {
-      columns.forEach((col, colIndex) => {
-        if (seatCount >= availableSeats) return;
-        
-        const seatNumber = `${row}${col}`;
-        const seatTypes = ['window', 'aisle', 'middle', 'middle', 'aisle', 'window'];
-        
-        generatedSeats.push({
-          id: `${flightType}-${row}-${col}`,
-          row,
-          column: col,
-          status: 'available',
-          price: calculateSeatPrice(row, colIndex),
-          type: seatTypes[colIndex] as Seat['type'],
-          seatNumber,
-          flightType
-        });
-        seatCount++;
+    // Add adults
+    for (let i = 0; i < passengers.adults; i++) {
+      details.push({
+        id: id++,
+        type: 'adult',
+        name: '',
+        firstName: '',
+        middleName: '',
+        lastName: '',
+        age: 0,
+        dob: '',
+        gender: 'Mr' as 'Mr' | 'Mrs' | 'Ms' | 'Mstr',
+        requiresSeat: true,
+        icon: <MdPerson />,
+        passportNo: '',
+        passportExpireDate: ''
       });
     }
     
-    const bookedCount = Math.floor(generatedSeats.length * 0.2);
-    for (let i = 0; i < bookedCount; i++) {
-      const randomIndex = Math.floor(Math.random() * generatedSeats.length);
-      if (generatedSeats[randomIndex].status === 'available') {
-        generatedSeats[randomIndex].status = 'booked';
-      }
+    // Add children
+    for (let i = 0; i < passengers.children; i++) {
+      details.push({
+        id: id++,
+        type: 'child',
+        name: '',
+        firstName: '',
+        middleName: '',
+        lastName: '',
+        age: 0,
+        dob: '',
+        gender: 'Mstr' as 'Mr' | 'Mrs' | 'Ms' | 'Mstr',
+        requiresSeat: true,
+        icon: <MdChildCare />,
+        passportNo: '',
+        passportExpireDate: ''
+      });
     }
     
-    const exitRows = [10, 11];
-    generatedSeats.forEach(seat => {
-      if (exitRows.includes(seat.row) && seat.status !== 'booked') {
-        seat.price += 1500;
-      }
-    });
-    
-    return generatedSeats;
-  };
-
-  const calculateSeatPrice = (row: number, colIndex: number): number => {
-    let basePrice = fareQuoteData?.total_payable_price / totalBookSeats || 5000;
-    
-    if (row <= 5) basePrice += 1000;
-    if (colIndex === 0 || colIndex === 5) basePrice += 500;
-    if (colIndex === 1 || colIndex === 4) basePrice += 300;
-    
-    return Math.round(basePrice);
-  };
-
-  const getActivePassenger = () => {
-    return passengerDetails.find(p => p.id === activePassengerId);
-  };
-
-  const getPassengerSeat = (passengerId: number, flightType: 'onward' | 'return') => {
-    if (flightType === 'onward') {
-      return selectedOnwardSeats.find(seat => seat.passengerId === passengerId);
-    } else {
-      return selectedReturnSeats.find(seat => seat.passengerId === passengerId);
+    // Add infants
+    for (let i = 0; i < passengers.infants; i++) {
+      details.push({
+        id: id++,
+        type: 'infant',
+        name: '',
+        firstName: '',
+        middleName: '',
+        lastName: '',
+        age: 0,
+        dob: '',
+        gender: 'Mstr' as 'Mr' | 'Mrs' | 'Ms' | 'Mstr',
+        requiresSeat: false,
+        icon: <MdBabyChangingStation />,
+        isInfantOnLap: true,
+        lapOfPassengerId: 1,
+        passportNo: '',
+        passportExpireDate: ''
+      });
     }
-  };
-
-  const handleSeatClick = (seat: Seat) => {
-    if (seat.status === 'booked' || seat.status === 'blocked') return;
-
-    const activePassenger = getActivePassenger();
-    if (!activePassenger || !activePassenger.requiresSeat) return;
-
-    const currentFlightSeats = seat.flightType === 'onward' ? selectedOnwardSeats : selectedReturnSeats;
     
-    if (currentFlightSeats.length >= totalPhysicalSeats &&
-        !currentFlightSeats.find(s => s.passengerId === activePassenger.id)) {
-      alert(`Only ${totalPhysicalSeats} seats allowed for ${seat.flightType} flight.`);
-      return;
+    setPassengerDetails(details);
+    
+    // Set first adult as active
+    const firstAdult = details.find(p => p.type === 'adult');
+    if (firstAdult) {
+      setActivePassengerId(firstAdult.id);
     }
+  }, [passengers]);
 
-    const existingAssignment = currentFlightSeats.find(
-      s => s.id === seat.id && s.passengerId !== activePassenger.id
+  // Handle direct input changes for passenger details
+  const handlePassengerInputChange = (passengerId: number, field: keyof PassengerDetails, value: string | number) => {
+    setPassengerDetails(prev => 
+      prev.map(passenger => 
+        passenger.id === passengerId 
+          ? { 
+              ...passenger, 
+              [field]: value,
+              ...(field === 'firstName' || field === 'lastName' 
+                ? { name: `${field === 'firstName' ? value : passenger.firstName} ${field === 'lastName' ? value : passenger.lastName}`.trim() }
+                : {})
+            }
+          : passenger
+      )
     );
-    
-    if (existingAssignment) {
-      alert('Seat already assigned to another passenger');
-      return;
-    }
-
-    if (seat.flightType === 'onward') {
-      let updatedSeats = [...selectedOnwardSeats];
-      const existingSeatIndex = updatedSeats.findIndex(
-        s => s.passengerId === activePassenger.id
-      );
-
-      if (existingSeatIndex >= 0) {
-        updatedSeats[existingSeatIndex] = {
-          ...seat,
-          status: 'selected',
-          passengerId: activePassenger.id,
-          passengerType: activePassenger.type
-        };
-      } else {
-        updatedSeats.push({
-          ...seat,
-          status: 'selected',
-          passengerId: activePassenger.id,
-          passengerType: activePassenger.type
-        });
-      }
-      setSelectedOnwardSeats(updatedSeats);
-      
-      const updatedPassengers = passengerDetails.map(p => {
-        if (p.id === activePassenger.id) {
-          return {
-            ...p,
-            seatNumber: seat.seatNumber
-          };
-        }
-        return p;
-      });
-      setPassengerDetails(updatedPassengers);
-    } else {
-      let updatedSeats = [...selectedReturnSeats];
-      const existingSeatIndex = updatedSeats.findIndex(
-        s => s.passengerId === activePassenger.id
-      );
-
-      if (existingSeatIndex >= 0) {
-        updatedSeats[existingSeatIndex] = {
-          ...seat,
-          status: 'selected',
-          passengerId: activePassenger.id,
-          passengerType: activePassenger.type
-        };
-      } else {
-        updatedSeats.push({
-          ...seat,
-          status: 'selected',
-          passengerId: activePassenger.id,
-          passengerType: activePassenger.type
-        });
-      }
-      setSelectedReturnSeats(updatedSeats);
-      
-      const updatedPassengers = passengerDetails.map(p => {
-        if (p.id === activePassenger.id) {
-          return {
-            ...p,
-            returnSeatNumber: seat.seatNumber
-          };
-        }
-        return p;
-      });
-      setPassengerDetails(updatedPassengers);
-    }
-    
-    const allSelectedSeats = [...selectedOnwardSeats, ...selectedReturnSeats];
-    const newTotalPrice = allSelectedSeats.reduce((sum, s) => sum + s.price, 0);
-    setTotalPrice(newTotalPrice);
   };
-  // Add this function to handle direct input changes
-const handlePassengerInputChange = (passengerId: number, field: keyof PassengerDetails, value: string | number) => {
-  setPassengerDetails(prev => 
-    prev.map(passenger => 
-      passenger.id === passengerId 
-        ? { 
-            ...passenger, 
-            [field]: value,
-            // Update name if firstName or lastName changes
-            ...(field === 'firstName' || field === 'lastName' 
-              ? { name: `${field === 'firstName' ? value : passenger.firstName} ${field === 'lastName' ? value : passenger.lastName}`.trim() }
-              : {})
-          }
-        : passenger
-    )
-  );
-};
 
   const handleBooking = async () => {
-    // Validate all passenger details before booking
+    // Validate passenger details
     const invalidPassengers = passengerDetails.filter(p => 
       !p.firstName.trim() || !p.lastName.trim() || !p.age || !p.dob || !p.passportNo || !p.passportExpireDate
     );
     
     if (invalidPassengers.length > 0) {
       window.alert("❌ Please fill in all passenger details before booking.");
+      return;
+    }
+    
+    // Validate contact details
+    if (!contactDetails.name.trim() || !contactDetails.email.trim() || !contactDetails.phone.trim()) {
+      window.alert("❌ Please fill in all contact details before booking.");
       return;
     }
     
@@ -400,22 +183,21 @@ const handlePassengerInputChange = (passengerId: number, field: keyof PassengerD
         passport_expire_date: passenger.passportExpireDate
       }));
 
-      const staticValue = staticParam || "0@|0@|0@|0@|30@|0@|0@|0@|0@|0@|0@|0@|0@|0@|0@|1@|0@|0@|0@|f";
-      
+      // Use the actual flight data for booking payload
       const bookingPayload = {
-        id: flightData?.flight_id?.toString() || flightData?.id || "6051",
-        onward_date: flightData?.dep_date || flightData?.onward_date || "2026-12-22",
-        return_date: isRoundTrip ? (flightData?.return_flight_data?.return_dep_date || "2026-12-26") : "",
+        id: flightData?.id || "",
+        onward_date: flightData?.onward_date || "",
+        return_date: isRoundTrip ? (flightData?.return_flight_data?.return_dep_date || "") : "",
         adult: passengers.adults,
         children: passengers.children,
         infant: passengers.infants,
-        dep_city_code: flightData?.dep_airport_code || flightData?.dep_city_code || "AMD",
-        arr_city_code: flightData?.arr_airport_code || flightData?.arr_city_code || "AUH",
+        dep_city_code: flightData?.dep_airport_code || flightData?.dep_city_code || "",
+        arr_city_code: flightData?.arr_airport_code || flightData?.arr_city_code || "",
         total_book_seats: totalBookSeats,
         contact_name: contactDetails.name,
         contact_email: contactDetails.email,
         contact_number: contactDetails.phone,
-        static: staticValue,
+        static: staticParam || flightData?.static || "",
         flight_traveller_details: flightTravellerDetails,
         booking_token_id: bookingTokenId,
         total_amount: totalPrice,
@@ -535,53 +317,6 @@ const handlePassengerInputChange = (passengerId: number, field: keyof PassengerD
     }));
   };
 
-  // New functions for editing passenger details
-  const startEditingPassenger = (passenger: PassengerDetails) => {
-    setEditingPassengerId(passenger.id);
-    setEditingPassengerData({ ...passenger });
-  };
-
-  const cancelEditingPassenger = () => {
-    setEditingPassengerId(null);
-    setEditingPassengerData({});
-  };
-
-  const saveEditingPassenger = () => {
-    if (!editingPassengerId || !editingPassengerData) return;
-
-    const updatedPassengers = passengerDetails.map(passenger => {
-      if (passenger.id === editingPassengerId) {
-        const updatedPassenger = {
-          ...passenger,
-          ...editingPassengerData,
-          name: `${editingPassengerData.firstName || passenger.firstName} ${editingPassengerData.lastName || passenger.lastName}`
-        };
-        return updatedPassenger;
-      }
-      return passenger;
-    });
-
-    setPassengerDetails(updatedPassengers);
-    setEditingPassengerId(null);
-    setEditingPassengerData({});
-  };
-
-  const handlePassengerFieldChange = (field: keyof PassengerDetails, value: string | number) => {
-    setEditingPassengerData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  const getPassengerIcon = (type: 'adult' | 'child' | 'infant') => {
-    switch (type) {
-      case 'adult': return <MdPerson />;
-      case 'child': return <MdChildCare />;
-      case 'infant': return <MdBabyChangingStation />;
-      default: return <MdPerson />;
-    }
-  };
-
   const formatTime = (timeStr: string) => {
     if (!timeStr) return '';
     const [hours, minutes] = timeStr.split(':');
@@ -621,7 +356,7 @@ const handlePassengerInputChange = (passengerId: number, field: keyof PassengerD
             animation: 'spin 1s linear infinite',
             margin: '0 auto'
           }}></div>
-          <p style={{ marginTop: '16px', color: '#6b7280' }}>Loading seat layout...</p>
+          <p style={{ marginTop: '16px', color: '#6b7280' }}>Loading...</p>
         </div>
       </div>
     );
@@ -659,11 +394,28 @@ const handlePassengerInputChange = (passengerId: number, field: keyof PassengerD
             }}>
               <div>
                 <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#1f2937' }}>
-                  Select Your Seats
+                  Passenger Details & Booking
                 </h1>
                 <p style={{ color: '#6b7280' }}>
-                  {flightData?.airline_name} • {flightData?.flight_number}
+                  {flightData?.airline_name} • Flight {flightData?.flight_number} • 
+                  {isRoundTrip ? ' Round Trip' : ' One Way'}
                 </p>
+                <div style={{ display: 'flex', gap: '20px', marginTop: '8px' }}>
+                  <div>
+                    <span style={{ fontSize: '14px', color: '#6b7280' }}>Departure: </span>
+                    <span style={{ fontWeight: '500' }}>
+                      {formatDate(flightData?.onward_date)} at {formatTime(flightData?.dep_time)}
+                    </span>
+                  </div>
+                  {isRoundTrip && flightData?.return_flight_data && (
+                    <div>
+                      <span style={{ fontSize: '14px', color: '#6b7280' }}>Return: </span>
+                      <span style={{ fontWeight: '500' }}>
+                        {formatDate(flightData?.return_flight_data?.return_dep_date)} at {formatTime(flightData?.return_flight_data?.return_dep_time)}
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontSize: '30px', fontWeight: 'bold', color: '#2563eb' }}>
@@ -678,247 +430,236 @@ const handlePassengerInputChange = (passengerId: number, field: keyof PassengerD
             </div>
           </div>
         </div>
-<div style={{ maxWidth: '1400px', margin: '0 auto', padding: '32px 16px' }}>
-  {/* Passenger Details Section - Form Layout */}
-  <div style={{ 
-    backgroundColor: 'white', 
-    borderRadius: '12px', 
-    padding: '24px',
-    marginBottom: '24px',
-    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
-  }}>
-    <div style={{ 
-      display: 'flex', 
-      justifyContent: 'space-between', 
-      alignItems: 'center',
-      marginBottom: '16px'
-    }}>
-      <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: '#1f2937' }}>
-        Passenger Details ({totalBookSeats} Passenger{totalBookSeats > 1 ? 's' : ''})
-      </h2>
-      <button
-        onClick={() => setShowPassengerDetails(!showPassengerDetails)}
-        style={{
-          background: 'none',
-          border: 'none',
-          color: '#3b82f6',
-          cursor: 'pointer',
-          fontSize: '14px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '4px'
-        }}
-      >
-        {showPassengerDetails ? 'Hide Details' : 'Show Details'}
-      </button>
-    </div>
-    
-    {showPassengerDetails && (
-      <div style={{ 
-        border: '1px solid #e5e7eb', 
-        borderRadius: '8px',
-        padding: '24px',
-        marginTop: '16px',
-        overflowX: 'auto'
-      }}>
-        <div style={{ marginBottom: '24px' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#374151' }}>
-            Please fill in passenger details
-          </h3>
-          <p style={{ fontSize: '14px', color: '#6b7280', marginTop: '4px' }}>
-            All fields are required for booking
-          </p>
-        </div>
-        
-        {/* Table Layout with Separate Labels */}
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '1200px' }}>
-            {/* Header Row */}
-            <thead>
-              <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
-                <th style={{ padding: '16px 12px', color: '#374151', fontSize: '14px', fontWeight: '600', backgroundColor: '#f9fafb', textAlign: 'left', width: '120px' }}>Type</th>
-                <th style={{ padding: '16px 12px', color: '#374151', fontSize: '14px', fontWeight: '600', backgroundColor: '#f9fafb', textAlign: 'left', width: '150px' }}>First Name</th>
-                <th style={{ padding: '16px 12px', color: '#374151', fontSize: '14px', fontWeight: '600', backgroundColor: '#f9fafb', textAlign: 'left', width: '150px' }}>Last Name</th>
-                <th style={{ padding: '16px 12px', color: '#374151', fontSize: '14px', fontWeight: '600', backgroundColor: '#f9fafb', textAlign: 'left', width: '100px' }}>Gender</th>
-                <th style={{ padding: '16px 12px', color: '#374151', fontSize: '14px', fontWeight: '600', backgroundColor: '#f9fafb', textAlign: 'left', width: '80px' }}>Age</th>
-                <th style={{ padding: '16px 12px', color: '#374151', fontSize: '14px', fontWeight: '600', backgroundColor: '#f9fafb', textAlign: 'left', width: '120px' }}>DOB</th>
-                <th style={{ padding: '16px 12px', color: '#374151', fontSize: '14px', fontWeight: '600', backgroundColor: '#f9fafb', textAlign: 'left', width: '150px' }}>Passport No.</th>
-                <th style={{ padding: '16px 12px', color: '#374151', fontSize: '14px', fontWeight: '600', backgroundColor: '#f9fafb', textAlign: 'left', width: '120px' }}>Passport Expiry</th>
-              </tr>
-            </thead>
-            
-            {/* Body - Each passenger in one row with separate labels area above */}
-            <tbody>
-              {/* Labels Row (showing placeholder text) */}
-         
-              {/* Passenger Rows */}
-              {passengerDetails.map((passenger, index) => (
-                <tr key={passenger.id} style={{ 
-                  borderBottom: '1px solid #f3f4f6',
-                  backgroundColor: passenger.id === activePassengerId ? '#eff6ff' : 'white'
-                }}>
-                 
-                  {/* Type Column */}
-                  <td style={{ padding: '16px 12px', verticalAlign: 'top' }}>
-                    <span style={{
-                      padding: '6px 12px',
-                      borderRadius: '12px',
-                      fontSize: '13px',
-                      fontWeight: '600',
-                      backgroundColor: passenger.type === 'adult' ? '#dbeafe' : 
-                                    passenger.type === 'child' ? '#fef3c7' : '#dcfce7',
-                      color: passenger.type === 'adult' ? '#1d4ed8' : 
-                            passenger.type === 'child' ? '#d97706' : '#059669',
-                      display: 'inline-block',
-                      textAlign: 'center'
-                    }}>
-                      {passenger.type.charAt(0).toUpperCase() + passenger.type.slice(1)}
-                    </span>
-                  </td>
-                  
-                  {/* First Name Column */}
-                  <td style={{ padding: '16px 12px', verticalAlign: 'top' }}>
-                    <input
-                      type="text"
-                      value={passenger.firstName}
-                      onChange={(e) => handlePassengerInputChange(passenger.id, 'firstName', e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '10px 12px',
-                        border: '1px solid #d1d5db',
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        backgroundColor: 'white'
-                      }}
-                      placeholder="Enter first name"
-                    />
-                  </td>
-                  
-                  {/* Last Name Column */}
-                  <td style={{ padding: '16px 12px', verticalAlign: 'top' }}>
-                    <input
-                      type="text"
-                      value={passenger.lastName}
-                      onChange={(e) => handlePassengerInputChange(passenger.id, 'lastName', e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '10px 12px',
-                        border: '1px solid #d1d5db',
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        backgroundColor: 'white'
-                      }}
-                      placeholder="Enter last name"
-                    />
-                  </td>
-                  
-                  {/* Gender Column */}
-                  <td style={{ padding: '16px 12px', verticalAlign: 'top' }}>
-                    <select
-                      value={passenger.gender}
-                      onChange={(e) => handlePassengerInputChange(passenger.id, 'gender', e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '10px 12px',
-                        border: '1px solid #d1d5db',
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        backgroundColor: 'white'
-                      }}
-                    >
-                      <option value="Mr">Mr</option>
-                      <option value="Mrs">Mrs</option>
-                      <option value="Ms">Ms</option>
-                      <option value="Mstr">Mstr</option>
-                    </select>
-                  </td>
-                  
-                  {/* Age Column */}
-                  <td style={{ padding: '16px 12px', verticalAlign: 'top' }}>
-                    <input
-                      type="number"
-                      value={passenger.age || ''}
-                      onChange={(e) => handlePassengerInputChange(passenger.id, 'age', parseInt(e.target.value) || 0)}
-                      style={{
-                        width: '100%',
-                        padding: '10px 12px',
-                        border: '1px solid #d1d5db',
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        backgroundColor: 'white'
-                      }}
-                      placeholder="Age"
-                      min="0"
-                      max="120"
-                    />
-                  </td>
-                  
-                  {/* DOB Column */}
-                  <td style={{ padding: '16px 12px', verticalAlign: 'top' }}>
-                    <input
-                      type="date"
-                      value={passenger.dob || ''}
-                      onChange={(e) => handlePassengerInputChange(passenger.id, 'dob', e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '10px 12px',
-                        border: '1px solid #d1d5db',
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        backgroundColor: 'white'
-                      }}
-                    />
-                  </td>
-                  
-                  {/* Passport Number Column */}
-                  <td style={{ padding: '16px 12px', verticalAlign: 'top' }}>
-                    <input
-                      type="text"
-                      value={passenger.passportNo || ''}
-                      onChange={(e) => handlePassengerInputChange(passenger.id, 'passportNo', e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '10px 12px',
-                        border: '1px solid #d1d5db',
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        backgroundColor: 'white'
-                      }}
-                      placeholder="Passport number"
-                    />
-                  </td>
-                  
-                  {/* Passport Expiry Column */}
-                  <td style={{ padding: '16px 12px', verticalAlign: 'top' }}>
-                    <input
-                      type="date"
-                      value={passenger.passportExpireDate || ''}
-                      onChange={(e) => handlePassengerInputChange(passenger.id, 'passportExpireDate', e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '10px 12px',
-                        border: '1px solid #d1d5db',
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        backgroundColor: 'white'
-                      }}
-                    />
-                  </td>
-                  
-               
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        
-     
-      </div>
-    )}
-  </div>
-  
- 
 
+        <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '32px 16px' }}>
+          {/* Passenger Details Section */}
+          <div style={{ 
+            backgroundColor: 'white', 
+            borderRadius: '12px', 
+            padding: '24px',
+            marginBottom: '24px',
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+          }}>
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center',
+              marginBottom: '16px'
+            }}>
+              <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: '#1f2937' }}>
+                Passenger Details ({totalBookSeats} Passenger{totalBookSeats > 1 ? 's' : ''})
+              </h2>
+              <button
+                onClick={() => setShowPassengerDetails(!showPassengerDetails)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#3b82f6',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}
+              >
+                {showPassengerDetails ? 'Hide Details' : 'Show Details'}
+              </button>
+            </div>
+            
+            {showPassengerDetails && (
+              <div style={{ 
+                border: '1px solid #e5e7eb', 
+                borderRadius: '8px',
+                padding: '24px',
+                marginTop: '16px',
+                overflowX: 'auto'
+              }}>
+                <div style={{ marginBottom: '24px' }}>
+                  <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#374151' }}>
+                    Please fill in passenger details
+                  </h3>
+                  <p style={{ fontSize: '14px', color: '#6b7280', marginTop: '4px' }}>
+                    All fields are required for booking
+                  </p>
+                </div>
+                
+                {/* Table Layout */}
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '1200px' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+                        <th style={{ padding: '16px 12px', color: '#374151', fontSize: '14px', fontWeight: '600', backgroundColor: '#f9fafb', textAlign: 'left', width: '120px' }}>Type</th>
+                        <th style={{ padding: '16px 12px', color: '#374151', fontSize: '14px', fontWeight: '600', backgroundColor: '#f9fafb', textAlign: 'left', width: '150px' }}>First Name</th>
+                        <th style={{ padding: '16px 12px', color: '#374151', fontSize: '14px', fontWeight: '600', backgroundColor: '#f9fafb', textAlign: 'left', width: '150px' }}>Last Name</th>
+                        <th style={{ padding: '16px 12px', color: '#374151', fontSize: '14px', fontWeight: '600', backgroundColor: '#f9fafb', textAlign: 'left', width: '100px' }}>Gender</th>
+                        <th style={{ padding: '16px 12px', color: '#374151', fontSize: '14px', fontWeight: '600', backgroundColor: '#f9fafb', textAlign: 'left', width: '80px' }}>Age</th>
+                        <th style={{ padding: '16px 12px', color: '#374151', fontSize: '14px', fontWeight: '600', backgroundColor: '#f9fafb', textAlign: 'left', width: '120px' }}>DOB</th>
+                        <th style={{ padding: '16px 12px', color: '#374151', fontSize: '14px', fontWeight: '600', backgroundColor: '#f9fafb', textAlign: 'left', width: '150px' }}>Passport No.</th>
+                        <th style={{ padding: '16px 12px', color: '#374151', fontSize: '14px', fontWeight: '600', backgroundColor: '#f9fafb', textAlign: 'left', width: '120px' }}>Passport Expiry</th>
+                      </tr>
+                    </thead>
+                    
+                    <tbody>
+                      {passengerDetails.map((passenger, index) => (
+                        <tr key={passenger.id} style={{ 
+                          borderBottom: '1px solid #f3f4f6',
+                          backgroundColor: passenger.id === activePassengerId ? '#eff6ff' : 'white'
+                        }}>
+                          {/* Type Column */}
+                          <td style={{ padding: '16px 12px', verticalAlign: 'top' }}>
+                            <span style={{
+                              padding: '6px 12px',
+                              borderRadius: '12px',
+                              fontSize: '13px',
+                              fontWeight: '600',
+                              backgroundColor: passenger.type === 'adult' ? '#dbeafe' : 
+                                            passenger.type === 'child' ? '#fef3c7' : '#dcfce7',
+                              color: passenger.type === 'adult' ? '#1d4ed8' : 
+                                    passenger.type === 'child' ? '#d97706' : '#059669',
+                              display: 'inline-block',
+                              textAlign: 'center'
+                            }}>
+                              {passenger.type.charAt(0).toUpperCase() + passenger.type.slice(1)}
+                            </span>
+                          </td>
+                          
+                          {/* First Name Column */}
+                          <td style={{ padding: '16px 12px', verticalAlign: 'top' }}>
+                            <input
+                              type="text"
+                              value={passenger.firstName}
+                              onChange={(e) => handlePassengerInputChange(passenger.id, 'firstName', e.target.value)}
+                              style={{
+                                width: '100%',
+                                padding: '10px 12px',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '6px',
+                                fontSize: '14px',
+                                backgroundColor: 'white'
+                              }}
+                              placeholder="Enter first name"
+                            />
+                          </td>
+                          
+                          {/* Last Name Column */}
+                          <td style={{ padding: '16px 12px', verticalAlign: 'top' }}>
+                            <input
+                              type="text"
+                              value={passenger.lastName}
+                              onChange={(e) => handlePassengerInputChange(passenger.id, 'lastName', e.target.value)}
+                              style={{
+                                width: '100%',
+                                padding: '10px 12px',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '6px',
+                                fontSize: '14px',
+                                backgroundColor: 'white'
+                              }}
+                              placeholder="Enter last name"
+                            />
+                          </td>
+                          
+                          {/* Gender Column */}
+                          <td style={{ padding: '16px 12px', verticalAlign: 'top' }}>
+                            <select
+                              value={passenger.gender}
+                              onChange={(e) => handlePassengerInputChange(passenger.id, 'gender', e.target.value)}
+                              style={{
+                                width: '100%',
+                                padding: '10px 12px',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '6px',
+                                fontSize: '14px',
+                                backgroundColor: 'white'
+                              }}
+                            >
+                              <option value="Mr">Mr</option>
+                              <option value="Mrs">Mrs</option>
+                              <option value="Ms">Ms</option>
+                              <option value="Mstr">Mstr</option>
+                            </select>
+                          </td>
+                          
+                          {/* Age Column */}
+                          <td style={{ padding: '16px 12px', verticalAlign: 'top' }}>
+                            <input
+                              type="number"
+                              value={passenger.age || ''}
+                              onChange={(e) => handlePassengerInputChange(passenger.id, 'age', parseInt(e.target.value) || 0)}
+                              style={{
+                                width: '100%',
+                                padding: '10px 12px',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '6px',
+                                fontSize: '14px',
+                                backgroundColor: 'white'
+                              }}
+                              placeholder="Age"
+                              min="0"
+                              max="120"
+                            />
+                          </td>
+                          
+                          {/* DOB Column */}
+                          <td style={{ padding: '16px 12px', verticalAlign: 'top' }}>
+                            <input
+                              type="date"
+                              value={passenger.dob || ''}
+                              onChange={(e) => handlePassengerInputChange(passenger.id, 'dob', e.target.value)}
+                              style={{
+                                width: '100%',
+                                padding: '10px 12px',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '6px',
+                                fontSize: '14px',
+                                backgroundColor: 'white'
+                              }}
+                            />
+                          </td>
+                          
+                          {/* Passport Number Column */}
+                          <td style={{ padding: '16px 12px', verticalAlign: 'top' }}>
+                            <input
+                              type="text"
+                              value={passenger.passportNo || ''}
+                              onChange={(e) => handlePassengerInputChange(passenger.id, 'passportNo', e.target.value)}
+                              style={{
+                                width: '100%',
+                                padding: '10px 12px',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '6px',
+                                fontSize: '14px',
+                                backgroundColor: 'white'
+                              }}
+                              placeholder="Passport number"
+                            />
+                          </td>
+                          
+                          {/* Passport Expiry Column */}
+                          <td style={{ padding: '16px 12px', verticalAlign: 'top' }}>
+                            <input
+                              type="date"
+                              value={passenger.passportExpireDate || ''}
+                              onChange={(e) => handlePassengerInputChange(passenger.id, 'passportExpireDate', e.target.value)}
+                              style={{
+                                width: '100%',
+                                padding: '10px 12px',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '6px',
+                                fontSize: '14px',
+                                backgroundColor: 'white'
+                              }}
+                            />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+          
           {/* Contact Information Section */}
           <div style={{ 
             backgroundColor: 'white', 
@@ -1125,19 +866,6 @@ const handlePassengerInputChange = (passengerId: number, field: keyof PassengerD
                 </button>
               </div>
             )}
-            
-            <div style={{ 
-              marginTop: '20px',
-              padding: '12px 16px',
-              backgroundColor: '#f0f9ff',
-              borderRadius: '8px',
-              borderLeft: '4px solid #3b82f6'
-            }}>
-              <p style={{ fontSize: '13px', color: '#1e40af', margin: 0 }}>
-                <strong>Note:</strong> These contact details will be used for booking confirmation and updates.
-                Please ensure they are accurate.
-              </p>
-            </div>
           </div>
 
           {/* Action Buttons */}
@@ -1205,7 +933,7 @@ const handlePassengerInputChange = (passengerId: number, field: keyof PassengerD
                 )}
               </button>
               <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '8px' }}>
-                Includes seat selection charges
+                Includes all taxes and charges
               </div>
             </div>
           </div>

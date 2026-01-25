@@ -11,12 +11,13 @@ import {
   FlightSearchResult,
   ContactInfo,
   PassengerDetails,
-  SearchStep
+  SearchStep,
+  DateListResponse
 } from "./types";
 import { styles } from "./styles";
 
 const FlightHotels: React.FC = () => {
-  // Search states - Updated to match your successful Postman test
+  // Search states
   const [from, setFrom] = useState("Varanasi, India");
   const [to, setTo] = useState("Patna, India");
   const [fromCode, setFromCode] = useState("VNS");
@@ -35,7 +36,7 @@ const FlightHotels: React.FC = () => {
   const [infants, setInfants] = useState(0);
   const [travelClass, setTravelClass] = useState("Economy/Pt");
   const [showResults, setShowResults] = useState(false);
-  const [currentMonth, setCurrentMonth] = useState<Date>(new Date(2026, 5, 1)); // June 2026
+  const [currentMonth, setCurrentMonth] = useState<Date>(new Date(2026, 5, 1));
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date(2026, 5, 1));
   const [fareType, setFareType] = useState("Regular");
   const [activeFilters, setActiveFilters] = useState<string[]>(["NON STOP"]);
@@ -74,6 +75,30 @@ const FlightHotels: React.FC = () => {
     phone: "9876543210"
   });
 
+  // Initialize with default values based on trip type
+  useEffect(() => {
+    console.log("Trip type changed to:", tripType);
+    if (tripType === "0") {
+      // One-way defaults
+      setFrom("Varanasi, India");
+      setFromCode("VNS");
+      setTo("Patna, India");
+      setToCode("PAT");
+      setReturnDate("Not required");
+      setReturnDateApi("");
+      setReturnDates([]); // Clear return dates for one-way
+    } else {
+      // Round trip defaults
+      setFrom("Ahmedabad, India");
+      setFromCode("AMD");
+      setTo("Patna, India");
+      setToCode("PAT");
+      setReturnDate("Select Return");
+      setReturnDateApi("");
+    }
+    fetchDepartureCities();
+  }, [tripType]);
+
   const swapLocations = () => {
     const tempFrom = from;
     const tempFromCode = fromCode;
@@ -91,20 +116,15 @@ const FlightHotels: React.FC = () => {
     }
   };
 
-  const logSearchCriteria = () => {
-    console.log("=== SEARCH CRITERIA ===");
-    console.log("From:", from, "Code:", fromCode);
-    console.log("To:", to, "Code:", toCode);
-    console.log("Depart Date API:", departDateApi);
-    console.log("Return Date API:", returnDateApi);
-    console.log("Trip Type:", tripType);
-    console.log("Passengers - Adults:", adults, "Children:", children, "Infants:", infants);
-    console.log("=====================");
-  };
-
   const handleSearch = async () => {
     if (!fromCode || !toCode || !departDateApi) {
       alert("Please select departure and arrival cities and departure date");
+      return;
+    }
+
+    // For round trips, validate return date
+    if (tripType === "1" && !returnDateApi) {
+      alert("Please select return date for round trip");
       return;
     }
 
@@ -113,11 +133,20 @@ const FlightHotels: React.FC = () => {
     setShowResults(true);
     setBookingTokenId("");
 
-    logSearchCriteria();
+    console.log("Search criteria:", {
+      trip_type: tripType,
+      from: fromCode,
+      to: toCode,
+      depart: departDateApi,
+      return: returnDateApi,
+      adults,
+      children,
+      infants
+    });
 
     try {
       const searchPayload = {
-        trip_type: parseInt(tripType), // Convert to number
+        trip_type: parseInt(tripType),
         end_user_ip: "183.83.43.117",
         token: "3-1-NEWTEST-dmjkwj78BJHk8",
         dep_city_code: fromCode,
@@ -150,7 +179,6 @@ const FlightHotels: React.FC = () => {
 
       console.log("Parsed response:", data);
 
-      // Check if data exists and has flights
       if (data.errorCode === 0) {
         if (data.data && Array.isArray(data.data) && data.data.length > 0) {
           console.log(`Found ${data.data.length} flights`);
@@ -207,24 +235,29 @@ const FlightHotels: React.FC = () => {
     : ["NON STOP", "Refundable Fares", "1 Stop", "Air India Express", "+2 more"];
 
   useEffect(() => {
-    fetchDepartureCities();
-  }, []);
-
-  useEffect(() => {
-    if (fromCode) fetchArrivalCities(fromCode);
+    if (fromCode) {
+      fetchArrivalCities(fromCode);
+    }
   }, [fromCode]);
 
   useEffect(() => {
-    if (fromCode && toCode) fetchOnwardDates(fromCode, toCode);
+    if (fromCode && toCode) {
+      fetchOnwardDates(fromCode, toCode);
+    }
   }, [fromCode, toCode]);
 
   useEffect(() => {
-    // Clear return date when switching to one-way
-    if (tripType === "0") {
-      setReturnDate("Select Return");
+    // When departure date changes for round trip, fetch return dates
+    if (tripType === "1" && fromCode && toCode && departDateApi) {
+      console.log("Fetching return dates for round trip:", { fromCode, toCode, departDateApi });
+      fetchReturnDates(fromCode, toCode, departDateApi);
+    } else if (tripType === "0") {
+      // Clear return dates for one-way
+      setReturnDates([]);
       setReturnDateApi("");
+      setReturnDate("Not required");
     }
-  }, [tripType]);
+  }, [departDateApi, tripType, fromCode, toCode]);
 
   useEffect(() => {
     if (searchFromQuery) {
@@ -252,15 +285,14 @@ const FlightHotels: React.FC = () => {
     }
   }, [searchToQuery, arrivalCities]);
 
-  const fetchDepartureCities = async (tripTypeParam?: "0" | "1") => {
-    const currentTripType = tripTypeParam || tripType;
+  const fetchDepartureCities = async () => {
     setLoadingDepartures(true);
     try {
       const res = await fetch("https://devapi.flightapi.co.in/v1/fbapi/dep_city", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          trip_type: parseInt(currentTripType),
+          trip_type: parseInt(tripType),
           end_user_ip: "183.83.43.117",
           token: "3-1-NEWTEST-dmjkwj78BJHk8",
         }),
@@ -326,13 +358,20 @@ const FlightHotels: React.FC = () => {
       const responseText = await res.text();
       console.log("Onward dates raw response:", responseText);
       
-      const data = JSON.parse(responseText);
+      let data: DateListResponse;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error("Failed to parse JSON:", parseError);
+        throw new Error("Invalid response from server");
+      }
+      
       console.log("Onward dates parsed response:", data);
       
       if (data.replyCode === "success") {
         const dates = data.data
-          .map((d: any) => d.onward_date)
-          .filter((d: string | undefined): d is string => !!d);
+          .map((d) => d.onward_date)
+          .filter((d): d is string => !!d);
         
         console.log("Available onward dates:", dates);
         setOnwardDates(dates);
@@ -362,76 +401,136 @@ const FlightHotels: React.FC = () => {
 
   const fetchReturnDates = async (dep: string, arr: string, onward: string) => {
     // Only fetch return dates for round trips
-    if (tripType === "0") {
+    if (tripType !== "1") {
       return;
     }
     
     setLoadingReturnDates(true);
     try {
+      const payload = {
+        trip_type: 1, // Always 1 for round trip
+        end_user_ip: "183.83.43.117",
+        token: "3-1-NEWTEST-dmjkwj78BJHk8",
+        dep_city_code: dep,
+        arr_city_code: arr,
+        onward_date: onward,
+      };
+      
+      console.log("Fetching return dates with payload:", JSON.stringify(payload, null, 2));
+      
       const res = await fetch("https://devapi.flightapi.co.in/v1/fbapi/return_date", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          trip_type: parseInt(tripType),
-          end_user_ip: "183.83.43.117",
-          token: "3-1-NEWTEST-dmjkwj78BJHk8",
-          dep_city_code: dep,
-          arr_city_code: arr,
-          onward_date: onward,
-        }),
+        body: JSON.stringify(payload),
       });
-      const data = await res.json();
-      console.log("Return dates response:", data);
+      
+      const responseText = await res.text();
+      console.log("Return dates raw response:", responseText);
+      
+      let data: DateListResponse;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error("Failed to parse JSON:", parseError);
+        throw new Error("Invalid response from server");
+      }
+      
+      console.log("Return dates parsed response:", data);
+      
       if (data.replyCode === "success") {
         const dates = data.data
-          .map((d: any) => d.return_date)
-          .filter((d: string | undefined): d is string => !!d);
+          .map((d) => d.return_date)
+          .filter((d): d is string => !!d);
+          
+        console.log("Available return dates:", dates);
         setReturnDates(dates);
+        
         if (dates.length > 0) {
+          // Auto-select the first available return date
           const first = dates[0];
           setReturnDateApi(first);
           setReturnDate(formatApiDate(first));
+          console.log("Auto-selected return date:", first);
         } else {
           setReturnDateApi("");
           setReturnDate("Select Return");
+          console.warn("No return dates available");
         }
+      } else {
+        console.warn("Failed to fetch return dates:", data.replyMsg);
+        setReturnDates([]);
+        setReturnDateApi("");
+        setReturnDate("Select Return");
       }
     } catch (err) {
       console.error("return_date error", err);
       setReturnDates([]);
+      setReturnDateApi("");
+      setReturnDate("Select Return");
     } finally {
       setLoadingReturnDates(false);
     }
   };
 
-  const handleFromSelect = (city: Airport) => {
-    console.log("Selected departure city:", {
-      city_name: city.city_name,
-      airport_code: city.airport_code,
-      city_code: city.city_code
-    });
-    setFrom(`${city.city_name}, India`);
-    setFromCode(city.airport_code);
-    setShowFromSearch(false);
-    setSearchFromQuery("");
-    
-    // Fetch arrival cities for the selected departure
-    fetchArrivalCities(city.airport_code);
-  };
+const handleFromSelect = (city: Airport) => {
+  console.log("DEBUG: handleFromSelect called with:", city);
+  
+  // Use the city name from the API response
+  const cityName = city.city_name || city.cityName || city.name;
+  const airportCode = city.airport_code || city.airportCode || city.code;
+  
+  console.log("DEBUG: Parsed values:", { cityName, airportCode });
+  
+  if (!cityName || !airportCode) {
+    console.error("Invalid city data:", city);
+    return;
+  }
+  
+  // Update state
+  setFrom(`${cityName}, India`);
+  setFromCode(airportCode);
+  setShowFromSearch(false);
+  setSearchFromQuery("");
+  
+  console.log("DEBUG: State updated to:", { 
+    from: `${cityName}, India`, 
+    fromCode: airportCode 
+  });
+  
+  // Fetch arrival cities for the selected departure
+  fetchArrivalCities(airportCode);
+};
 
-  const handleToSelect = (city: Airport) => {
-    console.log("Selected arrival city:", {
-      city_name: city.city_name,
-      airport_code: city.airport_code,
-      city_code: city.city_code
-    });
-    setTo(`${city.city_name}, India`);
-    setToCode(city.airport_code);
-    setShowToSearch(false);
-    setSearchToQuery("");
-  };
+const handleToSelect = (city: Airport) => {
+  console.log("DEBUG: handleToSelect called with:", city);
+  
+  // Use the city name from the API response
+  const cityName = city.city_name || city.cityName || city.name;
+  const airportCode = city.airport_code || city.airportCode || city.code;
+  
+  console.log("DEBUG: Parsed values:", { cityName, airportCode });
+  
+  if (!cityName || !airportCode) {
+    console.error("Invalid city data:", city);
+    return;
+  }
+  
+  // Update state
+  setTo(`${cityName}, India`);
+  setToCode(airportCode);
+  setShowToSearch(false);
+  setSearchToQuery("");
+  
+  console.log("DEBUG: State updated to:", { 
+    to: `${cityName}, India`, 
+    toCode: airportCode 
+  });
+};
+
+
 
   const formatApiDate = (apiDate: string) => {
+    if (!apiDate) return "Select Date";
     const d = new Date(apiDate);
     const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -439,6 +538,7 @@ const FlightHotels: React.FC = () => {
   };
 
   const formatTime = (timeStr: string) => {
+    if (!timeStr) return '';
     const [hours, minutes] = timeStr.split(':');
     const hour = parseInt(hours);
     const ampm = hour >= 12 ? 'PM' : 'AM';
@@ -454,30 +554,32 @@ const FlightHotels: React.FC = () => {
       setDepartDate(display);
       setDepartDateApi(apiDate);
       setShowDepart(false);
-      if (fromCode && toCode && tripType === "1") {
+      setSelectedDate(date);
+      
+      // For round trips, fetch return dates when departure is selected
+      if (tripType === "1") {
+        console.log("Departure date selected for round trip, fetching return dates...");
         fetchReturnDates(fromCode, toCode, apiDate);
       }
     } else if (showReturn) {
       setReturnDate(display);
       setReturnDateApi(apiDate);
       setShowReturn(false);
+      setSelectedDate(date);
     }
-    setSelectedDate(date);
   };
 
   const handleSelectFlight = async (flight: FlightSearchResult) => {
     setLoadingSeats(true);
     
     try {
-      // First, make sure we have a booking token
       if (!bookingTokenId) {
-        console.warn("No booking token ID available. Trying to get one...");
-        // You might need to call search API again or handle this differently
+        console.warn("No booking token ID available.");
         alert("Please search for flights again before selecting a flight.");
         return;
       }
 
-      // Build payload based on the Postman example
+      // Build payload based on flight type
       const fareQuotePayload: any = {
         id: flight.id,
         end_user_ip: "183.83.43.117",
@@ -486,11 +588,11 @@ const FlightHotels: React.FC = () => {
         infant: infants,
         onward_date: departDateApi,
         static: flight.static,
-        booking_token_id: bookingTokenId // Always include booking token
+        booking_token_id: bookingTokenId
       };
 
-      // Only add return_date if it exists (for round trips)
-      if (returnDateApi && tripType === "1") {
+      // Add return_date only for round trips
+      if (tripType === "1" && returnDateApi) {
         fareQuotePayload.return_date = returnDateApi;
       }
 
@@ -519,19 +621,16 @@ const FlightHotels: React.FC = () => {
       console.log("Fare quote API parsed response:", data);
 
       if (data.errorCode === 0 && data.data) {
-        // Success - prepare data for seat selection
         const seatSelectionData = {
-          // Flight info
           flight: {
             ...flight,
             total_payable_price: data.data.total_payable_price || flight.total_payable_price,
             available_seats: data.data.available_seats || flight.available_seats,
             per_adult_child_price: data.data.per_adult_child_price,
-            per_infant_price: data.data.per_infant_price
+            per_infant_price: data.data.per_infant_price,
+            trip_type: parseInt(tripType) // Add trip type to flight data
           },
-          // Fare quote data
           fareQuote: data.data,
-          // Booking info
           bookingInfo: {
             booking_token_id: bookingTokenId,
             static: flight.static,
@@ -540,7 +639,6 @@ const FlightHotels: React.FC = () => {
             adult_children: adults + children,
             infant: infants
           },
-          // Passenger counts
           passengers: {
             adults,
             children,
@@ -738,13 +836,6 @@ const FlightHotels: React.FC = () => {
               </div>
             </div>
           )}
-
-          {/* Passengers count */}
-          <div style={{ marginTop: "12px", padding: "8px", background: "#f5f5f5", borderRadius: "4px", display: "inline-block" }}>
-            <span style={{ fontSize: "12px", color: "#666" }}>
-              {adults} Adult{adults > 1 ? 's' : ''}{children > 0 ? `, ${children} Child${children > 1 ? 'ren' : ''}` : ''}{infants > 0 ? `, ${infants} Infant${infants > 1 ? 's' : ''}` : ''}
-            </span>
-          </div>
         </div>
 
         <div style={{ textAlign: "right", minWidth: "180px", marginLeft: "20px" }}>
@@ -800,14 +891,10 @@ const FlightHotels: React.FC = () => {
                   checked={tripType === "0"}
                   onChange={() => {
                     setTripType("0");
-                    // Clear return date when switching to one-way
-                    setReturnDate("Select Return");
+                    setReturnDate("Not required");
                     setReturnDateApi("");
-                    // Refresh departure cities based on trip type
-                    fetchDepartureCities("0");
-                    // Clear arrival cities
-                    setArrivalCities([]);
-                    // Reset to defaults
+                    setReturnDates([]);
+                    // Reset to one-way defaults
                     setFrom("Varanasi, India");
                     setFromCode("VNS");
                     setTo("Patna, India");
@@ -830,11 +917,8 @@ const FlightHotels: React.FC = () => {
                   checked={tripType === "1"}
                   onChange={() => {
                     setTripType("1");
-                    // Refresh departure cities based on trip type
-                    fetchDepartureCities("1");
-                    // Clear arrival cities
-                    setArrivalCities([]);
-                    // Reset to defaults
+                    setReturnDate("Select Return");
+                    // Reset to round trip defaults
                     setFrom("Ahmedabad, India");
                     setFromCode("AMD");
                     setTo("Patna, India");
@@ -865,24 +949,34 @@ const FlightHotels: React.FC = () => {
                       onChange={(e) => setSearchFromQuery(e.target.value)}
                       autoFocus
                     />
-                    <div style={styles.cityList}>
-                      {loadingDepartures ? (
-                        <div style={{ padding: "20px", textAlign: "center" }}>Loading...</div>
-                      ) : filteredDepartures.length > 0 ? (
-                        filteredDepartures.map((city) => (
-                          <div key={city.airport_code} style={styles.cityItem} onClick={() => handleFromSelect(city)}>
-                            <div>
-                              <strong>{city.city_name}</strong>
-                              <p style={{ fontSize: "12px", color: "#666", margin: 0 }}>
-                                {city.airport_name} ({city.airport_code})
-                              </p>
-                            </div>
-                          </div>
-                        ))
-                      ) : (
-                        <div style={{ padding: "20px", textAlign: "center" }}>No cities found</div>
-                      )}
-                    </div>
+                 <div style={styles.cityList}>
+  {loadingDepartures ? (
+    <div style={{ padding: "20px", textAlign: "center" }}>Loading...</div>
+  ) : filteredDepartures.length > 0 ? (
+    <>
+      <div style={{ padding: "10px", fontSize: "12px", color: "#999" }}>
+        Found {filteredDepartures.length} cities
+      </div>
+      {filteredDepartures.map((city, index) => {
+        console.log(`City ${index}:`, city); // Debug log
+        return (
+          <div key={city.airport_code || index} style={styles.cityItem} onClick={() => handleFromSelect(city)}>
+            <div>
+              <strong>{city.city_name || city.cityName || city.name}</strong>
+              <p style={{ fontSize: "12px", color: "#666", margin: 0 }}>
+                {city.airport_name || city.airportName} ({city.airport_code || city.airportCode || city.code})
+              </p>
+            </div>
+          </div>
+        );
+      })}
+    </>
+  ) : (
+    <div style={{ padding: "20px", textAlign: "center" }}>
+      No cities found for "{searchFromQuery}"
+    </div>
+  )}
+</div>
                     <button
                       style={styles.closeBtn}
                       onClick={() => {
@@ -918,24 +1012,34 @@ const FlightHotels: React.FC = () => {
                       onChange={(e) => setSearchToQuery(e.target.value)}
                       autoFocus
                     />
-                    <div style={styles.cityList}>
-                      {loadingArrivals ? (
-                        <div style={{ padding: "20px", textAlign: "center" }}>Loading...</div>
-                      ) : filteredArrivals.length > 0 ? (
-                        filteredArrivals.map((city) => (
-                          <div key={city.airport_code} style={styles.cityItem} onClick={() => handleToSelect(city)}>
-                            <div>
-                              <strong>{city.city_name}</strong>
-                              <p style={{ fontSize: "12px", color: "#666", margin: 0 }}>
-                                {city.airport_name} ({city.airport_code})
-                              </p>
-                            </div>
-                          </div>
-                        ))
-                      ) : (
-                        <div style={{ padding: "20px", textAlign: "center" }}>No cities found</div>
-                      )}
-                    </div>
+                <div style={styles.cityList}>
+  {loadingArrivals ? (
+    <div style={{ padding: "20px", textAlign: "center" }}>Loading...</div>
+  ) : filteredArrivals.length > 0 ? (
+    <>
+      <div style={{ padding: "10px", fontSize: "12px", color: "#999" }}>
+        Found {filteredArrivals.length} cities
+      </div>
+      {filteredArrivals.map((city, index) => {
+        console.log(`Arrival City ${index}:`, city); // Debug log
+        return (
+          <div key={city.airport_code || index} style={styles.cityItem} onClick={() => handleToSelect(city)}>
+            <div>
+              <strong>{city.city_name || city.cityName || city.name}</strong>
+              <p style={{ fontSize: "12px", color: "#666", margin: 0 }}>
+                {city.airport_name || city.airportName} ({city.airport_code || city.airportCode || city.code})
+              </p>
+            </div>
+          </div>
+        );
+      })}
+    </>
+  ) : (
+    <div style={{ padding: "20px", textAlign: "center" }}>
+      No cities found for "{searchToQuery}"
+    </div>
+  )}
+</div>
                     <button
                       style={styles.closeBtn}
                       onClick={() => {
@@ -958,9 +1062,13 @@ const FlightHotels: React.FC = () => {
               <div 
                 style={{
                   ...styles.boxStyle,
-                  ...(tripType === "0" ? { opacity: 0.5, cursor: "not-allowed" } : {})
+                  ...(tripType === "0" ? { 
+                    opacity: 0.5, 
+                    cursor: "not-allowed",
+                    backgroundColor: "#f5f5f5"
+                  } : {})
                 }} 
-                onClick={() => tripType === "1" && setShowReturn(true)}
+                onClick={() => tripType === "1" && !loadingReturnDates && setShowReturn(true)}
               >
                 <small style={{ color: "#666", fontSize: "12px" }}>RETURN</small>
                 <h3
@@ -982,7 +1090,14 @@ const FlightHotels: React.FC = () => {
                 </h3>
               </div>
 
-              <button style={styles.searchBtn} onClick={handleSearch} disabled={loadingSearch}>
+              <button 
+                style={{
+                  ...styles.searchBtn,
+                  ...(loadingSearch ? { backgroundColor: "#ccc", cursor: "not-allowed" } : {})
+                }} 
+                onClick={handleSearch} 
+                disabled={loadingSearch}
+              >
                 {loadingSearch ? "SEARCHING..." : "SEARCH"}
               </button>
             </div>
@@ -1133,7 +1248,7 @@ const FlightHotels: React.FC = () => {
                 </div>
 
                 <p style={{ fontSize: "13px", color: "#555", textAlign: "center", margin: "0 0 12px 0" }}>
-                  Only highlighted dates (blue border) are available
+                  {showDepart ? "Select Departure Date" : "Select Return Date"}
                 </p>
 
                 <div style={styles.weekDaysStyle}>
@@ -1152,7 +1267,7 @@ const FlightHotels: React.FC = () => {
                   </p>
                 )}
 
-                {showReturn && returnDates.length === 0 && departDateApi && (
+                {showReturn && returnDates.length === 0 && departDateApi && tripType === "1" && (
                   <p style={{ textAlign: "center", color: "#888", margin: "20px 0" }}>
                     No return dates available for selected departure
                   </p>
@@ -1268,7 +1383,7 @@ const FlightHotels: React.FC = () => {
         <div style={styles.stepContainer}>
           <SeatSelection
             flightData={selectedFlightForSeats}
-            fareQuoteData={fareQuoteData}
+            fareQuoteData={fareQuoteData.fareQuote}
             passengers={{
               adults,
               children,
