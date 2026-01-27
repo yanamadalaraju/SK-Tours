@@ -55,9 +55,11 @@ import International_Tourdetails from "./pages/International_Tours/International
 import Exhibition from "./pages/Exhibition/Exhibition";
 
 import TourEnquiry from "./pages/ToursEnquiry";
-import FlightHotels from "./pages/Flight/hotels/FlightHotels";
-import SeatSelection from "./pages/Flight/hotels/SeatSelection";
-import BookingConfirmation from "./pages/Flight/hotels/BookingConfirmation";
+import FlightHotels from "./pages/Flightmain/FlightHotels";
+import SeatSelection from "./pages/Flightmain/Seatselection";
+import BookingConfirmation from "./pages/Flightmain/BookingConfirmation";
+import Flightfrontend from "./pages/Flight/hotels/Flightfrontend";
+import TourPdfDocumentinternational from "./pages/TourPdfDocumentinternational";
 
 const queryClient = new QueryClient();
 
@@ -115,9 +117,10 @@ const App = () => (
 <Route path="/flighthotels" element={<FlightHotels />} />
 <Route path="/FlightSeatSelection" element={<SeatSelection />} />
 <Route path="/bookinginformation" element={<BookingConfirmation />} />
-
+<Route path="/flightfrontend" element={<Flightfrontend />} />
 
 <Route path="/tour-enquiry" element={<TourEnquiry />} />
+<Route path="/tourpdfinternational" element={<TourPdfDocumentinternational />} />
 
 
         </Routes>

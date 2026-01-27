@@ -810,10 +810,10 @@ useEffect(() => {
 
     // Generate PDF
     const { pdf } = await import('@react-pdf/renderer');
-    const TourPdfDocument = (await import('../.././../pages/TourPdfDocument')).default;
+    const TourPdfDocumentinternational = (await import('../.././../pages/TourPdfDocumentinternational')).default;
 
     const pdfInstance = (
-      <TourPdfDocument
+      <TourPdfDocumentinternational
         tour={tour || {}}
         tourType={tourType}
         isGroupTour={isGroupTour}
