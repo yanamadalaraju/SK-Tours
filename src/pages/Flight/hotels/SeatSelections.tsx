@@ -92,6 +92,7 @@ const SeatSelection: React.FC<SeatSelectionProps> = ({
   contactInfo,
   tripType
 }) => {
+  
   const [onwardSeats, setOnwardSeats] = useState<Seat[]>([]);
   const [returnSeats, setReturnSeats] = useState<Seat[]>([]);
   const [selectedOnwardSeats, setSelectedOnwardSeats] = useState<Seat[]>([]);

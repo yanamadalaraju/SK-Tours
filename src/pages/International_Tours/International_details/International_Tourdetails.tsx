@@ -10,7 +10,7 @@ import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import Footer from '@/components/Footer';
 import { PDFDownloadLink } from '@react-pdf/renderer';
-import TourPdfDocument from './../../TourPdfDocument';
+import TourPdfDocumentinternational from '../../TourPdfDocumentinternational';
 import { Download } from 'lucide-react';
 import { BASE_URL } from '@/ApiUrls';
 import EmailModal from '../../EmailModal'; // Add this import
@@ -1431,7 +1431,7 @@ useEffect(() => {
                                         className={`grid grid-cols-4 text-center border-b-2 border-black ${i % 2 === 0 ? "bg-[#EEF1F7]" : "bg-white"
                                           } ${i === 5 ? 'border-b-0' : ''}`}
                                       >
-                                        <div className="p-2 border-r-2 border-black font-medium">
+                                        <div className="p-2 border-r-2 border-black font-medium text-left">
                                           {row.particular}
                                         </div>
                                         <div className="p-2 border-r-2 border-black">
@@ -1601,7 +1601,7 @@ useEffect(() => {
                                     className={`grid grid-cols-4 text-center border-b-2 border-black ${i % 2 === 0 ? "bg-[#EEF1F7]" : "bg-white"
                                       } ${i === 5 ? 'border-b-0' : ''}`}
                                   >
-                                    <div className="p-2 border-r-2 border-black font-medium">
+                                    <div className="p-2 border-r-2 border-black font-medium text-left">
                                       {row.particular}
                                     </div>
                                     <div className="p-2 border-r-2 border-black">
@@ -2804,7 +2804,7 @@ useEffect(() => {
        <div className="w-32 border border-green-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
   <PDFDownloadLink
     document={
-      <TourPdfDocument
+      <TourPdfDocumentinternational
         tour={tour || {}}
         tourType={tourType}
         isGroupTour={isGroupTour}

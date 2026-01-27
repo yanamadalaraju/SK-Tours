@@ -57,7 +57,10 @@ function Flightfrontend() {
           <div className="ffd-full-screen-container">
             <SeatSelection
               flightData={selectedFlight}
-              fareQuoteData={{ total_payable_price: bookingParams.totalAmount }}
+              fareQuoteData={{ total_payable_price: bookingParams.totalAmount ,
+                  available_seats: selectedFlight.available_seats // Pass available seats here
+              }}
+              
               passengers={{
                 adults: bookingParams.adults,
                 children: bookingParams.children,

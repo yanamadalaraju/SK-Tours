@@ -1,3 +1,4 @@
+// TourPdfDocumentinternational.tsx - COMPLETE VERSION
 import React from 'react';
 import { 
   Document, 
@@ -25,8 +26,8 @@ interface TourData {
     meals?: string;
   }>;
   inclusionExclusion?: {
-    inclusions?: string[];
-    exclusions?: string[];
+    inclusions?: Array<any>;
+    exclusions?: Array<any>;
   };
   tourCost?: {
     tableData?: Array<{
@@ -39,11 +40,7 @@ interface TourData {
     }>;
     remarks?: string[];
   };
-  optionalTours?: Array<{
-    tourName?: string;
-    adultPrice?: string;
-    childPrice?: string;
-  }>;
+  optionalTours?: Array<any>;
   airlines?: {
     tableData?: Array<any>;
     remarks?: string[];
@@ -68,7 +65,7 @@ interface TourData {
     charges?: string[];
   };
   cancellationRemarks?: string[];
-  instructions?: string[];
+  instructions?: Array<any>;
   emiOptions?: {
     loanAmount?: string;
     options?: Array<any>;
@@ -81,6 +78,8 @@ interface TourData {
     descriptions?: string[];
   };
   optionalTourRemarks?: string[];
+  
+  // Visa Data Types
   visaDetails?: {
     tourist?: string[];
     transit?: string[];
@@ -137,7 +136,7 @@ interface DepartureData {
   fiveStar?: StarRating;
 }
 
-interface TourPdfDocumentinternationalProps {
+interface TourPdfDocumentProps {
   tour: TourData;
   tourType: string;
   isGroupTour: boolean;
@@ -146,139 +145,213 @@ interface TourPdfDocumentinternationalProps {
   selectedDeparture: DepartureData | null;
   currentImageIndex: number;
   tourImages?: string[];
+  activeVisaTab?: string;
+  activeVisaFeeType?: string;
+  BASE_URL?: string;
 }
 
 // Register fonts
 Font.register({
-  family: 'Helvetica',
+  family: 'Roboto',
   fonts: [
     {
       src: 'https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.10/fonts/Roboto/roboto-regular-webfont.ttf',
       fontWeight: 'normal',
+      fontStyle: 'normal',
     },
     {
       src: 'https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.10/fonts/Roboto/roboto-bold-webfont.ttf',
       fontWeight: 'bold',
+      fontStyle: 'normal',
+    },
+    {
+      src: 'https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.10/fonts/Roboto/roboto-italic-webfont.ttf',
+      fontWeight: 'normal',
+      fontStyle: 'italic',
+    },
+    {
+      src: 'https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.10/fonts/Roboto/roboto-bolditalic-webfont.ttf',
+      fontWeight: 'bold',
+      fontStyle: 'italic',
     },
   ],
 });
 
-// Styles matching your website layout
+// Updated PDF Styles with Visa section support
 const styles = StyleSheet.create({
   page: {
-    padding: 20,
-    fontFamily: 'Helvetica',
-    fontSize: 10,
-    lineHeight: 1.4,
+    padding: 30,
+    fontFamily: 'Roboto',
+  },
+  section: {
+    marginBottom: 15,
   },
   header: {
-    fontSize: 24,
+    fontSize: 22,
+    marginBottom: 10,
     fontWeight: 'bold',
-    textAlign: 'center',
     color: '#2E4D98',
-    marginBottom: 15,
-    borderBottomWidth: 2,
-    borderBottomColor: '#E53C42',
-    borderBottomStyle: 'solid',
-    paddingBottom: 8,
+    textAlign: 'center',
   },
   subHeader: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#2E4D98',
-    marginVertical: 10,
-    backgroundColor: '#FFE797',
-    padding: 8,
-    borderRadius: 4,
-    borderLeftWidth: 4,
-    borderLeftColor: '#A72703',
-    borderLeftStyle: 'solid',
-  },
-  sectionTitle: {
     fontSize: 16,
+    marginBottom: 8,
     fontWeight: 'bold',
-    color: '#A72703',
-    marginVertical: 8,
+    color: '#E53C42',
+    borderBottom: '2px solid #2E4D98',
     paddingBottom: 4,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-    borderBottomStyle: 'solid',
   },
-  visaSectionTitle: {
+  title: {
     fontSize: 14,
+    marginBottom: 6,
     fontWeight: 'bold',
     color: '#2E4D98',
-    marginVertical: 8,
-    backgroundColor: '#FFE797',
-    padding: 6,
-    borderLeftWidth: 4,
-    borderLeftColor: '#A72703',
-  },
-  boldText: {
-    fontWeight: 'bold',
   },
   text: {
-    marginBottom: 4,
+    fontSize: 10,
+    marginBottom: 5,
+    lineHeight: 1.4,
+  },
+  boldText: {
+    fontSize: 10,
+    marginBottom: 5,
+    fontWeight: 'bold',
+    color: '#333',
   },
   
-  // Table Styles
-  table: {
-    display: 'table',
-    width: 'auto',
-    borderStyle: 'solid',
+  // Enhanced Table Styles
+  tableContainer: {
+    marginBottom: 15,
     borderWidth: 1,
     borderColor: '#000',
-    marginVertical: 10,
+    borderStyle: 'solid',
+  },
+  tableHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#2E4D98',
+    borderBottomWidth: 1,
+    borderBottomColor: '#fff',
+    borderBottomStyle: 'solid',
+  },
+  tableHeaderCell: {
+    padding: 6,
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: 'white',
+    textAlign: 'center',
+    borderRightWidth: 1,
+    borderRightColor: '#fff',
+    borderRightStyle: 'solid',
   },
   tableRow: {
     flexDirection: 'row',
     borderBottomWidth: 1,
     borderBottomColor: '#000',
     borderBottomStyle: 'solid',
-    minHeight: 24,
-  },
-  tableHeader: {
-    backgroundColor: '#2E4D98',
-    color: 'white',
-    fontWeight: 'bold',
   },
   tableCell: {
-    padding: 5,
+    padding: 6,
+    fontSize: 8,
+    textAlign: 'center',
     borderRightWidth: 1,
     borderRightColor: '#000',
     borderRightStyle: 'solid',
-    fontSize: 9,
   },
-  tableCellLast: {
-    borderRightWidth: 0,
+  tableCellLeft: {
+    textAlign: 'left',
+    paddingLeft: 8,
   },
   
-  // Itinerary Styles
-  dayCard: {
+  // Visa Table Styles
+  visaTableContainer: {
     marginBottom: 10,
     borderWidth: 1,
     borderColor: '#000',
     borderStyle: 'solid',
+  },
+  visaTableHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#A72703',
+    borderBottomWidth: 1,
+    borderBottomColor: '#fff',
+    borderBottomStyle: 'solid',
+  },
+  visaTableHeaderCell: {
+    padding: 6,
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: 'white',
+    textAlign: 'center',
+    borderRightWidth: 1,
+    borderRightColor: '#fff',
+  },
+  visaTableRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#000',
+    borderBottomStyle: 'solid',
+  },
+  visaTableCell: {
+    padding: 6,
+    fontSize: 8,
+    textAlign: 'left',
+    borderRightWidth: 1,
+    borderRightColor: '#000',
+  },
+  
+  // Special Tables
+  departureTable: {
+    marginBottom: 15,
+  },
+  departureHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#0A1D4A',
+  },
+  departureHeaderCell: {
+    padding: 6,
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: 'white',
+    textAlign: 'center',
+    borderRightWidth: 1,
+    borderRightColor: '#fff',
+  },
+  departureRow: {
+    flexDirection: 'row',
+  },
+  departureCell: {
+    padding: 6,
+    fontSize: 8,
+    textAlign: 'center',
+    borderRightWidth: 1,
+    borderRightColor: '#000',
+    borderStyle: 'solid',
+  },
+  
+  itineraryDay: {
+    marginBottom: 10,
+    border: '1px solid #ddd',
     borderRadius: 4,
     overflow: 'hidden',
   },
   dayHeader: {
     backgroundColor: '#A72703',
     color: 'white',
-    padding: 8,
+    padding: 6,
     fontWeight: 'bold',
-    flexDirection: 'row',
+    fontSize: 11,
   },
-  dayBody: {
+  dayContent: {
     backgroundColor: '#FFE797',
-    padding: 10,
-    minHeight: 80,
+    padding: 8,
+    fontSize: 9,
+    minHeight: 50,
   },
   mealIndicator: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 8,
-    paddingTop: 8,
+    marginTop: 6,
+    paddingTop: 6,
     borderTopWidth: 1,
     borderTopColor: '#ddd',
     borderTopStyle: 'solid',
@@ -286,137 +359,77 @@ const styles = StyleSheet.create({
   mealItem: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 4,
   },
-  
-  // Color styles
-  redBg: {
-    backgroundColor: '#E53C42',
-    color: 'white',
-    padding: 6,
-    textAlign: 'center',
-    fontWeight: 'bold',
-  },
-  blueBg: {
-    backgroundColor: '#2E4D98',
-    color: 'white',
-    padding: 6,
-    textAlign: 'center',
-    fontWeight: 'bold',
-  },
-  yellowBg: {
-    backgroundColor: '#FFE797',
-    padding: 8,
-  },
-  lightRedBg: {
-    backgroundColor: '#FFEBEE',
-    padding: 8,
-  },
-  visaTabBg: {
-    backgroundColor: '#FFE797',
-    padding: 6,
-    borderWidth: 1,
-    borderColor: '#000',
-    borderStyle: 'solid',
-  },
-  activeVisaTab: {
-    backgroundColor: '#A72703',
-    color: 'white',
-  },
-  
-  // Layout styles
-  twoColumn: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginVertical: 10,
-  },
-  column: {
-    width: '48%',
-  },
-  
-  // Image styles
-  mainImage: {
-    width: '100%',
-    height: 200,
-    marginVertical: 15,
-    objectFit: 'cover',
-  },
-  
-  // List styles
-  listItem: {
-    flexDirection: 'row',
+  note: {
+    fontSize: 8,
+    color: '#666',
+    fontStyle: 'italic',
+    marginTop: 4,
     marginBottom: 4,
-    alignItems: 'flex-start',
   },
-  bullet: {
-    marginRight: 8,
-    marginTop: 2,
-  },
-  listText: {
-    flex: 1,
-  },
-  
-  // Footer
-  footer: {
+  pageNumber: {
     position: 'absolute',
+    fontSize: 8,
     bottom: 20,
     left: 0,
     right: 0,
     textAlign: 'center',
-    fontSize: 9,
-    color: '#666',
+    color: 'grey',
   },
-  
-  // Tab styles
-  tabHeader: {
+  flexRow: {
     flexDirection: 'row',
-    marginBottom: 10,
-    backgroundColor: '#FFE797',
-    borderWidth: 1,
-    borderColor: '#000',
-    borderStyle: 'solid',
+    justifyContent: 'space-between',
+    marginBottom: 8,
   },
-  tabButton: {
+  infoBox: {
+    backgroundColor: '#f8f9fa',
     padding: 8,
-    borderRightWidth: 1,
-    borderRightColor: '#000',
-    borderRightStyle: 'solid',
+    borderRadius: 4,
+    borderLeftWidth: 4,
+    borderLeftColor: '#2E4D98',
+    borderLeftStyle: 'solid',
+    marginBottom: 12,
+  },
+  listItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 4,
+  },
+  bullet: {
     fontSize: 10,
-    fontWeight: 'bold',
+    marginRight: 5,
+    marginTop: 2,
   },
-  activeTab: {
-    backgroundColor: '#A72703',
-    color: 'white',
+  listText: {
+    fontSize: 9,
+    flex: 1,
   },
-  
-  // Visa section styles
-  visaContent: {
-    borderWidth: 2,
-    borderColor: '#1e3a8a',
-    borderStyle: 'solid',
-    borderTopWidth: 0,
-    padding: 10,
-    minHeight: 150,
+  highlight: {
     backgroundColor: '#FFEBEE',
-  },
-  
-  // Visa tab container
-  visaTabContainer: {
-    borderWidth: 1,
-    borderColor: '#000',
-    borderStyle: 'solid',
+    padding: 8,
     borderRadius: 4,
     marginBottom: 10,
-  },
-  
-  // Visa fee table
-  visaFeeTable: {
     borderWidth: 1,
-    borderColor: '#000',
+    borderColor: '#E53C42',
     borderStyle: 'solid',
-    marginVertical: 10,
   },
-  
-  // Checkbox styles for meals
+  imageContainer: {
+    marginVertical: 15,
+    alignItems: 'center',
+  },
+  tourImage: {
+    width: 250,
+    height: 150,
+    objectFit: 'cover',
+    borderRadius: 6,
+  },
+  // Checkbox styles
+  checkboxWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   checkboxContainer: {
     width: 12,
     height: 12,
@@ -427,25 +440,142 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'white',
   },
-  
-  // Visa form button styles
-  downloadButton: {
-    backgroundColor: '#E53C42',
-    color: 'white',
-    padding: 4,
-    textAlign: 'center',
-    fontWeight: 'bold',
+  checkedBox: {
+    backgroundColor: '#1e40af',
+    width: 6,
+    height: 6,
   },
-  fillButton: {
-    backgroundColor: '#A72703',
-    color: 'white',
-    padding: 4,
-    textAlign: 'center',
+  unCheckedBox: {
+    backgroundColor: '#dc2626',
+    width: 6,
+    height: 6,
+  },
+  mealText: {
+    fontSize: 9,
     fontWeight: 'bold',
+    color: '#000',
+  },
+  departureInfo: {
+    backgroundColor: '#f0f9ff',
+    padding: 10,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: '#bae6fd',
+    marginBottom: 12,
+  },
+  departureRowInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  departureLabel: {
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: '#2E4D98',
+    width: '30%',
+  },
+  departureValue: {
+    fontSize: 9,
+    color: '#333',
+    width: '65%',
+    textAlign: 'right',
+  },
+  imageGallery: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    marginTop: 15,
+    gap: 6,
+  },
+  thumbnailImage: {
+    width: 60,
+    height: 45,
+    borderRadius: 3,
+  },
+  imageCaption: {
+    fontSize: 7,
+    textAlign: 'center',
+    marginTop: 3,
+    color: '#666',
+  },
+  // Individual tour flight description style
+  flightDescription: {
+    backgroundColor: '#f0f9ff',
+    padding: 8,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: '#bae6fd',
+    marginBottom: 8,
+  },
+  
+  // Visa Section Styles
+  visaSection: {
+    marginBottom: 15,
+  },
+  visaTabHeader: {
+    backgroundColor: '#FFE797',
+    padding: 8,
+    borderWidth: 1,
+    borderColor: '#000',
+    borderStyle: 'solid',
+    marginBottom: 0,
+  },
+  visaTabHeaderActive: {
+    backgroundColor: '#A72703',
+    padding: 8,
+    borderWidth: 1,
+    borderColor: '#000',
+    borderStyle: 'solid',
+    marginBottom: 0,
+  },
+  visaTabText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#000',
+    textAlign: 'center',
+  },
+  visaTabTextActive: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: 'white',
+    textAlign: 'center',
+  },
+  visaContent: {
+    padding: 10,
+    backgroundColor: '#FFEBEE',
+    borderWidth: 1,
+    borderColor: '#000',
+    borderTopWidth: 0,
+    borderStyle: 'solid',
+    minHeight: 200,
+  },
+  visaListItem: {
+    marginBottom: 8,
+    paddingLeft: 5,
+  },
+  visaFormButton: {
+    backgroundColor: '#E53C42',
+    padding: 6,
+    borderRadius: 3,
+    marginRight: 10,
+    marginBottom: 5,
+  },
+  visaFormButtonText: {
+    color: 'white',
+    fontSize: 8,
+    textAlign: 'center',
+  },
+  photoSpecsContainer: {
+    backgroundColor: '#f0f9ff',
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#bae6fd',
+    marginBottom: 10,
   },
 });
 
-const TourPdfDocumentinternational: React.FC<TourPdfDocumentinternationalProps> = ({ 
+// Main PDF Document Component with Visa tabs
+const TourPdfDocumentinternational: React.FC<TourPdfDocumentProps> = ({ 
   tour, 
   tourType, 
   isGroupTour, 
@@ -453,9 +583,24 @@ const TourPdfDocumentinternational: React.FC<TourPdfDocumentinternationalProps> 
   selectedCostDate, 
   selectedDeparture,
   currentImageIndex,
-  tourImages = []
+  tourImages = [],
+  activeVisaTab = 'tourist',
+  activeVisaFeeType = 'tourist',
+  BASE_URL = ''
 }) => {
-  // Helper functions
+  // Parse meals from itinerary
+  const parseMeals = (mealsString?: string) => {
+    if (!mealsString) return { breakfast: false, lunch: false, dinner: false };
+    
+    const meals = mealsString.toLowerCase();
+    return {
+      breakfast: meals.includes('breakfast') || meals.includes('b'),
+      lunch: meals.includes('lunch') || meals.includes('l'),
+      dinner: meals.includes('dinner') || meals.includes('d')
+    };
+  };
+
+  // Format price helper
   const formatPrice = (price: string | number | undefined) => {
     if (!price || price === 'N/A' || price === 'NA') return 'N/A';
     if (typeof price === 'string' && price.includes('₹')) return price;
@@ -464,1310 +609,1329 @@ const TourPdfDocumentinternational: React.FC<TourPdfDocumentinternationalProps> 
     return `₹${numPrice.toLocaleString('en-IN')}`;
   };
 
-  const parseMeals = (mealsString?: string) => {
-    if (!mealsString) return { B: false, L: false, D: false };
-    const meals = mealsString.toLowerCase();
-    return {
-      B: meals.includes('breakfast') || meals.includes('b'),
-      L: meals.includes('lunch') || meals.includes('l'),
-      D: meals.includes('dinner') || meals.includes('d')
-    };
+  // Get all images
+  const allImages = tourImages && Array.isArray(tourImages) ? tourImages : [];
+  const mainImage = allImages.length > 0 ? allImages[currentImageIndex] || allImages[0] : null;
+
+  // ======================== VISA FUNCTIONS ========================
+  // Function to render Visa Tourist tab content
+  const renderVisaTourist = () => {
+    if (!tour?.visaDetails?.tourist || tour.visaDetails.tourist.length === 0) {
+      return (
+        <View style={styles.highlight}>
+          <Text style={styles.text}>No tourist visa information available</Text>
+        </View>
+      );
+    }
+
+    return (
+      <View>
+        <Text style={[styles.title, { marginBottom: 10 }]}>Documents Required for Tourist Visa:</Text>
+        {tour.visaDetails.tourist.map((description, index) => (
+          <View key={index} style={styles.visaListItem}>
+            <Text style={styles.text}>{description}</Text>
+          </View>
+        ))}
+      </View>
+    );
   };
 
-  // Visa Tab Components
-  const renderVisaTouristTab = () => (
-    <View style={styles.visaContent}>
-      <Text style={styles.visaSectionTitle}>Tourist Visa Requirements</Text>
-      {tour?.visaDetails?.tourist && tour.visaDetails.tourist.length > 0 ? (
-        tour.visaDetails.tourist.map((detail, index) => (
-          <View key={index} style={styles.listItem}>
-            <Text style={styles.bullet}>•</Text>
-            <Text style={styles.listText}>{detail}</Text>
-          </View>
-        ))
-      ) : (
-        <Text style={{ textAlign: 'center', color: '#666', fontStyle: 'italic' }}>
-          No tourist visa information available
-        </Text>
-      )}
-    </View>
-  );
-
-  const renderVisaTransitTab = () => (
-    <View style={styles.visaContent}>
-      <Text style={styles.visaSectionTitle}>Transit Visa Requirements</Text>
-      {tour?.visaDetails?.transit && tour.visaDetails.transit.length > 0 ? (
-        tour.visaDetails.transit.map((detail, index) => (
-          <View key={index} style={styles.listItem}>
-            <Text style={styles.bullet}>•</Text>
-            <Text style={styles.listText}>{detail}</Text>
-          </View>
-        ))
-      ) : (
-        <Text style={{ textAlign: 'center', color: '#666', fontStyle: 'italic' }}>
-          No transit visa information available
-        </Text>
-      )}
-    </View>
-  );
-
-  const renderVisaBusinessTab = () => (
-    <View style={styles.visaContent}>
-      <Text style={styles.visaSectionTitle}>Business Visa Requirements</Text>
-      {tour?.visaDetails?.business && tour.visaDetails.business.length > 0 ? (
-        tour.visaDetails.business.map((detail, index) => (
-          <View key={index} style={styles.listItem}>
-            <Text style={styles.bullet}>•</Text>
-            <Text style={styles.listText}>{detail}</Text>
-          </View>
-        ))
-      ) : (
-        <Text style={{ textAlign: 'center', color: '#666', fontStyle: 'italic' }}>
-          No business visa information available
-        </Text>
-      )}
-    </View>
-  );
-
-  const renderVisaFormsTab = () => (
-    <View style={{ marginTop: 10 }}>
-      <View style={styles.table}>
-        <View style={[styles.tableRow, styles.tableHeader]}>
-          <Text style={[styles.tableCell, { width: '70%' }]}>Visa Type</Text>
-          <Text style={[styles.tableCell, { width: '15%' }]}>Action 1</Text>
-          <Text style={[styles.tableCell, { width: '15%' }]}>Action 2</Text>
+  // Function to render Visa Transit tab content
+  const renderVisaTransit = () => {
+    if (!tour?.visaDetails?.transit || tour.visaDetails.transit.length === 0) {
+      return (
+        <View style={styles.highlight}>
+          <Text style={styles.text}>No transit visa information available</Text>
         </View>
-        
-        {/* Tourist Visa Form */}
-        <View style={[styles.tableRow, { backgroundColor: '#FFEBEE' }]}>
-          <Text style={[styles.tableCell, { width: '70%' }]}>Tourist Visa Form Download</Text>
-          <Text style={[styles.tableCell, { width: '15%' }]}>
-            <View style={styles.downloadButton}>
-              <Text>Download</Text>
-            </View>
-          </Text>
-          <Text style={[styles.tableCell, { width: '15%' }]}>
-            <View style={styles.fillButton}>
-              <Text>Fill Manually</Text>
-            </View>
-          </Text>
-        </View>
-        
-        {/* Transit Visa Form */}
-        <View style={[styles.tableRow, { backgroundColor: '#FFEBEE' }]}>
-          <Text style={[styles.tableCell, { width: '70%' }]}>Transit Visa Form Download</Text>
-          <Text style={[styles.tableCell, { width: '15%' }]}>
-            <View style={styles.downloadButton}>
-              <Text>Download</Text>
-            </View>
-          </Text>
-          <Text style={[styles.tableCell, { width: '15%' }]}>
-            <View style={styles.fillButton}>
-              <Text>Fill</Text>
-            </View>
-          </Text>
-        </View>
-        
-        {/* Business Visa Form */}
-        <View style={[styles.tableRow, { backgroundColor: '#FFEBEE' }]}>
-          <Text style={[styles.tableCell, { width: '70%' }]}>Business Visa Form Download</Text>
-          <Text style={[styles.tableCell, { width: '15%' }]}>
-            <View style={styles.downloadButton}>
-              <Text>Download</Text>
-            </View>
-          </Text>
-          <Text style={[styles.tableCell, { width: '15%' }]}>
-            <View style={styles.fillButton}>
-              <Text>Fill Manually</Text>
-            </View>
-          </Text>
-        </View>
-      </View>
-    </View>
-  );
+      );
+    }
 
-  const renderVisaPhotoTab = () => (
-    <View style={{ marginTop: 10 }}>
-      <View style={styles.table}>
-        <View style={[styles.tableRow, styles.tableHeader]}>
-          <Text style={[styles.tableCell, styles.tableCellLast]}>Photo Specification</Text>
-        </View>
-        {tour?.visaDetails?.photo && tour.visaDetails.photo.length > 0 ? (
-          tour.visaDetails.photo.map((spec, index) => (
-            <View key={index} style={[styles.tableRow, { backgroundColor: index % 2 === 0 ? '#FFEBEE' : '#FFEBEE80' }]}>
-              <Text style={[styles.tableCell, styles.tableCellLast]}>{spec}</Text>
-            </View>
-          ))
-        ) : (
-          <View style={[styles.tableRow, { backgroundColor: '#FFEBEE' }]}>
-            <Text style={[styles.tableCell, styles.tableCellLast, { textAlign: 'center' }]}>
-              No photo specifications available
-            </Text>
-          </View>
-        )}
-      </View>
-    </View>
-  );
-
-  const renderVisaFeesTab = () => {
-    const feeTypes = ['tourist', 'transit', 'business', 'charges'];
-    const feeLabels = ['Tourist Visa fees', 'Transit Visa fees', 'Business Visa fees', 'Visa fees & VFS & Other Charges'];
-    
     return (
-      <View style={{ marginTop: 10 }}>
-        {/* Fee Type Tabs */}
-        <View style={{ flexDirection: 'row', marginBottom: 10, backgroundColor: '#FFE797' }}>
-          {feeLabels.map((label, idx) => (
-            <View key={idx} style={[
-              styles.visaTabBg,
-              { 
-                flex: idx === 3 ? 1.3 : 1,
-                backgroundColor: idx === 0 ? '#A72703' : '#FFE797',
-                color: idx === 0 ? 'white' : 'black'
-              }
-            ]}>
-              <Text style={{ fontSize: 9, fontWeight: 'bold', textAlign: 'center' }}>{label}</Text>
+      <View>
+        <Text style={[styles.title, { marginBottom: 10 }]}>Documents Required for Transit Visa:</Text>
+        {tour.visaDetails.transit.map((description, index) => (
+          <View key={index} style={styles.visaListItem}>
+            <Text style={styles.text}>{description}</Text>
+          </View>
+        ))}
+      </View>
+    );
+  };
+
+  // Function to render Visa Business tab content
+  const renderVisaBusiness = () => {
+    if (!tour?.visaDetails?.business || tour.visaDetails.business.length === 0) {
+      return (
+        <View style={styles.highlight}>
+          <Text style={styles.text}>No business visa information available</Text>
+        </View>
+      );
+    }
+
+    return (
+      <View>
+        <Text style={[styles.title, { marginBottom: 10 }]}>Documents Required for Business Visa:</Text>
+        {tour.visaDetails.business.map((description, index) => (
+          <View key={index} style={styles.visaListItem}>
+            <Text style={styles.text}>{description}</Text>
+          </View>
+        ))}
+      </View>
+    );
+  };
+
+  // Function to render Visa Forms tab content
+  const renderVisaForms = () => {
+    if (!tour?.visaForms || tour.visaForms.length === 0) {
+      return (
+        <View style={styles.highlight}>
+          <Text style={styles.text}>No visa forms available</Text>
+        </View>
+      );
+    }
+
+    return (
+      <View>
+        <View style={styles.visaTableContainer}>
+          {/* Header */}
+          <View style={styles.visaTableHeader}>
+            <Text style={[styles.visaTableHeaderCell, { width: '70%' }]}>Visa Type</Text>
+            <Text style={[styles.visaTableHeaderCell, { width: '15%' }]}>Action 1</Text>
+            <Text style={[styles.visaTableHeaderCell, { width: '15%' }]}>Action 2</Text>
+          </View>
+
+          {/* Tourist Visa Form Row */}
+          <View style={[styles.visaTableRow, { backgroundColor: '#FFEBEE' }]}>
+            <Text style={[styles.visaTableCell, { width: '70%' }]}>
+              Tourist Visa Form Download
+            </Text>
+            <View style={[styles.visaTableCell, { width: '15%', justifyContent: 'center', alignItems: 'center' }]}>
+              <View style={styles.visaFormButton}>
+                <Text style={styles.visaFormButtonText}>Download</Text>
+              </View>
+            </View>
+            <View style={[styles.visaTableCell, { width: '15%', justifyContent: 'center', alignItems: 'center' }]}>
+              <View style={[styles.visaFormButton, { backgroundColor: '#8B4513' }]}>
+                <Text style={styles.visaFormButtonText}>Fill Manually</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Transit Visa Form Row */}
+          <View style={[styles.visaTableRow, { backgroundColor: '#FFEBEE' }]}>
+            <Text style={[styles.visaTableCell, { width: '70%' }]}>
+              Transit Visa Form Download
+            </Text>
+            <View style={[styles.visaTableCell, { width: '15%', justifyContent: 'center', alignItems: 'center' }]}>
+              <View style={styles.visaFormButton}>
+                <Text style={styles.visaFormButtonText}>Download</Text>
+              </View>
+            </View>
+            <View style={[styles.visaTableCell, { width: '15%', justifyContent: 'center', alignItems: 'center' }]}>
+              <View style={[styles.visaFormButton, { backgroundColor: '#8B4513' }]}>
+                <Text style={styles.visaFormButtonText}>Fill</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Business Visa Form Row */}
+          <View style={[styles.visaTableRow, { backgroundColor: '#FFEBEE' }]}>
+            <Text style={[styles.visaTableCell, { width: '70%' }]}>
+              Business Visa Form Download
+            </Text>
+            <View style={[styles.visaTableCell, { width: '15%', justifyContent: 'center', alignItems: 'center' }]}>
+              <View style={styles.visaFormButton}>
+                <Text style={styles.visaFormButtonText}>Download</Text>
+              </View>
+            </View>
+            <View style={[styles.visaTableCell, { width: '15%', justifyContent: 'center', alignItems: 'center' }]}>
+              <View style={[styles.visaFormButton, { backgroundColor: '#8B4513' }]}>
+                <Text style={styles.visaFormButtonText}>Fill Manually</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        <Text style={styles.note}>Note: Forms can be downloaded and filled as per requirements</Text>
+      </View>
+    );
+  };
+
+  // Function to render Photo Specifications tab content
+  const renderVisaPhoto = () => {
+    if (!tour?.visaDetails?.photo || tour.visaDetails.photo.length === 0) {
+      return (
+        <View style={styles.highlight}>
+          <Text style={styles.text}>No photo specifications available</Text>
+        </View>
+      );
+    }
+
+    return (
+      <View>
+        <Text style={[styles.title, { marginBottom: 10 }]}>Photo Specifications:</Text>
+        <View style={styles.photoSpecsContainer}>
+          {tour.visaDetails.photo.map((spec, index) => (
+            <View key={index} style={styles.visaListItem}>
+              <Text style={styles.text}>{spec}</Text>
             </View>
           ))}
-        </View>
-        
-        {/* Fee Table */}
-        <View style={styles.visaFeeTable}>
-          <View style={[styles.tableRow, { backgroundColor: '#FFEBEE' }]}>
-            <Text style={[styles.tableCell, { width: '50%', fontWeight: 'bold' }]}>
-              {tour?.visaFees?.[0]?.tourist || 'Free Flow Entry'}
-            </Text>
-            <Text style={[styles.tableCell, styles.tableCellLast, { width: '50%', textAlign: 'center' }]}>
-              {tour?.visaFees?.[0]?.touristCharges || 'N/A'}
-            </Text>
-          </View>
         </View>
       </View>
     );
   };
 
-  const renderVisaSubmissionTab = () => {
-    const visaTypes = ['tourist', 'transit', 'business'];
-    const visaLabels = ['Tourist Visa', 'Transit Visa', 'Business Visa'];
-    
-    return (
-      <View style={{ marginTop: 10 }}>
-        {/* Visa Type Tabs */}
-        <View style={{ flexDirection: 'row', marginBottom: 10, backgroundColor: '#FFE797' }}>
-          {visaLabels.map((label, idx) => (
-            <View key={idx} style={[
-              styles.visaTabBg,
-              { 
-                flex: 1,
-                backgroundColor: idx === 0 ? '#A72703' : '#FFE797',
-                color: idx === 0 ? 'white' : 'black'
-              }
-            ]}>
-              <Text style={{ fontSize: 9, fontWeight: 'bold', textAlign: 'center' }}>{label}</Text>
-            </View>
-          ))}
+  // Function to render Visa Fees tab content
+  const renderVisaFees = () => {
+    if (!tour?.visaFees || tour.visaFees.length === 0) {
+      return (
+        <View style={styles.highlight}>
+          <Text style={styles.text}>No visa fee information available</Text>
         </View>
+      );
+    }
+
+    return (
+      <View>
+        <Text style={[styles.title, { marginBottom: 10 }]}>
+          {activeVisaFeeType === 'tourist' && 'Tourist Visa Fees'}
+          {activeVisaFeeType === 'transit' && 'Transit Visa Fees'}
+          {activeVisaFeeType === 'business' && 'Business Visa Fees'}
+          {!activeVisaFeeType && 'Visa Fees & VFS & Other Charges'}
+        </Text>
         
-        {/* Submission Table */}
-        <View style={styles.table}>
-          {tour?.visaSubmission && tour.visaSubmission.length > 0 ? (
-            tour.visaSubmission.map((sub, index) => (
-              <View key={index} style={[styles.tableRow, { backgroundColor: index % 2 === 0 ? '#FFEBEE' : '#FFEBEE80' }]}>
-                <Text style={[styles.tableCell, { width: '67%' }]}>{sub.label || 'N/A'}</Text>
-                <Text style={[styles.tableCell, styles.tableCellLast, { width: '33%', textAlign: 'center' }]}>
-                  {sub.tourist || 'N/A'}
+        <View style={styles.visaTableContainer}>
+          {/* Header */}
+          <View style={styles.visaTableHeader}>
+            <Text style={[styles.visaTableHeaderCell, { width: '60%' }]}>Description</Text>
+            <Text style={[styles.visaTableHeaderCell, { width: '40%' }]}>Charges</Text>
+          </View>
+
+          {/* Rows based on selected fee type */}
+          {tour.visaFees.map((fee, index) => {
+            let description = '';
+            let charges = '';
+
+            if (activeVisaFeeType === 'tourist') {
+              description = fee.tourist || 'Tourist Visa Fee';
+              charges = fee.touristCharges || 'N/A';
+            } else if (activeVisaFeeType === 'transit') {
+              description = fee.transit || 'Transit Visa Fee';
+              charges = fee.transitCharges || 'N/A';
+            } else if (activeVisaFeeType === 'business') {
+              description = fee.business || 'Business Visa Fee';
+              charges = fee.businessCharges || 'N/A';
+            } else {
+              description = fee.charges || 'Visa Fee';
+              charges = fee.charges || 'N/A';
+            }
+
+            return (
+              <View 
+                key={index} 
+                style={[
+                  styles.visaTableRow,
+                  { backgroundColor: index % 2 === 0 ? '#FFEBEE' : '#FFEBEE80' }
+                ]}
+              >
+                <Text style={[styles.visaTableCell, { width: '60%' }]}>
+                  {description}
+                </Text>
+                <Text style={[styles.visaTableCell, { width: '40%' }]}>
+                  {charges}
                 </Text>
               </View>
-            ))
-          ) : (
-            <View style={[styles.tableRow, { backgroundColor: '#FFEBEE' }]}>
-              <Text style={[styles.tableCell, styles.tableCellLast, { textAlign: 'center' }]}>
-                No submission information available
-              </Text>
-            </View>
-          )}
+            );
+          })}
+        </View>
+
+        <Text style={styles.note}>Note: Charges are subject to change without prior notice</Text>
+      </View>
+    );
+  };
+
+  // Function to render Submission & Pick Up tab content
+  const renderVisaSubmission = () => {
+    if (!tour?.visaSubmission || tour.visaSubmission.length === 0) {
+      return (
+        <View style={styles.highlight}>
+          <Text style={styles.text}>No visa submission information available</Text>
+        </View>
+      );
+    }
+
+    return (
+      <View>
+        <Text style={[styles.title, { marginBottom: 10 }]}>
+          {activeVisaFeeType === 'tourist' && 'Tourist Visa Submission & Processing Time'}
+          {activeVisaFeeType === 'transit' && 'Transit Visa Submission & Processing Time'}
+          {activeVisaFeeType === 'business' && 'Business Visa Submission & Processing Time'}
+        </Text>
+        
+        <View style={styles.visaTableContainer}>
+          {/* Header */}
+          <View style={styles.visaTableHeader}>
+            <Text style={[styles.visaTableHeaderCell, { width: '60%' }]}>Process</Text>
+            <Text style={[styles.visaTableHeaderCell, { width: '40%' }]}>Time/Details</Text>
+          </View>
+
+          {/* Rows based on selected visa type */}
+          {tour.visaSubmission.map((sub, index) => {
+            let details = '';
+
+            if (activeVisaFeeType === 'tourist') {
+              details = sub.tourist || 'N/A';
+            } else if (activeVisaFeeType === 'transit') {
+              details = sub.transit || 'N/A';
+            } else if (activeVisaFeeType === 'business') {
+              details = sub.business || 'N/A';
+            }
+
+            return (
+              <View 
+                key={index} 
+                style={[
+                  styles.visaTableRow,
+                  { backgroundColor: index % 2 === 0 ? '#FFEBEE' : '#FFEBEE80' }
+                ]}
+              >
+                <Text style={[styles.visaTableCell, { width: '60%' }]}>
+                  {sub.label}
+                </Text>
+                <Text style={[styles.visaTableCell, { width: '40%' }]}>
+                  {details}
+                </Text>
+              </View>
+            );
+          })}
         </View>
       </View>
     );
   };
 
+  // Function to render Visa Remarks
   const renderVisaRemarks = () => {
     const remarks = tour?.visaForms?.[0]?.remarks;
     
+    if (!remarks) {
+      return null;
+    }
+
     return (
-      <View style={{ marginTop: 20 }}>
-        <View style={[styles.redBg, { marginBottom: 10 }]}>
-          <Text>Visa Remarks</Text>
-        </View>
-        
-        <View style={styles.visaContent}>
-          <Text style={{ textAlign: 'justify' }}>
-            {remarks || "No remarks available"}
-          </Text>
+      <View style={styles.section}>
+        <Text style={[styles.title, { color: '#E53C42', marginBottom: 5 }]}>Visa Remarks:</Text>
+        <View style={{ backgroundColor: '#FFEBEE', padding: 8, borderRadius: 4 }}>
+          <Text style={styles.text}>{remarks}</Text>
         </View>
       </View>
     );
   };
 
-  // Main render
+// Function to render complete Visa section - SHOW ALL TABS
+const renderVisaSection = () => {
   return (
-    <Document>
-      {/* Page 1: Cover Page */}
-      <Page size="A4" style={styles.page}>
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <Text style={styles.header}>TOUR PACKAGE DETAILS</Text>
+    <View style={styles.visaSection}>
+      <Text style={[styles.header, { fontSize: 18, marginBottom: 20 }]}>
+        Visa Information
+      </Text>
+      
+      {/* List all visa sections */}
+      <Text style={[styles.title, { marginBottom: 10 }]}>Available Visa Sections:</Text>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 5, marginBottom: 15 }}>
+        <Text style={styles.text}>Tourist Visa | Transit Visa | Business Visa | Visa Forms | Photo | Visa Fees | Submission & Pick Up</Text>
+      </View>
+      
+      {/* TOURIST VISA */}
+      <View style={{ marginBottom: 20 }}>
+        <Text style={[styles.subHeader, { backgroundColor: '#FFEBEE', padding: 8, marginBottom: 10 }]}>
+          Documents Required for Visa - TOURIST
+        </Text>
+        <View style={styles.visaContent}>
+          {renderVisaTourist()}
+        </View>
+      </View>
+      
+      {/* TRANSIT VISA */}
+      <View style={{ marginBottom: 20 }}>
+        <Text style={[styles.subHeader, { backgroundColor: '#FFEBEE', padding: 8, marginBottom: 10 }]}>
+          Documents Required for Visa - TRANSIT
+        </Text>
+        <View style={styles.visaContent}>
+          {renderVisaTransit()}
+        </View>
+      </View>
+      
+      {/* BUSINESS VISA */}
+      <View style={{ marginBottom: 20 }}>
+        <Text style={[styles.subHeader, { backgroundColor: '#FFEBEE', padding: 8, marginBottom: 10 }]}>
+          Documents Required for Visa - BUSINESS
+        </Text>
+        <View style={styles.visaContent}>
+          {renderVisaBusiness()}
+        </View>
+      </View>
+      
+      {/* VISA FORMS */}
+      <View style={{ marginBottom: 20 }}>
+        <Text style={[styles.subHeader, { backgroundColor: '#FFEBEE', padding: 8, marginBottom: 10 }]}>
+          Visa Forms
+        </Text>
+        <View style={styles.visaContent}>
+          {renderVisaForms()}
+        </View>
+      </View>
+      
+      {/* PHOTO SPECIFICATIONS */}
+      <View style={{ marginBottom: 20 }}>
+        <Text style={[styles.subHeader, { backgroundColor: '#FFEBEE', padding: 8, marginBottom: 10 }]}>
+          Photo Specifications
+        </Text>
+        <View style={styles.visaContent}>
+          {renderVisaPhoto()}
+        </View>
+      </View>
+      
+      {/* VISA FEES - Show all fee types */}
+      <View style={{ marginBottom: 20 }}>
+        <Text style={[styles.subHeader, { backgroundColor: '#FFEBEE', padding: 8, marginBottom: 10 }]}>
+          Visa Fees
+        </Text>
+        <View style={styles.visaContent}>
+          <Text style={[styles.title, { marginBottom: 15 }]}>Tourist Visa Fees</Text>
+          {renderVisaFeesForType('tourist')}
           
-          {tourImages.length > 0 && (
-            <Image 
-              src={tourImages[currentImageIndex] || tourImages[0]} 
-              style={styles.mainImage}
-            />
-          )}
+          <View style={{ marginTop: 20 }}>
+            <Text style={[styles.title, { marginBottom: 15 }]}>Transit Visa Fees</Text>
+            {renderVisaFeesForType('transit')}
+          </View>
           
-          <Text style={styles.subHeader}>{tour?.title || 'International Tour Package'}</Text>
+          <View style={{ marginTop: 20 }}>
+            <Text style={[styles.title, { marginBottom: 15 }]}>Business Visa Fees</Text>
+            {renderVisaFeesForType('business')}
+          </View>
+        </View>
+      </View>
+      
+      {/* SUBMISSION & PICK UP - Show all types */}
+      <View style={{ marginBottom: 20 }}>
+        <Text style={[styles.subHeader, { backgroundColor: '#FFEBEE', padding: 8, marginBottom: 10 }]}>
+          Submission & Processing Time
+        </Text>
+        <View style={styles.visaContent}>
+          <Text style={[styles.title, { marginBottom: 15 }]}>Tourist Visa Submission</Text>
+          {renderVisaSubmissionForType('tourist')}
           
-          <View style={{ marginTop: 30, alignItems: 'center' }}>
-            <View style={[styles.table, { width: '80%' }]}>
-              <View style={[styles.tableRow, styles.tableHeader]}>
-                <Text style={[styles.tableCell, { width: '50%' }]}>Tour Code</Text>
-                <Text style={[styles.tableCell, styles.tableCellLast, { width: '50%' }]}>Duration</Text>
-              </View>
-              <View style={styles.tableRow}>
-                <Text style={[styles.tableCell, { width: '50%', textAlign: 'center' }]}>{tour?.code || 'N/A'}</Text>
-                <Text style={[styles.tableCell, styles.tableCellLast, { width: '50%', textAlign: 'center', color: '#E53C42', fontWeight: 'bold' }]}>{tour?.duration || 'N/A'}</Text>
-              </View>
-            </View>
-            
-            <View style={{ marginTop: 20 }}>
-              <Text style={[styles.text, { textAlign: 'center' }]}>
-                Price: <Text style={styles.boldText}>{tour?.price || 'N/A'}</Text>
+          <View style={{ marginTop: 20 }}>
+            <Text style={[styles.title, { marginBottom: 15 }]}>Transit Visa Submission</Text>
+            {renderVisaSubmissionForType('transit')}
+          </View>
+          
+          <View style={{ marginTop: 20 }}>
+            <Text style={[styles.title, { marginBottom: 15 }]}>Business Visa Submission</Text>
+            {renderVisaSubmissionForType('business')}
+          </View>
+        </View>
+      </View>
+      
+      {/* VISA REMARKS */}
+      {renderVisaRemarks()}
+    </View>
+  );
+};
+
+// Helper function to render visa fees by type
+const renderVisaFeesForType = (feeType: string) => {
+  if (!tour?.visaFees || tour.visaFees.length === 0) {
+    return (
+      <View style={styles.highlight}>
+        <Text style={styles.text}>No {feeType} visa fee information available</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.visaTableContainer}>
+      {/* Header */}
+      <View style={styles.visaTableHeader}>
+        <Text style={[styles.visaTableHeaderCell, { width: '60%' }]}>Description</Text>
+        <Text style={[styles.visaTableHeaderCell, { width: '40%' }]}>Charges</Text>
+      </View>
+
+      {/* Rows */}
+      {tour.visaFees.map((fee, index) => {
+        let description = '';
+        let charges = '';
+
+        if (feeType === 'tourist') {
+          description = fee.tourist || 'Tourist Visa Fee';
+          charges = fee.touristCharges || 'N/A';
+        } else if (feeType === 'transit') {
+          description = fee.transit || 'Transit Visa Fee';
+          charges = fee.transitCharges || 'N/A';
+        } else if (feeType === 'business') {
+          description = fee.business || 'Business Visa Fee';
+          charges = fee.businessCharges || 'N/A';
+        }
+
+        return (
+          <View 
+            key={index} 
+            style={[
+              styles.visaTableRow,
+              { backgroundColor: index % 2 === 0 ? '#FFEBEE' : '#FFEBEE80' }
+            ]}
+          >
+            <Text style={[styles.visaTableCell, { width: '60%' }]}>
+              {description}
+            </Text>
+            <Text style={[styles.visaTableCell, { width: '40%' }]}>
+              {charges}
+            </Text>
+          </View>
+        );
+      })}
+    </View>
+  );
+};
+
+// Helper function to render visa submission by type
+const renderVisaSubmissionForType = (visaType: string) => {
+  if (!tour?.visaSubmission || tour.visaSubmission.length === 0) {
+    return (
+      <View style={styles.highlight}>
+        <Text style={styles.text}>No {visaType} visa submission information available</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.visaTableContainer}>
+      {/* Header */}
+      <View style={styles.visaTableHeader}>
+        <Text style={[styles.visaTableHeaderCell, { width: '60%' }]}>Process</Text>
+        <Text style={[styles.visaTableHeaderCell, { width: '40%' }]}>Time/Details</Text>
+      </View>
+
+      {/* Rows */}
+      {tour.visaSubmission.map((sub, index) => {
+        let details = '';
+
+        if (visaType === 'tourist') {
+          details = sub.tourist || 'N/A';
+        } else if (visaType === 'transit') {
+          details = sub.transit || 'N/A';
+        } else if (visaType === 'business') {
+          details = sub.business || 'N/A';
+        }
+
+        return (
+          <View 
+            key={index} 
+            style={[
+              styles.visaTableRow,
+              { backgroundColor: index % 2 === 0 ? '#FFEBEE' : '#FFEBEE80' }
+            ]}
+          >
+            <Text style={[styles.visaTableCell, { width: '60%' }]}>
+              {sub.label}
+            </Text>
+            <Text style={[styles.visaTableCell, { width: '40%' }]}>
+              {details}
+            </Text>
+          </View>
+        );
+      })}
+    </View>
+  );
+};
+
+  // ======================== EXISTING RENDERING FUNCTIONS ========================
+  
+  // Function to render group tour cost table (ONLY for group tours)
+  const renderGroupTourCostTable = () => {
+    if (!isGroupTour || !selectedDeparture) return null;
+
+    return (
+      <View style={styles.departureTable}>
+        {/* Header */}
+        <View style={styles.departureHeader}>
+          <Text style={[styles.departureHeaderCell, { width: '33%' }]}>Particulars - Tour Cost</Text>
+          <Text style={[styles.departureHeaderCell, { width: '22%' }]}>Standard</Text>
+          <Text style={[styles.departureHeaderCell, { width: '22%' }]}>Deluxe</Text>
+          <Text style={[styles.departureHeaderCell, { width: '23%' }]}>Luxury</Text>
+        </View>
+
+        {/* Rows */}
+        {[
+          { particular: "Per pax on Twin Basis", star3: selectedDeparture.threeStar?.twin, star4: selectedDeparture.fourStar?.twin, star5: selectedDeparture.fiveStar?.twin },
+          { particular: "Per pax on Triple Basis", star3: selectedDeparture.threeStar?.triple, star4: selectedDeparture.fourStar?.triple, star5: selectedDeparture.fiveStar?.triple },
+          { particular: "Child with Bed", star3: selectedDeparture.threeStar?.childWithBed, star4: selectedDeparture.fourStar?.childWithBed, star5: selectedDeparture.fiveStar?.childWithBed },
+          { particular: "Child without Bed", star3: selectedDeparture.threeStar?.childWithoutBed, star4: selectedDeparture.fourStar?.childWithoutBed, star5: selectedDeparture.fiveStar?.childWithoutBed },
+          { particular: "Infant", star3: selectedDeparture.threeStar?.infant, star4: selectedDeparture.fourStar?.infant, star5: selectedDeparture.fiveStar?.infant },
+          { particular: "Per pax Single Occupancy", star3: selectedDeparture.threeStar?.single, star4: selectedDeparture.fourStar?.single, star5: selectedDeparture.fiveStar?.single },
+        ].map((row, i) => (
+          <View 
+            key={i} 
+            style={[
+              styles.departureRow,
+              { backgroundColor: i % 2 === 0 ? '#EEF1F7' : 'white' }
+            ]}
+          >
+            <Text style={[styles.departureCell, { width: '33%', textAlign: 'left', paddingLeft: 8, fontWeight: 'medium' }]}>
+              {row.particular}
+            </Text>
+            <Text style={[styles.departureCell, { width: '22%' }]}>
+              {formatPrice(row.star3)}
+            </Text>
+            <Text style={[styles.departureCell, { width: '22%', color: '#10b981', fontWeight: 'bold' }]}>
+              {formatPrice(row.star4)}
+            </Text>
+            <Text style={[styles.departureCell, { width: '23%' }]}>
+              {formatPrice(row.star5)}
+            </Text>
+          </View>
+        ))}
+      </View>
+    );
+  };
+
+  // Function to render individual tour cost table (ONLY for individual tours)
+  const renderIndividualTourCostTable = () => {
+    if (isGroupTour || !tour?.tourCost?.tableData || tour.tourCost.tableData.length === 0) {
+      return (
+        <View style={styles.highlight}>
+          <Text style={styles.text}>No cost information available</Text>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.tableContainer}>
+        {/* Header */}
+        <View style={styles.tableHeader}>
+          <Text style={[styles.tableHeaderCell, { width: '16%' }]}>Passenger</Text>
+          <Text style={[styles.tableHeaderCell, { width: '16%' }]}>Standard Hotel</Text>
+          <Text style={[styles.tableHeaderCell, { width: '16%' }]}>Deluxe Hotel</Text>
+          <Text style={[styles.tableHeaderCell, { width: '16%' }]}>Executive Hotel</Text>
+          <Text style={[styles.tableHeaderCell, { width: '18%' }]}>Child With Bed</Text>
+          <Text style={[styles.tableHeaderCell, { width: '18%' }]}>Child No Bed</Text>
+        </View>
+
+        {/* Rows */}
+        {tour.tourCost.tableData.map((row, index) => (
+          <View 
+            key={index} 
+            style={[
+              styles.tableRow,
+              { backgroundColor: index % 2 === 0 ? '#FFEBEE' : '#FFEBEE80' }
+            ]}
+          >
+            <Text style={[styles.tableCell, { width: '16%', fontWeight: 'medium' }]}>
+              {row.passenger}
+            </Text>
+            <Text style={[styles.tableCell, { width: '16%' }]}>
+              {formatPrice(row.standard)}
+            </Text>
+            <Text style={[styles.tableCell, { width: '16%', color: '#10b981', fontWeight: 'bold' }]}>
+              {formatPrice(row.deluxe)}
+            </Text>
+            <Text style={[styles.tableCell, { width: '16%' }]}>
+              {formatPrice(row.executive)}
+            </Text>
+            <Text style={[styles.tableCell, { width: '18%', color: '#2563eb' }]}>
+              {formatPrice(row.childWithBed)}
+            </Text>
+            <Text style={[styles.tableCell, { width: '18%', color: '#7c3aed' }]}>
+              {formatPrice(row.childNoBed)}
+            </Text>
+          </View>
+        ))}
+      </View>
+    );
+  };
+
+  // Function to render hotels table (for both group and individual tours)
+  const renderHotelsTable = () => {
+    if (!tour?.hotels?.tableData || tour.hotels.tableData.length === 0) {
+      return (
+        <View style={styles.highlight}>
+          <Text style={styles.text}>No hotel information available</Text>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.tableContainer}>
+        {/* Header */}
+        <View style={styles.tableHeader}>
+          <Text style={[styles.tableHeaderCell, { width: '20%' }]}>City</Text>
+          <Text style={[styles.tableHeaderCell, { width: '15%' }]}>Nights</Text>
+          <Text style={[styles.tableHeaderCell, { width: '21%' }]}>Standard</Text>
+          <Text style={[styles.tableHeaderCell, { width: '21%' }]}>Deluxe</Text>
+          <Text style={[styles.tableHeaderCell, { width: '23%' }]}>Executive</Text>
+        </View>
+
+        {/* Rows */}
+        {tour.hotels.tableData.map((hotel, index) => (
+          <View 
+            key={index} 
+            style={[
+              styles.tableRow,
+              { backgroundColor: index % 2 === 0 ? '#FFEBEE' : '#FFEBEE80' }
+            ]}
+          >
+            <Text style={[styles.tableCell, { width: '20%' }]}>{hotel.city}</Text>
+            <Text style={[styles.tableCell, { width: '15%' }]}>{hotel.nights}</Text>
+            <Text style={[styles.tableCell, { width: '21%' }]}>{hotel.standard}</Text>
+            <Text style={[styles.tableCell, { width: '21%' }]}>{hotel.deluxe}</Text>
+            <Text style={[styles.tableCell, { width: '23%' }]}>{hotel.executive}</Text>
+          </View>
+        ))}
+      </View>
+    );
+  };
+
+  // Function to render airlines table (ONLY for group tours)
+  const renderGroupAirlinesTable = () => {
+    if (!isGroupTour || !tour?.airlines?.tableData || tour.airlines.tableData.length === 0) {
+      return null;
+    }
+
+    return (
+      <View style={styles.tableContainer}>
+        {/* Header */}
+        <View style={styles.tableHeader}>
+          <Text style={[styles.tableHeaderCell, { width: '12%' }]}>Airlines</Text>
+          <Text style={[styles.tableHeaderCell, { width: '12%' }]}>Flight No</Text>
+          <Text style={[styles.tableHeaderCell, { width: '15%' }]}>From</Text>
+          <Text style={[styles.tableHeaderCell, { width: '10%' }]}>Date</Text>
+          <Text style={[styles.tableHeaderCell, { width: '8%' }]}>Time</Text>
+          <Text style={[styles.tableHeaderCell, { width: '15%' }]}>To</Text>
+          <Text style={[styles.tableHeaderCell, { width: '10%' }]}>Date</Text>
+          <Text style={[styles.tableHeaderCell, { width: '8%' }]}>Time</Text>
+          <Text style={[styles.tableHeaderCell, { width: '10%' }]}>Via</Text>
+        </View>
+
+        {/* Rows */}
+        {tour.airlines.tableData.map((flight, index) => (
+          <View 
+            key={index} 
+            style={[
+              styles.tableRow,
+              { backgroundColor: index % 2 === 0 ? '#FFEBEE' : '#FFEBEE80' }
+            ]}
+          >
+            <Text style={[styles.tableCell, { width: '12%' }]}>{flight.airline || '-'}</Text>
+            <Text style={[styles.tableCell, { width: '12%' }]}>{flight.flightNo || '-'}</Text>
+            <Text style={[styles.tableCell, { width: '15%' }]}>{flight.from || '-'}</Text>
+            <Text style={[styles.tableCell, { width: '10%' }]}>{flight.depDate || '-'}</Text>
+            <Text style={[styles.tableCell, { width: '8%' }]}>{flight.depTime || '-'}</Text>
+            <Text style={[styles.tableCell, { width: '15%' }]}>{flight.to || '-'}</Text>
+            <Text style={[styles.tableCell, { width: '10%' }]}>{flight.arrDate || '-'}</Text>
+            <Text style={[styles.tableCell, { width: '8%' }]}>{flight.arrTime || '-'}</Text>
+            <Text style={[styles.tableCell, { width: '10%' }]}>{flight.via || '-'}</Text>
+          </View>
+        ))}
+      </View>
+    );
+  };
+
+  // Function to render individual tour flight descriptions
+  const renderIndividualFlightDescriptions = () => {
+    if (isGroupTour || !tour?.airlines?.tableData || tour.airlines.tableData.length === 0) {
+      return null;
+    }
+
+    return (
+      <View style={styles.section}>
+        <Text style={styles.subHeader}>Flight Details</Text>
+        {tour.airlines.tableData.map((flight, index) => (
+          <View key={index} style={styles.flightDescription}>
+            {flight.description && (
+              <Text style={styles.text}>{flight.description}</Text>
+            )}
+            {!flight.description && flight.airline && (
+              <Text style={styles.text}>
+                {flight.airline} {flight.flightNo ? `(${flight.flightNo})` : ''} - 
+                From: {flight.from || 'N/A'} To: {flight.to || 'N/A'} -
+                {flight.depDate ? ` Date: ${flight.depDate}` : ''} {flight.depTime ? ` Time: ${flight.depTime}` : ''}
               </Text>
-              <Text style={[styles.text, { textAlign: 'center' }]}>
-                EMI: <Text style={styles.boldText}>{tour?.emi || 'EMI available'}</Text>
-              </Text>
-              <Text style={[styles.text, { textAlign: 'center' }]}>
-                Tour Type: <Text style={styles.boldText}>{tourType} ({isGroupTour ? 'Group Tour' : 'Individual Tour'})</Text>
-              </Text>
-            </View>
-            
-            {tour?.description && (
-              <View style={{ marginTop: 30, padding: 15, backgroundColor: '#f5f5f5', borderRadius: 4 }}>
-                <Text style={[styles.sectionTitle, { fontSize: 14 }]}>Tour Overview</Text>
-                <Text style={styles.text}>{tour.description}</Text>
-              </View>
             )}
           </View>
-          
-          <Text style={styles.footer}>
-            Generated on {new Date().toLocaleDateString()} • Page 1
-          </Text>
-        </View>
-      </Page>
+        ))}
+      </View>
+    );
+  };
 
-      {/* Page 2: Basic Information Table */}
-      <Page size="A4" style={styles.page}>
-        <Text style={styles.header}>Tour Information</Text>
+  // Function to render all departures table (ONLY for group tours)
+  const renderAllDeparturesTable = () => {
+    if (!isGroupTour || !tour?.departures?.data || tour.departures.data.length === 0) {
+      return null;
+    }
+
+    return (
+      <View style={styles.tableContainer}>
+        <Text style={styles.title}>All Available Departure Dates:</Text>
         
-        {/* Recreate the excel-like table layout */}
-        <View style={[styles.table, { marginBottom: 15 }]}>
-          {/* First Row: Headers */}
-          <View style={[styles.tableRow, { backgroundColor: '#E8F0FF' }]}>
-            <Text style={[styles.tableCell, { width: '25%', backgroundColor: '#2E3a8a', color: 'white' }]}>Tour Code</Text>
-            <Text style={[styles.tableCell, { width: '50%', backgroundColor: '#2E3a8a', color: 'white' }]}>Tour Name</Text>
-            <Text style={[styles.tableCell, styles.tableCellLast, { width: '25%', backgroundColor: '#2E3a8a', color: 'white' }]}>Days</Text>
-          </View>
-          
-          {/* Second Row: Values */}
-          <View style={styles.tableRow}>
-            <Text style={[styles.tableCell, { width: '25%', backgroundColor: '#dbeafe', textAlign: 'center', fontWeight: 'bold', color: '#2E4D98' }]}>
-              {tour?.code || 'N/A'}
-            </Text>
-            <Text style={[styles.tableCell, { width: '50%', backgroundColor: '#f3f4f6', padding: 10 }]}>
-              {tour?.title || 'N/A'}
-            </Text>
-            <Text style={[styles.tableCell, styles.tableCellLast, { width: '25%', backgroundColor: '#fee2e2', textAlign: 'center', fontWeight: 'bold', color: '#E53C42' }]}>
-              {tour?.duration || 'N/A'}
-            </Text>
-          </View>
+        {/* Header */}
+        <View style={styles.tableHeader}>
+          <Text style={[styles.tableHeaderCell, { width: '20%' }]}>Month</Text>
+          <Text style={[styles.tableHeaderCell, { width: '20%' }]}>From Date</Text>
+          <Text style={[styles.tableHeaderCell, { width: '20%' }]}>To Date</Text>
+          <Text style={[styles.tableHeaderCell, { width: '20%' }]}>Base Price</Text>
+          <Text style={[styles.tableHeaderCell, { width: '20%' }]}>Status</Text>
         </View>
 
-        {/* Tabs Header */}
-        <View style={[styles.tabHeader, { marginTop: 20 }]}>
-          {["Itinerary", "Dep Date", "Tour Cost", "Cost inc./Cost ex.", "Flights & Hotels", "Visa", "Book p./Canc p.", "Instructions"].map((tab, idx) => (
-            <Text key={idx} style={[styles.tabButton, idx === 5 ? styles.activeTab : {}]}>
-              {tab}
+        {/* Rows */}
+        {tour.departures.data.map((dep: any, index: number) => (
+          <View 
+            key={index} 
+            style={[
+              styles.tableRow,
+              { backgroundColor: index % 2 === 0 ? '#EEF1F7' : 'white' }
+            ]}
+          >
+            <Text style={[styles.tableCell, { width: '20%' }]}>{dep.month}</Text>
+            <Text style={[styles.tableCell, { width: '20%' }]}>{dep.fromDate}</Text>
+            <Text style={[styles.tableCell, { width: '20%' }]}>{dep.toDate}</Text>
+            <Text style={[styles.tableCell, { width: '20%', fontWeight: 'bold' }]}>
+              {formatPrice(dep.price)}
             </Text>
-          ))}
-        </View>
-
-        {/* Visa Section Header */}
-        <View style={[styles.redBg, { marginTop: 15 }]}>
-          <Text>Documents Required for Visa</Text>
-        </View>
-
-        {/* Visa Tabs */}
-        <View style={[styles.tabHeader, { marginTop: 10 }]}>
-          {["Tourist Visa", "Transit Visa", "Business Visa", "Visa Forms", "Photo", "Visa Fees", "Submission & Pick Up"].map((tab, idx) => (
-            <Text key={idx} style={[
-              styles.tabButton,
-              idx === 0 ? styles.activeTab : {},
-              idx === 6 ? { flex: 1.3 } : {}
+            <Text style={[
+              styles.tableCell, 
+              { 
+                width: '20%',
+                color: dep.status === 'Sold Out' ? '#E53C42' : 
+                       dep.status === 'Available' ? '#10b981' : '#2E4D98',
+                fontWeight: dep.status === 'Sold Out' ? 'bold' : 'normal'
+              }
             ]}>
-              {tab}
+              {dep.status}
             </Text>
-          ))}
-        </View>
-
-        {/* Tourist Visa Content */}
-        {renderVisaTouristTab()}
-        
-        <Text style={styles.footer}>
-          Page 2 • Visa Information - Tourist Visa
-        </Text>
-      </Page>
-
-      {/* Page 3: Transit & Business Visa */}
-      <Page size="A4" style={styles.page}>
-        <Text style={styles.header}>Visa Information (Continued)</Text>
-        
-        <View style={[styles.redBg, { marginBottom: 15 }]}>
-          <Text>Documents Required for Visa</Text>
-        </View>
-
-        {/* Transit Visa */}
-        <View style={{ marginBottom: 20 }}>
-          <Text style={styles.visaSectionTitle}>Transit Visa Requirements</Text>
-          {renderVisaTransitTab()}
-        </View>
-
-        {/* Business Visa */}
-        <View>
-          <Text style={styles.visaSectionTitle}>Business Visa Requirements</Text>
-          {renderVisaBusinessTab()}
-        </View>
-        
-        <Text style={styles.footer}>
-          Page 3 • Visa Information - Transit & Business
-        </Text>
-      </Page>
-
-      {/* Page 4: Visa Forms & Photo Specifications */}
-      <Page size="A4" style={styles.page}>
-        <Text style={styles.header}>Visa Forms & Photo Specifications</Text>
-        
-        <View style={[styles.redBg, { marginBottom: 15 }]}>
-          <Text>Visa Forms</Text>
-        </View>
-
-        {/* Visa Forms */}
-        {renderVisaFormsTab()}
-
-        {/* Photo Specifications */}
-        <View style={{ marginTop: 20 }}>
-          <View style={[styles.redBg, { marginBottom: 10 }]}>
-            <Text>Photo Specifications</Text>
           </View>
-          {renderVisaPhotoTab()}
+        ))}
+      </View>
+    );
+  };
+
+  // Function to render optional tours table (for both)
+  const renderOptionalToursTable = () => {
+    if (!tour?.optionalTours || tour.optionalTours.length === 0) {
+      return null;
+    }
+
+    return (
+      <View style={styles.tableContainer}>
+        {/* Header */}
+        <View style={styles.tableHeader}>
+          <Text style={[styles.tableHeaderCell, { width: '70%' }]}>Tour Name</Text>
+          <Text style={[styles.tableHeaderCell, { width: '15%' }]}>Adult Price</Text>
+          <Text style={[styles.tableHeaderCell, { width: '15%' }]}>Child Price</Text>
+        </View>
+
+        {/* Rows */}
+        {tour.optionalTours.map((optTour, index) => (
+          <View 
+            key={index} 
+            style={[
+              styles.tableRow,
+              { backgroundColor: index % 2 === 0 ? '#FFEBEE' : '#FFEBEE80' }
+            ]}
+          >
+            <Text style={[styles.tableCell, { width: '70%', textAlign: 'left', paddingLeft: 8 }]}>
+              {optTour.tourName}
+            </Text>
+            <Text style={[styles.tableCell, { width: '15%' }]}>
+              {formatPrice(optTour.adultPrice)}
+            </Text>
+            <Text style={[styles.tableCell, { width: '15%' }]}>
+              {formatPrice(optTour.childPrice)}
+            </Text>
+          </View>
+        ))}
+      </View>
+    );
+  };
+
+  // Function to render EMI options table (for both)
+  const renderEMITable = () => {
+    if (!tour?.emiOptions?.options || tour.emiOptions.options.length === 0) {
+      return null;
+    }
+
+    return (
+      <View style={styles.tableContainer}>
+        {/* Header */}
+        <View style={styles.tableHeader}>
+          <Text style={[styles.tableHeaderCell, { width: '40%' }]}>Particulars</Text>
+          <Text style={[styles.tableHeaderCell, { width: '20%' }]}>Loan Amount</Text>
+          <Text style={[styles.tableHeaderCell, { width: '20%' }]}>Months</Text>
+          <Text style={[styles.tableHeaderCell, { width: '20%' }]}>EMI</Text>
+        </View>
+
+        {/* Rows */}
+        {tour.emiOptions.options.map((emi, index) => (
+          <View 
+            key={index} 
+            style={[
+              styles.tableRow,
+              { backgroundColor: index % 2 === 0 ? '#FFEBEE' : '#FFEBEE80' }
+            ]}
+          >
+            <Text style={[styles.tableCell, { width: '40%', textAlign: 'left', paddingLeft: 8, fontWeight: 'bold' }]}>
+              {emi.particulars}
+            </Text>
+            <Text style={[styles.tableCell, { width: '20%' }]}>
+              {formatPrice(emi.loanAmount)}
+            </Text>
+            <Text style={[styles.tableCell, { width: '20%' }]}>{emi.months}</Text>
+            <Text style={[styles.tableCell, { width: '20%' }]}>
+              {formatPrice(emi.emi)}
+            </Text>
+          </View>
+        ))}
+      </View>
+    );
+  };
+
+  return (
+    <Document>
+      {/* Page 1: Cover & Basic Info */}
+      <Page size="A4" style={styles.page}>
+        <View style={[styles.section, { flex: 1, justifyContent: 'center', alignItems: 'center' }]}>
+          <Text style={styles.header}>{tour?.title || "Tour Package"}</Text>
+          
+          {mainImage && (
+            <View style={styles.imageContainer}>
+              <Image 
+                src={mainImage} 
+                style={styles.tourImage}
+              />
+              <Text style={styles.imageCaption}>Main Tour Image</Text>
+            </View>
+          )}
+          
+          <Text style={[styles.title, { marginTop: 20 }]}>Tour Code: {tour?.code || "N/A"}</Text>
+          <Text style={styles.text}>Duration: {tour?.duration || "N/A"}</Text>
+          <Text style={styles.boldText}>Price: {tour?.price || "N/A"}</Text>
+          <Text style={styles.text}>EMI: {tour?.emi || "EMI available"}</Text>
+          <Text style={styles.text}>Tour Type: {tourType} ({isGroupTour ? "Group Tour" : "Individual Tour"})</Text>
+          
+          {tour?.description && (
+            <View style={[styles.infoBox, { marginTop: 20, width: '100%' }]}>
+              <Text style={styles.title}>Tour Overview:</Text>
+              <Text style={styles.text}>{tour.description}</Text>
+            </View>
+          )}
+          
+          {allImages.length > 1 && (
+            <View style={styles.section}>
+              <Text style={styles.title}>Tour Images ({allImages.length})</Text>
+              <View style={styles.imageGallery}>
+                {allImages.map((img, index) => (
+                  <View key={index} style={{ alignItems: 'center' }}>
+                    <Image src={img} style={styles.thumbnailImage} />
+                    <Text style={styles.imageCaption}>Image {index + 1}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+          
+          <View style={{ marginTop: 40 }}>
+            <Text style={styles.note}>Generated on: {new Date().toLocaleDateString()}</Text>
+          </View>
         </View>
         
-        <Text style={styles.footer}>
-          Page 4 • Visa Forms & Photo
-        </Text>
+        <Text style={styles.pageNumber} render={({ pageNumber, totalPages }) => (
+          `${pageNumber} / ${totalPages}`
+        )} fixed />
       </Page>
 
-      {/* Page 5: Visa Fees */}
+      {/* Page 2: Detailed Itinerary */}
       <Page size="A4" style={styles.page}>
-        <Text style={styles.header}>Visa Fees</Text>
-        
-        <View style={[styles.redBg, { marginBottom: 15 }]}>
-          <Text>Visa Fees Information</Text>
-        </View>
-
-        {renderVisaFeesTab()}
-
-        {/* Visa Remarks */}
-        {renderVisaRemarks()}
-        
-        <Text style={styles.footer}>
-          Page 5 • Visa Fees
-        </Text>
-      </Page>
-
-      {/* Page 6: Visa Submission & Pick Up */}
-      <Page size="A4" style={styles.page}>
-        <Text style={styles.header}>Visa Submission & Processing</Text>
-        
-        <View style={[styles.redBg, { marginBottom: 15 }]}>
-          <Text>Submission & Pick Up Information</Text>
-        </View>
-
-        {renderVisaSubmissionTab()}
-        
-        <View style={{ marginTop: 30, paddingTop: 20, borderTopWidth: 1, borderTopColor: '#ddd' }}>
-          <Text style={{ textAlign: 'center', fontSize: 9, color: '#666' }}>
-            End of Visa Information Section
-          </Text>
-          <Text style={{ textAlign: 'center', fontSize: 8, color: '#999', marginTop: 5 }}>
-            Please ensure all documents are prepared as per the requirements above
-          </Text>
-        </View>
-        
-        <Text style={styles.footer}>
-          Page 6 • Visa Submission & Processing
-        </Text>
-      </Page>
-
-      {/* Page 7: Itinerary */}
-      <Page size="A4" style={styles.page}>
-        <Text style={styles.header}>Tour Itinerary</Text>
-        
-        <View style={[styles.redBg, { marginBottom: 10 }]}>
-          <Text>Tour Itinerary</Text>
-        </View>
-        
-        <View style={{ borderWidth: 2, borderColor: '#1e3a8a' }}>
+        <View style={styles.section}>
+          <Text style={styles.subHeader}>Detailed Itinerary</Text>
+          
           {tour?.itinerary?.map((day, index) => {
             const meals = parseMeals(day?.meals);
-            const dayColors = [
-              { header: '#A72703', body: '#FFE797' },
-              { header: '#A72703', body: '#FFE797' },
-              { header: '#A72703', body: '#FFE797' }
-            ];
-            const colors = dayColors[index % dayColors.length] || dayColors[0];
             
             return (
-              <View key={index} style={{ marginBottom: 8, padding: 8 }}>
-                {/* Day Header */}
-                <View style={{ flexDirection: 'row', gap: 4, marginBottom: 4 }}>
-                  <View style={{ 
-                    backgroundColor: colors.header, 
-                    width: 120, 
-                    padding: 8,
-                    borderWidth: 1,
-                    borderColor: '#000',
-                    borderStyle: 'solid'
-                  }}>
-                    <Text style={{ color: 'white', fontWeight: 'bold' }}>
-                      {day.day || `Day ${index + 1}`}
-                    </Text>
-                  </View>
-                  
-                  <View style={{ 
-                    backgroundColor: colors.header, 
-                    flex: 1,
-                    padding: 8,
-                    borderWidth: 1,
-                    borderColor: '#000',
-                    borderStyle: 'solid'
-                  }}>
-                    <Text style={{ color: 'white', fontWeight: 'bold' }}>
-                      {day.title || `Day ${index + 1} Details`}
-                    </Text>
-                  </View>
-                  
-                  <View style={{ 
-                    backgroundColor: colors.header, 
-                    width: 140,
-                    padding: 6,
-                    borderWidth: 1,
-                    borderColor: '#000',
-                    borderStyle: 'solid',
-                    flexDirection: 'row',
-                    justifyContent: 'space-around',
-                    alignItems: 'center'
-                  }}>
-                    {['B', 'L', 'D'].map((mealType) => (
-                      <View key={mealType} style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <View style={styles.checkboxContainer}>
-                          <Text style={{ fontSize: 8, color: meals[mealType as keyof typeof meals] ? '#2E4D98' : '#E53C42' }}>
-                            {meals[mealType as keyof typeof meals] ? '✓' : '✗'}
-                          </Text>
-                        </View>
-                        <Text style={{ color: 'white', fontSize: 9, fontWeight: 'bold', marginLeft: 2 }}>{mealType}</Text>
-                      </View>
-                    ))}
-                  </View>
+              <View key={index} style={styles.itineraryDay}>
+                <View style={styles.dayHeader}>
+                  <Text>{day.day || `Day ${index + 1}`} - {day.title || "Day Details"}</Text>
                 </View>
-                
-                {/* Day Body */}
-                <View style={{ 
-                  backgroundColor: colors.body,
-                  borderWidth: 1,
-                  borderColor: '#000',
-                  borderStyle: 'solid',
-                  padding: 10,
-                  minHeight: 60
-                }}>
-                  <Text>{day.description || ''}</Text>
+                <View style={styles.dayContent}>
+                  <Text style={styles.text}>{day.description || ""}</Text>
+                  <View style={styles.mealIndicator}>
+                    <View style={styles.mealItem}>
+                      <View style={styles.checkboxWrapper}>
+                        <View style={styles.checkboxContainer}>
+                          {meals.breakfast ? <View style={styles.checkedBox} /> : <View style={styles.unCheckedBox} />}
+                        </View>
+                        <Text style={styles.mealText}>B</Text>
+                      </View>
+                    </View>
+                    <View style={styles.mealItem}>
+                      <View style={styles.checkboxWrapper}>
+                        <View style={styles.checkboxContainer}>
+                          {meals.lunch ? <View style={styles.checkedBox} /> : <View style={styles.unCheckedBox} />}
+                        </View>
+                        <Text style={styles.mealText}>L</Text>
+                      </View>
+                    </View>
+                    <View style={styles.mealItem}>
+                      <View style={styles.checkboxWrapper}>
+                        <View style={styles.checkboxContainer}>
+                          {meals.dinner ? <View style={styles.checkedBox} /> : <View style={styles.unCheckedBox} />}
+                        </View>
+                        <Text style={styles.mealText}>D</Text>
+                      </View>
+                    </View>
+                  </View>
                 </View>
               </View>
             );
           })}
         </View>
         
-        <Text style={styles.footer}>
-          Page 7 • Itinerary
-        </Text>
+        <Text style={styles.pageNumber} render={({ pageNumber, totalPages }) => (
+          `${pageNumber} / ${totalPages}`
+        )} fixed />
       </Page>
 
-      {/* Page 8: Departure Dates */}
+      {/* Page 3: Departure Dates & Tour Cost */}
       <Page size="A4" style={styles.page}>
-        <Text style={styles.header}>Departure Dates</Text>
-        
-        <View style={styles.redBg}>
-          <Text>Departure Dates</Text>
-        </View>
-        
-        {isGroupTour ? (
-          <View style={{ borderWidth: 2, borderColor: '#1e3a8a', borderTopWidth: 0, padding: 10 }}>
-            {/* Departure Cards */}
-            {selectedDeparture ? (
-              <View style={{ borderWidth: 2, borderColor: '#000', padding: 15, marginBottom: 15 }}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
-                  <View>
-                    <Text style={{ fontSize: 9, color: '#666' }}>{selectedDeparture.fromDay}</Text>
-                    <Text style={{ fontWeight: 'bold' }}>{selectedDeparture.fromDate}</Text>
+        <View style={styles.section}>
+          <Text style={styles.subHeader}>Departure Dates & Tour Cost</Text>
+          
+          {isGroupTour ? (
+            <>
+              {/* GROUP TOUR DEPARTURE INFO */}
+              {selectedDeparture ? (
+                <View style={styles.departureInfo}>
+                  <Text style={styles.title}>Selected Departure Details:</Text>
+                  <View style={styles.departureRowInfo}>
+                    <Text style={styles.departureLabel}>Month:</Text>
+                    <Text style={styles.departureValue}>{selectedCostMonth || selectedDeparture.month || "N/A"}</Text>
                   </View>
-                  <View>
-                    <Text style={{ fontSize: 9, color: '#666' }}>{selectedDeparture.toDay}</Text>
-                    <Text style={{ fontWeight: 'bold' }}>{selectedDeparture.toDate}</Text>
+                  <View style={styles.departureRowInfo}>
+                    <Text style={styles.departureLabel}>From Date:</Text>
+                    <Text style={styles.departureValue}>{selectedDeparture.fromDay}, {selectedDeparture.fromDate}</Text>
                   </View>
-                  <View>
-                    <Text style={{ 
-                      fontWeight: 'bold',
+                  <View style={styles.departureRowInfo}>
+                    <Text style={styles.departureLabel}>To Date:</Text>
+                    <Text style={styles.departureValue}>{selectedDeparture.toDay}, {selectedDeparture.toDate}</Text>
+                  </View>
+                  <View style={styles.departureRowInfo}>
+                    <Text style={styles.departureLabel}>Status:</Text>
+                    <Text style={[styles.departureValue, { 
                       color: selectedDeparture.status === 'Sold Out' ? '#E53C42' : 
                              selectedDeparture.status === 'Available' ? '#10b981' : '#2E4D98'
-                    }}>
-                      {selectedDeparture.status}
+                    }]}>
+                      {selectedDeparture.status || "Available"}
                     </Text>
                   </View>
-                  <View>
-                    <Text style={{ fontWeight: 'bold' }}>{formatPrice(selectedDeparture.price)}</Text>
+                  <View style={styles.departureRowInfo}>
+                    <Text style={styles.departureLabel}>Base Price:</Text>
+                    <Text style={[styles.departureValue, { fontWeight: 'bold' }]}>
+                      {formatPrice(selectedDeparture.price)}
+                    </Text>
                   </View>
                 </View>
-                
-                {/* Cost Table */}
-                {selectedDeparture.threeStar && (
-                  <View style={[styles.table, { marginTop: 10 }]}>
-                    <View style={[styles.tableRow, styles.tableHeader]}>
-                      <Text style={[styles.tableCell, { width: '33%' }]}>Particulars - Tour Cost</Text>
-                      <Text style={[styles.tableCell, { width: '22%' }]}>Standard</Text>
-                      <Text style={[styles.tableCell, { width: '22%' }]}>Deluxe</Text>
-                      <Text style={[styles.tableCell, styles.tableCellLast, { width: '23%' }]}>Luxury</Text>
+              ) : (
+                <View style={styles.highlight}>
+                  <Text style={styles.text}>No departure date selected</Text>
+                </View>
+              )}
+              
+              {renderGroupTourCostTable()}
+              {renderAllDeparturesTable()}
+            </>
+          ) : (
+            <>
+              {/* INDIVIDUAL TOUR DEPARTURE INFO */}
+              <View style={styles.section}>
+                <Text style={styles.title}>Departure Information:</Text>
+                {tour?.departures?.descriptions && tour.departures.descriptions.length > 0 ? (
+                  tour.departures.descriptions.map((description: string, index: number) => (
+                    <View key={index} style={styles.listItem}>
+                      <Text style={styles.bullet}>•</Text>
+                      <Text style={styles.listText}>{description}</Text>
                     </View>
-                    
-                    {[
-                      { label: 'Per pax on Twin Basis', 
-                        standard: selectedDeparture.threeStar.twin, 
-                        deluxe: selectedDeparture.fourStar.twin, 
-                        luxury: selectedDeparture.fiveStar.twin },
-                      { label: 'Per pax on Triple Basis', 
-                        standard: selectedDeparture.threeStar.triple, 
-                        deluxe: selectedDeparture.fourStar.triple, 
-                        luxury: selectedDeparture.fiveStar.triple },
-                      { label: 'Child with Bed', 
-                        standard: selectedDeparture.threeStar.childWithBed, 
-                        deluxe: selectedDeparture.fourStar.childWithBed, 
-                        luxury: selectedDeparture.fiveStar.childWithBed },
-                      { label: 'Child without Bed', 
-                        standard: selectedDeparture.threeStar.childWithoutBed, 
-                        deluxe: selectedDeparture.fourStar.childWithoutBed, 
-                        luxury: selectedDeparture.fiveStar.childWithoutBed },
-                      { label: 'Infant', 
-                        standard: selectedDeparture.threeStar.infant, 
-                        deluxe: selectedDeparture.fourStar.infant, 
-                        luxury: selectedDeparture.fiveStar.infant },
-                      { label: 'Per pax Single Occupancy', 
-                        standard: selectedDeparture.threeStar.single, 
-                        deluxe: selectedDeparture.fourStar.single, 
-                        luxury: selectedDeparture.fiveStar.single },
-                    ].map((row, idx) => (
-                      <View key={idx} style={[styles.tableRow, { backgroundColor: idx % 2 === 0 ? '#EEF1F7' : 'white' }]}>
-                        <Text style={[styles.tableCell, { width: '33%', fontWeight: 'medium' }]}>{row.label}</Text>
-                        <Text style={[styles.tableCell, { width: '22%' }]}>{formatPrice(row.standard)}</Text>
-                        <Text style={[styles.tableCell, { width: '22%', color: '#10b981', fontWeight: 'bold' }]}>{formatPrice(row.deluxe)}</Text>
-                        <Text style={[styles.tableCell, styles.tableCellLast, { width: '23%' }]}>{formatPrice(row.luxury)}</Text>
-                      </View>
-                    ))}
+                  ))
+                ) : (
+                  <View style={styles.highlight}>
+                    <Text style={styles.text}>Flexible departure dates available</Text>
                   </View>
                 )}
               </View>
-            ) : (
-              <View style={{ padding: 20, backgroundColor: '#f8f9fa', borderRadius: 4 }}>
-                <Text style={{ textAlign: 'center', color: '#666' }}>
-                  {selectedCostMonth && selectedCostDate ? 
-                    'No departure selected' : 
-                    'Please select month and date to view tour cost'}
-                </Text>
-              </View>
-            )}
-          </View>
-        ) : (
-      
-          // Individual Tour Departures
-          <View style={{ borderWidth: 2, borderColor: '#1e3a8a', borderTopWidth: 0, padding: 15 }}>
-            {tour?.departures?.descriptions?.map((desc, idx) => (
-              <View key={idx} style={{ marginBottom: 10 }}>
-                <Text style={styles.text}>{desc}</Text>
-              </View>
-            ))}
-          </View>
-        )}
-        
-        <Text style={styles.footer}>
-          Page 3 • Departure Information
-        </Text>
-      </Page>
-
-      {/* Page 4: Tour Cost */}
-      <Page size="A4" style={styles.page}>
-        <Text style={styles.header}>Tour Cost Details</Text>
-        
-        <View style={styles.redBg}>
-          <Text>Tour Cost</Text>
-        </View>
-        
-        {!isGroupTour ? (
-          // Individual Tour Cost Table
-          <View style={[styles.table, { marginTop: 10 }]}>
-            <View style={[styles.tableRow, styles.tableHeader]}>
-              <Text style={[styles.tableCell, { width: '16%' }]}>Passenger</Text>
-              <Text style={[styles.tableCell, { width: '16%' }]}>Standard Hotel</Text>
-              <Text style={[styles.tableCell, { width: '16%' }]}>Deluxe Hotel</Text>
-              <Text style={[styles.tableCell, { width: '16%' }]}>Executive Hotel</Text>
-              <Text style={[styles.tableCell, { width: '18%' }]}>Child With Bed</Text>
-              <Text style={[styles.tableCell, styles.tableCellLast, { width: '18%' }]}>Child No Bed</Text>
-            </View>
-            
-            {tour?.tourCost?.tableData?.map((row, idx) => (
-              <View key={idx} style={[styles.tableRow, { backgroundColor: idx % 2 === 0 ? '#FFEBEE' : '#FFEBEE80' }]}>
-                <Text style={[styles.tableCell, { width: '16%' }]}>{row.passenger}</Text>
-                <Text style={[styles.tableCell, { width: '16%' }]}>{formatPrice(row.standard)}</Text>
-                <Text style={[styles.tableCell, { width: '16%', color: '#10b981', fontWeight: 'bold' }]}>{formatPrice(row.deluxe)}</Text>
-                <Text style={[styles.tableCell, { width: '16%' }]}>{formatPrice(row.executive)}</Text>
-                <Text style={[styles.tableCell, { width: '18%', color: '#2563eb' }]}>{formatPrice(row.childWithBed)}</Text>
-                <Text style={[styles.tableCell, styles.tableCellLast, { width: '18%', color: '#7c3aed' }]}>{formatPrice(row.childNoBed)}</Text>
-              </View>
-            )) || (
-              <View style={[styles.tableRow, { backgroundColor: '#FFEBEE' }]}>
-                <Text style={[styles.tableCell, styles.tableCellLast, { width: '100%', textAlign: 'center' }]}>
-                  No cost information available
-                </Text>
-              </View>
-            )}
-          </View>
-        ) : null}
-        
-        {/* Tour Cost Remarks */}
-        <View style={{ marginTop: 20 }}>
-          <View style={[styles.redBg, { marginBottom: 10 }]}>
-            <Text>Tour Cost Remarks</Text>
-          </View>
-          
-          <View style={{ 
-            borderWidth: 2, 
-            borderColor: '#1e3a8a', 
-            borderTopWidth: 0,
-            padding: 15,
-            backgroundColor: '#FFEBEE',
-            minHeight: 80
-          }}>
-            {tour?.tourCost?.remarks?.map((remark, idx) => (
-              <View key={idx} style={styles.listItem}>
-                <Text style={styles.bullet}>•</Text>
-                <Text style={styles.listText}>{remark}</Text>
-              </View>
-            )) || (
-              <Text style={{ textAlign: 'center', color: '#666', fontStyle: 'italic' }}>
-                No tour cost remarks available
-              </Text>
-            )}
-          </View>
-        </View>
-        
-        {/* Optional Tours & EMI */}
-        <View style={styles.twoColumn}>
-          <View style={styles.column}>
-            <View style={[styles.redBg, { marginBottom: 10 }]}>
-              <Text>Optional Tour</Text>
-            </View>
-            
-            <View style={styles.table}>
-              <View style={[styles.tableRow, styles.tableHeader]}>
-                <Text style={[styles.tableCell, { width: '40%' }]}>Tour Name</Text>
-                <Text style={[styles.tableCell, { width: '30%' }]}>Adult Price</Text>
-                <Text style={[styles.tableCell, styles.tableCellLast, { width: '30%' }]}>Child Price</Text>
-              </View>
               
-              {tour?.optionalTours?.map((opt, idx) => (
-                <View key={idx} style={[styles.tableRow, { backgroundColor: idx % 2 === 0 ? '#FFEBEE' : '#FFEBEE80' }]}>
-                  <Text style={[styles.tableCell, { width: '40%' }]}>{opt.tourName}</Text>
-                  <Text style={[styles.tableCell, { width: '30%' }]}>{formatPrice(opt.adultPrice)}</Text>
-                  <Text style={[styles.tableCell, styles.tableCellLast, { width: '30%' }]}>{formatPrice(opt.childPrice)}</Text>
-                </View>
-              )) || (
-                <View style={[styles.tableRow, { backgroundColor: '#FFEBEE' }]}>
-                  <Text style={[styles.tableCell, { width: '40%' }]}>N/A</Text>
-                  <Text style={[styles.tableCell, { width: '30%' }]}>N/A</Text>
-                  <Text style={[styles.tableCell, styles.tableCellLast, { width: '30%' }]}>N/A</Text>
-                </View>
-              )}
-            </View>
-          </View>
-          
-          <View style={styles.column}>
-            <View style={[styles.redBg, { marginBottom: 10 }]}>
-              <Text>EMI Options</Text>
-            </View>
-            
-            <View style={styles.table}>
-              <View style={[styles.tableRow, styles.tableHeader]}>
-                <Text style={[styles.tableCell, { width: '33%' }]}>Loan Amount</Text>
-                <Text style={[styles.tableCell, { width: '33%' }]}>Months</Text>
-                <Text style={[styles.tableCell, styles.tableCellLast, { width: '34%' }]}>EMI</Text>
+              {/* INDIVIDUAL TOUR COST TABLE */}
+              <View style={styles.section}>
+                <Text style={styles.title}>Individual Tour Cost:</Text>
+                {renderIndividualTourCostTable()}
               </View>
-              
-              {tour?.emiOptions?.options?.map((emi, idx) => (
-                <View key={idx} style={[styles.tableRow, { backgroundColor: idx % 2 === 0 ? '#FFEBEE' : '#FFEBEE80' }]}>
-                  <Text style={[styles.tableCell, { width: '33%' }]}>{formatPrice(emi.loanAmount)}</Text>
-                  <Text style={[styles.tableCell, { width: '33%' }]}>{emi.months}</Text>
-                  <Text style={[styles.tableCell, styles.tableCellLast, { width: '34%' }]}>{formatPrice(emi.emi)}</Text>
-                </View>
-              )) || (
-                <View style={[styles.tableRow, { backgroundColor: '#FFEBEE' }]}>
-                  <Text style={[styles.tableCell, { width: '33%' }]}>N/A</Text>
-                  <Text style={[styles.tableCell, { width: '33%' }]}>N/A</Text>
-                  <Text style={[styles.tableCell, styles.tableCellLast, { width: '34%' }]}>N/A</Text>
-                </View>
-              )}
-            </View>
-          </View>
-        </View>
-        
-        <Text style={styles.footer}>
-          Page 4 • Cost Details
-        </Text>
-      </Page>
-
-      {/* Page 5: Inclusions & Exclusions */}
-      <Page size="A4" style={styles.page}>
-        <Text style={styles.header}>Cost Includes & Excludes</Text>
-        
-        <View style={styles.redBg}>
-          <Text>Cost Inclusive & Cost Excludes</Text>
-        </View>
-        
-        <View style={styles.twoColumn}>
-          {/* Cost Includes */}
-          <View style={styles.column}>
-            <View style={[styles.blueBg, { marginBottom: 10 }]}>
-              <Text>Cost Inclusive</Text>
-            </View>
-            
-            <View style={{ 
-              borderWidth: 2, 
-              borderColor: '#1e3a8a', 
-              borderTopWidth: 0,
-              padding: 15,
-              backgroundColor: '#FFEBEE',
-              minHeight: 200
-            }}>
-              {tour?.inclusionExclusion?.inclusions?.map((item, idx) => (
-                <View key={idx} style={styles.listItem}>
-                  <Text style={[styles.bullet, { color: '#10b981' }]}>✓</Text>
-                  <Text style={styles.listText}>{item}</Text>
-                </View>
-              )) || (
-                <Text style={{ textAlign: 'center', color: '#666', fontStyle: 'italic' }}>
-                  No inclusions available
-                </Text>
-              )}
-            </View>
-          </View>
-          
-          {/* Cost Excludes */}
-          <View style={styles.column}>
-            <View style={[styles.blueBg, { marginBottom: 10 }]}>
-              <Text>Cost Excludes</Text>
-            </View>
-            
-            <View style={{ 
-              borderWidth: 2, 
-              borderColor: '#1e3a8a', 
-              borderTopWidth: 0,
-              padding: 15,
-              backgroundColor: '#FFEBEE',
-              minHeight: 200
-            }}>
-              {tour?.inclusionExclusion?.exclusions?.map((item, idx) => (
-                <View key={idx} style={styles.listItem}>
-                  <Text style={[styles.bullet, { color: '#E53C42' }]}>✗</Text>
-                  <Text style={styles.listText}>{item}</Text>
-                </View>
-              )) || (
-                <Text style={{ textAlign: 'center', color: '#666', fontStyle: 'italic' }}>
-                  No exclusions available
-                </Text>
-              )}
-            </View>
-          </View>
-        </View>
-        
-        <Text style={styles.footer}>
-          Page 5 • Inclusions & Exclusions
-        </Text>
-      </Page>
-
-      {/* Page 6: Flights & Hotels */}
-      <Page size="A4" style={styles.page}>
-        <Text style={styles.header}>Flights & Hotels</Text>
-        
-        {/* Flights Section */}
-        <View style={{ marginBottom: 20 }}>
-          <View style={styles.redBg}>
-            <Text>Flight Details</Text>
-          </View>
-          
-          <View style={{ 
-            borderWidth: 2, 
-            borderColor: '#1e3a8a', 
-            borderTopWidth: 0,
-            padding: 10,
-            backgroundColor: '#FFEBEE'
-          }}>
-            {isGroupTour && tour?.airlines?.tableData && tour.airlines.tableData.length > 0 ? (
-              <View style={styles.table}>
-                <View style={[styles.tableRow, styles.tableHeader]}>
-                  <Text style={[styles.tableCell, { width: '14%' }]}>Airlines</Text>
-                  <Text style={[styles.tableCell, { width: '11%' }]}>Flight No</Text>
-                  <Text style={[styles.tableCell, { width: '14%' }]}>From</Text>
-                  <Text style={[styles.tableCell, { width: '12%' }]}>Date</Text>
-                  <Text style={[styles.tableCell, { width: '12%' }]}>Time</Text>
-                  <Text style={[styles.tableCell, { width: '14%' }]}>To</Text>
-                  <Text style={[styles.tableCell, { width: '12%' }]}>Date</Text>
-                  <Text style={[styles.tableCell, { width: '11%' }]}>Time</Text>
-                </View>
-                
-                {tour.airlines.tableData.map((flight, idx) => (
-                  <View key={idx} style={[styles.tableRow, { backgroundColor: idx % 2 === 0 ? '#FFEBEE' : '#FFEBEE80' }]}>
-                    <Text style={[styles.tableCell, { width: '14%' }]}>{flight.airline || '-'}</Text>
-                    <Text style={[styles.tableCell, { width: '11%' }]}>{flight.flightNo || '-'}</Text>
-                    <Text style={[styles.tableCell, { width: '14%' }]}>{flight.from || '-'}</Text>
-                    <Text style={[styles.tableCell, { width: '12%' }]}>{flight.depDate || '-'}</Text>
-                    <Text style={[styles.tableCell, { width: '12%' }]}>{flight.depTime || '-'}</Text>
-                    <Text style={[styles.tableCell, { width: '14%' }]}>{flight.to || '-'}</Text>
-                    <Text style={[styles.tableCell, { width: '12%' }]}>{flight.arrDate || '-'}</Text>
-                    <Text style={[styles.tableCell, { width: '11%' }]}>{flight.arrTime || '-'}</Text>
-                  </View>
-                ))}
-              </View>
-            ) : (
-              <View style={{ padding: 20 }}>
-                <Text style={{ textAlign: 'center', color: '#666' }}>
-                  {tour?.airlines?.tableData && tour.airlines.tableData.length > 0 ? 
-                    tour.airlines.tableData.map((flight, idx) => (
-                      <Text key={idx}>
-                        {flight.description || 'Flight information available'}
-                      </Text>
-                    )) : 
-                    'No flight information available'}
-                </Text>
-              </View>
-            )}
-          </View>
-          
-          {/* Flight Remarks */}
-          {tour?.airlines?.remarks && tour.airlines.remarks.length > 0 && (
-            <View style={{ marginTop: 15 }}>
-              <View style={[styles.redBg, { marginBottom: 10 }]}>
-                <Text>Flight Remarks</Text>
-              </View>
-              
-              <View style={{ 
-                borderWidth: 2, 
-                borderColor: '#1e3a8a', 
-                borderTopWidth: 0,
-                padding: 10,
-                backgroundColor: '#FFEBEE'
-              }}>
-                {tour.airlines.remarks.map((remark, idx) => (
-                  <View key={idx} style={styles.listItem}>
-                    <Text style={styles.bullet}>•</Text>
-                    <Text style={styles.listText}>{remark}</Text>
-                  </View>
-                ))}
-              </View>
-            </View>
+            </>
           )}
-        </View>
-        
-        {/* Hotels Section */}
-        <View>
-          <View style={styles.redbg}>
-            <Text>Hotel Details</Text>
-          </View>
           
-          <View style={{ marginTop: 10 }}>
-            {tour?.hotels?.tableData && tour.hotels.tableData.length > 0 ? (
-              <View style={styles.table}>
-                <View style={[styles.tableRow, styles.tableHeader]}>
-                  <Text style={[styles.tableCell, { width: '20%' }]}>City</Text>
-                  <Text style={[styles.tableCell, { width: '15%' }]}>Nights</Text>
-                  <Text style={[styles.tableCell, { width: '21%' }]}>Standard</Text>
-                  <Text style={[styles.tableCell, { width: '21%' }]}>Deluxe</Text>
-                  <Text style={[styles.tableCell, { width: '23%' }]}>Executive</Text>
-                </View>
-                
-                {tour.hotels.tableData.map((hotel, idx) => (
-                  <View key={idx} style={[styles.tableRow, { backgroundColor: idx % 2 === 0 ? '#FFEBEE' : '#FFEBEE80' }]}>
-                    <Text style={[styles.tableCell, { width: '20%' }]}>{hotel.city}</Text>
-                    <Text style={[styles.tableCell, { width: '15%' }]}>{hotel.nights}</Text>
-                    <Text style={[styles.tableCell, { width: '21%' }]}>{hotel.standard}</Text>
-                    <Text style={[styles.tableCell, { width: '21%' }]}>{hotel.deluxe}</Text>
-                    <Text style={[styles.tableCell, { width: '23%' }]}>{hotel.executive}</Text>
-                  </View>
-                ))}
-              </View>
-            ) : (
-              <View style={{ padding: 20, backgroundColor: '#f8f9fa', borderRadius: 4 }}>
-                <Text style={{ textAlign: 'center', color: '#666' }}>No hotel information available</Text>
-              </View>
-            )}
-          </View>
-          
-          {/* Hotel Remarks */}
-          {tour?.hotels?.remarks && tour.hotels.remarks.length > 0 && (
-            <View style={{ marginTop: 15 }}>
-              <View style={[styles.redBg, { marginBottom: 10 }]}>
-                <Text>Hotel Remarks</Text>
-              </View>
-              
-              <View style={{ 
-                borderWidth: 2, 
-                borderColor: '#1e3a8a', 
-                borderTopWidth: 0,
-                padding: 10,
-                backgroundColor: '#FFEBEE'
-              }}>
-                {tour.hotels.remarks.map((remark, idx) => (
-                  <View key={idx} style={styles.listItem}>
-                    <Text style={styles.bullet}>•</Text>
-                    <Text style={styles.listText}>{remark}</Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-          )}
-        </View>
-        
-        <Text style={styles.footer}>
-          Page 6 • Flights & Hotels
-        </Text>
-      </Page>
-
-      {/* Page 7: Visa Information */}
-      <Page size="A4" style={styles.page}>
-        <Text style={styles.header}>Visa Information</Text>
-        
-        <View style={styles.redBg}>
-          <Text>Documents Required for Visa</Text>
-        </View>
-        
-        {/* Visa Tabs Header */}
-        <View style={[styles.tabHeader, { marginTop: 15 }]}>
-          {["Tourist Visa", "Transit Visa", "Business Visa", "Visa Forms", "Photo", "Visa Fees", "Submission & Pick Up"].map((tab, idx) => (
-            <Text key={idx} style={[styles.tabButton, idx === 0 ? styles.activeTab : {}]}>
-              {tab}
-            </Text>
-          ))}
-        </View>
-        
-        {/* Tourist Visa Content */}
-        <View style={styles.visaContent}>
-          {tour?.visaDetails?.tourist?.map((detail, idx) => (
-            <View key={idx} style={{ marginBottom: 8 }}>
-              <Text>{detail}</Text>
-            </View>
-          )) || (
-            <Text style={{ textAlign: 'center', color: '#666', fontStyle: 'italic' }}>
-              No tourist visa information available
-            </Text>
-          )}
-        </View>
-        
-        {/* Visa Forms Table */}
-        <View style={{ marginTop: 20 }}>
-          <View style={styles.table}>
-            <View style={[styles.tableRow, styles.tableHeader]}>
-              <Text style={[styles.tableCell, { width: '70%' }]}>Visa Type</Text>
-              <Text style={[styles.tableCell, { width: '15%' }]}>Action 1</Text>
-              <Text style={[styles.tableCell, { width: '15%' }]}>Action 2</Text>
-            </View>
-            
-            {['Tourist Visa Form Download', 'Transit Visa Form Download', 'Business Visa Form Download'].map((type, idx) => (
-              <View key={idx} style={[styles.tableRow, { backgroundColor: idx % 2 === 0 ? '#FFEBEE' : '#FFEBEE80' }]}>
-                <Text style={[styles.tableCell, { width: '70%' }]}>{type}</Text>
-                <Text style={[styles.tableCell, { width: '15%', backgroundColor: '#E53C42', color: 'white', textAlign: 'center' }]}>
-                  Download
-                </Text>
-                <Text style={[styles.tableCell, { width: '15%', backgroundColor: '#A72703', color: 'white', textAlign: 'center' }]}>
-                  Fill Manually
-                </Text>
-              </View>
-            ))}
-          </View>
-        </View>
-        
-        <Text style={styles.footer}>
-          Page 7 • Visa Information
-        </Text>
-      </Page>
-
-      {/* Page 8: Booking & Cancellation Policies */}
-      <Page size="A4" style={styles.page}>
-        <Text style={styles.header}>Booking & Cancellation Policies</Text>
-        
-        <View style={styles.redBg}>
-          <Text>Booking & Cancellation Policy</Text>
-        </View>
-        
-        <View style={styles.twoColumn}>
-          {/* Booking Policy */}
-          <View style={styles.column}>
-            <View style={[styles.blueBg, { marginBottom: 10 }]}>
-              <Text>Booking Policy</Text>
-            </View>
-            
-            <View style={{ 
-              borderWidth: 2, 
-              borderColor: '#1e3a8a', 
-              borderTopWidth: 0,
-              minHeight: 200
-            }}>
-              <View style={{ flexDirection: 'row' }}>
-                <View style={{ flex: 1, padding: 10, borderRightWidth: 1, borderRightColor: '#1e3a8a' }}>
-                  {tour?.booking?.items?.map((item, idx) => (
-                    <View key={idx} style={{ marginBottom: 10, minHeight: 50 }}>
-                      <Text style={{ fontSize: 9 }}>{item}</Text>
-                    </View>
-                  ))}
-                </View>
-                <View style={{ width: '20%', padding: 10 }}>
-                  {tour?.booking?.amountDetails?.map((amount, idx) => (
-                    <View key={idx} style={{ marginBottom: 10, minHeight: 50, justifyContent: 'center' }}>
-                      <Text style={{ fontWeight: 'bold', color: '#10b981', textAlign: 'center' }}>{amount}</Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
-            </View>
-          </View>
-          
-          {/* Cancellation Policy */}
-          <View style={styles.column}>
-            <View style={[styles.redBg, { marginBottom: 10 }]}>
-              <Text>Cancellation Policy</Text>
-            </View>
-            
-            <View style={{ 
-              borderWidth: 2, 
-              borderColor: '#1e3a8a', 
-              borderTopWidth: 0,
-              minHeight: 200
-            }}>
-              <View style={{ flexDirection: 'row' }}>
-                <View style={{ flex: 1, padding: 10, borderRightWidth: 1, borderRightColor: '#1e3a8a' }}>
-                  {tour?.cancellation?.policies?.map((policy, idx) => (
-                    <View key={idx} style={{ marginBottom: 10, minHeight: 50 }}>
-                      <Text style={{ fontSize: 9 }}>{policy}</Text>
-                    </View>
-                  ))}
-                </View>
-                <View style={{ width: '20%', padding: 10 }}>
-                  {tour?.cancellation?.charges?.map((charge, idx) => (
-                    <View key={idx} style={{ marginBottom: 10, minHeight: 50, justifyContent: 'center' }}>
-                      <Text style={{ fontWeight: 'bold', color: '#A72703', textAlign: 'center' }}>{charge}</Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
-            </View>
-          </View>
-        </View>
-        
-        {/* Remarks */}
-        <View style={styles.twoColumn}>
-          <View style={styles.column}>
-            <View style={[styles.blueBg, { marginTop: 15, marginBottom: 10 }]}>
-              <Text>Booking Policy Remarks</Text>
-            </View>
-            
-            <View style={{ 
-              borderWidth: 2, 
-              borderColor: '#1e3a8a', 
-              borderTopWidth: 0,
-              padding: 10,
-              backgroundColor: '#FFEBEE',
-              minHeight: 100
-            }}>
-              {tour?.bookingRemarks?.map((remark, idx) => (
-                <View key={idx} style={styles.listItem}>
-                  <Text style={styles.bullet}>•</Text>
-                  <Text style={styles.listText}>{remark}</Text>
-                </View>
-              )) || (
-                <Text style={{ textAlign: 'center', color: '#666', fontStyle: 'italic' }}>
-                  No booking policy remarks available
-                </Text>
-              )}
-            </View>
-          </View>
-          
-          <View style={styles.column}>
-            <View style={[styles.redBg, { marginTop: 15, marginBottom: 10 }]}>
-              <Text>Cancellation Policy Remarks</Text>
-            </View>
-            
-            <View style={{ 
-              borderWidth: 2, 
-              borderColor: '#1e3a8a', 
-              borderTopWidth: 0,
-              padding: 10,
-              backgroundColor: '#FFEBEE',
-              minHeight: 100
-            }}>
-              {tour?.cancellationRemarks?.map((remark, idx) => (
-                <View key={idx} style={styles.listItem}>
-                  <Text style={styles.bullet}>•</Text>
-                  <Text style={styles.listText}>{remark}</Text>
-                </View>
-              )) || (
-                <Text style={{ textAlign: 'center', color: '#666', fontStyle: 'italic' }}>
-                  No cancellation policy remarks available
-                </Text>
-              )}
-            </View>
-          </View>
-        </View>
-        
-        <Text style={styles.footer}>
-          Page 8 • Policies
-        </Text>
-      </Page>
-
-      {/* Page 9: Instructions & Additional Info */}
-      <Page size="A4" style={styles.page}>
-        <Text style={styles.header}>Instructions & Additional Information</Text>
-        
-        <View style={styles.redBg}>
-          <Text>Instructions</Text>
-        </View>
-        
-        <View style={{ 
-          borderWidth: 2, 
-          borderColor: '#1e3a8a', 
-          borderTopWidth: 0,
-          padding: 20,
-          backgroundColor: '#FFEBEE',
-          minHeight: 300
-        }}>
-          {tour?.instructions?.map((instruction, idx) => (
-            <View key={idx} style={[styles.listItem, { marginBottom: 8 }]}>
-              <Text style={styles.bullet}>{idx + 1}.</Text>
-              <Text style={styles.listText}>{instruction}</Text>
-            </View>
-          )) || (
-            <Text style={{ textAlign: 'center', color: '#666', fontStyle: 'italic' }}>
-              No instructions available
-            </Text>
-          )}
-        </View>
-        
-        {/* Optional Tour Remarks & EMI Remarks */}
-        <View style={styles.twoColumn}>
-          <View style={styles.column}>
-            <View style={[styles.redBg, { marginTop: 15, marginBottom: 10 }]}>
-              <Text>Optional Tour Remarks</Text>
-            </View>
-            
-            <View style={{ 
-              borderWidth: 2, 
-              borderColor: '#1e3a8a', 
-              borderTopWidth: 0,
-              padding: 10,
-              backgroundColor: '#FFEBEE',
-              minHeight: 100
-            }}>
-              {tour?.optionalTourRemarks?.map((remark, idx) => (
-                <View key={idx} style={styles.listItem}>
-                  <Text style={styles.bullet}>•</Text>
-                  <Text style={styles.listText}>{remark}</Text>
-                </View>
-              )) || (
-                <Text style={{ textAlign: 'center', color: '#666', fontStyle: 'italic' }}>
-                  No optional tour remarks available
-                </Text>
-              )}
-            </View>
-          </View>
-          
-          <View style={styles.column}>
-            <View style={[styles.redBg, { marginTop: 15, marginBottom: 10 }]}>
-              <Text>EMI Remarks</Text>
-            </View>
-            
-            <View style={{ 
-              borderWidth: 2, 
-              borderColor: '#1e3a8a', 
-              borderTopWidth: 0,
-              padding: 10,
-              backgroundColor: '#FFEBEE',
-              minHeight: 100
-            }}>
-              {tour?.emiRemarks?.map((remark, idx) => (
-                <View key={idx} style={styles.listItem}>
-                  <Text style={styles.bullet}>•</Text>
-                  <Text style={styles.listText}>{remark}</Text>
-                </View>
-              )) || (
-                <Text style={{ textAlign: 'center', color: '#666', fontStyle: 'italic' }}>
-                  No EMI remarks available
-                </Text>
-              )}
-            </View>
-          </View>
-        </View>
-        
-        {/* Additional Remarks */}
-        {tour?.additionalRemarks && tour.additionalRemarks.length > 0 && (
-          <View style={{ marginTop: 15 }}>
-            <View style={[styles.redBg, { marginBottom: 10 }]}>
-              <Text>Additional Remarks</Text>
-            </View>
-            
-            <View style={{ 
-              borderWidth: 2, 
-              borderColor: '#1e3a8a', 
-              borderTopWidth: 0,
-              padding: 15,
-              backgroundColor: '#FFEBEE'
-            }}>
-              {tour.additionalRemarks.map((remark, idx) => (
-                <View key={idx} style={styles.listItem}>
+          {/* Tour Cost Remarks (for both) */}
+          {tour?.tourCost?.remarks && tour.tourCost.remarks.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.title}>Tour Cost Remarks:</Text>
+              {tour.tourCost.remarks.map((remark, index) => (
+                <View key={index} style={styles.listItem}>
                   <Text style={styles.bullet}>•</Text>
                   <Text style={styles.listText}>{remark}</Text>
                 </View>
               ))}
             </View>
+          )}
+        </View>
+        
+        <Text style={styles.pageNumber} render={({ pageNumber, totalPages }) => (
+          `${pageNumber} / ${totalPages}`
+        )} fixed />
+      </Page>
+
+      {/* Page 4: Inclusions, Exclusions & Optional Tours */}
+      <Page size="A4" style={styles.page}>
+        <View style={styles.section}>
+          <Text style={styles.subHeader}>Cost Includes</Text>
+          {tour?.inclusionExclusion?.inclusions?.map((inclusion, index) => (
+            <View key={index} style={styles.listItem}>
+              <Text style={[styles.bullet, { color: '#2E4D98' }]}>✓</Text>
+              <Text style={styles.listText}>{inclusion.item || inclusion}</Text>
+            </View>
+          ))}
+        </View>
+        
+        <View style={styles.section}>
+          <Text style={styles.subHeader}>Cost Excludes</Text>
+          {tour?.inclusionExclusion?.exclusions?.map((exclusion, index) => (
+            <View key={index} style={styles.listItem}>
+              <Text style={[styles.bullet, { color: '#E53C42' }]}>✗</Text>
+              <Text style={styles.listText}>{exclusion.item || exclusion}</Text>
+            </View>
+          ))}
+        </View>
+        
+        {/* Optional Tours (for both) */}
+        {tour?.optionalTours && tour.optionalTours.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.subHeader}>Optional Tours</Text>
+            {renderOptionalToursTable()}
           </View>
         )}
         
-        <View style={{ marginTop: 30, paddingTop: 20, borderTopWidth: 1, borderTopColor: '#ddd' }}>
-          <Text style={{ textAlign: 'center', fontSize: 9, color: '#666' }}>
-            This PDF contains all tour details for {tour?.title || 'International Tour Package'}
-          </Text>
-          <Text style={{ textAlign: 'center', fontSize: 8, color: '#999', marginTop: 5 }}>
-            Generated on {new Date().toLocaleDateString('en-IN', { 
+        {/* Optional Tour Remarks (for both) */}
+        {tour?.optionalTourRemarks && tour.optionalTourRemarks.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.title}>Optional Tour Remarks:</Text>
+            {tour.optionalTourRemarks.map((remark, index) => (
+              <View key={index} style={styles.listItem}>
+                <Text style={styles.bullet}>•</Text>
+                <Text style={styles.listText}>{remark}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+        
+        <Text style={styles.pageNumber} render={({ pageNumber, totalPages }) => (
+          `${pageNumber} / ${totalPages}`
+        )} fixed />
+      </Page>
+
+      {/* Page 5: Flight & Hotels */}
+      <Page size="A4" style={styles.page}>
+        {/* FLIGHT SECTION */}
+        {isGroupTour ? (
+          // GROUP TOUR: Show flight table
+          <View style={styles.section}>
+            <Text style={styles.subHeader}>Flight Details</Text>
+            {renderGroupAirlinesTable()}
+            
+            {tour?.airlines?.remarks && tour.airlines.remarks.length > 0 && (
+              <View style={styles.section}>
+                <Text style={styles.title}>Flight Remarks:</Text>
+                {tour.airlines.remarks.map((remark, index) => (
+                  <View key={index} style={styles.listItem}>
+                    <Text style={styles.bullet}>•</Text>
+                    <Text style={styles.listText}>{remark}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+        ) : (
+          // INDIVIDUAL TOUR: Show flight descriptions
+          renderIndividualFlightDescriptions()
+        )}
+        
+        {/* HOTELS SECTION (for both) */}
+        <View style={styles.section}>
+          <Text style={styles.subHeader}>Hotel Details</Text>
+          {renderHotelsTable()}
+          
+          {tour?.hotels?.remarks && tour.hotels.remarks.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.title}>Hotel Remarks:</Text>
+              {tour.hotels.remarks.map((remark, index) => (
+                <View key={index} style={styles.listItem}>
+                  <Text style={styles.bullet}>•</Text>
+                  <Text style={styles.listText}>{remark}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
+        
+        <Text style={styles.pageNumber} render={({ pageNumber, totalPages }) => (
+          `${pageNumber} / ${totalPages}`
+        )} fixed />
+      </Page>
+
+      {/* Page 6: Booking & Cancellation Policies */}
+      <Page size="A4" style={styles.page}>
+        <View style={styles.section}>
+          <Text style={styles.subHeader}>Booking Policy</Text>
+          
+          {tour?.booking?.items?.map((item, index) => (
+            <View key={index} style={styles.listItem}>
+              <Text style={[styles.bullet, { color: '#2E4D98' }]}>{index + 1}.</Text>
+              <Text style={styles.listText}>{item}</Text>
+            </View>
+          ))}
+          
+          {tour?.booking?.amountDetails && tour.booking.amountDetails.length > 0 && (
+            <View style={[styles.section, { marginTop: 10 }]}>
+              <Text style={styles.title}>Amount Details:</Text>
+              {tour.booking.amountDetails.map((amount, index) => (
+                <View key={index} style={styles.flexRow}>
+                  <Text style={styles.text}>Item {index + 1}:</Text>
+                  <Text style={styles.boldText}>
+                    {amount === "Aadhaar Card" || amount === "aadhaar card" 
+                      ? "Aadhaar Card" 
+                      : amount === "Pan Card" || amount === "pan card"
+                      ? "Pan Card"
+                      : `₹${parseInt(amount.replace(/[^0-9]/g, '') || '0').toLocaleString('en-IN')}`}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          )}
+          
+          {tour?.bookingRemarks && tour.bookingRemarks.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.title}>Booking Remarks:</Text>
+              {tour.bookingRemarks.map((remark, index) => (
+                <View key={index} style={styles.listItem}>
+                  <Text style={styles.bullet}>•</Text>
+                  <Text style={styles.listText}>{remark}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
+        
+        <Text style={styles.pageNumber} render={({ pageNumber, totalPages }) => (
+          `${pageNumber} / ${totalPages}`
+        )} fixed />
+      </Page>
+
+      {/* Page 7: Cancellation Policy & Instructions */}
+      <Page size="A4" style={styles.page}>
+        <View style={styles.section}>
+          <Text style={styles.subHeader}>Cancellation Policy</Text>
+          
+          {tour?.cancellation?.policies?.map((policy, index) => (
+            <View key={index} style={styles.listItem}>
+              <Text style={[styles.bullet, { color: '#E53C42' }]}>{index + 1}.</Text>
+              <Text style={styles.listText}>{policy}</Text>
+            </View>
+          ))}
+          
+          {tour?.cancellation?.charges && tour.cancellation.charges.length > 0 && (
+            <View style={[styles.section, { marginTop: 10 }]}>
+              <Text style={styles.title}>Cancellation Charges:</Text>
+              {tour.cancellation.charges.map((charge, index) => (
+                <View key={index} style={styles.flexRow}>
+                  <Text style={styles.text}>Charge {index + 1}:</Text>
+                  <Text style={[styles.boldText, { color: '#E53C42' }]}>{charge}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+          
+          {tour?.cancellationRemarks && tour.cancellationRemarks.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.title}>Cancellation Remarks:</Text>
+              {tour.cancellationRemarks.map((remark, index) => (
+                <View key={index} style={styles.listItem}>
+                  <Text style={styles.bullet}>•</Text>
+                  <Text style={styles.listText}>{remark}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
+        
+        <View style={styles.section}>
+          <Text style={styles.subHeader}>Instructions</Text>
+          {tour?.instructions?.map((instruction, index) => (
+            <View key={index} style={styles.listItem}>
+              <Text style={[styles.bullet, { color: '#2E4D98' }]}>{index + 1}.</Text>
+              <Text style={styles.listText}>{instruction.item || instruction}</Text>
+            </View>
+          ))}
+        </View>
+        
+        <Text style={styles.pageNumber} render={({ pageNumber, totalPages }) => (
+          `${pageNumber} / ${totalPages}`
+        )} fixed />
+      </Page>
+
+      {/* Page 8: EMI Options & Additional Remarks */}
+      <Page size="A4" style={styles.page}>
+        {/* EMI Options (for both) */}
+        {tour?.emiOptions?.options && tour.emiOptions.options.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.subHeader}>EMI Options</Text>
+            {renderEMITable()}
+          </View>
+        )}
+        
+        {/* EMI Remarks (for both) */}
+        {tour?.emiRemarks && tour.emiRemarks.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.title}>EMI Remarks:</Text>
+            {tour.emiRemarks.map((remark, index) => (
+              <View key={index} style={styles.listItem}>
+                <Text style={styles.bullet}>•</Text>
+                <Text style={styles.listText}>{remark}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+        
+        {/* Additional Remarks (for both) */}
+        {tour?.additionalRemarks && tour.additionalRemarks.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.title}>Additional Remarks:</Text>
+            {tour.additionalRemarks.map((remark, index) => (
+              <View key={index} style={styles.listItem}>
+                <Text style={styles.bullet}>•</Text>
+                <Text style={styles.listText}>{remark}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+        
+        <View style={[styles.section, { marginTop: 30 }]}>
+          <Text style={styles.note}>This document contains all tour details for reference.</Text>
+          <Text style={styles.note}>For booking or inquiries, please contact our customer service.</Text>
+          <Text style={[styles.note, { marginTop: 10 }]}>
+            Generated on: {new Date().toLocaleDateString('en-IN', { 
               day: 'numeric', 
               month: 'long', 
               year: 'numeric',
@@ -1777,9 +1941,64 @@ const TourPdfDocumentinternational: React.FC<TourPdfDocumentinternationalProps> 
           </Text>
         </View>
         
-        <Text style={styles.footer}>
-          Page 9 • Final Page
-        </Text>
+        <Text style={styles.pageNumber} render={({ pageNumber, totalPages }) => (
+          `${pageNumber} / ${totalPages}`
+        )} fixed />
+      </Page>
+
+      {/* Page 9: Visa Information */}
+      <Page size="A4" style={styles.page}>
+        <View style={styles.section}>
+          <Text style={[styles.header, { fontSize: 18, marginBottom: 20 }]}>
+            Visa Information
+          </Text>
+          
+          {/* Visa Tabs Overview */}
+          <View style={{ marginBottom: 15 }}>
+            <Text style={[styles.title, { marginBottom: 8 }]}>Available Visa Sections:</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 5 }}>
+              <View style={{ backgroundColor: activeVisaTab === 'tourist' ? '#A72703' : '#FFE797', padding: 5, borderRadius: 3 }}>
+                <Text style={activeVisaTab === 'tourist' ? { color: 'white', fontSize: 8 } : { color: 'black', fontSize: 8 }}>Tourist Visa</Text>
+              </View>
+              <View style={{ backgroundColor: activeVisaTab === 'transit' ? '#A72703' : '#FFE797', padding: 5, borderRadius: 3 }}>
+                <Text style={activeVisaTab === 'transit' ? { color: 'white', fontSize: 8 } : { color: 'black', fontSize: 8 }}>Transit Visa</Text>
+              </View>
+              <View style={{ backgroundColor: activeVisaTab === 'business' ? '#A72703' : '#FFE797', padding: 5, borderRadius: 3 }}>
+                <Text style={activeVisaTab === 'business' ? { color: 'white', fontSize: 8 } : { color: 'black', fontSize: 8 }}>Business Visa</Text>
+              </View>
+              <View style={{ backgroundColor: activeVisaTab === 'forms' ? '#A72703' : '#FFE797', padding: 5, borderRadius: 3 }}>
+                <Text style={activeVisaTab === 'forms' ? { color: 'white', fontSize: 8 } : { color: 'black', fontSize: 8 }}>Visa Forms</Text>
+              </View>
+              <View style={{ backgroundColor: activeVisaTab === 'photo' ? '#A72703' : '#FFE797', padding: 5, borderRadius: 3 }}>
+                <Text style={activeVisaTab === 'photo' ? { color: 'white', fontSize: 8 } : { color: 'black', fontSize: 8 }}>Photo</Text>
+              </View>
+              <View style={{ backgroundColor: activeVisaTab === 'fees' ? '#A72703' : '#FFE797', padding: 5, borderRadius: 3 }}>
+                <Text style={activeVisaTab === 'fees' ? { color: 'white', fontSize: 8 } : { color: 'black', fontSize: 8 }}>Visa Fees</Text>
+              </View>
+              <View style={{ backgroundColor: activeVisaTab === 'time' ? '#A72703' : '#FFE797', padding: 5, borderRadius: 3 }}>
+                <Text style={activeVisaTab === 'time' ? { color: 'white', fontSize: 8 } : { color: 'black', fontSize: 8 }}>Submission & Pick Up</Text>
+              </View>
+            </View>
+          </View>
+          
+          {/* Current Visa Section */}
+          {renderVisaSection()}
+          
+          {/* Visa Fee Types Note */}
+          {activeVisaTab === 'fees' && (
+            <View style={styles.highlight}>
+              <Text style={styles.text}>
+                <Text style={{ fontWeight: 'bold' }}>Note:</Text> Currently showing {activeVisaFeeType === 'tourist' ? 'Tourist Visa' : 
+                activeVisaFeeType === 'transit' ? 'Transit Visa' : 
+                activeVisaFeeType === 'business' ? 'Business Visa' : 'Visa'} fees
+              </Text>
+            </View>
+          )}
+        </View>
+        
+        <Text style={styles.pageNumber} render={({ pageNumber, totalPages }) => (
+          `${pageNumber} / ${totalPages}`
+        )} fixed />
       </Page>
     </Document>
   );

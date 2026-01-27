@@ -201,7 +201,8 @@ const FlightSearchRoundTrip: React.FC<FlightSearchRoundTripProps> = ({
           children: children,
           infants: infants,
           depCityCode: flight.dep_city_code,
-          arrCityCode: flight.arr_city_code
+          arrCityCode: flight.arr_city_code,
+          availableSeats: flight.available_seats // Add this line
         };
 
         if (onBookFlight) {

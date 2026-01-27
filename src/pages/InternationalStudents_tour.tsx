@@ -98,6 +98,10 @@ const [showSearchBtn, setShowSearchBtn] = useState(false);
   const [selectedState, setSelectedState] = useState<string>(state || "Andaman");
   const [tourDepartures, setTourDepartures] = useState<Record<number | string, string[]>>({});
   const [departureMonths, setDepartureMonths] = useState<string[]>([]);
+const [internationalDestinations, setInternationalDestinations] = useState<string[]>([]);
+const [loadingDestinations, setLoadingDestinations] = useState(false);
+const [appliedSearchQuery, setAppliedSearchQuery] = useState("");
+  const [activeSearchQuery, setActiveSearchQuery] = useState(""); 
 
   const [allTours, setAllTours] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -235,6 +239,44 @@ const [showSearchBtn, setShowSearchBtn] = useState(false);
     fetchTourDetails();
   }, [allTours]);
 
+
+  
+      
+      useEffect(() => {
+        const fetchInternationalDestinations = async () => {
+          try {
+            setLoadingDestinations(true);
+            console.log("Fetching international destinations...");
+      
+            const destinationsRes = await fetch(`${BASE_URL}/api/destinations/international`);
+      
+            if (!destinationsRes.ok) {
+              throw new Error(`Failed to fetch destinations: ${destinationsRes.status}`);
+            }
+      
+            // Tell TS what the API returns
+            const data: { name: string }[] = await destinationsRes.json();
+            console.log("Fetched international destinations:", data);
+      
+            // Now TS knows dest.name is a string
+            const destinationNames: string[] = data.map(dest => dest.name);
+      
+            const uniqueSortedDestinations: string[] = [...new Set(destinationNames)].sort(
+              (a, b) => a.localeCompare(b)
+            );
+      
+            setInternationalDestinations(uniqueSortedDestinations);
+          } catch (err) {
+            console.error("Error fetching international destinations:", err);
+          } finally {
+            setLoadingDestinations(false);
+          }
+        };
+      
+        fetchInternationalDestinations();
+      }, []);
+    
+
   // ---------- Decode state from URL ----------
   useEffect(() => {
     if (state) {
@@ -322,25 +364,8 @@ const [showSearchBtn, setShowSearchBtn] = useState(false);
     });
   };
 
-     const handleSearchTourCode = (e: React.FormEvent) => {
-  e.preventDefault();
-  const query = searchQuery.trim().toUpperCase();
-  
-  if (query === "") {
-    setIsSearchActive(false);
-    return;
-  }
-  
-  setIsSearchActive(true);
-  console.log("Search activated for:", query);
-};
 
-// Add this function to clear search
-const clearSearch = () => {
-  setSearchQuery("");
-  setIsSearchActive(false);
-  setShowSearchBtn(false);
-};
+ 
   // ---------- Format tours when data changes ----------
   useEffect(() => {
     if (allTours.length === 0) {
@@ -381,24 +406,19 @@ const clearSearch = () => {
 
     let result = [...formattedTours];
 
-  if (isSearchActive && searchQuery.trim() !== "") {
-    const query = searchQuery.trim().toUpperCase();
+ if (isSearchActive && appliedSearchQuery !== "") {
+    const query = appliedSearchQuery.toUpperCase();
     console.log("Applying search filter for query:", query);
-    
+
     result = result.filter(tour => {
-      // Search by tour code (case-insensitive)
       const codeMatch = tour.code?.toUpperCase().includes(query);
-      
-      // Optional: also search by title if you want
       const titleMatch = tour.title?.toUpperCase().includes(query);
-      
       return codeMatch || titleMatch;
     });
-    
     console.log("After search filter:", result.length);
   }
+    console.log("Initial senior citizen tours count:", result.length);
 
-    console.log("Initial student tours count:", result.length);
 
     // Duration filter
     console.log("Duration range:", durationRange);
@@ -444,17 +464,17 @@ const clearSearch = () => {
     }
 
     // World tours filter (won't really match for isIndian=true, but safe)
-    if (selectedWorldTours.length > 0) {
-      console.log("Selected World tours:", selectedWorldTours);
-      result = result.filter((tour) => {
-        if (tour.isIndian) return false;
-        return selectedWorldTours.some((selectedLocation) =>
-          (tour.locationTags || []).some((tag: string) =>
-            tag.toLowerCase().includes(selectedLocation.toLowerCase())
-          )
-        );
-      });
-    }
+    // if (selectedWorldTours.length > 0) {
+    //   console.log("Selected World tours:", selectedWorldTours);
+    //   result = result.filter((tour) => {
+    //     if (tour.isIndian) return false;
+    //     return selectedWorldTours.some((selectedLocation) =>
+    //       (tour.locationTags || []).some((tag: string) =>
+    //         tag.toLowerCase().includes(selectedLocation.toLowerCase())
+    //       )
+    //     );
+    //   });
+    // }
 
     // Sorting
     console.log("Sort type:", sortType);
@@ -473,13 +493,37 @@ const clearSearch = () => {
     formattedTours,
     durationRange,
     priceRange,
-  isSearchActive, // ADD THIS
-  searchQuery, // ADD THIS
+  isSearchActive, 
+appliedSearchQuery, 
     selectedDepartureMonths,
     selectedIndianTours,
     selectedWorldTours,
     sortType,
   ]);
+
+
+   const handleSearchTourCode = (e: React.FormEvent) => {
+   e.preventDefault();
+ 
+   const query = searchQuery.trim().toUpperCase();
+ 
+   if (!query) {
+     setIsSearchActive(false);
+     setAppliedSearchQuery("");
+     return;
+   }
+ 
+   setAppliedSearchQuery(query); // ✅ freeze search value
+   setIsSearchActive(true);
+ };
+ 
+ const clearSearch = () => {
+   setSearchQuery("");
+   setAppliedSearchQuery("");
+   setIsSearchActive(false);
+   setShowSearchBtn(false);
+ };
+  
 
   // ---------- Filter handlers ----------
   const handleDepartureMonthChange = (month: string, checked: boolean) => {
@@ -635,51 +679,49 @@ const clearSearch = () => {
               {/* Indian Tours */}
               <div className="mb-8">
 
-                          <div className="mb-4">
-                            <form onSubmit={handleSearchTourCode} className="flex gap-2">
-                              <div className="relative flex-1">
-                                <Input
-                                  type="text"
-                                  placeholder="Search by tour code"
-                                  value={searchQuery}
-                                  onChange={(e) => {
-                                    setSearchQuery(e.target.value);
-                                    setShowSearchBtn(e.target.value.trim() !== "");
-                                  }}
-                                  onFocus={() => setShowSearchBtn(true)}
-                                  onKeyDown={(e) => {
-                                    if (e.key === "Enter") {
-                                      handleSearchTourCode(e);
-                                    }
-                                  }}
-                                  className="border-[#2E4D98] focus:border-[#2E4D98] focus:ring-[#2E4D98] pr-8   placeholder:text-sm"
-                                />
-        
-        
-                                {searchQuery && (
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      clearSearch();
-                                      setShowSearchBtn(false);
-                                    }}
-                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                                  >
-                                    ✕
-                                  </button>
-                                )}
-                              </div>
-        
-                              {showSearchBtn && (
-                                <Button
-                                  type="submit"
-                                  className="bg-red-600 hover:bg-red-700 text-white px-6"
-                                >
-                                  Search
-                                </Button>
-                              )}
-                            </form>
-                          </div>
+                      <div className="mb-4">
+                                     <form onSubmit={handleSearchTourCode} className="flex gap-2">
+                                       <div className="relative flex-1">
+                                         <Input
+                                           type="text"
+                                           placeholder="Search by tour code"
+                                           value={searchQuery}
+                                           onChange={(e) => {
+                                             setSearchQuery(e.target.value);
+                                             setShowSearchBtn(e.target.value.trim() !== "");
+                                           }}
+                                           onKeyDown={(e) => {
+                                             if (e.key === "Enter") {
+                                               handleSearchTourCode(e);
+                                             }
+                                           }}
+                                           className="border-[#2E4D98] focus:border-[#2E4D98] focus:ring-[#2E4D98] pr-8"
+                                         />
+                                         
+                                         {searchQuery && (
+                                           <button
+                                             type="button"
+                                             onClick={() => {
+                                               clearSearch();
+                                               setShowSearchBtn(false);
+                                             }}
+                                             className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                           >
+                                             ✕
+                                           </button>
+                                         )}
+                                       </div>
+                                       
+                                       {showSearchBtn && (
+                                         <Button
+                                           type="submit"
+                                           className="bg-red-600 hover:bg-red-700 text-white px-6"
+                                         >
+                                           Search
+                                         </Button>
+                                       )}
+                                     </form>
+                                   </div>
                 
              <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
                     <h2 className="text-2xl font-bold text-[#2E4D98]">India Dom Tours</h2>
@@ -727,7 +769,7 @@ const clearSearch = () => {
                               onCheckedChange={(checked) => {
                                 if (checked) {
                                   clearAllFilters();
-                                  navigate(`/tours-packages/${encodeURIComponent(place)}`);
+                                  navigate(`/students_tours/${encodeURIComponent(place)}`);
                                 }
                               }}
                               className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
@@ -739,7 +781,7 @@ const clearSearch = () => {
                               }`}
                               onClick={() => {
                                 clearAllFilters();
-                                navigate(`/tours-packages/${encodeURIComponent(place)}`);
+                                navigate(`/students_tours/${encodeURIComponent(place)}`);
                               }}
                             >
                               {place}
@@ -759,76 +801,75 @@ const clearSearch = () => {
 
               {/* World Tours */}
               <div>
-                     <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
-                       <h2 className="text-2xl font-bold text-[#2E4D98]">Intl Indv Tours</h2>
-                     </div>
-                   
-                     {(() => {
-                       const allWorldTours = [
-                         'Africa',
-                         'America',
-                         'Australia NewZealand',
-                         'Bhutan',
-                         'Dubai and MiddleEast',
-                         'Eurasia',
-                         'Europe',
-                         'Japan China',
-                         'Mauritius',
-                         'Nepal',
-                         'Seychelles',
-                         'South East Asia',
-                         'SriLanka Maldives'
-                       ];
-                   
-                       const sortedWorldTours = [...allWorldTours].sort((a, b) =>
-                         a.localeCompare(b)
-                       );
-                   
-                       const visibleWorldTours = showMoreWorld
-                         ? sortedWorldTours
-                         : sortedWorldTours.slice(0, 6);
-                   
-                       return (
-                         <div className={`${showMoreWorld ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
-                           {visibleWorldTours.map((place) => {
-                             const isCurrentWorldTour = selectedWorldTours.includes(place);
-                   
-                             return (
-                               <div key={place} className="flex items-center gap-3 cursor-pointer">
-                                 <Checkbox
-                                   checked={isCurrentWorldTour}
-                                   onCheckedChange={(checked) => {
-                                     if (checked) {
-                                       clearAllFilters();
-                                       navigate(`/intl-students_tours/${encodeURIComponent(place)}`);
-                                     }
-                                   }}
-                                   className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
-                                 />
-                                 <span
-                                   className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${isCurrentWorldTour ? 'font-bold text-[#2E4D98]' : ''
-                                     }`}
-                                   onClick={() => {
-                                     clearAllFilters();
-                                     navigate(`/intl-students_tours/${encodeURIComponent(place)}`);
-                                   }}
-                                 >
-                                   {place}
-                                 </span>
-                               </div>
-                             );
-                           })}
-                         </div>
-                       );
-                     })()}
-                   
-                     <button
-                       onClick={() => setShowMoreWorld(!showMoreWorld)}
-                       className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
-                     >
-                       {showMoreWorld ? "Show Less" : "Show More"}
-                     </button>
-                   </div>
+                                       <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
+                                         <h2 className="text-2xl font-bold text-[#2E4D98]">Intl Indv Tours</h2>
+                                       </div>
+                                     
+                                       {loadingDestinations ? (
+                                         <div className="text-center py-4">
+                                           <p className="text-gray-500">Loading international destinations...</p>
+                                         </div>
+                                       ) : internationalDestinations.length === 0 ? (
+                                         <div className="text-center py-4">
+                                           <p className="text-gray-500">No international destinations found</p>
+                                         </div>
+                                       ) : (
+                                         <>
+                                           <div className={`${showMoreWorld ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
+                                             {internationalDestinations
+                                               .slice(0, showMoreWorld ? internationalDestinations.length : 6)
+                                               .map((place) => {
+                                                 const isSelected = selectedWorldTours.includes(place);
+                                                 
+                                                 return (
+                                                   <div 
+                                                     key={place} 
+                                                     className="flex items-center gap-3 cursor-pointer"
+                                                     onClick={() => {
+                                                       if (!selectedWorldTours.includes(place)) {
+                                                         setSelectedWorldTours([...selectedWorldTours, place]);
+                                                       }
+                                                       const encodedDestination = encodeURIComponent(place);
+                                                       navigate(`/intl-students_tours/${encodedDestination}`);
+                                                     }}
+                                                   >
+                                                     <Checkbox
+                                                       checked={isSelected}
+                                                       onCheckedChange={(checked) => {
+                                                         if (checked) {
+                                                           setSelectedWorldTours([...selectedWorldTours, place]);
+                                                           const encodedDestination = encodeURIComponent(place);
+                                                           navigate(`/intl-students_tours/${encodedDestination}`);
+                                                         } else {
+                                                           setSelectedWorldTours(selectedWorldTours.filter(t => t !== place));
+                                                         }
+                                                       }}
+                                                       className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
+                                                       onClick={(e) => {
+                                                         e.stopPropagation(); 
+                                                       }}
+                                                     />
+                                                     <span 
+                                                       className={`${isSelected ? 'font-bold text-[#2E4D98]' : 'text-gray-700 hover:text-[#2E4D98]'} cursor-pointer flex-1`}
+                                                     >
+                                                       {place}
+                                                     </span>
+                                                   </div>
+                                                 );
+                                               })}
+                                           </div>
+                                     
+                                           {internationalDestinations.length > 6 && (
+                                             <button
+                                               onClick={() => setShowMoreWorld(!showMoreWorld)}
+                                               className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
+                                             >
+                                               {showMoreWorld ? "Show Less" : "Show More"}
+                                             </button>
+                                           )}
+                                         </>
+                                       )}
+                                     </div>
             </div>
           </aside>
 
