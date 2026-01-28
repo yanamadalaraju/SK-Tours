@@ -544,7 +544,6 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: '#FFEBEE',
     borderWidth: 1,
-    borderColor: '#000',
     borderTopWidth: 0,
     borderStyle: 'solid',
     minHeight: 200,
@@ -566,10 +565,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   photoSpecsContainer: {
-    backgroundColor: '#f0f9ff',
     padding: 10,
     borderWidth: 1,
-    borderColor: '#bae6fd',
     marginBottom: 10,
   },
 });
@@ -613,149 +610,138 @@ const TourPdfDocumentinternational: React.FC<TourPdfDocumentProps> = ({
   const allImages = tourImages && Array.isArray(tourImages) ? tourImages : [];
   const mainImage = allImages.length > 0 ? allImages[currentImageIndex] || allImages[0] : null;
 
-  // ======================== VISA FUNCTIONS ========================
-  // Function to render Visa Tourist tab content
-  const renderVisaTourist = () => {
-    if (!tour?.visaDetails?.tourist || tour.visaDetails.tourist.length === 0) {
-      return (
-        <View style={styles.highlight}>
-          <Text style={styles.text}>No tourist visa information available</Text>
-        </View>
-      );
-    }
-
+const renderVisaTourist = () => {
+  if (!tour?.visaDetails?.tourist || tour.visaDetails.tourist.length === 0) {
     return (
-      <View>
-        <Text style={[styles.title, { marginBottom: 10 }]}>Documents Required for Tourist Visa:</Text>
-        {tour.visaDetails.tourist.map((description, index) => (
-          <View key={index} style={styles.visaListItem}>
-            <Text style={styles.text}>{description}</Text>
-          </View>
-        ))}
+      <View style={styles.highlight}>
+        <Text style={styles.text}>No tourist visa information available</Text>
       </View>
     );
-  };
+  }
+
+  return (
+    <View>
+      <Text style={[styles.title, { marginBottom: 10 }]}>Documents Required for Tourist Visa:</Text>
+      {tour.visaDetails.tourist.map((description, index) => (
+        <View key={index} style={styles.visaListItem}>
+          <Text style={styles.text}>{description}</Text>
+        </View>
+      ))}
+    </View>
+  );
+};
+
 
   // Function to render Visa Transit tab content
-  const renderVisaTransit = () => {
-    if (!tour?.visaDetails?.transit || tour.visaDetails.transit.length === 0) {
-      return (
-        <View style={styles.highlight}>
-          <Text style={styles.text}>No transit visa information available</Text>
-        </View>
-      );
-    }
-
+const renderVisaTransit = () => {
+  if (!tour?.visaDetails?.transit || tour.visaDetails.transit.length === 0) {
     return (
-      <View>
-        <Text style={[styles.title, { marginBottom: 10 }]}>Documents Required for Transit Visa:</Text>
-        {tour.visaDetails.transit.map((description, index) => (
-          <View key={index} style={styles.visaListItem}>
-            <Text style={styles.text}>{description}</Text>
+      <View style={styles.highlight}>
+        <Text style={styles.text}>No transit visa information available</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View>
+      <Text style={[styles.title, { marginBottom: 10 }]}>Documents Required for Transit Visa:</Text>
+      {tour.visaDetails.transit.map((description, index) => (
+        <View key={index} style={styles.visaListItem}>
+          <Text style={styles.text}>{description}</Text>
+        </View>
+      ))}
+    </View>
+  );
+};
+
+
+const renderVisaBusiness = () => {
+  if (!tour?.visaDetails?.business || tour.visaDetails.business.length === 0) {
+    return (
+      <View style={styles.highlight}>
+        <Text style={styles.text}>No business visa information available</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View>
+      <Text style={[styles.title, { marginBottom: 10 }]}>Documents Required for Business Visa:</Text>
+      {tour.visaDetails.business.map((description, index) => (
+        <View key={index} style={styles.visaListItem}>
+          <Text style={styles.text}>{description}</Text>
+        </View>
+      ))}
+    </View>
+  );
+};
+
+const renderVisaForms = () => {
+  if (!tour?.visaForms || tour.visaForms.length === 0) {
+    return (
+      <View style={styles.highlight}>
+        <Text style={styles.text}>No visa forms available</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View>
+      <View style={styles.visaTableContainer}>
+        {/* Header - SAME AS BEFORE */}
+        <View style={styles.visaTableHeader}>
+          <Text style={[styles.visaTableHeaderCell, { width: '70%' }]}>Visa Type</Text>
+          <Text style={[styles.visaTableHeaderCell, { width: '15%' }]}>Action 1</Text>
+          <Text style={[styles.visaTableHeaderCell, { width: '15%' }]}>Action 2</Text>
+        </View>
+
+        {/* ✅ CHANGED: Now uses dynamic data from API */}
+        {tour.visaForms.map((form, index) => (
+          <View 
+            key={index} 
+            style={[
+              styles.visaTableRow,
+              { backgroundColor: index % 2 === 0 ? '#FFEBEE' : '#FFEBEE80' }
+            ]}
+          >
+            {/* ✅ CHANGED: Dynamic Visa Type from API */}
+            <Text style={[styles.visaTableCell, { width: '70%' }]}>
+              {form.visaType || 'Visa Form'} {/* ← Gets from API: "telangana" */}
+            </Text>
+            
+            {/* ✅ CHANGED: Dynamic Download Action from API */}
+            <View style={[styles.visaTableCell, { width: '15%', justifyContent: 'center', alignItems: 'center' }]}>
+              <View style={styles.visaFormButton}>
+                <Text style={styles.visaFormButtonText}>
+                  {form.downloadAction || "Download"} {/* ← Gets from API */}
+                </Text>
+              </View>
+            </View>
+            
+            {/* ✅ CHANGED: Dynamic Fill Action from API */}
+            <View style={[styles.visaTableCell, { width: '15%', justifyContent: 'center', alignItems: 'center' }]}>
+              <View style={[styles.visaFormButton, { backgroundColor: '#8B4513' }]}>
+                <Text style={styles.visaFormButtonText}>
+                  {form.fillAction || "Fill Manually"} {/* ← Gets from API */}
+                </Text>
+              </View>
+            </View>
           </View>
         ))}
       </View>
-    );
-  };
 
-  // Function to render Visa Business tab content
-  const renderVisaBusiness = () => {
-    if (!tour?.visaDetails?.business || tour.visaDetails.business.length === 0) {
-      return (
-        <View style={styles.highlight}>
-          <Text style={styles.text}>No business visa information available</Text>
+      {/* ✅ ADDED: Shows remarks from API */}
+      {tour.visaForms[0]?.remarks && (
+        <View style={{ marginTop: 10 }}>
+          <Text style={[styles.text, { fontStyle: 'italic', color: '#666' }]}>
+            {tour.visaForms[0].remarks} {/* ← Gets from API: "visa form remaks" */}
+          </Text>
         </View>
-      );
-    }
+      )}
+    </View>
+  );
+};
 
-    return (
-      <View>
-        <Text style={[styles.title, { marginBottom: 10 }]}>Documents Required for Business Visa:</Text>
-        {tour.visaDetails.business.map((description, index) => (
-          <View key={index} style={styles.visaListItem}>
-            <Text style={styles.text}>{description}</Text>
-          </View>
-        ))}
-      </View>
-    );
-  };
-
-  // Function to render Visa Forms tab content
-  const renderVisaForms = () => {
-    if (!tour?.visaForms || tour.visaForms.length === 0) {
-      return (
-        <View style={styles.highlight}>
-          <Text style={styles.text}>No visa forms available</Text>
-        </View>
-      );
-    }
-
-    return (
-      <View>
-        <View style={styles.visaTableContainer}>
-          {/* Header */}
-          <View style={styles.visaTableHeader}>
-            <Text style={[styles.visaTableHeaderCell, { width: '70%' }]}>Visa Type</Text>
-            <Text style={[styles.visaTableHeaderCell, { width: '15%' }]}>Action 1</Text>
-            <Text style={[styles.visaTableHeaderCell, { width: '15%' }]}>Action 2</Text>
-          </View>
-
-          {/* Tourist Visa Form Row */}
-          <View style={[styles.visaTableRow, { backgroundColor: '#FFEBEE' }]}>
-            <Text style={[styles.visaTableCell, { width: '70%' }]}>
-              Tourist Visa Form Download
-            </Text>
-            <View style={[styles.visaTableCell, { width: '15%', justifyContent: 'center', alignItems: 'center' }]}>
-              <View style={styles.visaFormButton}>
-                <Text style={styles.visaFormButtonText}>Download</Text>
-              </View>
-            </View>
-            <View style={[styles.visaTableCell, { width: '15%', justifyContent: 'center', alignItems: 'center' }]}>
-              <View style={[styles.visaFormButton, { backgroundColor: '#8B4513' }]}>
-                <Text style={styles.visaFormButtonText}>Fill Manually</Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Transit Visa Form Row */}
-          <View style={[styles.visaTableRow, { backgroundColor: '#FFEBEE' }]}>
-            <Text style={[styles.visaTableCell, { width: '70%' }]}>
-              Transit Visa Form Download
-            </Text>
-            <View style={[styles.visaTableCell, { width: '15%', justifyContent: 'center', alignItems: 'center' }]}>
-              <View style={styles.visaFormButton}>
-                <Text style={styles.visaFormButtonText}>Download</Text>
-              </View>
-            </View>
-            <View style={[styles.visaTableCell, { width: '15%', justifyContent: 'center', alignItems: 'center' }]}>
-              <View style={[styles.visaFormButton, { backgroundColor: '#8B4513' }]}>
-                <Text style={styles.visaFormButtonText}>Fill</Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Business Visa Form Row */}
-          <View style={[styles.visaTableRow, { backgroundColor: '#FFEBEE' }]}>
-            <Text style={[styles.visaTableCell, { width: '70%' }]}>
-              Business Visa Form Download
-            </Text>
-            <View style={[styles.visaTableCell, { width: '15%', justifyContent: 'center', alignItems: 'center' }]}>
-              <View style={styles.visaFormButton}>
-                <Text style={styles.visaFormButtonText}>Download</Text>
-              </View>
-            </View>
-            <View style={[styles.visaTableCell, { width: '15%', justifyContent: 'center', alignItems: 'center' }]}>
-              <View style={[styles.visaFormButton, { backgroundColor: '#8B4513' }]}>
-                <Text style={styles.visaFormButtonText}>Fill Manually</Text>
-              </View>
-            </View>
-          </View>
-        </View>
-
-        <Text style={styles.note}>Note: Forms can be downloaded and filled as per requirements</Text>
-      </View>
-    );
-  };
 
   // Function to render Photo Specifications tab content
   const renderVisaPhoto = () => {
@@ -769,7 +755,6 @@ const TourPdfDocumentinternational: React.FC<TourPdfDocumentProps> = ({
 
     return (
       <View>
-        <Text style={[styles.title, { marginBottom: 10 }]}>Photo Specifications:</Text>
         <View style={styles.photoSpecsContainer}>
           {tour.visaDetails.photo.map((spec, index) => (
             <View key={index} style={styles.visaListItem}>
@@ -943,7 +928,7 @@ const renderVisaSection = () => {
       
       {/* TOURIST VISA */}
       <View style={{ marginBottom: 20 }}>
-        <Text style={[styles.subHeader, { backgroundColor: '#FFEBEE', padding: 8, marginBottom: 10 }]}>
+        <Text style={[styles.subHeader, { backgroundColor: '#FFEBEE', padding: 8, marginBottom: 0 }]}>
           Documents Required for Visa - TOURIST
         </Text>
         <View style={styles.visaContent}>
@@ -953,7 +938,7 @@ const renderVisaSection = () => {
       
       {/* TRANSIT VISA */}
       <View style={{ marginBottom: 20 }}>
-        <Text style={[styles.subHeader, { backgroundColor: '#FFEBEE', padding: 8, marginBottom: 10 }]}>
+        <Text style={[styles.subHeader, { backgroundColor: '#FFEBEE', padding: 8, marginBottom: 0 }]}>
           Documents Required for Visa - TRANSIT
         </Text>
         <View style={styles.visaContent}>
@@ -963,7 +948,7 @@ const renderVisaSection = () => {
       
       {/* BUSINESS VISA */}
       <View style={{ marginBottom: 20 }}>
-        <Text style={[styles.subHeader, { backgroundColor: '#FFEBEE', padding: 8, marginBottom: 10 }]}>
+        <Text style={[styles.subHeader, { backgroundColor: '#FFEBEE', padding: 8, marginBottom: 0 }]}>
           Documents Required for Visa - BUSINESS
         </Text>
         <View style={styles.visaContent}>
@@ -973,7 +958,7 @@ const renderVisaSection = () => {
       
       {/* VISA FORMS */}
       <View style={{ marginBottom: 20 }}>
-        <Text style={[styles.subHeader, { backgroundColor: '#FFEBEE', padding: 8, marginBottom: 10 }]}>
+        <Text style={[styles.subHeader, { backgroundColor: '#FFEBEE', padding: 8, marginBottom: 0 }]}>
           Visa Forms
         </Text>
         <View style={styles.visaContent}>
@@ -983,7 +968,7 @@ const renderVisaSection = () => {
       
       {/* PHOTO SPECIFICATIONS */}
       <View style={{ marginBottom: 20 }}>
-        <Text style={[styles.subHeader, { backgroundColor: '#FFEBEE', padding: 8, marginBottom: 10 }]}>
+        <Text style={[styles.subHeader, { backgroundColor: '#FFEBEE', padding: 8, marginBottom: 0 }]}>
           Photo Specifications
         </Text>
         <View style={styles.visaContent}>
@@ -993,7 +978,7 @@ const renderVisaSection = () => {
       
       {/* VISA FEES - Show all fee types */}
       <View style={{ marginBottom: 20 }}>
-        <Text style={[styles.subHeader, { backgroundColor: '#FFEBEE', padding: 8, marginBottom: 10 }]}>
+        <Text style={[styles.subHeader, { backgroundColor: '#FFEBEE', padding: 8, marginBottom: 0 }]}>
           Visa Fees
         </Text>
         <View style={styles.visaContent}>

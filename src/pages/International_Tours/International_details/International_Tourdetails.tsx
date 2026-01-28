@@ -209,6 +209,8 @@ const International_Tourdetails = () => {
   const [error, setError] = useState(null);
   const [tourType, setTourType] = useState('');
 const [autoScrollInterval, setAutoScrollInterval] = useState(null);  
+const [internationalDestinations, setInternationalDestinations] = useState<string[]>([]);
+const [loadingDestinations, setLoadingDestinations] = useState(false);
 
   const fetchTourDetails = async () => {
     try {
@@ -471,17 +473,17 @@ const [autoScrollInterval, setAutoScrollInterval] = useState(null);
     };
 
     // Process optional tours
-    const processOptionalTours = (optionalToursArray) => {
-      if (optionalToursArray && optionalToursArray.length > 0) {
-        return optionalToursArray.map(tour => ({
-          tourName: tour.tour_name || '',
-          adultPrice: formatPrice(tour.adult_price),
-          childPrice: formatPrice(tour.child_price)
-        }));
-      }
-      return [];
-    };
-
+// Process optional tours
+const processOptionalTours = (optionalToursArray) => {
+  if (optionalToursArray && optionalToursArray.length > 0) {
+    return optionalToursArray.map(tour => ({
+      tourName: tour.tour_name || '',
+      adultPrice: tour.adult_price || '', // Keep the original text with price
+      childPrice: tour.child_price || ''  // Keep the original text with price
+    }));
+  }
+  return [];
+};
     // Process EMI options
     const processEMIOptions = (emiOptionsArray) => {
       if (emiOptionsArray && emiOptionsArray.length > 0) {
@@ -714,6 +716,41 @@ const [autoScrollInterval, setAutoScrollInterval] = useState(null);
     }
   }, [tourId]);
 
+
+      useEffect(() => {
+        const fetchInternationalDestinations = async () => {
+          try {
+            setLoadingDestinations(true);
+            console.log("Fetching international destinations...");
+    
+            const destinationsRes = await fetch(`${BASE_URL}/api/destinations/international`);
+    
+            if (!destinationsRes.ok) {
+              throw new Error(`Failed to fetch destinations: ${destinationsRes.status}`);
+            }
+    
+            // Tell TS what the API returns
+            const data: { name: string }[] = await destinationsRes.json();
+            console.log("Fetched international destinations:", data);
+    
+            // Now TS knows dest.name is a string
+            const destinationNames: string[] = data.map(dest => dest.name);
+    
+            const uniqueSortedDestinations: string[] = [...new Set(destinationNames)].sort(
+              (a, b) => a.localeCompare(b)
+            );
+    
+            setInternationalDestinations(uniqueSortedDestinations);
+          } catch (err) {
+            console.error("Error fetching international destinations:", err);
+          } finally {
+            setLoadingDestinations(false);
+          }
+        };
+    
+        fetchInternationalDestinations();
+      }, []);
+    
   // Helper functions
   const toggleTable = (index) => {
     setOpenIndex(openIndex === index ? null : index);
@@ -1065,77 +1102,76 @@ useEffect(() => {
                            </button>
                          </div>
          
-           <div>
-             <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
-               <h2 className="text-2xl font-bold text-[#2E4D98]">Intl Indv Tours</h2>
-             </div>
-         
-             {(() => {
-               const allWorldTours = [
-                 'Africa',
-                 'America',
-                 'Australia NewZealand',
-                 'Bhutan',
-                 'Dubai and MiddleEast',
-                 'Eurasia',
-                 'Europe',
-                 'Japan China',
-                 'Mauritius',
-                 'Nepal',
-                 'Seychelles',
-                 'South East Asia',
-                 'SriLanka Maldives'
-               ];
-         
-               const sortedWorldTours = [...allWorldTours].sort((a, b) =>
-                 a.localeCompare(b)
-               );
-         
-               const visibleWorldTours = showMoreWorld
-                 ? sortedWorldTours
-                 : sortedWorldTours.slice(0, 6);
-         
-               return (
-                 <div className={`${showMoreWorld ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
-                   {visibleWorldTours.map((place) => {
-                     const isCurrentWorldTour = selectedWorldTours.includes(place);
-         
-                     return (
-                       <div key={place} className="flex items-center gap-3 cursor-pointer">
-                         <Checkbox
-                           checked={isCurrentWorldTour}
-                           onCheckedChange={(checked) => {
-                             if (checked) {
-                               clearAllFilters();
-                               navigate(`/intl-tours-packages/${encodeURIComponent(place)}`);
-                             }
-                           }}
-                           className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
-                         />
-                         <span
-                           className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${isCurrentWorldTour ? 'font-bold text-[#2E4D98]' : ''
-                             }`}
-                           onClick={() => {
-                             clearAllFilters();
-                             navigate(`/intl-tours-packages/${encodeURIComponent(place)}`);
-                           }}
-                         >
-                           {place}
-                         </span>
-                       </div>
-                     );
-                   })}
-                 </div>
-               );
-             })()}
-         
-             <button
-               onClick={() => setShowMoreWorld(!showMoreWorld)}
-               className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
-             >
-               {showMoreWorld ? "Show Less" : "Show More"}
-             </button>
-           </div>
+       <div>
+                            <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
+                              <h2 className="text-2xl font-bold text-[#2E4D98]">Intl Indv Tours</h2>
+                            </div>
+          
+                            {loadingDestinations ? (
+                              <div className="text-center py-4">
+                                <p className="text-gray-500">Loading international destinations...</p>
+                              </div>
+                            ) : internationalDestinations.length === 0 ? (
+                              <div className="text-center py-4">
+                                <p className="text-gray-500">No international destinations found</p>
+                              </div>
+                            ) : (
+                              <>
+                                <div className={`${showMoreWorld ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
+                                  {internationalDestinations
+                                    .slice(0, showMoreWorld ? internationalDestinations.length : 6)
+                                    .map((place) => {
+                                      const isSelected = selectedWorldTours.includes(place);
+          
+                                      return (
+                                        <div
+                                          key={place}
+                                          className="flex items-center gap-3 cursor-pointer"
+                                          onClick={() => {
+                                            if (!selectedWorldTours.includes(place)) {
+                                              setSelectedWorldTours([...selectedWorldTours, place]);
+                                            }
+                                            const encodedDestination = encodeURIComponent(place);
+                                            navigate(`/intl-honeymoon_tours/${encodedDestination}`);
+                                          }}
+                                        >
+                                          <Checkbox
+                                            checked={isSelected}
+                                            onCheckedChange={(checked) => {
+                                              if (checked) {
+                                                setSelectedWorldTours([...selectedWorldTours, place]);
+                                                const encodedDestination = encodeURIComponent(place);
+                                                navigate(`/intl-honeymoon_tours/${encodedDestination}`);
+                                              } else {
+                                                setSelectedWorldTours(selectedWorldTours.filter(t => t !== place));
+                                              }
+                                            }}
+                                            className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                            }}
+                                          />
+                                          <span
+                                            className={`${isSelected ? 'font-bold text-[#2E4D98]' : 'text-gray-700 hover:text-[#2E4D98]'} cursor-pointer flex-1`}
+                                          >
+                                            {place}
+                                          </span>
+                                        </div>
+                                      );
+                                    })}
+                                </div>
+          
+                                {internationalDestinations.length > 6 && (
+                                  <button
+                                    onClick={() => setShowMoreWorld(!showMoreWorld)}
+                                    className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
+                                  >
+                                    {showMoreWorld ? "Show Less" : "Show More"}
+                                  </button>
+                                )}
+                              </>
+                            )}
+                          </div>
                        </div>
                      </aside>
          
@@ -1496,199 +1532,213 @@ useEffect(() => {
                   )
                 )}
 
-                {/* Tour Cost Tab */}
-                {activeTab === "tour-cost" && (
-                  <div className="bg-[#E8F0FF] rounded-lg p-1">
-                    <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg mb-1.5">
-                      Tour Cost
+             {/* Tour Cost Tab */}
+{activeTab === "tour-cost" && (
+  <div className="bg-[#E8F0FF] rounded-lg p-1">
+    <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg mb-1.5">
+      Tour Cost
+    </div>
+
+    <div className="border rounded-b-lg rounded-t-o overflow-hidden -mt-1.5">
+      {isGroupTour ? (
+        <div className="mb-0">
+          <div className="p-4 border-2 border-black border-t-0 rounded-b-lg">
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="block text-gray-700 font-bold mb-2">Month</label>
+                <select
+                  className="w-full border-2 border-black rounded-md px-3 py-2 bg-white"
+                  value={selectedCostMonth}
+                  onChange={(e) => {
+                    setSelectedCostMonth(e.target.value);
+                    setSelectedCostDate("");
+                  }}
+                >
+                  <option value="">Select Month</option>
+                  {availableMonths.map(month => {
+                    // Check if all departures in this month are sold out
+                    const monthDepartures = departuresByMonth[month] || [];
+                    const allSoldOut = monthDepartures.length > 0 && 
+                                      monthDepartures.every(dep => dep.status === 'Sold Out');
+                    
+                    return (
+                      <option 
+                        key={month} 
+                        value={month}
+                        disabled={allSoldOut}
+                        style={allSoldOut ? { color: '#999', fontStyle: 'italic' } : {}}
+                      >
+                        {month} {allSoldOut ? '(Sold Out)' : ''}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+
+              {/* DATE */}
+              <div>
+                <label className="block text-gray-700 font-bold mb-2">Date</label>
+                <select
+                  className="w-full border-2 border-black rounded-md px-3 py-2 bg-white"
+                  value={selectedCostDate}
+                  onChange={(e) => setSelectedCostDate(e.target.value)}
+                  disabled={!selectedCostMonth}
+                >
+                  <option value="">Select Date</option>
+                  {availableDates
+                    .filter(dep => dep.status !== 'Sold Out') // Only show dates that are not sold out
+                    .map(dep => (
+                      <option key={dep.id} value={dep.fromDate}>
+                        {dep.fromDate} – {dep.toDate}
+                      </option>
+                    ))
+                  }
+                </select>
+              </div>
+            </div>
+
+            {/* Tour Cost Table for Group Tours */}
+            {selectedDeparture ? (
+              <div className="border-2 border-black overflow-hidden animate-fadeIn">
+                {/* HEADER */}
+                <div className="grid grid-cols-4 bg-[#0A1D4A] text-white font-semibold text-center">
+                  <div className="p-2 border-r-2 border-white">Particulars - Tour Cost</div>
+                  <div className="p-2 border-r-2 border-white">Standard</div>
+                  <div className="p-2 border-r-2 border-white">Deluxe</div>
+                  <div className="p-2">Luxury</div>
+                </div>
+
+                {/* ROWS */}
+                {[
+                  {
+                    particular: "Per pax on Twin Basis",
+                    star3: selectedDeparture.threeStar.twin,
+                    star4: selectedDeparture.fourStar.twin,
+                    star5: selectedDeparture.fiveStar.twin
+                  },
+                  {
+                    particular: "Per pax on Triple Basis",
+                    star3: selectedDeparture.threeStar.triple,
+                    star4: selectedDeparture.fourStar.triple,
+                    star5: selectedDeparture.fiveStar.triple
+                  },
+                  {
+                    particular: "Child with Bed",
+                    star3: selectedDeparture.threeStar.childWithBed,
+                    star4: selectedDeparture.fourStar.childWithBed,
+                    star5: selectedDeparture.fiveStar.childWithBed
+                  },
+                  {
+                    particular: "Child without Bed",
+                    star3: selectedDeparture.threeStar.childWithoutBed,
+                    star4: selectedDeparture.fourStar.childWithoutBed,
+                    star5: selectedDeparture.fiveStar.childWithoutBed
+                  },
+                  {
+                    particular: "Infant",
+                    star3: selectedDeparture.threeStar.infant,
+                    star4: selectedDeparture.fourStar.infant,
+                    star5: selectedDeparture.fiveStar.infant
+                  },
+                  {
+                    particular: "Per pax Single Occupancy",
+                    star3: selectedDeparture.threeStar.single,
+                    star4: selectedDeparture.fourStar.single,
+                    star5: selectedDeparture.fiveStar.single
+                  },
+                ].map((row, i) => (
+                  <div
+                    key={i}
+                    className={`grid grid-cols-4 text-center border-b-2 border-black ${i % 2 === 0 ? "bg-[#EEF1F7]" : "bg-white"
+                      } ${i === 5 ? 'border-b-0' : ''}`}
+                  >
+                    <div className="p-2 border-r-2 border-black font-medium text-left">
+                      {row.particular}
                     </div>
-
-                    <div className="border rounded-b-lg rounded-t-o overflow-hidden -mt-1.5">
-                      {isGroupTour ? (
-                        <div className="mb-0">
-<div className="p-4 border-2 border-black border-t-0 rounded-b-lg">
-                              <div className="grid grid-cols-2 gap-4 mb-4">
-                              <div>
-                                <label className="block text-gray-700 font-bold mb-2">Month</label>
-                                <select
-                                  className="w-full border-2 border-black rounded-md px-3 py-2 bg-white"
-                                  value={selectedCostMonth}
-                                  onChange={(e) => {
-                                    setSelectedCostMonth(e.target.value);
-                                    setSelectedCostDate("");
-                                  }}
-                                >
-                                  <option value="">Select Month</option>
-                                  {availableMonths.map(month => (
-                                    <option key={month} value={month}>
-                                      {month}
-                                    </option>
-                                  ))}
-                                </select>
-                              </div>
-
-                              {/* DATE */}
-                              <div>
-                                <label className="block text-gray-700 font-bold mb-2">Date</label>
-                                <select
-                                  className="w-full border-2 border-black rounded-md px-3 py-2 bg-white"
-                                  value={selectedCostDate}
-                                  onChange={(e) => setSelectedCostDate(e.target.value)}
-                                  disabled={!selectedCostMonth}
-                                >
-                                  <option value="">Select Date</option>
-                                  {availableDates.map(dep => (
-                                    <option key={dep.id} value={dep.fromDate}>
-                                      {dep.fromDate} – {dep.toDate}
-                                    </option>
-                                  ))}
-                                </select>
-                              </div>
-                            </div>
-
-                            {/* Tour Cost Table for Group Tours */}
-                            {selectedDeparture ? (
-                              <div className="border-2 border-black overflow-hidden animate-fadeIn">
-                                {/* HEADER */}
-                                <div className="grid grid-cols-4 bg-[#0A1D4A] text-white font-semibold text-center">
-                                  <div className="p-2 border-r-2 border-white">Particulars - Tour Cost</div>
-                                  <div className="p-2 border-r-2 border-white">Standard</div>
-                                  <div className="p-2 border-r-2 border-white">Deluxe</div>
-                                  <div className="p-2">Luxury</div>
-                                </div>
-
-                                {/* ROWS */}
-                                {[
-                                  {
-                                    particular: "Per pax on Twin Basis",
-                                    star3: selectedDeparture.threeStar.twin,
-                                    star4: selectedDeparture.fourStar.twin,
-                                    star5: selectedDeparture.fiveStar.twin
-                                  },
-                                  {
-                                    particular: "Per pax on Triple Basis",
-                                    star3: selectedDeparture.threeStar.triple,
-                                    star4: selectedDeparture.fourStar.triple,
-                                    star5: selectedDeparture.fiveStar.triple
-                                  },
-                                  {
-                                    particular: "Child with Bed",
-                                    star3: selectedDeparture.threeStar.childWithBed,
-                                    star4: selectedDeparture.fourStar.childWithBed,
-                                    star5: selectedDeparture.fiveStar.childWithBed
-                                  },
-                                  {
-                                    particular: "Child without Bed",
-                                    star3: selectedDeparture.threeStar.childWithoutBed,
-                                    star4: selectedDeparture.fourStar.childWithoutBed,
-                                    star5: selectedDeparture.fiveStar.childWithoutBed
-                                  },
-                                  {
-                                    particular: "Infant",
-                                    star3: selectedDeparture.threeStar.infant,
-                                    star4: selectedDeparture.fourStar.infant,
-                                    star5: selectedDeparture.fiveStar.infant
-                                  },
-                                  {
-                                    particular: "Per pax Single Occupancy",
-                                    star3: selectedDeparture.threeStar.single,
-                                    star4: selectedDeparture.fourStar.single,
-                                    star5: selectedDeparture.fiveStar.single
-                                  },
-                                ].map((row, i) => (
-                                  <div
-                                    key={i}
-                                    className={`grid grid-cols-4 text-center border-b-2 border-black ${i % 2 === 0 ? "bg-[#EEF1F7]" : "bg-white"
-                                      } ${i === 5 ? 'border-b-0' : ''}`}
-                                  >
-                                    <div className="p-2 border-r-2 border-black font-medium text-left">
-                                      {row.particular}
-                                    </div>
-                                    <div className="p-2 border-r-2 border-black">
-                                      {row.star3}
-                                    </div>
-                                    <div className="p-2 border-r-2 border-black font-semibold text-green-700">
-                                      {row.star4}
-                                    </div>
-                                    <div className="p-2">
-                                      {row.star5}
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            ) : (
-                              <div className="text-center p-4 border-2 border-dashed border-gray-300 rounded-lg">
-                                <p className="text-gray-500">Please select a month and date to view tour cost</p>
-                                <p className="text-gray-400 text-sm mt-2">Departure dates are available in the "Dep Date" tab</p>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ) : (
-                        // Individual Tour Cost Section
-                        <div>
-                          {/* Passenger Table */}
-                          <div className="overflow-x-auto border shadow-sm">
-                            <table className="w-full border-collapse table-fixed">
-                              <thead>
-                                <tr className="bg-[#2E4D98]">
-                                  <th className="border border-white px-4 py-3 text-center font-semibold text-white text-base h-12 w-1/6">
-                                    Passenger
-                                  </th>
-                                  <th className="border border-white px-4 py-3 text-center font-semibold text-white text-base h-12 w-1/6">
-                                    Standard Hotel
-                                  </th>
-                                  <th className="border border-white px-4 py-3 text-center font-semibold text-white text-base h-12 w-1/6">
-                                    Deluxe Hotel
-                                  </th>
-                                  <th className="border border-white px-4 py-3 text-center font-semibold text-white text-base h-12 w-1/6">
-                                    Executive Hotel
-                                  </th>
-                                  <th className="border border-white px-4 py-3 text-center font-semibold text-white text-base h-12 w-1/6">
-                                    Child With Bed
-                                  </th>
-                                  <th className="border border-white px-4 py-3 text-center font-semibold text-white text-base h-12 w-1/6">
-                                    Child No Bed
-                                  </th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {tour.tourCost.tableData.length > 0 ? (
-                                  tour.tourCost.tableData.map((row, index) => (
-                                    <tr key={index} className={index % 2 === 0 ? 'bg-[#FFEBEE]' : 'bg-[#FFEBEE]/80'}>
-                                      <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center font-medium text-gray-700 text-base h-12 w-1/6">
-                                        {row.passenger}
-                                      </td>
-                                      <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-gray-600 text-base h-12 w-1/6">
-                                        {row.standard}
-                                      </td>
-                                      <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-green-600 font-semibold text-base h-12 w-1/6">
-                                        {row.deluxe}
-                                      </td>
-                                      <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-gray-600 text-base h-12 w-1/6">
-                                        {row.executive}
-                                      </td>
-                                      <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-blue-600 font-medium text-base h-12 w-1/6">
-                                        {row.childWithBed}
-                                      </td>
-                                      <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-purple-600 font-medium text-base h-12 w-1/6">
-                                        {row.childNoBed}
-                                      </td>
-                                    </tr>
-                                  ))
-                                ) : (
-                                  <tr className="bg-[#FFEBEE]">
-                                    <td colSpan={6} className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-gray-500">
-                                      No cost information available
-                                    </td>
-                                  </tr>
-                                )}
-                              </tbody>
-                            </table>
-                          </div>
-                        </div>
-                      )}
-
+                    <div className="p-2 border-r-2 border-black">
+                      {row.star3}
+                    </div>
+                    <div className="p-2 border-r-2 border-black font-semibold text-green-700">
+                      {row.star4}
+                    </div>
+                    <div className="p-2">
+                      {row.star5}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center p-4 border-2 border-dashed border-gray-300 rounded-lg">
+                <p className="text-gray-500">Please select a month and date to view tour cost</p>
+                <p className="text-gray-400 text-sm mt-2">Departure dates are available in the "Dep Date" tab</p>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
+        // Individual Tour Cost Section
+        <div>
+          {/* Passenger Table */}
+          <div className="overflow-x-auto border shadow-sm">
+            <table className="w-full border-collapse table-fixed">
+              <thead>
+                <tr className="bg-[#2E4D98]">
+                  <th className="border border-white px-4 py-3 text-center font-semibold text-white text-base h-12 w-1/6">
+                    Passenger
+                  </th>
+                  <th className="border border-white px-4 py-3 text-center font-semibold text-white text-base h-12 w-1/6">
+                    Standard Hotel
+                  </th>
+                  <th className="border border-white px-4 py-3 text-center font-semibold text-white text-base h-12 w-1/6">
+                    Deluxe Hotel
+                  </th>
+                  <th className="border border-white px-4 py-3 text-center font-semibold text-white text-base h-12 w-1/6">
+                    Executive Hotel
+                  </th>
+                  <th className="border border-white px-4 py-3 text-center font-semibold text-white text-base h-12 w-1/6">
+                    Child With Bed
+                  </th>
+                  <th className="border border-white px-4 py-3 text-center font-semibold text-white text-base h-12 w-1/6">
+                    Child No Bed
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {tour.tourCost.tableData.length > 0 ? (
+                  tour.tourCost.tableData.map((row, index) => (
+                    <tr key={index} className={index % 2 === 0 ? 'bg-[#FFEBEE]' : 'bg-[#FFEBEE]/80'}>
+                      <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center font-medium text-gray-700 text-base h-12 w-1/6">
+                        {row.passenger}
+                      </td>
+                      <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-gray-600 text-base h-12 w-1/6">
+                        {row.standard}
+                      </td>
+                      <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-green-600 font-semibold text-base h-12 w-1/6">
+                        {row.deluxe}
+                      </td>
+                      <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-gray-600 text-base h-12 w-1/6">
+                        {row.executive}
+                      </td>
+                      <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-blue-600 font-medium text-base h-12 w-1/6">
+                        {row.childWithBed}
+                      </td>
+                      <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-purple-600 font-medium text-base h-12 w-1/6">
+                        {row.childNoBed}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr className="bg-[#FFEBEE]">
+                    <td colSpan={6} className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-gray-500">
+                      No cost information available
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       
            <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
@@ -2350,89 +2400,105 @@ useEffect(() => {
       )}
 
       {/* Visa Forms Tab */}
-      {activeVisaTab === 'forms' && (
-        <div className="space-y-1 mt-1">
-          <div className="overflow-x-auto w-full">
-            <table className="w-full border-collapse min-w-max border border-gray-300">
-              <thead>
-                <tr className="bg-[#2E4D98]">
-                  <th className="border border-white px-2 py-3 text-left text-white w-[70%] h-12">
-                    Visa Type
-                  </th>
-                  <th className="border border-white px-2 py-3 text-center text-white w-[15%] h-12">
-                    Action 1
-                  </th>
-                  <th className="border border-white px-2 py-3 text-center text-white w-[15%] h-12">
-                    Action 2
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="border-2 border-[#1e3a8a] border-t-0">
-                {/* Tourist */}
-                <tr className="bg-[#FFEBEE]">
-                  <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap w-[70%] h-10">
-                    Tourist Visa Form Download
-                  </td>
-                  <td className="border border-black px-2 py-2 text-center bg-red-600 text-white cursor-pointer hover:bg-red-700">
-                    {tour.visaForms?.[0]?.action1FileUrl ? (
-                      <a href={`${BASE_URL}${tour.visaForms[0].action1FileUrl}`} download className="block w-full h-full">
-                        Download
-                      </a>
-                    ) : "Download"}
-                  </td>
-                  <td className="border border-black px-2 py-2 text-center bg-amber-800 text-white cursor-pointer hover:bg-amber-900">
-                    {tour.visaForms?.[0]?.action2FileUrl ? (
-                      <a href={`${BASE_URL}${tour.visaForms[0].action2FileUrl}`} download className="block w-full h-full">
-                        Fill Manually
-                      </a>
-                    ) : "Fill Manually"}
-                  </td>
-                </tr>
-                {/* Transit */}
-                <tr className="bg-[#FFEBEE]">
-                  <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap w-[70%] h-10">
-                    Transit Visa Form Download
-                  </td>
-                  <td className="border border-black px-2 py-2 text-center bg-red-600 text-white cursor-pointer hover:bg-red-700">
-                    {tour.visaForms?.[1]?.action1FileUrl ? (
-                      <a href={`${BASE_URL}${tour.visaForms[1].action1FileUrl}`} download className="block w-full h-full">
-                        Download
-                      </a>
-                    ) : "Download"}
-                  </td>
-                  <td className="border border-black px-2 py-2 text-center bg-amber-800 text-white cursor-pointer hover:bg-amber-900">
-                    {tour.visaForms?.[1]?.action2FileUrl ? (
-                      <a href={`${BASE_URL}${tour.visaForms[1].action2FileUrl}`} download className="block w-full h-full">
-                        Fill Manually
-                      </a>
-                    ) : "Fill"}
-                  </td>
-                </tr>
-                {/* Business */}
-                <tr className="bg-[#FFEBEE]">
-                  <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap w-[70%] h-10">
-                    Business Visa Form Download
-                  </td>
-                  <td className="border border-black px-2 py-2 text-center bg-red-600 text-white cursor-pointer hover:bg-red-700">
-                    {tour.visaForms?.[2]?.action1FileUrl ? (
-                      <a href={`${BASE_URL}${tour.visaForms[2].action1FileUrl}`} download className="block w-full h-full">
-                        Download
-                      </a>
-                    ) : "Download"}
-                  </td>
-                  <td className="border border-black px-2 py-2 text-center bg-amber-800 text-white cursor-pointer hover:bg-amber-900">
-                    {tour.visaForms?.[2]?.action2FileUrl ? (
-                      <a href={`${BASE_URL}${tour.visaForms[2].action2FileUrl}`} download className="block w-full h-full">
-                        Fill Manually
-                      </a>
-                    ) : "Fill Manually"}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+   {/* Visa Forms Tab */}
+{activeVisaTab === 'forms' && (
+  <div className="space-y-1 mt-1">
+    <div className="overflow-x-auto w-full">
+      <table className="w-full border-collapse min-w-max border border-gray-300">
+        <thead>
+          <tr className="bg-[#2E4D98]">
+            <th className="border border-white px-2 py-3 text-left text-white w-[70%] h-12">
+              Visa Type
+            </th>
+            <th className="border border-white px-2 py-3 text-center text-white w-[15%] h-12">
+              Action 1
+            </th>
+            <th className="border border-white px-2 py-3 text-center text-white w-[15%] h-12">
+              Action 2
+            </th>
+          </tr>
+        </thead>
+        <tbody className="border-2 border-[#1e3a8a] border-t-0">
+          {tour.visaForms && tour.visaForms.length > 0 ? (
+            // Display dynamic visa forms from API
+            tour.visaForms.map((form, index) => (
+              <tr key={index} className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}>
+                <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap w-[70%] h-10">
+                  {/* Dynamic Visa Type from API */}
+                  {form.visaType || 'Visa Form'} 
+                </td>
+                <td className="border border-black px-2 py-2 text-center bg-red-600 text-white cursor-pointer hover:bg-red-700">
+                  {form.action1FileUrl ? (
+                    <a 
+                      href={`${BASE_URL}${form.action1FileUrl}`} 
+                      download 
+                      className="block w-full h-full"
+                    >
+                      {form.downloadAction || "Download"}
+                    </a>
+                  ) : (
+                    <span>{form.downloadAction || "Download"}</span>
+                  )}
+                </td>
+                <td className="border border-black px-2 py-2 text-center bg-amber-800 text-white cursor-pointer hover:bg-amber-900">
+                  {form.action2FileUrl ? (
+                    <a 
+                      href={`${BASE_URL}${form.action2FileUrl}`} 
+                      download 
+                      className="block w-full h-full"
+                    >
+                      {form.fillAction || "Fill Manually"}
+                    </a>
+                  ) : (
+                    <span>{form.fillAction || "Fill Manually"}</span>
+                  )}
+                </td>
+              </tr>
+            ))
+          ) : (
+            // Only show fallback if NO visa forms data exists
+            // This should not happen since your API has visa_forms array
+            <>
+              <tr className="bg-[#FFEBEE]">
+                <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap w-[70%] h-10">
+                  Tourist Visa Form Download
+                </td>
+                <td className="border border-black px-2 py-2 text-center bg-red-600 text-white cursor-pointer hover:bg-red-700">
+                  Download
+                </td>
+                <td className="border border-black px-2 py-2 text-center bg-amber-800 text-white cursor-pointer hover:bg-amber-900">
+                  Fill Manually
+                </td>
+              </tr>
+              <tr className="bg-[#FFEBEE]">
+                <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap w-[70%] h-10">
+                  Transit Visa Form Download
+                </td>
+                <td className="border border-black px-2 py-2 text-center bg-red-600 text-white cursor-pointer hover:bg-red-700">
+                  Download
+                </td>
+                <td className="border border-black px-2 py-2 text-center bg-amber-800 text-white cursor-pointer hover:bg-amber-900">
+                  Fill Manually
+                </td>
+              </tr>
+              <tr className="bg-[#FFEBEE]">
+                <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap w-[70%] h-10">
+                  Business Visa Form Download
+                </td>
+                <td className="border border-black px-2 py-2 text-center bg-red-600 text-white cursor-pointer hover:bg-red-700">
+                  Download
+                </td>
+                <td className="border border-black px-2 py-2 text-center bg-amber-800 text-white cursor-pointer hover:bg-amber-900">
+                  Fill Manually
+                </td>
+              </tr>
+            </>
+          )}
+        </tbody>
+      </table>
+    </div>
+  </div>
+)}
 
       {/* Photo Tab */}
       {activeVisaTab === 'photo' && (
