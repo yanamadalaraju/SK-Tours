@@ -83,6 +83,8 @@ const TourPackages = () => {
   const [showMoreWorld, setShowMoreWorld] = useState(false);
   const [sortType, setSortType] = useState("recommended");
   const [searchQuery, setSearchQuery] = useState(""); // 👈 NEW STATE FOR SEARCH
+const [internationalDestinations, setInternationalDestinations] = useState<string[]>([]);
+const [loadingDestinations, setLoadingDestinations] = useState(false);
 
   // Filter states
   const [durationRange, setDurationRange] = useState([0, 120]);
@@ -194,6 +196,40 @@ const TourPackages = () => {
 
     fetchTourDetails();
   }, [allTours]);
+
+
+  
+  useEffect(() => {
+    const fetchInternationalDestinations = async () => {
+      try {
+        setLoadingDestinations(true);
+        console.log("Fetching international destinations...");
+  
+        const destinationsRes = await fetch(`${BASE_URL}/api/destinations/international`);
+  
+        if (!destinationsRes.ok) {
+          throw new Error(`Failed to fetch destinations: ${destinationsRes.status}`);
+        }
+  
+        const data: { name: string }[] = await destinationsRes.json();
+        console.log("Fetched international destinations:", data);
+  
+        const destinationNames: string[] = data.map(dest => dest.name);
+  
+        const uniqueSortedDestinations: string[] = [...new Set(destinationNames)].sort(
+          (a, b) => a.localeCompare(b)
+        );
+  
+        setInternationalDestinations(uniqueSortedDestinations);
+      } catch (err) {
+        console.error("Error fetching international destinations:", err);
+      } finally {
+        setLoadingDestinations(false);
+      }
+    };
+  
+    fetchInternationalDestinations();
+  }, []);
 
   // ---------- Decode state from URL ----------
   useEffect(() => {
@@ -368,18 +404,18 @@ const TourPackages = () => {
     }
 
     // World tours filter (won't really match for isIndian=true, but safe)
-    if (selectedWorldTours.length > 0) {
-      console.log("Selected World tours:", selectedWorldTours);
-      result = result.filter((tour) => {
-        if (tour.isIndian) return false;
-        return selectedWorldTours.some((selectedLocation) =>
-          (tour.locationTags || []).some((tag: string) =>
-            tag.toLowerCase().includes(selectedLocation.toLowerCase())
-          )
-        );
-      });
-      console.log("After world tours filter:", result.length);
-    }
+    // if (selectedWorldTours.length > 0) {
+    //   console.log("Selected World tours:", selectedWorldTours);
+    //   result = result.filter((tour) => {
+    //     if (tour.isIndian) return false;
+    //     return selectedWorldTours.some((selectedLocation) =>
+    //       (tour.locationTags || []).some((tag: string) =>
+    //         tag.toLowerCase().includes(selectedLocation.toLowerCase())
+    //       )
+    //     );
+    //   });
+    //   console.log("After world tours filter:", result.length);
+    // }
 
     // Sorting
     console.log("Sort type:", sortType);
@@ -490,14 +526,11 @@ const TourPackages = () => {
   }
 
 
- // In TourPackages.jsx, update the handleBookNowClick function:
 
   // In TourPackages.jsx, update the handleBookNowClick function:
   const handleBookNowClick = (tour) => {
-    // Remove the 20% calculation and use the full tour price
     const totalPriceValue = tour.priceValue || 0;
     
-    // Parse EMI price if it's a string
     const emiPriceValue = typeof tour.emiPriceValue === 'string' ? 
       parseFloat(tour.emiPriceValue.replace(/[₹$,]/g, '')) : 
       tour.emiPriceValue || 0;
@@ -507,25 +540,19 @@ const TourPackages = () => {
       ...tour,
       total_price: tour.price, // Original price string
       total_price_value: totalPriceValue, // Original price numeric
-      // REMOVE all advance-related fields - user will decide at checkout
       payment_type: 'full' // Indicate this is full amount (user will decide)
     };
     
-    // Save to localStorage as backup
     localStorage.setItem('selectedTour', JSON.stringify(tourWithFullAmount));
     
-    // Navigate to checkout page with tour data
     navigate('/checkout', { 
       state: { 
         tour: tourWithFullAmount,
-        // No paymentType specified - user will choose in checkout
       } 
     });
   };
 
-    // Function to handle enquiry navigation
   const handleEnquiryClick = (tour: any) => {
-    // Save tour data to localStorage or pass via navigation state
     localStorage.setItem('enquiryTour', JSON.stringify(tour));
     
     // Navigate to enquiry page with tour data
@@ -698,78 +725,62 @@ const TourPackages = () => {
 </button>
 </div>
 
-{/* World Tours */}
-  <div>
-    <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
-      <h2 className="text-2xl font-bold text-[#2E4D98]">Intl Indv Tours</h2>
+<div>
+  <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
+    <h2 className="text-2xl font-bold text-[#2E4D98]">International Tours</h2>
+  </div>
+
+  {loadingDestinations ? (
+    <div className="text-center py-4">
+      <p className="text-gray-500">Loading international destinations...</p>
     </div>
-
-    {(() => {
-      const allWorldTours = [
-        'Africa',
-        'America',
-        'Australia NewZealand',
-        'Bhutan',
-        'Dubai and MiddleEast',
-        'Eurasia',
-        'Europe',
-        'Japan China',
-        'Mauritius',
-        'Nepal',
-        'Seychelles',
-        'South East Asia',
-        'SriLanka Maldives'
-      ];
-
-      const sortedWorldTours = [...allWorldTours].sort((a, b) =>
-        a.localeCompare(b)
-      );
-
-      const visibleWorldTours = showMoreWorld
-        ? sortedWorldTours
-        : sortedWorldTours.slice(0, 6);
-
-      return (
-        <div className={`${showMoreWorld ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
-          {visibleWorldTours.map((place) => {
-            const isCurrentWorldTour = selectedWorldTours.includes(place);
-
+  ) : internationalDestinations.length === 0 ? (
+    <div className="text-center py-4">
+      <p className="text-gray-500">No international destinations found</p>
+    </div>
+  ) : (
+    <>
+      <div className={`${showMoreWorld ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
+        {internationalDestinations
+          .slice(0, showMoreWorld ? internationalDestinations.length : 6)
+          .map((place) => {
             return (
-              <div key={place} className="flex items-center gap-3 cursor-pointer">
+              <div key={place} className="flex items-center gap-3">
                 <Checkbox
-                  checked={isCurrentWorldTour}
-                  onCheckedChange={(checked) => {
-                    if (checked) {
-                      clearAllFilters();
-                      navigate(`/intl-tours-packages/${encodeURIComponent(place)}`);
-                    }
+                  checked={false} // Always unchecked on this page
+                  onCheckedChange={() => {
+                    const encodedDestination = encodeURIComponent(place);
+                    navigate(`/intl-tours-packages/${encodedDestination}`);
                   }}
-                  className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
+                  className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98] cursor-pointer"
+                  id={`world-${place}`}
                 />
-                <span
-                  className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${isCurrentWorldTour ? 'font-bold text-[#2E4D98]' : ''
-                    }`}
+                <label
+                  htmlFor={`world-${place}`}
+                  className="text-gray-700 hover:text-[#2E4D98] cursor-pointer select-none"
                   onClick={() => {
-                    clearAllFilters();
-                    navigate(`/intl-tours-packages/${encodeURIComponent(place)}`);
+                    const encodedDestination = encodeURIComponent(place);
+                    navigate(`/intl-tours-packages/${encodedDestination}`);
                   }}
                 >
                   {place}
-                </span>
+                </label>
               </div>
             );
           })}
-        </div>
-      );
-    })()}
+      </div>
 
-    <button
-      onClick={() => setShowMoreWorld(!showMoreWorld)}
-      className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
-    >
-      {showMoreWorld ? "Show Less" : "Show More"}
-    </button>
-  </div>
+      {internationalDestinations.length > 6 && (
+        <button
+          onClick={() => setShowMoreWorld(!showMoreWorld)}
+          className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
+        >
+          {showMoreWorld ? "Show Less" : "Show More"}
+        </button>
+      )}
+    </>
+  )}
+</div>
               </div>
             </aside>
 
@@ -833,18 +844,19 @@ const TourPackages = () => {
                       <div className="bg-white border-2 border-gray-300 rounded-lg p-3 mb-3 shadow-sm">
                         <div className="grid grid-cols-3 gap-0 border border-gray-400 rounded overflow-hidden">
                           {/* Box 1 - Code Label */}
-                          <div className="bg-gray-100 border-r border-gray-400 p-2">
-                            <div className="text-xs font-semibold text-gray-700 text-center">CODE</div>
+                           <div className="bg-[#2E4D98] border-r border-gray-400 p-2 flex items-center justify-center flex-1">
+
+                            <div className="text-sm font-bold text-white text-center">CODE</div>
                           </div>
 
                           {/* Box 2 - Code Value */}
-                          <div className="bg-white border-r border-gray-400 p-2">
+    <div className="bg-gradient-to-br from-blue-100 to-blue-50 border-gray-400 p-2 flex items-center justify-center flex-1">
                             <div className="text-sm font-bold text-gray-900 text-center">{tour.code}</div>
                           </div>
 
                           {/* Box 3 - Duration */}
-                          <div className="bg-gray-50 p-2">
-                            <div className="text-sm font-bold text-gray-900 text-center">{tour.duration}</div>
+    <div className="bg-[#2E4D98] p-2 flex items-center justify-center flex-1">
+                            <div className="text-sm font-bold text-white text-center">{tour.duration}</div>
                           </div>
                         </div>
                       </div>
@@ -870,17 +882,18 @@ const TourPackages = () => {
                           {/* Price Details */}
                           <div className="mb-3">
                             <div className="flex items-center justify-between mb-1">
-                              <span className="text-sm font-semibold text-gray-700">Tour Cost</span>
+                             <span className="text-sm text-[#2E4D98] font-bold">Tour Cost P.P</span>
                               <p className="text-2xl font-bold text-gray-900">{tour.price}</p>
                             </div>
 
                             <div className="flex items-center justify-between">
-                              <span className="text-sm text-gray-600">EMI per/month</span>
+                               <span className="text-sm text-[#2E4D98] font-bold">EMI Per Month</span>
+
                               <p className="text-sm font-bold text-gray-900">{tour.emi}</p>
                             </div>
                           </div>
 
-                          <p className="text-sm text-gray-600 mb-3 flex-1 line-clamp-2">{tour.locations}</p>
+                          <p className="text-sm text-[#2E4D98] font-bold mb-3">{tour.locations}</p>
 
                           <div className="flex items-center justify-between text-sm text-gray-500 mb-0">
                             <span>{tour.dates}</span>

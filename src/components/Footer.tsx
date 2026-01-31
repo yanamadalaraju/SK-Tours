@@ -1198,24 +1198,31 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
 
           {/* Logo & About */}
-          <div>
-            <img src={img} alt="SK Tours" className="h-16 mb-4" />
-            <p className="text-white/80 text-sm">
-              Your Vacation in Five Continents unforgettable experiences across the globe.
-            </p>
+     <div className="flex justify-start">
+  <div className="flex flex-col items-center text-center">
+    {/* Logo */}
+    <img src={img} alt="SK Tours" className="h-16 mb-4" />
 
-            <div className="flex gap-3 mt-4">
-              {socialMediaIcons.map((social, index) => (
-                <a
-                  key={index}
-                  href={social.href}
-                  className="bg-white/10 hover:bg-[#E31B23] p-2 rounded-full transition-all duration-300 hover:scale-110"
-                >
-                  <img src={social.icon} alt={social.name} className="w-4 h-4" />
-                </a>
-              ))}
-            </div>
-          </div>
+    {/* Text */}
+    <p className="text-white/80 text-sm mb-4">
+      Your Vacation in Five Continents.
+    </p>
+
+    {/* Icons */}
+    <div className="flex gap-4 justify-center">
+      {socialMediaIcons.map((social, index) => (
+        <a
+          key={index}
+          href={social.href}
+          className="bg-white/10 hover:bg-[#E31B23] p-2 rounded-full transition-all duration-300 hover:scale-110"
+        >
+          <img src={social.icon} alt={social.name} className="w-5 h-5" />
+        </a>
+      ))}
+    </div>
+  </div>
+</div>
+
 
           {/* Quick Links */}
           <div>

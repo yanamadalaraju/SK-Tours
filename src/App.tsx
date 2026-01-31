@@ -60,6 +60,8 @@ import SeatSelection from "./pages/Flightmain/Seatselection";
 import BookingConfirmation from "./pages/Flightmain/BookingConfirmation";
 import Flightfrontend from "./pages/Flight/hotels/Flightfrontend";
 import TourPdfDocumentinternational from "./pages/TourPdfDocumentinternational";
+import Login from "./pages/Loginpage/Login";
+import SignUp from "./pages/SignUp/SignUp";
 
 const queryClient = new QueryClient();
 
@@ -121,6 +123,8 @@ const App = () => (
 
 <Route path="/tour-enquiry" element={<TourEnquiry />} />
 <Route path="/tourpdfinternational" element={<TourPdfDocumentinternational />} />
+<Route path="/login" element={<Login />} />
+<Route path="/signup" element={<SignUp />} />
 
 
         </Routes>

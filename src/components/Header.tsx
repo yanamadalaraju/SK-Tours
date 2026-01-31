@@ -135,117 +135,111 @@ const Header = () => {
     fetchTours();
   }, []);
 
-// Fetch and group international destinations by country
-useEffect(() => {
-  const fetchInternationalData = async () => {
-    try {
-      // Fetch countries
-      const countriesRes = await fetch(`${BASE_URL}/api/countries/international`);
-      if (!countriesRes.ok) throw new Error("Failed to fetch countries");
-      const countriesData: Country[] = await countriesRes.json();
-      
-      // Fetch destinations
-      const destinationsRes = await fetch(`${BASE_URL}/api/destinations/international`);
-      if (!destinationsRes.ok) throw new Error("Failed to fetch destinations");
-      const destinationsData: Destination[] = await destinationsRes.json();
-      
-      console.log("Countries data:", countriesData);
-      console.log("Destinations data:", destinationsData);
-      
-      // Group destinations by country_id
-      const grouped: GroupedDestinations = {};
-      
-      // First, add all countries from the countries API
-      countriesData.forEach(country => {
-        grouped[country.country_id] = {
-          countryName: country.name,
-          destinations: []
-        };
-      });
-      
-      // Then, add destinations to their respective countries
-      destinationsData.forEach(destination => {
-        if (grouped[destination.country_id]) {
-          // Avoid duplicates
-          const existingDestination = grouped[destination.country_id].destinations.find(
-            d => d.name === destination.name
-          );
-          if (!existingDestination) {
-            grouped[destination.country_id].destinations.push({
-              name: destination.name,
-              hasActiveTours: false // Will be updated later
-            });
-          }
-        } else {
-          // If country not in countries API, create a new entry
-          grouped[destination.country_id] = {
-            countryName: destination.country_name,
-            destinations: [{
-              name: destination.name,
-              hasActiveTours: false // Will be updated later
-            }]
+  // Fetch and group international destinations by country
+  useEffect(() => {
+    const fetchInternationalData = async () => {
+      try {
+        // Fetch countries
+        const countriesRes = await fetch(`${BASE_URL}/api/countries/international`);
+        if (!countriesRes.ok) throw new Error("Failed to fetch countries");
+        const countriesData: Country[] = await countriesRes.json();
+        
+        // Fetch destinations
+        const destinationsRes = await fetch(`${BASE_URL}/api/destinations/international`);
+        if (!destinationsRes.ok) throw new Error("Failed to fetch destinations");
+        const destinationsData: Destination[] = await destinationsRes.json();
+        
+        console.log("Countries data:", countriesData);
+        console.log("Destinations data:", destinationsData);
+        
+        // Group destinations by country_id
+        const grouped: GroupedDestinations = {};
+        
+        // First, add all countries from the countries API
+        countriesData.forEach(country => {
+          grouped[country.country_id] = {
+            countryName: country.name,
+            destinations: []
           };
-        }
-      });
-      
-      // Now, check which destinations have active tours for any tour type
-      Object.keys(grouped).forEach(key => {
-        const countryId = parseInt(key);
-        grouped[countryId].destinations.forEach(dest => {
-          // Check if this destination has any active tours in any category
-          const hasAnyActiveTour = [
-            "Individual", "Group", "Ladies Special", 
-            "Senior Citizen", "Student", "Honeymoon"
-          ].some(category => 
-            hasToursForDestination(dest.name, category, true)
-          );
-          dest.hasActiveTours = hasAnyActiveTour;
         });
-      });
-      
-      // Filter out destinations that don't have active tours
-      Object.keys(grouped).forEach(key => {
-        const countryId = parseInt(key);
-        grouped[countryId].destinations = grouped[countryId].destinations.filter(
-          dest => dest.hasActiveTours
-        );
-      });
-      
-      // DO NOT remove countries with no active destinations
-      // We want to show all countries, even empty ones
-      // Object.keys(grouped).forEach(key => {
-      //   const countryId = parseInt(key);
-      //   if (grouped[countryId].destinations.length === 0) {
-      //     delete grouped[countryId];
-      //   }
-      // });
-      
-      // Sort destinations within each country
-      Object.keys(grouped).forEach(key => {
-        const countryId = parseInt(key);
-        grouped[countryId].destinations.sort((a, b) => 
-          a.name.localeCompare(b.name)
-        );
-      });
-      
-      console.log("Grouped destinations with active tours:", grouped);
-      
-      setGroupedInternationalDestinations(grouped);
-      
-      // Create a flat list of country names for the dropdown
-      // Include ALL countries from the countries API
-      const countryNames = countriesData
-        .map(country => country.name)
-        .sort();
-      setInternationalCountries(countryNames);
-      
-    } catch (err) {
-      console.error("Error fetching international data:", err);
-    }
-  };
+        
+        // Then, add destinations to their respective countries
+        destinationsData.forEach(destination => {
+          if (grouped[destination.country_id]) {
+            // Avoid duplicates
+            const existingDestination = grouped[destination.country_id].destinations.find(
+              d => d.name === destination.name
+            );
+            if (!existingDestination) {
+              grouped[destination.country_id].destinations.push({
+                name: destination.name,
+                hasActiveTours: false // Will be updated later
+              });
+            }
+          } else {
+            // If country not in countries API, create a new entry
+            grouped[destination.country_id] = {
+              countryName: destination.country_name,
+              destinations: [{
+                name: destination.name,
+                hasActiveTours: false // Will be updated later
+              }]
+            };
+          }
+        });
+        
+        // Now, check which destinations have active tours for any tour type
+        Object.keys(grouped).forEach(key => {
+          const countryId = parseInt(key);
+          grouped[countryId].destinations.forEach(dest => {
+            // Check if this destination has any active tours in any category
+            const hasAnyActiveTour = [
+              "Individual", "Group", "Ladies Special", 
+              "Senior Citizen", "Student", "Honeymoon"
+            ].some(category => 
+              hasToursForDestination(dest.name, category, true)
+            );
+            dest.hasActiveTours = hasAnyActiveTour;
+          });
+        });
+        
+        // Filter out destinations that don't have active tours
+        Object.keys(grouped).forEach(key => {
+          const countryId = parseInt(key);
+          grouped[countryId].destinations = grouped[countryId].destinations.filter(
+            dest => dest.hasActiveTours
+          );
+        });
+        
+        // DO NOT remove countries with no active destinations
+        // We want to show all countries, even empty ones
+        
+        // Sort destinations within each country
+        Object.keys(grouped).forEach(key => {
+          const countryId = parseInt(key);
+          grouped[countryId].destinations.sort((a, b) => 
+            a.name.localeCompare(b.name)
+          );
+        });
+        
+        console.log("Grouped destinations with active tours:", grouped);
+        
+        setGroupedInternationalDestinations(grouped);
+        
+        // Create a flat list of country names for the dropdown
+        // Include ALL countries from the countries API
+        const countryNames = countriesData
+          .map(country => country.name)
+          .sort();
+        setInternationalCountries(countryNames);
+        
+      } catch (err) {
+        console.error("Error fetching international data:", err);
+      }
+    };
 
-  fetchInternationalData();
-}, [allTours]); // Re-run when allTours changes
+    fetchInternationalData();
+  }, [allTours]); // Re-run when allTours changes
 
   // Function to check if a destination has tours - IMPROVED VERSION
   const hasToursForDestination = (destinationName: string, tourType: string, isInternational: boolean = false) => {
@@ -286,58 +280,6 @@ useEffect(() => {
       // Check if tour is active and published
       return tour.status === 1 && tour.is_active === 1;
     });
-  };
-
-  const getHighlightClass = (
-    destinationName: string,
-    isIndian: boolean,
-    isIndividualTour: boolean,
-    isGroupTour: boolean,
-    isLadiesTour: boolean,
-    isSeniorTour: boolean,
-    isStudentTour: boolean,
-    isHoneymoonTour: boolean,
-    rowIndex: number
-  ) => {
-    let category = "";
-    if (isIndividualTour) category = "Individual";
-    else if (isGroupTour) category = "Group";
-    else if (isLadiesTour) category = "Ladies Special";
-    else if (isSeniorTour) category = "Senior Citizen";
-    else if (isStudentTour) category = "Student";
-    else if (isHoneymoonTour) category = "Honeymoon";
-
-    const hasTours = hasToursForDestination(destinationName, category, !isIndian);
-    const isAndaman = destinationName === "Andaman";
-
-    if (hasTours) {
-      return `
-        font-semibold 
-        bg-blue-800 
-        text-white 
-        hover:bg-blue-900 
-        hover:text-white 
-        rounded 
-        px-1.5 
-        py-0.5 
-        transition-all 
-        duration-200
-        shadow-sm
-        hover:shadow-md
-      `;
-    }
-
-    return `
-      text-gray-700 
-      hover:text-gray-800 
-      hover:bg-gray-100
-      font-normal 
-      transition-colors 
-      duration-200
-      px-1.5 
-      py-0.5 
-      rounded
-    `;
   };
 
   // Function to check if a country has active tours for a specific tour type
@@ -444,156 +386,116 @@ useEffect(() => {
   };
 
   // Function to render countries list
-// Function to render countries list
-const renderCountriesList = (
-  isIndividualTour: boolean,
-  isGroupTour: boolean,
-  isLadiesTour: boolean,
-  isSeniorTour: boolean,
-  isStudentTour: boolean,
-  isHoneymoonTour: boolean
-) => {
-  if (internationalCountries.length === 0) {
+  const renderCountriesList = (
+    isIndividualTour: boolean,
+    isGroupTour: boolean,
+    isLadiesTour: boolean,
+    isSeniorTour: boolean,
+    isStudentTour: boolean,
+    isHoneymoonTour: boolean
+  ) => {
+    if (internationalCountries.length === 0) {
+      return (
+        <div className="text-center py-8 text-gray-600">
+          No countries available
+        </div>
+      );
+    }
+
     return (
-      <div className="text-center py-8 text-gray-600">
-        No countries available
+      <div className="max-h-[70vh] overflow-y-auto p-1">
+        <table className="min-w-full border border-gray-400">
+          <tbody>
+            {internationalCountries.reduce((rows: any[], country, index) => {
+              if (index % 3 === 0) rows.push([]);
+              rows[rows.length - 1].push(country);
+              return rows;
+            }, []).map((row, rowIndex) => (
+              <tr key={rowIndex} className={rowIndex % 2 === 0 ? "bg-blue-50" : "bg-blue-100"}>
+                {row.map((country: string, colIndex: number) => {
+                  const countryId = getCountryIdByName(country);
+                  
+                  let hasActiveTours = false;
+                  if (countryId) {
+                    hasActiveTours = countryHasActiveToursForType(
+                      countryId,
+                      isIndividualTour,
+                      isGroupTour,
+                      isLadiesTour,
+                      isSeniorTour,
+                      isStudentTour,
+                      isHoneymoonTour
+                    );
+                  }
+                  
+                  return (
+                    <td 
+                      key={colIndex} 
+                      className="border border-gray-400 p-0"
+                    >
+                      <div
+                        className={`block w-full p-2 text-sm text-center transition-all duration-200 min-h-[40px] flex items-center justify-center ${
+                          hasActiveTours 
+                            ? "bg-blue-700 text-white font-bold hover:bg-blue-800 cursor-pointer"
+                            : "text-gray-700 hover:bg-gray-100 cursor-pointer"
+                        }`}
+                        title={country}
+                        onClick={() => {
+                          if (hasActiveTours && countryId) {
+                            if (isIndividualTour) {
+                              setShowIntlIndividualDestinations({countryId, countryName: country});
+                            } else if (isGroupTour) {
+                              setShowIntlGroupDestinations({countryId, countryName: country});
+                            } else if (isLadiesTour) {
+                              setShowIntlLadiesDestinations({countryId, countryName: country});
+                            } else if (isSeniorTour) {
+                              setShowIntlSeniorDestinations({countryId, countryName: country});
+                            } else if (isStudentTour) {
+                              setShowIntlStudentDestinations({countryId, countryName: country});
+                            } else if (isHoneymoonTour) {
+                              setShowIntlHoneymoonDestinations({countryId, countryName: country});
+                            }
+                          }
+                        }}
+                      >
+                        {country}
+                      </div>
+                    </td>
+                  );
+                })}
+                {row.length < 3 && [...Array(3 - row.length)].map((_, colIndex) => (
+                  <td 
+                    key={colIndex} 
+                    className="border border-gray-400 p-0 bg-gray-50"
+                  >
+                    <div className="block w-full p-2 h-full min-h-[40px]"></div>
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     );
-  }
-
-  return (
-    <div className="max-h-[70vh] overflow-y-auto">
-      <div className="sticky top-0 z-10 bg-gradient-to-r from-blue-100 to-blue-200 px-4 py-3 border-b border-blue-300">
-        <h3 className="font-bold text-blue-900 text-lg">Select a Country</h3>
-      </div>
-      <table className="min-w-full divide-y divide-gray-200">
-        <tbody className="bg-white divide-y divide-gray-200">
-          {internationalCountries.reduce((rows: any[], country, index) => {
-            if (index % 3 === 0) rows.push([]);
-            rows[rows.length - 1].push(country);
-            return rows;
-          }, []).map((row, rowIndex) => (
-            <tr key={rowIndex} className={rowIndex % 2 === 0 ? "bg-blue-50" : "bg-blue-100"}>
-              {row.map((country: string, colIndex: number) => {
-                const countryId = getCountryIdByName(country);
-                
-                // Check if this country has active tours for the current category
-                let hasActiveTours = false;
-                if (countryId) {
-                  hasActiveTours = countryHasActiveToursForType(
-                    countryId,
-                    isIndividualTour,
-                    isGroupTour,
-                    isLadiesTour,
-                    isSeniorTour,
-                    isStudentTour,
-                    isHoneymoonTour
-                  );
-                }
-                
-                return (
-                  <td key={colIndex} className="w-1/3 px-2 py-2.5 whitespace-nowrap border-r border-gray-400">
-                    <div
-                      className={`block w-full text-sm font-medium text-left transition-colors ${
-                        hasActiveTours 
-                          ? `font-semibold bg-blue-800 text-white hover:bg-blue-900 hover:text-white rounded px-1.5 py-0.5 transition-all duration-200 shadow-sm hover:shadow-md cursor-pointer`
-                          : `text-gray-700 hover:text-gray-800 hover:bg-gray-100 font-normal transition-colors duration-200 px-1.5 py-0.5 rounded cursor-pointer`
-                      }`}
-                      title={country}
-                      onClick={() => {
-                        if (hasActiveTours && countryId) {
-                          if (isIndividualTour) {
-                            setShowIntlIndividualDestinations({countryId, countryName: country});
-                          } else if (isGroupTour) {
-                            setShowIntlGroupDestinations({countryId, countryName: country});
-                          } else if (isLadiesTour) {
-                            setShowIntlLadiesDestinations({countryId, countryName: country});
-                          } else if (isSeniorTour) {
-                            setShowIntlSeniorDestinations({countryId, countryName: country});
-                          } else if (isStudentTour) {
-                            setShowIntlStudentDestinations({countryId, countryName: country});
-                          } else if (isHoneymoonTour) {
-                            setShowIntlHoneymoonDestinations({countryId, countryName: country});
-                          }
-                        } else {
-                          // Country has no active tours - do nothing or show message
-                          // Or you could show a tooltip/message
-                        }
-                      }}
-                    >
-                      {country}
-                    </div>
-                  </td>
-                );
-              })}
-              {row.length < 3 && [...Array(3 - row.length)].map((_, colIndex) => (
-                <td key={colIndex} className={`w-1/3 px-2 py-2.5 border-r border-gray-400 ${rowIndex % 2 === 0 ? "bg-blue-50" : "bg-blue-100"}`}></td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-};
+  };
 
   // Function to render destinations for a specific country
-const renderDestinationsForCountry = (
-  countryId: number,
-  countryName: string,
-  isIndividualTour: boolean,
-  isGroupTour: boolean,
-  isLadiesTour: boolean,
-  isSeniorTour: boolean,
-  isStudentTour: boolean,
-  isHoneymoonTour: boolean
-) => {
-  const country = groupedInternationalDestinations[countryId];
-  
-  if (!country || !country.destinations || country.destinations.length === 0) {
-    return (
-      <div className="max-h-[70vh] overflow-y-auto">
-        <div className="sticky top-0 z-10 bg-gradient-to-r from-blue-100 to-blue-200 px-4 py-3 border-b border-blue-300 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={() => {
-                if (isIndividualTour) setShowIntlIndividualDestinations(null);
-                else if (isGroupTour) setShowIntlGroupDestinations(null);
-                else if (isLadiesTour) setShowIntlLadiesDestinations(null);
-                else if (isSeniorTour) setShowIntlSeniorDestinations(null);
-                else if (isStudentTour) setShowIntlStudentDestinations(null);
-                else if (isHoneymoonTour) setShowIntlHoneymoonDestinations(null);
-              }}
-              className="text-blue-900 hover:text-blue-700"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <h3 className="font-bold text-blue-900 text-lg">{countryName}</h3>
-          </div>
-        </div>
-        <div className="text-center py-8 text-gray-600">
-          No destinations available for {countryName}
-        </div>
-      </div>
-    );
-  }
-
-  // Filter destinations that have active tours for the current category
-  const activeDestinations = country.destinations.filter(dest => {
-    const category = isIndividualTour ? "Individual" :
-                   isGroupTour ? "Group" :
-                   isLadiesTour ? "Ladies Special" :
-                   isSeniorTour ? "Senior Citizen" :
-                   isStudentTour ? "Student" : "Honeymoon";
+  const renderDestinationsForCountry = (
+    countryId: number,
+    countryName: string,
+    isIndividualTour: boolean,
+    isGroupTour: boolean,
+    isLadiesTour: boolean,
+    isSeniorTour: boolean,
+    isStudentTour: boolean,
+    isHoneymoonTour: boolean
+  ) => {
+    const country = groupedInternationalDestinations[countryId];
     
-    return hasToursForDestination(dest.name, category, true);
-  });
-
-  if (activeDestinations.length === 0) {
-    return (
-      <div className="max-h-[70vh] overflow-y-auto">
-        <div className="sticky top-0 z-10 bg-gradient-to-r from-blue-100 to-blue-200 px-4 py-3 border-b border-blue-300 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+    if (!country || !country.destinations || country.destinations.length === 0) {
+      return (
+        <div className="max-h-[70vh] overflow-y-auto p-4">
+          <div className="flex items-center gap-2 mb-4">
             <button 
               onClick={() => {
                 if (isIndividualTour) setShowIntlIndividualDestinations(null);
@@ -609,18 +511,53 @@ const renderDestinationsForCountry = (
             </button>
             <h3 className="font-bold text-blue-900 text-lg">{countryName}</h3>
           </div>
+          <div className="text-center py-8 text-gray-600">
+            No destinations available for {countryName}
+          </div>
         </div>
-        <div className="text-center py-8 text-gray-600">
-          No active tours available for {countryName}
-        </div>
-      </div>
-    );
-  }
+      );
+    }
 
-  return (
-    <div className="max-h-[70vh] overflow-y-auto">
-      <div className="sticky top-0 z-10 bg-gradient-to-r from-blue-100 to-blue-200 px-4 py-3 border-b border-blue-300 flex items-center justify-between">
-        <div className="flex items-center gap-2">
+    // Filter destinations that have active tours for the current category
+    const activeDestinations = country.destinations.filter(dest => {
+      const category = isIndividualTour ? "Individual" :
+                     isGroupTour ? "Group" :
+                     isLadiesTour ? "Ladies Special" :
+                     isSeniorTour ? "Senior Citizen" :
+                     isStudentTour ? "Student" : "Honeymoon";
+      
+      return hasToursForDestination(dest.name, category, true);
+    });
+
+    if (activeDestinations.length === 0) {
+      return (
+        <div className="max-h-[70vh] overflow-y-auto p-4">
+          <div className="flex items-center gap-2 mb-4">
+            <button 
+              onClick={() => {
+                if (isIndividualTour) setShowIntlIndividualDestinations(null);
+                else if (isGroupTour) setShowIntlGroupDestinations(null);
+                else if (isLadiesTour) setShowIntlLadiesDestinations(null);
+                else if (isSeniorTour) setShowIntlSeniorDestinations(null);
+                else if (isStudentTour) setShowIntlStudentDestinations(null);
+                else if (isHoneymoonTour) setShowIntlHoneymoonDestinations(null);
+              }}
+              className="text-blue-900 hover:text-blue-700"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <h3 className="font-bold text-blue-900 text-lg">{countryName}</h3>
+          </div>
+          <div className="text-center py-8 text-gray-600">
+            No active tours available for {countryName}
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="max-h-[70vh] overflow-y-auto p-1">
+        <div className="flex items-center gap-2 mb-2 px-2">
           <button 
             onClick={() => {
               if (isIndividualTour) setShowIntlIndividualDestinations(null);
@@ -634,51 +571,58 @@ const renderDestinationsForCountry = (
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <h3 className="font-bold text-blue-900 text-lg">{countryName} - Destinations</h3>
+          <h3 className="font-bold text-blue-900 text-sm">{countryName}</h3>
         </div>
-      </div>
-      <table className="min-w-full divide-y divide-gray-200">
-        <tbody className="bg-white divide-y divide-gray-200">
-          {activeDestinations.reduce((rows: any[], dest, index) => {
-            if (index % 3 === 0) rows.push([]);
-            rows[rows.length - 1].push(dest);
-            return rows;
-          }, []).map((row, rowIndex) => (
-            <tr key={rowIndex} className={rowIndex % 2 === 0 ? "bg-blue-50" : "bg-blue-100"}>
-              {row.map((dest, colIndex: number) => {
-                const href = getDestinationHref(
-                  false,
-                  isIndividualTour,
-                  isGroupTour,
-                  isLadiesTour,
-                  isSeniorTour,
-                  isStudentTour,
-                  isHoneymoonTour,
-                  dest.name
-                );
-                
-                return (
-                  <td key={colIndex} className="w-1/3 px-2 py-2.5 whitespace-nowrap border-r border-gray-400">
-                    <a
-                      href={href}
-                      className={`block w-full text-sm font-medium text-left transition-colors font-semibold bg-blue-800 text-white hover:bg-blue-900 hover:text-white rounded px-1.5 py-0.5 transition-all duration-200 shadow-sm hover:shadow-md cursor-pointer`}
-                      title={dest.name}
+        <table className="min-w-full border border-gray-400">
+          <tbody>
+            {activeDestinations.reduce((rows: any[], dest, index) => {
+              if (index % 3 === 0) rows.push([]);
+              rows[rows.length - 1].push(dest);
+              return rows;
+            }, []).map((row, rowIndex) => (
+              <tr key={rowIndex} className={rowIndex % 2 === 0 ? "bg-blue-50" : "bg-blue-100"}>
+                {row.map((dest, colIndex: number) => {
+                  const href = getDestinationHref(
+                    false,
+                    isIndividualTour,
+                    isGroupTour,
+                    isLadiesTour,
+                    isSeniorTour,
+                    isStudentTour,
+                    isHoneymoonTour,
+                    dest.name
+                  );
+                  
+                  return (
+                    <td 
+                      key={colIndex} 
+                      className="border border-gray-400 p-0"
                     >
-                      {dest.name}
-                    </a>
+                      <a
+                        href={href}
+                        className="block w-full p-2 text-sm text-center bg-blue-700 text-white font-bold hover:bg-blue-800 transition-all duration-200 min-h-[40px] flex items-center justify-center"
+                        title={dest.name}
+                      >
+                        {dest.name}
+                      </a>
+                    </td>
+                  );
+                })}
+                {row.length < 3 && [...Array(3 - row.length)].map((_, colIndex) => (
+                  <td 
+                    key={colIndex} 
+                    className="border border-gray-400 p-0 bg-gray-50"
+                  >
+                    <div className="block w-full p-2 h-full min-h-[40px]"></div>
                   </td>
-                );
-              })}
-              {row.length < 3 && [...Array(3 - row.length)].map((_, colIndex) => (
-                <td key={colIndex} className={`w-1/3 px-2 py-2.5 border-r border-gray-400 ${rowIndex % 2 === 0 ? "bg-blue-50" : "bg-blue-100"}`}></td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-};
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
 
   const navItems: NavItem[] = [
     { icon: HomeIcon, label: "Home", href: "/" },
@@ -815,8 +759,10 @@ const renderDestinationsForCountry = (
                         <ChevronDown className="w-3 h-3" />
                       </div>
                     </div>
+                    
                     {/* MEGA DROPDOWN */}
-<div className={`absolute left-1/2 -translate-x-1/2 top-full opacity-0 -translate-y-4 invisible group-hover:opacity-100 group-hover:translate-y-0 group-hover:visible bg-red-50 text-gray-800 rounded-xl shadow-2xl min-w-[200px] py-4 border border-gray-200 transition-all duration-300 ease-in-out z-50`}>                      {item.dropdown.map((sub, idx) => {
+                    <div className={`absolute left-1/2 -translate-x-1/2 top-full opacity-0 -translate-y-4 invisible group-hover:opacity-100 group-hover:translate-y-0 group-hover:visible bg-red-50 text-gray-800 rounded-xl shadow-2xl min-w-[200px] py-4 border border-gray-200 transition-all duration-300 ease-in-out z-50`}>
+                      {item.dropdown.map((sub, idx) => {
                         const isIndian = item.label === "Indian Tours";
                         const isIntl = item.label === "International Tours";
                         const isIndividual = sub.label === "Individual Tours";
@@ -825,9 +771,6 @@ const renderDestinationsForCountry = (
                         const isSenior = sub.label === "Senior Citizen Tours";
                         const isStudent = sub.label === "Students Tours";
                         const isHoneymoon = sub.label === "Honeymoon Tours";
-                        
-                        // For international tours, ALWAYS show all dropdown items
-                        // Even if no active countries exist for that category
                         
                         let showThisStates = false;
                         let enterHandler: (() => void) | null = null;
@@ -947,15 +890,15 @@ const renderDestinationsForCountry = (
                                 {sub.subDropdown && <ChevronRight className="w-4 h-4 text-gray-500 flex-shrink-0" />}
                               </a>
                             </div>
+                            
                             {/* STATES / COUNTRIES SUB-DROPDOWN */}
                             {sub.subDropdown && showThisStates && (
-                          <div
-  className={`absolute left-full ${topOffset} ml-3 bg-white text-gray-800 rounded-xl shadow-2xl w-[450px] min-w-[450px] py-4 border border-gray-200 opacity-100 visible transition-all duration-300 ease-in-out z-[60] max-h-[70vh] overflow-y-auto`}
-  onMouseEnter={enterStatesHandler ?? undefined}
-  onMouseLeave={leaveStatesHandler ?? undefined}
->
+                              <div
+                                className={`absolute left-full ${topOffset} ml-3 bg-white text-gray-800 rounded-lg shadow-2xl w-[450px] min-w-[450px] py-2 border border-gray-300 opacity-100 visible transition-all duration-300 ease-in-out z-[60] max-h-[70vh] overflow-hidden`}
+                                onMouseEnter={enterStatesHandler ?? undefined}
+                                onMouseLeave={leaveStatesHandler ?? undefined}
+                              >
                                 {isIntl && sub.isCountryList ? (
-                                  // Check if we're showing countries list or destinations for a specific country
                                   (() => {
                                     if (isIndividual && showIntlIndividualDestinations) {
                                       return renderDestinationsForCountry(
@@ -1036,59 +979,73 @@ const renderDestinationsForCountry = (
                                     }
                                   })()
                                 ) : (
-                                  // Indian: Simple table
-                                  <table className="min-w-full divide-y divide-gray-200">
-                                    <tbody className="bg-white divide-y divide-gray-200">
-                                      {sub.subDropdown.reduce((rows: any[], dest, index) => {
-                                        if (index % 3 === 0) rows.push([]);
-                                        rows[rows.length - 1].push(dest);
-                                        return rows;
-                                      }, []).map((row, rowIndex) => (
-                                        <tr key={rowIndex} className={rowIndex % 2 === 0 ? "bg-blue-50" : "bg-blue-100"}>
-                                          {row.map((dest: string, colIndex: number) => {
-                                            const isAndaman = dest === "Andaman";
-                                            const href = getDestinationHref(
-                                              isIndian,
-                                              isIndividual,
-                                              isGroup,
-                                              isLadies,
-                                              isSenior,
-                                              isStudent,
-                                              isHoneymoon,
-                                              dest
-                                            );
-                                            
-                                            const highlightClass = getHighlightClass(
-                                              dest,
-                                              isIndian,
-                                              isIndividual,
-                                              isGroup,
-                                              isLadies,
-                                              isSenior,
-                                              isStudent,
-                                              isHoneymoon,
-                                              rowIndex
-                                            );
-                                            
-                                            return (
-                                              <td key={colIndex} className="w-1/3 px-2 py-2.5 whitespace-nowrap border-r border-gray-400">
-                                                <a
-                                                  href={href}
-                                                  className={`block w-full text-sm font-medium text-left transition-colors ${highlightClass}`}
-                                                  title={dest}
+                                  // INDIAN TOURS TABLE
+                                  <div className="max-h-[70vh] overflow-y-auto p-1">
+                                    <table className="min-w-full border border-gray-400">
+                                      <tbody>
+                                        {sub.subDropdown.reduce((rows: any[], dest, index) => {
+                                          if (index % 3 === 0) rows.push([]);
+                                          rows[rows.length - 1].push(dest);
+                                          return rows;
+                                        }, []).map((row, rowIndex) => (
+                                          <tr key={rowIndex} className={rowIndex % 2 === 0 ? "bg-blue-50" : "bg-blue-100"}>
+                                            {row.map((dest: string, colIndex: number) => {
+                                              const isAndaman = dest === "Andaman";
+                                              const href = getDestinationHref(
+                                                isIndian,
+                                                isIndividual,
+                                                isGroup,
+                                                isLadies,
+                                                isSenior,
+                                                isStudent,
+                                                isHoneymoon,
+                                                dest
+                                              );
+                                              
+                                              const hasTours = hasToursForDestination(
+                                                dest,
+                                                isIndividual ? "Individual" : 
+                                                isGroup ? "Group" :
+                                                isLadies ? "Ladies Special" :
+                                                isSenior ? "Senior Citizen" :
+                                                isStudent ? "Student" : "Honeymoon",
+                                                false
+                                              );
+                                              
+                                              return (
+                                                <td 
+                                                  key={colIndex} 
+                                                  className="border border-gray-400 p-0"
                                                 >
-                                                  {isAndaman ? "Andaman (P. Blair)" : dest}
-                                                </a>
+                                                  <a
+                                                    href={href}
+                                                    className={`block w-full p-2 text-sm text-center transition-all duration-200 min-h-[40px] flex items-center justify-center ${
+                                                      hasTours 
+                                                        ? "bg-blue-700 text-white font-bold hover:bg-blue-800"
+                                                        : "text-gray-700 hover:bg-gray-100"
+                                                    }`}
+                                                    title={dest}
+                                                  >
+                                                    {isAndaman ? "Andaman (P. Blair)" : dest}
+                                                  </a>
+                                                </td>
+                                              );
+                                            })}
+                                            
+                                            {/* Fill empty cells */}
+                                            {row.length < 3 && [...Array(3 - row.length)].map((_, colIndex) => (
+                                              <td 
+                                                key={colIndex} 
+                                                className="border border-gray-400 p-0 bg-gray-50"
+                                              >
+                                                <div className="block w-full p-2 h-full min-h-[40px]"></div>
                                               </td>
-                                            );
-                                          })}
-                                          {row.length < 3 && [...Array(3 - row.length)].map((_, colIndex) => (
-                                            <td key={colIndex} className={`w-1/3 px-2 py-2.5 border-r border-gray-400 ${rowIndex % 2 === 0 ? "bg-blue-50" : "bg-blue-100"}`}></td>
-                                          ))}
-                                        </tr>
-                                      ))}
-                                    </tbody>
-                                  </table>
+                                            ))}
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  </div>
                                 )}
                               </div>
                             )}
@@ -1174,9 +1131,6 @@ const renderDestinationsForCountry = (
                       {mobileSubmenuOpen[item.label] && (
                         <ul className="bg-primary border-t border-blue-500">
                           {item.dropdown.map((sub, i) => {
-                            // For international tours, ALWAYS show all dropdown items
-                            // Even if no active countries exist for that category
-                            
                             return (
                               <li key={i} className="border-b border-blue-600">
                                 {!sub.subDropdown ? (
@@ -1199,7 +1153,6 @@ const renderDestinationsForCountry = (
                                     {mobileSubmenuOpen[sub.label] && (
                                       <ul className="bg-primary border-t border-blue-600">
                                         {item.label === "International Tours" ? (
-                                          // Mobile: Render countries list
                                           internationalCountries
                                             .filter(countryName => {
                                               const countryId = getCountryIdByName(countryName);
@@ -1290,7 +1243,6 @@ const renderDestinationsForCountry = (
                                               );
                                             })
                                         ) : (
-                                          // Mobile: Render Indian states
                                           sub.subDropdown.map((dest, j) => {
                                             const isAndaman = dest === "Andaman";
                                             const isIndividualTour = sub.label === "Individual Tours";

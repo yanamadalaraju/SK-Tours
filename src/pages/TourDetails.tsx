@@ -234,7 +234,7 @@ const navigate = useNavigate();
       {/* Content Area - Scrollable with justified text */}
       <div className={`${bodyColor} rounded-lg border border-black overflow-hidden`}>
         <div
-          className="p-2 text-gray-800 whitespace-pre-line text-justify"
+          className="p-2 text-black whitespace-pre-line text-justify"
           style={{
             height: '150px', // Fixed height
             overflowY: 'auto',
@@ -1574,7 +1574,7 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                               <div key={index} className="border-gray-200 rounded-lg w-full">
                                 <div className="flex items-start w-full">
                                   <div className="flex-1 min-w-0">
-                                    <p className="text-gray-700 break-words whitespace-pre-wrap text-justify w-full">
+                                    <p className="text-black break-words whitespace-pre-wrap text-justify w-full">
                                       {description}
                                     </p>
                                   </div>
@@ -1763,13 +1763,13 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                                       <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center font-medium text-gray-700 text-base h-12 w-1/6">
                                         {row.passenger}
                                       </td>
-                                      <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-gray-600 text-base h-12 w-1/6">
+                                      <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-blue-800 font-semibold text-base h-12 w-1/6">
                                         {row.standard}
                                       </td>
-                                      <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-green-600 font-semibold text-base h-12 w-1/6">
+                                      <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-green-800 font-semibold text-base h-12 w-1/6">
                                         {row.deluxe}
                                       </td>
-                                      <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-gray-600 text-base h-12 w-1/6">
+                                      <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-[#A72703] font-semibold text-base h-12 w-1/6">
                                         {row.executive}
                                       </td>
                                       <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-blue-600 font-medium text-base h-12 w-1/6">
@@ -1802,7 +1802,7 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                               <ul className="space-y-2 w-full">
                                 {tour.tourCost.remarks.map((remark: string, index: number) => (
                                   <li key={index} className="flex items-start gap-2 w-full">
-                                    <span className="text-gray-700 whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
+                                    <span className="text-black whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
                                       {remark}
                                     </span>
                                   </li>
@@ -1841,9 +1841,9 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                               <tbody className="border-2 border-[#1e3a8a] border-t-0">
                                 {tour.optionalTours.map((optTour: any, index: number) => (
                                   <tr key={index} className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}>
-                                    <td className="border border-black px-4 py-2">{optTour.tourName}</td>
-                                    <td className="border border-black px-4 py-2 border-l-0">{optTour.adultPrice}</td>
-                                    <td className="border border-black px-4 py-2 border-l-0">{optTour.childPrice}</td>
+                                    <td className="border border-black px-4 py-2 text-black">{optTour.tourName}</td>
+                                    <td className="border border-black px-4 py-2 border-l-0 text-black">{optTour.adultPrice}</td>
+                                    <td className="border border-black px-4 py-2 border-l-0 text-black">{optTour.childPrice}</td>
                                   </tr>
                                 ))}
                               </tbody>
@@ -1863,7 +1863,7 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                               <ul className="space-y-2 w-full">
                                 {tour.optionalTourRemarks.map((remark: string, index: number) => (
                                   <li key={index} className="flex items-start gap-2 w-full">
-                                    <span className="text-gray-700 whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
+                                    <span className="text-black whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
                                       {remark}
                                     </span>
                                   </li>
@@ -1905,16 +1905,16 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                               <tbody className="border-2 border-[#1e3a8a] border-t-0">
                                 {tour.emiOptions.options.map((emi: any, index: number) => (
                                   <tr key={index} className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}>
-                                    <td className="border border-black px-4 py-2 font-bold text-base">
+                                    <td className="border border-black px-4 py-2 font-bold text-base text-black">
                                       {emi.particulars}
                                     </td>
-                                    <td className="border border-black px-4 py-2 border-l-0 text-center">
+                                    <td className="border border-black px-4 py-2 border-l-0 text-center text-black">
                                       {emi.loanAmount} {/* Changed from tour.emiOptions.loanAmount */}
                                     </td>
-                                    <td className="border border-black px-4 py-2 border-l-0 text-center">
+                                    <td className="border border-black px-4 py-2 border-l-0 text-center text-black">
                                       {emi.months}
                                     </td>
-                                    <td className="border border-black px-4 py-2 border-l-0 text-center">
+                                    <td className="border border-black px-4 py-2 border-l-0 text-center text-black">
                                       {emi.emi}
                                     </td>
                                   </tr>
@@ -1938,7 +1938,7 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                               <ul className="space-y-2 w-full">
                                 {tour.emiRemarks.map((remark: string, index: number) => (
                                   <li key={index} className="flex items-start gap-2 w-full">
-                                    <span className="text-gray-700 whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
+                                    <span className="text-black whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
                                       {remark}
                                     </span>
                                   </li>
@@ -1984,7 +1984,7 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                               {tour.inclusionExclusion.inclusions.map((inclusion: any, index: number) => (
                                 <li key={index} className="w-full">
                                   <div className="flex items-start gap-0 w-full">
-                                    <div className="text-gray-700 flex-1 min-w-0 text-justify break-words ml-2">
+                                    <div className="text-black flex-1 min-w-0 text-justify break-words ml-2">
                                       {inclusion.item || inclusion}
                                     </div>
                                   </div>
@@ -2007,7 +2007,7 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                                 <li key={index} className="w-full">
                                   <div className="flex items-start gap-0 w-full">
 
-                                    <div className="text-gray-700 flex-1 min-w-0 text-justify break-words ml-2">
+                                    <div className="text-black flex-1 min-w-0 text-justify break-words ml-2">
                                       {exclusion.item || exclusion}
                                     </div>
                                   </div>
@@ -2199,7 +2199,7 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
 
                                       {flight.description && (
                                         <div>
-                                          <p className="text-gray-600  p-1">
+                                          <p className="text-black  p-1">
                                             {flight.description}
                                           </p>
                                         </div>
@@ -2258,9 +2258,9 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                                   key={index}
                                   className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}
                                 >
-                                  <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap">{hotel.city}</td>
-                                  <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap">{hotel.nights}</td>
-                                  <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap">
+                                  <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap text-black">{hotel.city}</td>
+                                  <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap text-black">{hotel.nights}</td>
+                                  <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap text-black">
                                     {hotel.standard}
                                   </td>
                                   <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap">
@@ -2292,7 +2292,7 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                               <ul className="space-y-2 w-full">
                                 {[...tour.hotels.remarks, ...tour.airlines.remarks].map((remark: string, index: number) => (
                                   <li key={index} className="flex items-start gap-1 w-full">
-                                    <span className="text-gray-700 break-words whitespace-pre-wrap text-justify w-full">
+                                    <span className="text-black break-words whitespace-pre-wrap text-justify w-full">
                                       {remark}
                                     </span>
                                   </li>
@@ -2316,146 +2316,165 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                   </div>
                 )}
 
+{/* Bookings POI Tab */}
+{/* Bookings POI Tab */}
+{activeTab === "bookings-poi" && (
+  <div className="bg-[#E8F0FF] rounded-lg p-1">
+    <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg mb-1">
+      Booking Policy
+    </div>
 
-                {/* Bookings POI Tab */}
-                {activeTab === "bookings-poi" && (
-                  <div className="bg-[#E8F0FF] rounded-lg p-1">
-                    <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg mb-1">
-                      Booking Policy
-                    </div>
+<div className="flex flex-col lg:flex-row gap-1 mt-1 h-[320px]">
+  {/* Left Card - Booking Policy - 70% width */}
+  <div className="h-full w-full lg:w-8/12 flex flex-col">
+    <div className="bg-[#2E4D98] text-white text-center py-3 rounded-t-lg">
+      <h3 className="text-xl font-bold">Booking Policy</h3>
+    </div>
+    <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-white overflow-hidden">
+      <div className="h-full overflow-y-auto bg-[#FFEBEE]">
+        <div className="p-1"> 
+          {tour.booking.items.map((item: string, index: number) => (
+            <React.Fragment key={index}>
+              <div className="flex items-start gap-3 p-2">
+                <span className="text-black text-[15px] whitespace-normal text-justify w-full">
+                  {item}
+                </span>
+              </div>
+              {/* Horizontal line after EACH item - even the last one */}
+              {index < tour.booking.items.length && (
+                <div className="border-b-[1px] border-black"></div> 
+              )}
+            </React.Fragment>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
 
-                    <div className="flex flex-col lg:flex-row gap-1 mt-1 h-[320px]">
-                      {/* Left Card - Booking Policy - 70% width */}
-                      <div className="h-full w-full lg:w-8/12 flex flex-col">
-                        <div className="bg-[#2E4D98] text-white text-center py-3 rounded-t-lg">
-                          <h3 className="text-xl font-bold">Booking Policy</h3>
-                        </div>
-                        <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-white overflow-hidden">
-                          <div className="h-full overflow-y-auto bg-[#FFEBEE]">
-                            <div className="p-1 space-y-1"> 
-                              {tour.booking.items.map((item: string, index: number) => (
-                                <div key={index} className="flex items-start gap-3 p-2">
-                                  <span className="text-gray-700 text-[15px] whitespace-normal text-justify w-full">
-                                    {item}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Right Card - Amount Details - 30% width */}
-                      <div className="h-full w-full lg:w-4/12 flex flex-col">
-                        <div className="bg-[#2E4D98] text-white text-center py-3 rounded-t-lg">
-                          <h3 className="text-xl font-bold">Amount Details</h3>
-                        </div>
-                        <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-white overflow-hidden ">
-                          <div className="h-full overflow-y-auto bg-[#FFEBEE]">
-                            <div className="p-1 grid gap-1">
-                              {tour.booking.amountDetails.map((amount: string, index: number) => (
-                                <div key={index} className="flex items-center justify-center p-3">
-                                  <div className="text-center w-full">
-                                    <span className="text-sm font-bold text-green-600">
-                                      {amount}
-                                    </span>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    {/* Booking Policy Remarks Section */}
-                    <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
-                      <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
-                        Booking Policy Remarks
-                      </div>
-                      <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-                        <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-                          {tour.bookingRemarks && tour.bookingRemarks.length > 0 ? (
-                            <ul className="space-y-2 w-full">
-                              {tour.bookingRemarks.map((remark: string, index: number) => (
-                                <li key={index} className="flex items-start gap-2 w-full">
-                                  <span className="text-gray-700 whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
-                                    {remark}
-                                  </span>
-                                </li>
-                              ))}
-                            </ul>
-                          ) : (
-                            <div className="flex items-center justify-center h-full">
-                              <span className="text-gray-500 italic">No booking policy remarks available</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      <div className="mt-1">
-  <button
-   onClick={() => navigate("/alert")}
-    className={`w-full  font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90`}
-  >
-    Customize your tour on chargeable basis
-  </button>
+  {/* Right Card - Amount Details - 30% width */}
+<div className="h-full w-full lg:w-4/12 flex flex-col">
+  <div className="bg-[#2E4D98] text-white text-center py-3 rounded-t-lg">
+    <h3 className="text-xl font-bold">Amount Details</h3>
+  </div>
+  <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-white overflow-hidden">
+    <div className="h-full overflow-y-auto bg-[#FFEBEE]">
+      <div className="p-1">
+        {tour.booking.amountDetails.map((amount: string, index: number) => (
+          <React.Fragment key={index}>
+            <div className="flex items-center p-2 pl-4"> {/* Added pl-4 for left padding */}
+              <div className="text-left w-full">
+                <span className="text-sm font-bold text-green-600">
+                  {amount}
+                </span>
+              </div>
+            </div>
+            {/* Horizontal line after EACH amount - even the last one */}
+            {index < tour.booking.amountDetails.length && (
+              <div className="border-b-[1px] border-black"></div> 
+            )}
+          </React.Fragment>
+        ))}
+      </div>
+    </div>
+  </div>
 </div>
-
-                    </div>
-                  </div>
-                )}
-
+</div>
+    
+    <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
+  <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
+    Booking Policy Remarks
+  </div>
+  <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
+    <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+      {tour.bookingRemarks && tour.bookingRemarks.length > 0 ? (
+        <ul className="space-y-2 w-full">
+          {tour.bookingRemarks.map((remark: string, index: number) => (
+            <li key={index} className="w-full">
+              <div className="flex items-start gap-2 w-full p-2">
+                <span className="text-black whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
+                  {remark}
+                </span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div className="flex items-center justify-center h-full">
+          <span className="text-gray-500 italic">No booking policy remarks available</span>
+        </div>
+      )}
+    </div>
+  </div>
+  <div className="mt-1">
+    <button
+      onClick={() => navigate("/alert")}
+      className="w-full font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90"
+    >
+      Customize your tour on chargeable basis
+    </button>
+  </div>
+</div>
+  </div>
+)}
                 {activeTab === "cancellation" && (
                   <div className="bg-[#E8F0FF] rounded-lg p-1">
                     <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg mb-1">
                       Cancellation Policy
                     </div>
 
-                    <div className="flex flex-col lg:flex-row gap-1 mt-1 h-[320px]">
-                      <div className="h-full w-full lg:w-8/12 flex flex-col">
-                        <div className="bg-[#A72703] text-white text-center py-3 rounded-t-lg">
-                          <h3 className="text-xl font-bold">Cancellation Policy</h3>
-                        </div>
-                        <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-[#FFEBEE] overflow-hidden">
-                          <div className="h-full overflow-y-auto p-1">
-                            <div className="space-y-1">
-                              {tour.cancellation.policies.map((item: string, index: number) => (
-                                <div
-                                  key={index}
-                                  className="flex items-start gap-3 p-2"
-                                >
-                                  <span className="text-gray-800  text-[15px] whitespace-normal text-justify w-full">
-                                    {item}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
+                  <div className="flex flex-col lg:flex-row gap-1 mt-1 h-[320px]">
+  <div className="h-full w-full lg:w-8/12 flex flex-col">
+    <div className="bg-[#A72703] text-white text-center py-3 rounded-t-lg">
+      <h3 className="text-xl font-bold">Cancellation Policy</h3>
+    </div>
+    <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-[#FFEBEE] overflow-hidden">
+      <div className="h-full overflow-y-auto bg-[#FFEBEE]">
+        <div className="p-1">
+          {tour.cancellation.policies.map((item: string, index: number) => (
+            <React.Fragment key={index}>
+              <div className="flex items-start gap-3 p-2">
+                <span className="text-black text-[15px] whitespace-normal text-justify w-full">
+                  {item}
+                </span>
+              </div>
+              {/* Horizontal line after EACH item - even the last one */}
+              {index < tour.cancellation.policies.length && (
+                <div className="border-b-[1px] border-black"></div>
+              )}
+            </React.Fragment>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
 
-                      </div>
-
-                      <div className="h-full w-full lg:w-4/12 flex flex-col">
-                        <div className="bg-[#A72703] text-white text-center py-3 rounded-t-lg">
-                          <h3 className="text-xl font-bold">Charges</h3>
-                        </div>
-                        <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-[#FFEBEE] overflow-hidden">
-                          <div className="h-full overflow-y-auto p-1">
-                            <div className="grid gap-1">
-                              {tour.cancellation.charges.map((charge: string, index: number) => (
-                                <div
-                                  key={index}
-                                  className="flex items-center justify-center p-3"
-                                >
-                                  <span className="text-sm font-bold text-[#A72703] text-center w-full">
-                                    {charge}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+<div className="h-full w-full lg:w-4/12 flex flex-col">
+  <div className="bg-[#A72703] text-white text-center py-3 rounded-t-lg">
+    <h3 className="text-xl font-bold">Charges</h3>
+  </div>
+  <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-[#FFEBEE] overflow-hidden">
+    <div className="h-full overflow-y-auto bg-[#FFEBEE]">
+      <div className="p-1">
+        {tour.cancellation.charges.map((charge: string, index: number) => (
+          <React.Fragment key={index}>
+            <div className="flex items-center justify-start p-2">
+              <div className="text-left w-full">
+                <span className="text-sm font-bold text-[#A72703]">
+                  {charge}
+                </span>
+              </div>
+            </div>
+            {/* Horizontal line after EACH charge - even the last one */}
+            {index < tour.cancellation.charges.length && (
+              <div className="border-b-[1px] border-black"></div>
+            )}
+          </React.Fragment>
+        ))}
+      </div>
+    </div>
+  </div>
+</div>
+</div>
 
                     {/* Cancellation Policy Remarks Section */}
                     <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
@@ -2468,7 +2487,7 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                             <ul className="space-y-2 w-full">
                               {tour.cancellationRemarks.map((remark: string, index: number) => (
                                 <li key={index} className="flex items-start gap-2 w-full">
-                                  <span className="text-gray-700 whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
+                                  <span className="text-black whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
                                     {remark}
                                   </span>
                                 </li>
@@ -2507,7 +2526,7 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                           <div className="p-1">
                             <ul className="space-y-2 text-gray-700">
                               {tour.instructions.map((instruction: any, index: number) => (
-                                <li key={index} className="text-justify whitespace-normal">
+                                <li key={index} className="text-justify whitespace-normal text-black">
                                   {instruction.item || instruction}
                                 </li>
                               ))}

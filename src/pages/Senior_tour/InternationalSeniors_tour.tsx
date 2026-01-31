@@ -810,7 +810,7 @@ const TourPackages = () => {
 
                 <div>
                   <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
-                    <h2 className="text-2xl font-bold text-[#2E4D98]">Intl Indv Tours</h2>
+                    <h2 className="text-2xl font-bold text-[#2E4D98]">International Tours</h2>
                   </div>
 
                   {loadingDestinations ? (
@@ -938,25 +938,26 @@ const TourPackages = () => {
                   {filteredTours.map((tour) => (
                     <div key={tour.id} className="flex flex-col">
                       {/* Separate Top Block - Excel-like box design */}
-                      <div className="bg-white border-2 border-gray-300 rounded-lg p-3 mb-3 shadow-sm">
-                        <div className="grid grid-cols-3 gap-0 border border-gray-400 rounded overflow-hidden">
-                          {/* Box 1 - Code Label */}
-                          <div className="bg-gray-100 border-r border-gray-400 p-2">
-                            <div className="text-xs font-semibold text-gray-700 text-center">CODE</div>
-                          </div>
+                       <div className="bg-white border-2 border-gray-300 rounded-lg p-3 mb-3 shadow-sm">
+  <div className="grid grid-cols-3 gap-0 border border-gray-400 rounded overflow-hidden">
 
-                          {/* Box 2 - Code Value */}
-                          <div className="bg-white border-r border-gray-400 p-2">
-                            <div className="text-sm font-bold text-gray-900 text-center">{tour.code}</div>
-                          </div>
+    {/* Box 1 - Code Label */}
+    <div className="bg-[#2E4D98] border-r border-gray-400 p-2 flex items-center justify-center flex-1">
+      <div className="text-sm font-bold text-white text-center">CODE</div>
+    </div>
 
-                          {/* Box 3 - Duration */}
-                          <div className="bg-gray-50 p-2">
-                            <div className="text-sm font-bold text-gray-900 text-center">{tour.duration}</div>
-                          </div>
-                        </div>
-                      </div>
+    {/* Box 2 - Code Value */}
+    <div className="bg-gradient-to-br from-blue-100 to-blue-50 border-gray-400 p-2 flex items-center justify-center flex-1">
+      <div className="text-sm font-bold text-gray-900 text-center">{tour.code}</div>
+    </div>
 
+    {/* Box 3 - Duration */}
+    <div className="bg-[#2E4D98] p-2 flex items-center justify-center flex-1">
+      <div className="text-sm font-bold text-white text-center">{tour.duration}</div>
+    </div>
+
+  </div>
+</div>
                       {/* Separate Card with Light Blue Background */}
                       <div className="group bg-blue-50 rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer border border-blue-100 flex flex-col flex-1 min-h-0">
                         {/* Image Section */}
@@ -975,24 +976,24 @@ const TourPackages = () => {
                             {tour.title}
                           </h3>
 
-                          {/* Price Details */}
-                          <div className="mb-3">
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="text-sm font-semibold text-gray-700">Tour Cost</span>
-                              <p className="text-2xl font-bold text-gray-900">{tour.price}</p>
-                            </div>
-
-                            <div className="flex items-center justify-between">
-                              <span className="text-sm text-gray-600">EMI per/month</span>
-                              <p className="text-sm font-bold text-gray-900">{tour.emi}</p>
-                            </div>
+                                 <div className="mb-3">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-sm text-[#2E4D98] font-bold">Tour Cost P.P</span>
+                            <p className="text-2xl font-bold text-gray-900">{tour.price}</p>
                           </div>
+                          
+                          <div className="flex items-center justify-between">
+  <span className="text-sm text-[#2E4D98] font-bold">EMI Per Month</span>
+  <p className="text-sm font-bold text-gray-900">{tour.emi}</p>
+</div>
 
-                          <p className="text-sm text-gray-600 mb-3 flex-1 line-clamp-2">{tour.locations}</p>
+                        </div>
 
-                          <div className="flex items-center justify-between text-sm text-gray-500 mb-0">
-                            <span>{tour.dates}</span>
-                          </div>
+                        <p className="text-sm text-[#2E4D98] font-bold mb-3">{tour.locations}</p>
+
+                        <div className="flex items-center justify-between text-sm text-gray-500 mb-0">
+                          <span>{tour.dates}</span>
+                        </div>
 
                           {/* Buttons */}
                           <div className="flex gap-2 mt-0">
