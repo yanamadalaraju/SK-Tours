@@ -715,7 +715,7 @@ const CheckoutPage = () => {
                 </div>
                 
                 {/* Payment Method */}
-                <div>
+                {/* <div>
                   <h2 className="text-xl font-semibold text-gray-800 mb-6 pb-3 border-b">Payment Method</h2>
                   <RadioGroup 
                     value={formData.paymentMethod} 
@@ -753,7 +753,7 @@ const CheckoutPage = () => {
                       </Label>
                     </div>
                   </RadioGroup>
-                </div>
+                </div> */}
                 
                 {/* Terms and Conditions */}
                 <div className="flex items-start space-x-3 p-4 bg-gray-50 rounded-lg">

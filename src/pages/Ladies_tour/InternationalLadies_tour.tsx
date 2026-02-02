@@ -83,6 +83,8 @@ const TourPackages = () => {
   const [showMoreWorld, setShowMoreWorld] = useState(false);
   const [sortType, setSortType] = useState("recommended");
   const [showAllDepartureMonths, setShowAllDepartureMonths] = useState(false);
+const [internationalDestinations, setInternationalDestinations] = useState<string[]>([]);
+const [loadingDestinations, setLoadingDestinations] = useState(false);
 
   // Filter states
   const [durationRange, setDurationRange] = useState([0, 150]);
@@ -104,6 +106,7 @@ const [appliedSearchQuery, setAppliedSearchQuery] = useState("");
   const [tourEmiData, setTourEmiData] = useState<Record<number | string, any>>({}); // NEW: Store EMI data for ladies special
   const [tourDepartures, setTourDepartures] = useState<Record<number | string, string[]>>({});
   const [departureMonths, setDepartureMonths] = useState<string[]>([]);
+  const [activeSearchQuery, setActiveSearchQuery] = useState(""); 
 
   // ---------- Fetch base tours ----------
   useEffect(() => {
@@ -123,7 +126,6 @@ const [appliedSearchQuery, setAppliedSearchQuery] = useState("");
     fetchTours();
   }, []);
 
-  // ---------- Fetch full tour details including EMI for each ladies special tour ----------
   useEffect(() => {
     if (!allTours || allTours.length === 0) return;
 
@@ -133,7 +135,6 @@ const [appliedSearchQuery, setAppliedSearchQuery] = useState("");
         const results = await Promise.all(
           allTours.map(async (tour) => {
             try {
-              // Note: Using /full/ladiesspecial/ for ladies special tours
               const res = await fetch(
                 `${BASE_URL}/api/tours/tour/full/ladiesspecial/${tour.tour_id}`
               );
@@ -238,6 +239,42 @@ const [appliedSearchQuery, setAppliedSearchQuery] = useState("");
     fetchTourDetails();
   }, [allTours]);
 
+  
+  
+  useEffect(() => {
+    const fetchInternationalDestinations = async () => {
+      try {
+        setLoadingDestinations(true);
+        console.log("Fetching international destinations...");
+  
+        const destinationsRes = await fetch(`${BASE_URL}/api/destinations/international`);
+  
+        if (!destinationsRes.ok) {
+          throw new Error(`Failed to fetch destinations: ${destinationsRes.status}`);
+        }
+  
+        // Tell TS what the API returns
+        const data: { name: string }[] = await destinationsRes.json();
+        console.log("Fetched international destinations:", data);
+  
+        // Now TS knows dest.name is a string
+        const destinationNames: string[] = data.map(dest => dest.name);
+  
+        const uniqueSortedDestinations: string[] = [...new Set(destinationNames)].sort(
+          (a, b) => a.localeCompare(b)
+        );
+  
+        setInternationalDestinations(uniqueSortedDestinations);
+      } catch (err) {
+        console.error("Error fetching international destinations:", err);
+      } finally {
+        setLoadingDestinations(false);
+      }
+    };
+  
+    fetchInternationalDestinations();
+  }, []);
+
   // ---------- Decode state from URL ----------
   useEffect(() => {
     if (state) {
@@ -291,13 +328,11 @@ const [appliedSearchQuery, setAppliedSearchQuery] = useState("");
       const days = tour.duration_days || 1;
                       const tourDepartureMonths = tourDepartures[tour.tour_id] || [];
 
-      // Get EMI price from stored data (already fetched for ladies special)
       const emiData = tourEmiData[tour.tour_id];
       const emiPrice = emiData?.emiPrice || "0";
         const basicDetails = emiData?.basicDetails || {};  // Extract basicDetails here
        const isInternational = basicDetails.is_international === 1;
 
-      // Format EMI price (remove the /12 calculation and use dynamic value)
       const formattedEmi = emiPrice !== "0" ? `₹${parseFloat(emiPrice).toLocaleString()}` : "₹0";
 
       return {
@@ -331,7 +366,6 @@ const [appliedSearchQuery, setAppliedSearchQuery] = useState("");
       return;
     }
 
-    // Only format if we have EMI data and images loaded for ladies special
     if (Object.keys(tourEmiData).length === 0 || Object.keys(tourImages).length === 0) {
       console.log("Waiting for ladies special tour details to load...");
       return;
@@ -366,22 +400,17 @@ const [appliedSearchQuery, setAppliedSearchQuery] = useState("");
     console.log("Initial ladies special tours count:", result.length);
 
 
-if (isSearchActive && appliedSearchQuery !== "") {
-  const query = appliedSearchQuery;
+ if (isSearchActive && appliedSearchQuery !== "") {
+    const query = appliedSearchQuery.toUpperCase();
+    console.log("Applying search filter for query:", query);
 
-      console.log("Applying search filter for query:", query);
-
-      result = result.filter(tour => {
-        const codeMatch = tour.code?.toUpperCase().includes(query);
-
-        const titleMatch = tour.title?.toUpperCase().includes(query);
-
-        return codeMatch || titleMatch;
-      });
-
-      console.log("After search filter:", result.length);
-    }
-
+    result = result.filter(tour => {
+      const codeMatch = tour.code?.toUpperCase().includes(query);
+      const titleMatch = tour.title?.toUpperCase().includes(query);
+      return codeMatch || titleMatch;
+    });
+    console.log("After search filter:", result.length);
+  }
     // Duration filter
     console.log("Duration range:", durationRange);
     if (durationRange[0] > 0 || durationRange[1] < 15) {
@@ -427,17 +456,17 @@ if (isSearchActive && appliedSearchQuery !== "") {
     }
 
     // World tours filter (won't really match for isIndian=true, but safe)
-    if (selectedWorldTours.length > 0) {
-      console.log("Selected World tours:", selectedWorldTours);
-      result = result.filter((tour) => {
-        if (tour.isIndian) return false;
-        return selectedWorldTours.some((selectedLocation) =>
-          (tour.locationTags || []).some((tag: string) =>
-            tag.toLowerCase().includes(selectedLocation.toLowerCase())
-          )
-        );
-      });
-    }
+    // if (selectedWorldTours.length > 0) {
+    //   console.log("Selected World tours:", selectedWorldTours);
+    //   result = result.filter((tour) => {
+    //     if (tour.isIndian) return false;
+    //     return selectedWorldTours.some((selectedLocation) =>
+    //       (tour.locationTags || []).some((tag: string) =>
+    //         tag.toLowerCase().includes(selectedLocation.toLowerCase())
+    //       )
+    //     );
+    //   });
+    // }
 
     // Sorting
     console.log("Sort type:", sortType);
@@ -457,7 +486,7 @@ if (isSearchActive && appliedSearchQuery !== "") {
     durationRange,
     priceRange,
         isSearchActive, // ADD THIS
-
+appliedSearchQuery, 
     selectedDepartureMonths,
     selectedIndianTours,
     selectedWorldTours,
@@ -497,14 +526,16 @@ const clearSearch = () => {
     }
   };
 
-  const handleIndianTourChange = (tour: string, checked: boolean) => {
-    if (checked) {
-      setSelectedIndianTours([...selectedIndianTours, tour]);
-    } else {
-      setSelectedIndianTours(selectedIndianTours.filter((t) => t !== tour));
-    }
-  };
-
+ const handleIndianTourChange = (tour: string, checked: boolean) => {
+  if (checked) {
+    // Clear international tours when selecting Indian
+    setSelectedWorldTours([]);
+    setSelectedIndianTours([tour]);
+    // Navigate
+    clearAllFilters();
+    navigate(`/ladies_tours/${encodeURIComponent(tour)}`);
+  }
+};
   const handleWorldTourChange = (tour: string, checked: boolean) => {
     if (checked) {
       setSelectedWorldTours([...selectedWorldTours, tour]);
@@ -520,6 +551,7 @@ const clearSearch = () => {
     setSelectedIndianTours([]);
     setSelectedWorldTours([]);
     setSortType("recommended");
+      clearSearch(); 
   };
 
   useEffect(() => {
@@ -717,16 +749,15 @@ const clearSearch = () => {
                     
                     return (
                       <div key={place} className="flex items-center gap-3 cursor-pointer">
-                        <Checkbox 
-                          checked={isCurrentState}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              clearAllFilters();
-                              navigate(`/ladies_tours/${encodeURIComponent(place)}`);
-                            }
-                          }}
-                          className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]" 
-                        />
+                       <Checkbox 
+  checked={isCurrentState || selectedIndianTours.includes(place)}
+  onCheckedChange={(checked) => {
+    if (checked) {
+      handleIndianTourChange(place, true);
+    }
+  }}
+  className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]" 
+/>
                         <span 
                           className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${isCurrentState ? 'font-bold text-[#2E4D98]' : ''}`}
                           onClick={() => {
@@ -749,77 +780,76 @@ const clearSearch = () => {
               </div>
 
               {/* World Tours */}
-            <div>
-                  <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
-                    <h2 className="text-2xl font-bold text-[#2E4D98]">Intl Indv Tours</h2>
-                  </div>
-                
-                  {(() => {
-                    const allWorldTours = [
-                      'Africa',
-                      'America',
-                      'Australia NewZealand',
-                      'Bhutan',
-                      'Dubai and MiddleEast',
-                      'Eurasia',
-                      'Europe',
-                      'Japan China',
-                      'Mauritius',
-                      'Nepal',
-                      'Seychelles',
-                      'South East Asia',
-                      'SriLanka Maldives'
-                    ];
-                
-                    const sortedWorldTours = [...allWorldTours].sort((a, b) =>
-                      a.localeCompare(b)
-                    );
-                
-                    const visibleWorldTours = showMoreWorld
-                      ? sortedWorldTours
-                      : sortedWorldTours.slice(0, 6);
-                
-                    return (
-                      <div className={`${showMoreWorld ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
-                        {visibleWorldTours.map((place) => {
-                          const isCurrentWorldTour = selectedWorldTours.includes(place);
-                
-                          return (
-                            <div key={place} className="flex items-center gap-3 cursor-pointer">
-                              <Checkbox
-                                checked={isCurrentWorldTour}
-                                onCheckedChange={(checked) => {
-                                  if (checked) {
-                                    clearAllFilters();
-                                    navigate(`/intl-ladies_tours/${encodeURIComponent(place)}`);
-                                  }
-                                }}
-                                className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
-                              />
-                              <span
-                                className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${isCurrentWorldTour ? 'font-bold text-[#2E4D98]' : ''
-                                  }`}
-                                onClick={() => {
-                                  clearAllFilters();
-                                  navigate(`/intl-ladies_tours/${encodeURIComponent(place)}`);
-                                }}
-                              >
-                                {place}
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    );
-                  })()}
-                
-                  <button
-                    onClick={() => setShowMoreWorld(!showMoreWorld)}
-                    className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
-                  >
-                    {showMoreWorld ? "Show Less" : "Show More"}
-                  </button>
-                </div>
+         <div>
+           <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
+             <h2 className="text-2xl font-bold text-[#2E4D98]">International Tours</h2>
+           </div>
+         
+           {loadingDestinations ? (
+             <div className="text-center py-4">
+               <p className="text-gray-500">Loading international destinations...</p>
+             </div>
+           ) : internationalDestinations.length === 0 ? (
+             <div className="text-center py-4">
+               <p className="text-gray-500">No international destinations found</p>
+             </div>
+           ) : (
+             <>
+               <div className={`${showMoreWorld ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
+                 {internationalDestinations
+                   .slice(0, showMoreWorld ? internationalDestinations.length : 6)
+                   .map((place) => {
+                     const isSelected = selectedWorldTours.includes(place);
+                     
+                     return (
+                       <div 
+                         key={place} 
+                         className="flex items-center gap-3 cursor-pointer"
+                         onClick={() => {
+                           if (!selectedWorldTours.includes(place)) {
+                             setSelectedWorldTours([...selectedWorldTours, place]);
+                           }
+                           const encodedDestination = encodeURIComponent(place);
+                           navigate(`/intl-ladies_tours/${encodedDestination}`);
+                         }}
+                       >
+                         <Checkbox
+                           checked={isSelected}
+                           onCheckedChange={(checked) => {
+                             if (checked) {
+                               setSelectedWorldTours([...selectedWorldTours, place]);
+                               const encodedDestination = encodeURIComponent(place);
+                               navigate(`/intl-ladies_tours/${encodedDestination}`);
+                             } else {
+                               setSelectedWorldTours(selectedWorldTours.filter(t => t !== place));
+                             }
+                           }}
+                           className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
+                           onClick={(e) => {
+                             e.stopPropagation(); 
+                           }}
+                         />
+                         <span 
+                           className={`${isSelected ? 'font-bold text-[#2E4D98]' : 'text-gray-700 hover:text-[#2E4D98]'} cursor-pointer flex-1`}
+                         >
+                           {place}
+                         </span>
+                       </div>
+                     );
+                   })}
+               </div>
+         
+               {internationalDestinations.length > 6 && (
+                 <button
+                   onClick={() => setShowMoreWorld(!showMoreWorld)}
+                   className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
+                 >
+                   {showMoreWorld ? "Show Less" : "Show More"}
+                 </button>
+               )}
+             </>
+           )}
+         </div>
             </div>
           </aside>
 
@@ -880,24 +910,27 @@ const clearSearch = () => {
                 {filteredTours.map((tour) => (
                   <div key={tour.id} className="flex flex-col">
                     {/* Separate Top Block - Excel-like box design */}
-                    <div className="bg-white border-2 border-gray-300 rounded-lg p-3 mb-3 shadow-sm">
-                      <div className="grid grid-cols-3 gap-0 border border-gray-400 rounded overflow-hidden">
-                        {/* Box 1 - Code Label */}
-                        <div className="bg-gray-100 border-r border-gray-400 p-2">
-                          <div className="text-xs font-semibold text-gray-700 text-center">CODE</div>
-                        </div>
+                        <div className="bg-white border-2 border-gray-300 rounded-lg p-3 mb-3 shadow-sm">
+    <div className="grid grid-cols-3 gap-0 border border-gray-400 rounded overflow-hidden">
 
-                        {/* Box 2 - Code Value */}
-                        <div className="bg-white border-r border-gray-400 p-2">
-                          <div className="text-sm font-bold text-gray-900 text-center">{tour.code}</div>
-                        </div>
+      {/* Box 1 - Code Label */}
+      <div className="bg-[#2E4D98] border-r border-gray-400 p-2 flex items-center justify-center flex-1">
+        <div className="text-sm font-bold text-white text-center">CODE</div>
+      </div>
 
-                        {/* Box 3 - Duration */}
-                        <div className="bg-gray-50 p-2">
-                          <div className="text-sm font-bold text-gray-900 text-center">{tour.duration}</div>
-                        </div>
-                      </div>
-                    </div>
+      {/* Box 2 - Code Value */}
+      <div className="bg-gradient-to-br from-blue-100 to-blue-50 border-gray-400 p-2 flex items-center justify-center flex-1">
+        <div className="text-sm font-bold text-gray-900 text-center">{tour.code}</div>
+      </div>
+
+      {/* Box 3 - Duration */}
+      <div className="bg-[#2E4D98] p-2 flex items-center justify-center flex-1">
+        <div className="text-sm font-bold text-white text-center">{tour.duration}</div>
+      </div>
+
+    </div>
+  </div>
+
 
                     {/* Separate Card with Light Blue Background */}
                     <div className="group bg-blue-50 rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer border border-blue-100 flex flex-col flex-1 min-h-0">
@@ -917,20 +950,20 @@ const clearSearch = () => {
                           {tour.title}
                         </h3>
 
-                        {/* Price Details */}
-                        <div className="mb-3">
+                               <div className="mb-3">
                           <div className="flex items-center justify-between mb-1">
-                            <span className="text-sm font-semibold text-gray-700">Tour Cost</span>
+                            <span className="text-sm text-[#2E4D98] font-bold">Tour Cost P.P</span>
                             <p className="text-2xl font-bold text-gray-900">{tour.price}</p>
                           </div>
                           
                           <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-600">EMI per/month</span>
-                            <p className="text-sm font-bold text-gray-900">{tour.emi}</p>
-                          </div>
+  <span className="text-sm text-[#2E4D98] font-bold">EMI Per Month</span>
+  <p className="text-sm font-bold text-gray-900">{tour.emi}</p>
+</div>
+
                         </div>
 
-                        <p className="text-sm text-gray-600 mb-3 flex-1 line-clamp-2">{tour.locations}</p>
+                        <p className="text-sm text-[#2E4D98] font-bold mb-3">{tour.locations}</p>
 
                         <div className="flex items-center justify-between text-sm text-gray-500 mb-0">
                           <span>{tour.dates}</span>

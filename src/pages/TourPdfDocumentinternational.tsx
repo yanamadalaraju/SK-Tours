@@ -1,4 +1,4 @@
-// TourPdfDocument.tsx - UPDATED VERSION with proper tour type logic
+// TourPdfDocumentinternational.tsx - COMPLETE VERSION
 import React from 'react';
 import { 
   Document, 
@@ -7,7 +7,8 @@ import {
   View, 
   StyleSheet,
   Font,
-  Image
+  Image,
+  Link
 } from '@react-pdf/renderer';
 
 // Define proper types
@@ -77,6 +78,39 @@ interface TourData {
     descriptions?: string[];
   };
   optionalTourRemarks?: string[];
+  
+  // Visa Data Types
+  visaDetails?: {
+    tourist?: string[];
+    transit?: string[];
+    business?: string[];
+    photo?: string[];
+  };
+  visaForms?: Array<{
+    visaType?: string;
+    downloadText?: string;
+    downloadAction?: string;
+    fillAction?: string;
+    action1FileUrl?: string;
+    action2FileUrl?: string;
+    remarks?: string;
+  }>;
+  visaFees?: Array<{
+    tourist?: string;
+    transit?: string;
+    business?: string;
+    touristCharges?: string;
+    transitCharges?: string;
+    businessCharges?: string;
+    charges?: string;
+  }>;
+  visaSubmission?: Array<{
+    label?: string;
+    tourist?: string;
+    transit?: string;
+    business?: string;
+    rowOrder?: number;
+  }>;
 }
 
 interface StarRating {
@@ -111,6 +145,9 @@ interface TourPdfDocumentProps {
   selectedDeparture: DepartureData | null;
   currentImageIndex: number;
   tourImages?: string[];
+  activeVisaTab?: string;
+  activeVisaFeeType?: string;
+  BASE_URL?: string;
 }
 
 // Register fonts
@@ -140,7 +177,7 @@ Font.register({
   ],
 });
 
-// Updated PDF Styles with better table support
+// Updated PDF Styles with Visa section support
 const styles = StyleSheet.create({
   page: {
     padding: 30,
@@ -223,6 +260,43 @@ const styles = StyleSheet.create({
   tableCellLeft: {
     textAlign: 'left',
     paddingLeft: 8,
+  },
+  
+  // Visa Table Styles
+  visaTableContainer: {
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#000',
+    borderStyle: 'solid',
+  },
+  visaTableHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#A72703',
+    borderBottomWidth: 1,
+    borderBottomColor: '#fff',
+    borderBottomStyle: 'solid',
+  },
+  visaTableHeaderCell: {
+    padding: 6,
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: 'white',
+    textAlign: 'center',
+    borderRightWidth: 1,
+    borderRightColor: '#fff',
+  },
+  visaTableRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#000',
+    borderBottomStyle: 'solid',
+  },
+  visaTableCell: {
+    padding: 6,
+    fontSize: 8,
+    textAlign: 'left',
+    borderRightWidth: 1,
+    borderRightColor: '#000',
   },
   
   // Special Tables
@@ -433,10 +507,72 @@ const styles = StyleSheet.create({
     borderColor: '#bae6fd',
     marginBottom: 8,
   },
+  
+  // Visa Section Styles
+  visaSection: {
+    marginBottom: 15,
+  },
+  visaTabHeader: {
+    backgroundColor: '#FFE797',
+    padding: 8,
+    borderWidth: 1,
+    borderColor: '#000',
+    borderStyle: 'solid',
+    marginBottom: 0,
+  },
+  visaTabHeaderActive: {
+    backgroundColor: '#A72703',
+    padding: 8,
+    borderWidth: 1,
+    borderColor: '#000',
+    borderStyle: 'solid',
+    marginBottom: 0,
+  },
+  visaTabText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#000',
+    textAlign: 'center',
+  },
+  visaTabTextActive: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: 'white',
+    textAlign: 'center',
+  },
+  visaContent: {
+    padding: 10,
+    backgroundColor: '#FFEBEE',
+    borderWidth: 1,
+    borderTopWidth: 0,
+    borderStyle: 'solid',
+    minHeight: 200,
+  },
+  visaListItem: {
+    marginBottom: 8,
+    paddingLeft: 5,
+  },
+  visaFormButton: {
+    backgroundColor: '#E53C42',
+    padding: 6,
+    borderRadius: 3,
+    marginRight: 10,
+    marginBottom: 5,
+  },
+  visaFormButtonText: {
+    color: 'white',
+    fontSize: 8,
+    textAlign: 'center',
+  },
+  photoSpecsContainer: {
+    padding: 10,
+    borderWidth: 1,
+    marginBottom: 10,
+  },
 });
 
-// Main PDF Document Component - UPDATED with proper tour type logic
-const TourPdfDocument: React.FC<TourPdfDocumentProps> = ({ 
+// Main PDF Document Component with Visa tabs
+const TourPdfDocumentinternational: React.FC<TourPdfDocumentProps> = ({ 
   tour, 
   tourType, 
   isGroupTour, 
@@ -444,7 +580,10 @@ const TourPdfDocument: React.FC<TourPdfDocumentProps> = ({
   selectedCostDate, 
   selectedDeparture,
   currentImageIndex,
-  tourImages = []
+  tourImages = [],
+  activeVisaTab = 'tourist',
+  activeVisaFeeType = 'tourist',
+  BASE_URL = ''
 }) => {
   // Parse meals from itinerary
   const parseMeals = (mealsString?: string) => {
@@ -471,6 +610,528 @@ const TourPdfDocument: React.FC<TourPdfDocumentProps> = ({
   const allImages = tourImages && Array.isArray(tourImages) ? tourImages : [];
   const mainImage = allImages.length > 0 ? allImages[currentImageIndex] || allImages[0] : null;
 
+const renderVisaTourist = () => {
+  if (!tour?.visaDetails?.tourist || tour.visaDetails.tourist.length === 0) {
+    return (
+      <View style={styles.highlight}>
+        <Text style={styles.text}>No tourist visa information available</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View>
+      <Text style={[styles.title, { marginBottom: 10 }]}>Documents Required for Tourist Visa:</Text>
+      {tour.visaDetails.tourist.map((description, index) => (
+        <View key={index} style={styles.visaListItem}>
+          <Text style={styles.text}>{description}</Text>
+        </View>
+      ))}
+    </View>
+  );
+};
+
+
+  // Function to render Visa Transit tab content
+const renderVisaTransit = () => {
+  if (!tour?.visaDetails?.transit || tour.visaDetails.transit.length === 0) {
+    return (
+      <View style={styles.highlight}>
+        <Text style={styles.text}>No transit visa information available</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View>
+      <Text style={[styles.title, { marginBottom: 10 }]}>Documents Required for Transit Visa:</Text>
+      {tour.visaDetails.transit.map((description, index) => (
+        <View key={index} style={styles.visaListItem}>
+          <Text style={styles.text}>{description}</Text>
+        </View>
+      ))}
+    </View>
+  );
+};
+
+
+const renderVisaBusiness = () => {
+  if (!tour?.visaDetails?.business || tour.visaDetails.business.length === 0) {
+    return (
+      <View style={styles.highlight}>
+        <Text style={styles.text}>No business visa information available</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View>
+      <Text style={[styles.title, { marginBottom: 10 }]}>Documents Required for Business Visa:</Text>
+      {tour.visaDetails.business.map((description, index) => (
+        <View key={index} style={styles.visaListItem}>
+          <Text style={styles.text}>{description}</Text>
+        </View>
+      ))}
+    </View>
+  );
+};
+
+const renderVisaForms = () => {
+  if (!tour?.visaForms || tour.visaForms.length === 0) {
+    return (
+      <View style={styles.highlight}>
+        <Text style={styles.text}>No visa forms available</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View>
+      <View style={styles.visaTableContainer}>
+        {/* Header - SAME AS BEFORE */}
+        <View style={styles.visaTableHeader}>
+          <Text style={[styles.visaTableHeaderCell, { width: '70%' }]}>Visa Type</Text>
+          <Text style={[styles.visaTableHeaderCell, { width: '15%' }]}>Action 1</Text>
+          <Text style={[styles.visaTableHeaderCell, { width: '15%' }]}>Action 2</Text>
+        </View>
+
+        {/* ✅ CHANGED: Now uses dynamic data from API */}
+        {tour.visaForms.map((form, index) => (
+          <View 
+            key={index} 
+            style={[
+              styles.visaTableRow,
+              { backgroundColor: index % 2 === 0 ? '#FFEBEE' : '#FFEBEE80' }
+            ]}
+          >
+            {/* ✅ CHANGED: Dynamic Visa Type from API */}
+            <Text style={[styles.visaTableCell, { width: '70%' }]}>
+              {form.visaType || 'Visa Form'} {/* ← Gets from API: "telangana" */}
+            </Text>
+            
+            {/* ✅ CHANGED: Dynamic Download Action from API */}
+            <View style={[styles.visaTableCell, { width: '15%', justifyContent: 'center', alignItems: 'center' }]}>
+              <View style={styles.visaFormButton}>
+                <Text style={styles.visaFormButtonText}>
+                  {form.downloadAction || "Download"} {/* ← Gets from API */}
+                </Text>
+              </View>
+            </View>
+            
+            {/* ✅ CHANGED: Dynamic Fill Action from API */}
+            <View style={[styles.visaTableCell, { width: '15%', justifyContent: 'center', alignItems: 'center' }]}>
+              <View style={[styles.visaFormButton, { backgroundColor: '#8B4513' }]}>
+                <Text style={styles.visaFormButtonText}>
+                  {form.fillAction || "Fill Manually"} {/* ← Gets from API */}
+                </Text>
+              </View>
+            </View>
+          </View>
+        ))}
+      </View>
+
+      {/* ✅ ADDED: Shows remarks from API */}
+      {tour.visaForms[0]?.remarks && (
+        <View style={{ marginTop: 10 }}>
+          <Text style={[styles.text, { fontStyle: 'italic', color: '#666' }]}>
+            {tour.visaForms[0].remarks} {/* ← Gets from API: "visa form remaks" */}
+          </Text>
+        </View>
+      )}
+    </View>
+  );
+};
+
+
+  // Function to render Photo Specifications tab content
+  const renderVisaPhoto = () => {
+    if (!tour?.visaDetails?.photo || tour.visaDetails.photo.length === 0) {
+      return (
+        <View style={styles.highlight}>
+          <Text style={styles.text}>No photo specifications available</Text>
+        </View>
+      );
+    }
+
+    return (
+      <View>
+        <View style={styles.photoSpecsContainer}>
+          {tour.visaDetails.photo.map((spec, index) => (
+            <View key={index} style={styles.visaListItem}>
+              <Text style={styles.text}>{spec}</Text>
+            </View>
+          ))}
+        </View>
+      </View>
+    );
+  };
+
+  // Function to render Visa Fees tab content
+  const renderVisaFees = () => {
+    if (!tour?.visaFees || tour.visaFees.length === 0) {
+      return (
+        <View style={styles.highlight}>
+          <Text style={styles.text}>No visa fee information available</Text>
+        </View>
+      );
+    }
+
+    return (
+      <View>
+        <Text style={[styles.title, { marginBottom: 10 }]}>
+          {activeVisaFeeType === 'tourist' && 'Tourist Visa Fees'}
+          {activeVisaFeeType === 'transit' && 'Transit Visa Fees'}
+          {activeVisaFeeType === 'business' && 'Business Visa Fees'}
+          {!activeVisaFeeType && 'Visa Fees & VFS & Other Charges'}
+        </Text>
+        
+        <View style={styles.visaTableContainer}>
+          {/* Header */}
+          <View style={styles.visaTableHeader}>
+            <Text style={[styles.visaTableHeaderCell, { width: '60%' }]}>Description</Text>
+            <Text style={[styles.visaTableHeaderCell, { width: '40%' }]}>Charges</Text>
+          </View>
+
+          {/* Rows based on selected fee type */}
+          {tour.visaFees.map((fee, index) => {
+            let description = '';
+            let charges = '';
+
+            if (activeVisaFeeType === 'tourist') {
+              description = fee.tourist || 'Tourist Visa Fee';
+              charges = fee.touristCharges || 'N/A';
+            } else if (activeVisaFeeType === 'transit') {
+              description = fee.transit || 'Transit Visa Fee';
+              charges = fee.transitCharges || 'N/A';
+            } else if (activeVisaFeeType === 'business') {
+              description = fee.business || 'Business Visa Fee';
+              charges = fee.businessCharges || 'N/A';
+            } else {
+              description = fee.charges || 'Visa Fee';
+              charges = fee.charges || 'N/A';
+            }
+
+            return (
+              <View 
+                key={index} 
+                style={[
+                  styles.visaTableRow,
+                  { backgroundColor: index % 2 === 0 ? '#FFEBEE' : '#FFEBEE80' }
+                ]}
+              >
+                <Text style={[styles.visaTableCell, { width: '60%' }]}>
+                  {description}
+                </Text>
+                <Text style={[styles.visaTableCell, { width: '40%' }]}>
+                  {charges}
+                </Text>
+              </View>
+            );
+          })}
+        </View>
+
+        <Text style={styles.note}>Note: Charges are subject to change without prior notice</Text>
+      </View>
+    );
+  };
+
+  // Function to render Submission & Pick Up tab content
+  const renderVisaSubmission = () => {
+    if (!tour?.visaSubmission || tour.visaSubmission.length === 0) {
+      return (
+        <View style={styles.highlight}>
+          <Text style={styles.text}>No visa submission information available</Text>
+        </View>
+      );
+    }
+
+    return (
+      <View>
+        <Text style={[styles.title, { marginBottom: 10 }]}>
+          {activeVisaFeeType === 'tourist' && 'Tourist Visa Submission & Processing Time'}
+          {activeVisaFeeType === 'transit' && 'Transit Visa Submission & Processing Time'}
+          {activeVisaFeeType === 'business' && 'Business Visa Submission & Processing Time'}
+        </Text>
+        
+        <View style={styles.visaTableContainer}>
+          {/* Header */}
+          <View style={styles.visaTableHeader}>
+            <Text style={[styles.visaTableHeaderCell, { width: '60%' }]}>Process</Text>
+            <Text style={[styles.visaTableHeaderCell, { width: '40%' }]}>Time/Details</Text>
+          </View>
+
+          {/* Rows based on selected visa type */}
+          {tour.visaSubmission.map((sub, index) => {
+            let details = '';
+
+            if (activeVisaFeeType === 'tourist') {
+              details = sub.tourist || 'N/A';
+            } else if (activeVisaFeeType === 'transit') {
+              details = sub.transit || 'N/A';
+            } else if (activeVisaFeeType === 'business') {
+              details = sub.business || 'N/A';
+            }
+
+            return (
+              <View 
+                key={index} 
+                style={[
+                  styles.visaTableRow,
+                  { backgroundColor: index % 2 === 0 ? '#FFEBEE' : '#FFEBEE80' }
+                ]}
+              >
+                <Text style={[styles.visaTableCell, { width: '60%' }]}>
+                  {sub.label}
+                </Text>
+                <Text style={[styles.visaTableCell, { width: '40%' }]}>
+                  {details}
+                </Text>
+              </View>
+            );
+          })}
+        </View>
+      </View>
+    );
+  };
+
+  // Function to render Visa Remarks
+  const renderVisaRemarks = () => {
+    const remarks = tour?.visaForms?.[0]?.remarks;
+    
+    if (!remarks) {
+      return null;
+    }
+
+    return (
+      <View style={styles.section}>
+        <Text style={[styles.title, { color: '#E53C42', marginBottom: 5 }]}>Visa Remarks:</Text>
+        <View style={{ backgroundColor: '#FFEBEE', padding: 8, borderRadius: 4 }}>
+          <Text style={styles.text}>{remarks}</Text>
+        </View>
+      </View>
+    );
+  };
+
+// Function to render complete Visa section - SHOW ALL TABS
+const renderVisaSection = () => {
+  return (
+    <View style={styles.visaSection}>
+      <Text style={[styles.header, { fontSize: 18, marginBottom: 20 }]}>
+        Visa Information
+      </Text>
+      
+      {/* List all visa sections */}
+      <Text style={[styles.title, { marginBottom: 10 }]}>Available Visa Sections:</Text>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 5, marginBottom: 15 }}>
+        <Text style={styles.text}>Tourist Visa | Transit Visa | Business Visa | Visa Forms | Photo | Visa Fees | Submission & Pick Up</Text>
+      </View>
+      
+      {/* TOURIST VISA */}
+      <View style={{ marginBottom: 20 }}>
+        <Text style={[styles.subHeader, { backgroundColor: '#FFEBEE', padding: 8, marginBottom: 0 }]}>
+          Documents Required for Visa - TOURIST
+        </Text>
+        <View style={styles.visaContent}>
+          {renderVisaTourist()}
+        </View>
+      </View>
+      
+      {/* TRANSIT VISA */}
+      <View style={{ marginBottom: 20 }}>
+        <Text style={[styles.subHeader, { backgroundColor: '#FFEBEE', padding: 8, marginBottom: 0 }]}>
+          Documents Required for Visa - TRANSIT
+        </Text>
+        <View style={styles.visaContent}>
+          {renderVisaTransit()}
+        </View>
+      </View>
+      
+      {/* BUSINESS VISA */}
+      <View style={{ marginBottom: 20 }}>
+        <Text style={[styles.subHeader, { backgroundColor: '#FFEBEE', padding: 8, marginBottom: 0 }]}>
+          Documents Required for Visa - BUSINESS
+        </Text>
+        <View style={styles.visaContent}>
+          {renderVisaBusiness()}
+        </View>
+      </View>
+      
+      {/* VISA FORMS */}
+      <View style={{ marginBottom: 20 }}>
+        <Text style={[styles.subHeader, { backgroundColor: '#FFEBEE', padding: 8, marginBottom: 0 }]}>
+          Visa Forms
+        </Text>
+        <View style={styles.visaContent}>
+          {renderVisaForms()}
+        </View>
+      </View>
+      
+      {/* PHOTO SPECIFICATIONS */}
+      <View style={{ marginBottom: 20 }}>
+        <Text style={[styles.subHeader, { backgroundColor: '#FFEBEE', padding: 8, marginBottom: 0 }]}>
+          Photo Specifications
+        </Text>
+        <View style={styles.visaContent}>
+          {renderVisaPhoto()}
+        </View>
+      </View>
+      
+      {/* VISA FEES - Show all fee types */}
+      <View style={{ marginBottom: 20 }}>
+        <Text style={[styles.subHeader, { backgroundColor: '#FFEBEE', padding: 8, marginBottom: 0 }]}>
+          Visa Fees
+        </Text>
+        <View style={styles.visaContent}>
+          <Text style={[styles.title, { marginBottom: 15 }]}>Tourist Visa Fees</Text>
+          {renderVisaFeesForType('tourist')}
+          
+          <View style={{ marginTop: 20 }}>
+            <Text style={[styles.title, { marginBottom: 15 }]}>Transit Visa Fees</Text>
+            {renderVisaFeesForType('transit')}
+          </View>
+          
+          <View style={{ marginTop: 20 }}>
+            <Text style={[styles.title, { marginBottom: 15 }]}>Business Visa Fees</Text>
+            {renderVisaFeesForType('business')}
+          </View>
+        </View>
+      </View>
+      
+      {/* SUBMISSION & PICK UP - Show all types */}
+      <View style={{ marginBottom: 20 }}>
+        <Text style={[styles.subHeader, { backgroundColor: '#FFEBEE', padding: 8, marginBottom: 10 }]}>
+          Submission & Processing Time
+        </Text>
+        <View style={styles.visaContent}>
+          <Text style={[styles.title, { marginBottom: 15 }]}>Tourist Visa Submission</Text>
+          {renderVisaSubmissionForType('tourist')}
+          
+          <View style={{ marginTop: 20 }}>
+            <Text style={[styles.title, { marginBottom: 15 }]}>Transit Visa Submission</Text>
+            {renderVisaSubmissionForType('transit')}
+          </View>
+          
+          <View style={{ marginTop: 20 }}>
+            <Text style={[styles.title, { marginBottom: 15 }]}>Business Visa Submission</Text>
+            {renderVisaSubmissionForType('business')}
+          </View>
+        </View>
+      </View>
+      
+      {/* VISA REMARKS */}
+      {renderVisaRemarks()}
+    </View>
+  );
+};
+
+// Helper function to render visa fees by type
+const renderVisaFeesForType = (feeType: string) => {
+  if (!tour?.visaFees || tour.visaFees.length === 0) {
+    return (
+      <View style={styles.highlight}>
+        <Text style={styles.text}>No {feeType} visa fee information available</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.visaTableContainer}>
+      {/* Header */}
+      <View style={styles.visaTableHeader}>
+        <Text style={[styles.visaTableHeaderCell, { width: '60%' }]}>Description</Text>
+        <Text style={[styles.visaTableHeaderCell, { width: '40%' }]}>Charges</Text>
+      </View>
+
+      {/* Rows */}
+      {tour.visaFees.map((fee, index) => {
+        let description = '';
+        let charges = '';
+
+        if (feeType === 'tourist') {
+          description = fee.tourist || 'Tourist Visa Fee';
+          charges = fee.touristCharges || 'N/A';
+        } else if (feeType === 'transit') {
+          description = fee.transit || 'Transit Visa Fee';
+          charges = fee.transitCharges || 'N/A';
+        } else if (feeType === 'business') {
+          description = fee.business || 'Business Visa Fee';
+          charges = fee.businessCharges || 'N/A';
+        }
+
+        return (
+          <View 
+            key={index} 
+            style={[
+              styles.visaTableRow,
+              { backgroundColor: index % 2 === 0 ? '#FFEBEE' : '#FFEBEE80' }
+            ]}
+          >
+            <Text style={[styles.visaTableCell, { width: '60%' }]}>
+              {description}
+            </Text>
+            <Text style={[styles.visaTableCell, { width: '40%' }]}>
+              {charges}
+            </Text>
+          </View>
+        );
+      })}
+    </View>
+  );
+};
+
+// Helper function to render visa submission by type
+const renderVisaSubmissionForType = (visaType: string) => {
+  if (!tour?.visaSubmission || tour.visaSubmission.length === 0) {
+    return (
+      <View style={styles.highlight}>
+        <Text style={styles.text}>No {visaType} visa submission information available</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.visaTableContainer}>
+      {/* Header */}
+      <View style={styles.visaTableHeader}>
+        <Text style={[styles.visaTableHeaderCell, { width: '60%' }]}>Process</Text>
+        <Text style={[styles.visaTableHeaderCell, { width: '40%' }]}>Time/Details</Text>
+      </View>
+
+      {/* Rows */}
+      {tour.visaSubmission.map((sub, index) => {
+        let details = '';
+
+        if (visaType === 'tourist') {
+          details = sub.tourist || 'N/A';
+        } else if (visaType === 'transit') {
+          details = sub.transit || 'N/A';
+        } else if (visaType === 'business') {
+          details = sub.business || 'N/A';
+        }
+
+        return (
+          <View 
+            key={index} 
+            style={[
+              styles.visaTableRow,
+              { backgroundColor: index % 2 === 0 ? '#FFEBEE' : '#FFEBEE80' }
+            ]}
+          >
+            <Text style={[styles.visaTableCell, { width: '60%' }]}>
+              {sub.label}
+            </Text>
+            <Text style={[styles.visaTableCell, { width: '40%' }]}>
+              {details}
+            </Text>
+          </View>
+        );
+      })}
+    </View>
+  );
+};
+
+  // ======================== EXISTING RENDERING FUNCTIONS ========================
+  
   // Function to render group tour cost table (ONLY for group tours)
   const renderGroupTourCostTable = () => {
     if (!isGroupTour || !selectedDeparture) return null;
@@ -1269,8 +1930,63 @@ const TourPdfDocument: React.FC<TourPdfDocumentProps> = ({
           `${pageNumber} / ${totalPages}`
         )} fixed />
       </Page>
+
+      {/* Page 9: Visa Information */}
+      <Page size="A4" style={styles.page}>
+        <View style={styles.section}>
+          <Text style={[styles.header, { fontSize: 18, marginBottom: 20 }]}>
+            Visa Information
+          </Text>
+          
+          {/* Visa Tabs Overview */}
+          <View style={{ marginBottom: 15 }}>
+            <Text style={[styles.title, { marginBottom: 8 }]}>Available Visa Sections:</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 5 }}>
+              <View style={{ backgroundColor: activeVisaTab === 'tourist' ? '#A72703' : '#FFE797', padding: 5, borderRadius: 3 }}>
+                <Text style={activeVisaTab === 'tourist' ? { color: 'white', fontSize: 8 } : { color: 'black', fontSize: 8 }}>Tourist Visa</Text>
+              </View>
+              <View style={{ backgroundColor: activeVisaTab === 'transit' ? '#A72703' : '#FFE797', padding: 5, borderRadius: 3 }}>
+                <Text style={activeVisaTab === 'transit' ? { color: 'white', fontSize: 8 } : { color: 'black', fontSize: 8 }}>Transit Visa</Text>
+              </View>
+              <View style={{ backgroundColor: activeVisaTab === 'business' ? '#A72703' : '#FFE797', padding: 5, borderRadius: 3 }}>
+                <Text style={activeVisaTab === 'business' ? { color: 'white', fontSize: 8 } : { color: 'black', fontSize: 8 }}>Business Visa</Text>
+              </View>
+              <View style={{ backgroundColor: activeVisaTab === 'forms' ? '#A72703' : '#FFE797', padding: 5, borderRadius: 3 }}>
+                <Text style={activeVisaTab === 'forms' ? { color: 'white', fontSize: 8 } : { color: 'black', fontSize: 8 }}>Visa Forms</Text>
+              </View>
+              <View style={{ backgroundColor: activeVisaTab === 'photo' ? '#A72703' : '#FFE797', padding: 5, borderRadius: 3 }}>
+                <Text style={activeVisaTab === 'photo' ? { color: 'white', fontSize: 8 } : { color: 'black', fontSize: 8 }}>Photo</Text>
+              </View>
+              <View style={{ backgroundColor: activeVisaTab === 'fees' ? '#A72703' : '#FFE797', padding: 5, borderRadius: 3 }}>
+                <Text style={activeVisaTab === 'fees' ? { color: 'white', fontSize: 8 } : { color: 'black', fontSize: 8 }}>Visa Fees</Text>
+              </View>
+              <View style={{ backgroundColor: activeVisaTab === 'time' ? '#A72703' : '#FFE797', padding: 5, borderRadius: 3 }}>
+                <Text style={activeVisaTab === 'time' ? { color: 'white', fontSize: 8 } : { color: 'black', fontSize: 8 }}>Submission & Pick Up</Text>
+              </View>
+            </View>
+          </View>
+          
+          {/* Current Visa Section */}
+          {renderVisaSection()}
+          
+          {/* Visa Fee Types Note */}
+          {activeVisaTab === 'fees' && (
+            <View style={styles.highlight}>
+              <Text style={styles.text}>
+                <Text style={{ fontWeight: 'bold' }}>Note:</Text> Currently showing {activeVisaFeeType === 'tourist' ? 'Tourist Visa' : 
+                activeVisaFeeType === 'transit' ? 'Transit Visa' : 
+                activeVisaFeeType === 'business' ? 'Business Visa' : 'Visa'} fees
+              </Text>
+            </View>
+          )}
+        </View>
+        
+        <Text style={styles.pageNumber} render={({ pageNumber, totalPages }) => (
+          `${pageNumber} / ${totalPages}`
+        )} fixed />
+      </Page>
     </Document>
   );
 };
 
-export default TourPdfDocument;
+export default TourPdfDocumentinternational;

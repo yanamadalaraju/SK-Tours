@@ -17,14 +17,47 @@ const indianStates = [
    "Tamil Nadu", "Uttar Pradesh", "Uttarakhand", "West Bengal",
 ].sort();
 
-const internationalDestinations = [
-  "Africa", "America", "Australia NewZealand", "Bhutan", "Dubai and MiddleEast",
-  "Eurasia", "Europe", "Japan China", "Mauritius", "Nepal", "Seychelles",
-  "South East Asia", "SriLanka Maldives",
-];
+// Types for API responses
+interface Country {
+  country_id: number;
+  name: string;
+  is_domestic: number;
+}
 
-// Add BASE_URL constant
+interface Destination {
+  destination_id: number;
+  name: string;
+  short_desc: string | null;
+  created_at: string;
+  country_name: string;
+  country_id: number;
+  is_domestic: number;
+}
 
+interface GroupedDestinations {
+  [countryId: number]: {
+    countryName: string;
+    destinations: {
+      name: string;
+      hasActiveTours: boolean;
+    }[];
+  };
+}
+
+interface NavItemDropdown {
+  label: string;
+  href: string;
+  icon?: any;
+  subDropdown?: string[];
+  isCountryList?: boolean;
+}
+
+interface NavItem {
+  icon: any;
+  label: string;
+  href?: string;
+  dropdown?: NavItemDropdown[];
+}
 
 const Header = () => {
   const [showIndianIndividualStates, setShowIndianIndividualStates] = useState(false);
@@ -34,12 +67,20 @@ const Header = () => {
   const [showIndianStudentStates, setShowIndianStudentStates] = useState(false);
   const [showIndianHoneymoonStates, setShowIndianHoneymoonStates] = useState(false);
   
-  const [showIntlIndividualStates, setShowIntlIndividualStates] = useState(false);
-  const [showIntlGroupStates, setShowIntlGroupStates] = useState(false);
-  const [showIntlLadiesStates, setShowIntlLadiesStates] = useState(false);
-  const [showIntlSeniorStates, setShowIntlSeniorStates] = useState(false);
-  const [showIntlStudentStates, setShowIntlStudentStates] = useState(false);
-  const [showIntlHoneymoonStates, setShowIntlHoneymoonStates] = useState(false);
+  const [showIntlIndividualCountries, setShowIntlIndividualCountries] = useState(false);
+  const [showIntlGroupCountries, setShowIntlGroupCountries] = useState(false);
+  const [showIntlLadiesCountries, setShowIntlLadiesCountries] = useState(false);
+  const [showIntlSeniorCountries, setShowIntlSeniorCountries] = useState(false);
+  const [showIntlStudentCountries, setShowIntlStudentCountries] = useState(false);
+  const [showIntlHoneymoonCountries, setShowIntlHoneymoonCountries] = useState(false);
+  
+  // State for showing destinations for a specific country
+  const [showIntlIndividualDestinations, setShowIntlIndividualDestinations] = useState<{countryId: number, countryName: string} | null>(null);
+  const [showIntlGroupDestinations, setShowIntlGroupDestinations] = useState<{countryId: number, countryName: string} | null>(null);
+  const [showIntlLadiesDestinations, setShowIntlLadiesDestinations] = useState<{countryId: number, countryName: string} | null>(null);
+  const [showIntlSeniorDestinations, setShowIntlSeniorDestinations] = useState<{countryId: number, countryName: string} | null>(null);
+  const [showIntlStudentDestinations, setShowIntlStudentDestinations] = useState<{countryId: number, countryName: string} | null>(null);
+  const [showIntlHoneymoonDestinations, setShowIntlHoneymoonDestinations] = useState<{countryId: number, countryName: string} | null>(null);
   
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileSubmenuOpen, setMobileSubmenuOpen] = useState<Record<string, boolean>>({});
@@ -47,6 +88,10 @@ const Header = () => {
   // State to store tours data
   const [allTours, setAllTours] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // State for international destinations grouped by country
+  const [groupedInternationalDestinations, setGroupedInternationalDestinations] = useState<GroupedDestinations>({});
+  const [internationalCountries, setInternationalCountries] = useState<string[]>([]);
 
   // Timers for delayed close
   const indianIndividualTimer = useRef<NodeJS.Timeout | null>(null);
@@ -62,6 +107,13 @@ const Header = () => {
   const intlSeniorTimer = useRef<NodeJS.Timeout | null>(null);
   const intlStudentTimer = useRef<NodeJS.Timeout | null>(null);
   const intlHoneymoonTimer = useRef<NodeJS.Timeout | null>(null);
+  
+  const intlIndividualDestTimer = useRef<NodeJS.Timeout | null>(null);
+  const intlGroupDestTimer = useRef<NodeJS.Timeout | null>(null);
+  const intlLadiesDestTimer = useRef<NodeJS.Timeout | null>(null);
+  const intlSeniorDestTimer = useRef<NodeJS.Timeout | null>(null);
+  const intlStudentDestTimer = useRef<NodeJS.Timeout | null>(null);
+  const intlHoneymoonDestTimer = useRef<NodeJS.Timeout | null>(null);
 
   // Fetch tours data
   useEffect(() => {
@@ -83,16 +135,121 @@ const Header = () => {
     fetchTours();
   }, []);
 
-  // Function to check if a destination has tours in a specific category
+  // Fetch and group international destinations by country
+  useEffect(() => {
+    const fetchInternationalData = async () => {
+      try {
+        // Fetch countries
+        const countriesRes = await fetch(`${BASE_URL}/api/countries/international`);
+        if (!countriesRes.ok) throw new Error("Failed to fetch countries");
+        const countriesData: Country[] = await countriesRes.json();
+        
+        // Fetch destinations
+        const destinationsRes = await fetch(`${BASE_URL}/api/destinations/international`);
+        if (!destinationsRes.ok) throw new Error("Failed to fetch destinations");
+        const destinationsData: Destination[] = await destinationsRes.json();
+        
+        console.log("Countries data:", countriesData);
+        console.log("Destinations data:", destinationsData);
+        
+        // Group destinations by country_id
+        const grouped: GroupedDestinations = {};
+        
+        // First, add all countries from the countries API
+        countriesData.forEach(country => {
+          grouped[country.country_id] = {
+            countryName: country.name,
+            destinations: []
+          };
+        });
+        
+        // Then, add destinations to their respective countries
+        destinationsData.forEach(destination => {
+          if (grouped[destination.country_id]) {
+            // Avoid duplicates
+            const existingDestination = grouped[destination.country_id].destinations.find(
+              d => d.name === destination.name
+            );
+            if (!existingDestination) {
+              grouped[destination.country_id].destinations.push({
+                name: destination.name,
+                hasActiveTours: false // Will be updated later
+              });
+            }
+          } else {
+            // If country not in countries API, create a new entry
+            grouped[destination.country_id] = {
+              countryName: destination.country_name,
+              destinations: [{
+                name: destination.name,
+                hasActiveTours: false // Will be updated later
+              }]
+            };
+          }
+        });
+        
+        // Now, check which destinations have active tours for any tour type
+        Object.keys(grouped).forEach(key => {
+          const countryId = parseInt(key);
+          grouped[countryId].destinations.forEach(dest => {
+            // Check if this destination has any active tours in any category
+            const hasAnyActiveTour = [
+              "Individual", "Group", "Ladies Special", 
+              "Senior Citizen", "Student", "Honeymoon"
+            ].some(category => 
+              hasToursForDestination(dest.name, category, true)
+            );
+            dest.hasActiveTours = hasAnyActiveTour;
+          });
+        });
+        
+        // Filter out destinations that don't have active tours
+        Object.keys(grouped).forEach(key => {
+          const countryId = parseInt(key);
+          grouped[countryId].destinations = grouped[countryId].destinations.filter(
+            dest => dest.hasActiveTours
+          );
+        });
+        
+        // DO NOT remove countries with no active destinations
+        // We want to show all countries, even empty ones
+        
+        // Sort destinations within each country
+        Object.keys(grouped).forEach(key => {
+          const countryId = parseInt(key);
+          grouped[countryId].destinations.sort((a, b) => 
+            a.name.localeCompare(b.name)
+          );
+        });
+        
+        console.log("Grouped destinations with active tours:", grouped);
+        
+        setGroupedInternationalDestinations(grouped);
+        
+        // Create a flat list of country names for the dropdown
+        // Include ALL countries from the countries API
+        const countryNames = countriesData
+          .map(country => country.name)
+          .sort();
+        setInternationalCountries(countryNames);
+        
+      } catch (err) {
+        console.error("Error fetching international data:", err);
+      }
+    };
+
+    fetchInternationalData();
+  }, [allTours]); // Re-run when allTours changes
+
+  // Function to check if a destination has tours - IMPROVED VERSION
   const hasToursForDestination = (destinationName: string, tourType: string, isInternational: boolean = false) => {
     if (!allTours.length) return false;
     
-    // Map header category names to API tour_type values
     const tourTypeMap: Record<string, string[]> = {
       "Individual": ["individual", "Individual"],
       "Group": ["Group", "group"],
-      "Ladies Special": ["ladiesspecial", "Ladies Special", "ladies special"],
-      "Senior Citizen": ["seniorcitizen", "Senior Citizen", "senior citizen"],
+      "Ladies Special": ["ladiesspecial", "Ladies Special", "ladies special", "ladies"],
+      "Senior Citizen": ["seniorcitizen", "Senior Citizen", "senior citizen", "senior"],
       "Student": ["student", "Student"],
       "Honeymoon": ["honeymoon", "Honeymoon"]
     };
@@ -100,18 +257,17 @@ const Header = () => {
     const validTourTypes = tourTypeMap[tourType] || [tourType];
     
     return allTours.some(tour => {
-      // Normalize destination names for comparison
       const tourDestination = tour.primary_destination_name?.trim();
       const targetDestination = destinationName.trim();
       
-      // Check if destinations match (case-insensitive for safety)
+      // More flexible matching for destinations
       const destinationMatch = tourDestination?.toLowerCase() === targetDestination.toLowerCase();
       
       if (!destinationMatch) return false;
       
-      // Check if tour type matches (case-insensitive)
+      // More flexible tour type matching
       const tourTypeMatch = validTourTypes.some(
-        validType => tour.tour_type?.toLowerCase() === validType.toLowerCase()
+        validType => tour.tour_type?.toLowerCase().includes(validType.toLowerCase())
       );
       
       if (!tourTypeMatch) return false;
@@ -121,69 +277,42 @@ const Header = () => {
       
       if (!internationalMatch) return false;
       
-      // Check status and active
+      // Check if tour is active and published
       return tour.status === 1 && tour.is_active === 1;
     });
   };
-const getHighlightClass = (
-  destinationName: string,
-  isIndian: boolean,
-  isIndividualTour: boolean,
-  isGroupTour: boolean,
-  isLadiesTour: boolean,
-  isSeniorTour: boolean,
-  isStudentTour: boolean,
-  isHoneymoonTour: boolean,
-  rowIndex: number
-) => {
-  let category = "";
-  if (isIndividualTour) category = "Individual";
-  else if (isGroupTour) category = "Group";
-  else if (isLadiesTour) category = "Ladies Special";
-  else if (isSeniorTour) category = "Senior Citizen";
-  else if (isStudentTour) category = "Student";
-  else if (isHoneymoonTour) category = "Honeymoon";
 
-  const hasTours = hasToursForDestination(destinationName, category, !isIndian);
-  const isAndaman = destinationName === "Andaman";
+  // Function to check if a country has active tours for a specific tour type
+  const countryHasActiveToursForType = (
+    countryId: number,
+    isIndividualTour: boolean,
+    isGroupTour: boolean,
+    isLadiesTour: boolean,
+    isSeniorTour: boolean,
+    isStudentTour: boolean,
+    isHoneymoonTour: boolean
+  ) => {
+    const country = groupedInternationalDestinations[countryId];
+    if (!country) return false;
 
-  if (hasTours) {
-    // === ACTIVE - HAS TOURS: Dark blue background with white text ===
-    return `
-      font-semibold 
-      bg-blue-800 
-      text-white 
-      hover:bg-blue-900 
-      hover:text-white 
-      rounded 
-      px-1.5 
-      py-0.5 
-      transition-all 
-      duration-200
-      shadow-sm
-      hover:shadow-md
-    `;
-  }
+    let category = "";
+    if (isIndividualTour) category = "Individual";
+    else if (isGroupTour) category = "Group";
+    else if (isLadiesTour) category = "Ladies Special";
+    else if (isSeniorTour) category = "Senior Citizen";
+    else if (isStudentTour) category = "Student";
+    else if (isHoneymoonTour) category = "Honeymoon";
 
-  // === NO TOURS - visible but clearly secondary (not too dull) ===
-  return `
-    text-gray-700 
-    hover:text-gray-800 
-    hover:bg-gray-100
-    font-normal 
-    transition-colors 
-    duration-200
-    px-1.5 
-    py-0.5 
-    rounded
-  `;
-};
+    return country.destinations.some(dest => 
+      hasToursForDestination(dest.name, category, true)
+    );
+  };
+
   const toggleMobileMenu = () => setMobileMenuOpen(prev => !prev);
   const toggleMobileSubmenu = (label: string) => {
     setMobileSubmenuOpen(prev => ({ ...prev, [label]: !prev[label] }));
   };
 
-  // Helper to create delayed hover handlers
   const createHoverHandlers = (
     setter: React.Dispatch<React.SetStateAction<boolean>>,
     timerRef: React.MutableRefObject<NodeJS.Timeout | null>
@@ -204,7 +333,298 @@ const getHighlightClass = (
     return { enter, leave };
   };
 
-  const navItems = [
+  // FIXED: Use consistent URL patterns matching your first code
+  const getDestinationHref = (
+    isIndian: boolean,
+    isIndividualTour: boolean,
+    isGroupTour: boolean,
+    isLadiesTour: boolean,
+    isSeniorTour: boolean,
+    isStudentTour: boolean,
+    isHoneymoonTour: boolean,
+    destination: string
+  ) => {
+    if (isIndian) {
+      if (isIndividualTour) {
+        return `/tours-packages/${encodeURIComponent(destination)}`;
+      } else if (isGroupTour) {
+        return `/tours_groups/${encodeURIComponent(destination)}`;
+      } else if (isLadiesTour) {
+        return `/ladies_tours/${encodeURIComponent(destination)}`;
+      } else if (isSeniorTour) {
+        return `/senior_tours/${encodeURIComponent(destination)}`;
+      } else if (isStudentTour) {
+        return `/students_tours/${encodeURIComponent(destination)}`;
+      } else if (isHoneymoonTour) {
+        return `/honeymoon_tours/${encodeURIComponent(destination)}`;
+      }
+    } else {
+      // FIXED: Use the same URL patterns as your first working code
+      if (isIndividualTour) {
+        return `/intl-tours-packages/${encodeURIComponent(destination)}`;
+      } else if (isGroupTour) {
+        return `/intl-tours_groups/${encodeURIComponent(destination)}`;
+      } else if (isLadiesTour) {
+        return `/intl-ladies_tours/${encodeURIComponent(destination)}`;
+      } else if (isSeniorTour) {
+        return `/intl-senior_tours/${encodeURIComponent(destination)}`;
+      } else if (isStudentTour) {
+        return `/intl-students_tours/${encodeURIComponent(destination)}`;
+      } else if (isHoneymoonTour) {
+        return `/intl-honeymoon_tours/${encodeURIComponent(destination)}`;
+      }
+    }
+    return "#";
+  };
+
+  // Function to get country ID by name
+  const getCountryIdByName = (countryName: string): number | null => {
+    const entry = Object.entries(groupedInternationalDestinations).find(
+      ([id, data]) => data.countryName === countryName
+    );
+    return entry ? parseInt(entry[0]) : null;
+  };
+
+  // Function to render countries list
+  const renderCountriesList = (
+    isIndividualTour: boolean,
+    isGroupTour: boolean,
+    isLadiesTour: boolean,
+    isSeniorTour: boolean,
+    isStudentTour: boolean,
+    isHoneymoonTour: boolean
+  ) => {
+    if (internationalCountries.length === 0) {
+      return (
+        <div className="text-center py-8 text-gray-600">
+          No countries available
+        </div>
+      );
+    }
+
+    return (
+      <div className="max-h-[70vh] overflow-y-auto p-1">
+        <table className="min-w-full border border-gray-400">
+          <tbody>
+            {internationalCountries.reduce((rows: any[], country, index) => {
+              if (index % 3 === 0) rows.push([]);
+              rows[rows.length - 1].push(country);
+              return rows;
+            }, []).map((row, rowIndex) => (
+              <tr key={rowIndex} className={rowIndex % 2 === 0 ? "bg-blue-50" : "bg-blue-100"}>
+                {row.map((country: string, colIndex: number) => {
+                  const countryId = getCountryIdByName(country);
+                  
+                  let hasActiveTours = false;
+                  if (countryId) {
+                    hasActiveTours = countryHasActiveToursForType(
+                      countryId,
+                      isIndividualTour,
+                      isGroupTour,
+                      isLadiesTour,
+                      isSeniorTour,
+                      isStudentTour,
+                      isHoneymoonTour
+                    );
+                  }
+                  
+                  return (
+                    <td 
+                      key={colIndex} 
+                      className="border border-gray-400 p-0"
+                    >
+                      <div
+                        className={`block w-full p-2 text-sm text-center transition-all duration-200 min-h-[40px] flex items-center justify-center ${
+                          hasActiveTours 
+                            ? "bg-blue-700 text-white font-bold hover:bg-blue-800 cursor-pointer"
+                            : "text-gray-700 hover:bg-gray-100 cursor-pointer"
+                        }`}
+                        title={country}
+                        onClick={() => {
+                          if (hasActiveTours && countryId) {
+                            if (isIndividualTour) {
+                              setShowIntlIndividualDestinations({countryId, countryName: country});
+                            } else if (isGroupTour) {
+                              setShowIntlGroupDestinations({countryId, countryName: country});
+                            } else if (isLadiesTour) {
+                              setShowIntlLadiesDestinations({countryId, countryName: country});
+                            } else if (isSeniorTour) {
+                              setShowIntlSeniorDestinations({countryId, countryName: country});
+                            } else if (isStudentTour) {
+                              setShowIntlStudentDestinations({countryId, countryName: country});
+                            } else if (isHoneymoonTour) {
+                              setShowIntlHoneymoonDestinations({countryId, countryName: country});
+                            }
+                          }
+                        }}
+                      >
+                        {country}
+                      </div>
+                    </td>
+                  );
+                })}
+                {row.length < 3 && [...Array(3 - row.length)].map((_, colIndex) => (
+                  <td 
+                    key={colIndex} 
+                    className="border border-gray-400 p-0 bg-gray-50"
+                  >
+                    <div className="block w-full p-2 h-full min-h-[40px]"></div>
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
+
+  // Function to render destinations for a specific country
+  const renderDestinationsForCountry = (
+    countryId: number,
+    countryName: string,
+    isIndividualTour: boolean,
+    isGroupTour: boolean,
+    isLadiesTour: boolean,
+    isSeniorTour: boolean,
+    isStudentTour: boolean,
+    isHoneymoonTour: boolean
+  ) => {
+    const country = groupedInternationalDestinations[countryId];
+    
+    if (!country || !country.destinations || country.destinations.length === 0) {
+      return (
+        <div className="max-h-[70vh] overflow-y-auto p-4">
+          <div className="flex items-center gap-2 mb-4">
+            <button 
+              onClick={() => {
+                if (isIndividualTour) setShowIntlIndividualDestinations(null);
+                else if (isGroupTour) setShowIntlGroupDestinations(null);
+                else if (isLadiesTour) setShowIntlLadiesDestinations(null);
+                else if (isSeniorTour) setShowIntlSeniorDestinations(null);
+                else if (isStudentTour) setShowIntlStudentDestinations(null);
+                else if (isHoneymoonTour) setShowIntlHoneymoonDestinations(null);
+              }}
+              className="text-blue-900 hover:text-blue-700"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <h3 className="font-bold text-blue-900 text-lg">{countryName}</h3>
+          </div>
+          <div className="text-center py-8 text-gray-600">
+            No destinations available for {countryName}
+          </div>
+        </div>
+      );
+    }
+
+    // Filter destinations that have active tours for the current category
+    const activeDestinations = country.destinations.filter(dest => {
+      const category = isIndividualTour ? "Individual" :
+                     isGroupTour ? "Group" :
+                     isLadiesTour ? "Ladies Special" :
+                     isSeniorTour ? "Senior Citizen" :
+                     isStudentTour ? "Student" : "Honeymoon";
+      
+      return hasToursForDestination(dest.name, category, true);
+    });
+
+    if (activeDestinations.length === 0) {
+      return (
+        <div className="max-h-[70vh] overflow-y-auto p-4">
+          <div className="flex items-center gap-2 mb-4">
+            <button 
+              onClick={() => {
+                if (isIndividualTour) setShowIntlIndividualDestinations(null);
+                else if (isGroupTour) setShowIntlGroupDestinations(null);
+                else if (isLadiesTour) setShowIntlLadiesDestinations(null);
+                else if (isSeniorTour) setShowIntlSeniorDestinations(null);
+                else if (isStudentTour) setShowIntlStudentDestinations(null);
+                else if (isHoneymoonTour) setShowIntlHoneymoonDestinations(null);
+              }}
+              className="text-blue-900 hover:text-blue-700"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <h3 className="font-bold text-blue-900 text-lg">{countryName}</h3>
+          </div>
+          <div className="text-center py-8 text-gray-600">
+            No active tours available for {countryName}
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="max-h-[70vh] overflow-y-auto p-1">
+        <div className="flex items-center gap-2 mb-2 px-2">
+          <button 
+            onClick={() => {
+              if (isIndividualTour) setShowIntlIndividualDestinations(null);
+              else if (isGroupTour) setShowIntlGroupDestinations(null);
+              else if (isLadiesTour) setShowIntlLadiesDestinations(null);
+              else if (isSeniorTour) setShowIntlSeniorDestinations(null);
+              else if (isStudentTour) setShowIntlStudentDestinations(null);
+              else if (isHoneymoonTour) setShowIntlHoneymoonDestinations(null);
+            }}
+            className="text-blue-900 hover:text-blue-700"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <h3 className="font-bold text-blue-900 text-sm">{countryName}</h3>
+        </div>
+        <table className="min-w-full border border-gray-400">
+          <tbody>
+            {activeDestinations.reduce((rows: any[], dest, index) => {
+              if (index % 3 === 0) rows.push([]);
+              rows[rows.length - 1].push(dest);
+              return rows;
+            }, []).map((row, rowIndex) => (
+              <tr key={rowIndex} className={rowIndex % 2 === 0 ? "bg-blue-50" : "bg-blue-100"}>
+                {row.map((dest, colIndex: number) => {
+                  const href = getDestinationHref(
+                    false,
+                    isIndividualTour,
+                    isGroupTour,
+                    isLadiesTour,
+                    isSeniorTour,
+                    isStudentTour,
+                    isHoneymoonTour,
+                    dest.name
+                  );
+                  
+                  return (
+                    <td 
+                      key={colIndex} 
+                      className="border border-gray-400 p-0"
+                    >
+                      <a
+                        href={href}
+                        className="block w-full p-2 text-sm text-center bg-blue-700 text-white font-bold hover:bg-blue-800 transition-all duration-200 min-h-[40px] flex items-center justify-center"
+                        title={dest.name}
+                      >
+                        {dest.name}
+                      </a>
+                    </td>
+                  );
+                })}
+                {row.length < 3 && [...Array(3 - row.length)].map((_, colIndex) => (
+                  <td 
+                    key={colIndex} 
+                    className="border border-gray-400 p-0 bg-gray-50"
+                  >
+                    <div className="block w-full p-2 h-full min-h-[40px]"></div>
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
+
+  const navItems: NavItem[] = [
     { icon: HomeIcon, label: "Home", href: "/" },
     {
       icon: MapPin, label: "Indian Tours",
@@ -220,12 +640,48 @@ const getHighlightClass = (
     {
       icon: Globe, label: "International Tours",
       dropdown: [
-        { label: "Individual Tours", href: "#international-individual", icon: Users, subDropdown: internationalDestinations },
-        { label: "Group Tours", href: "#international-group", icon: UsersRound, subDropdown: internationalDestinations },
-        { label: "Ladies Special Tours", href: "#international-ladies-special", icon: Sparkles, subDropdown: internationalDestinations },
-        { label: "Senior Citizen Tours", href: "#international-senior-citizens", icon: UsersRound, subDropdown: internationalDestinations },
-        { label: "Students Tours", href: "#international-students-tours", icon: GraduationCap , subDropdown: internationalDestinations },
-        { label: "Honeymoon Tours", href: "#international-honeymoon-tours", icon: Heart ,  subDropdown: internationalDestinations },
+        { 
+          label: "Individual Tours", 
+          href: "#international-individual", 
+          icon: Users, 
+          subDropdown: internationalCountries,
+          isCountryList: true 
+        },
+        { 
+          label: "Group Tours", 
+          href: "#international-group", 
+          icon: UsersRound, 
+          subDropdown: internationalCountries,
+          isCountryList: true 
+        },
+        { 
+          label: "Ladies Special Tours", 
+          href: "#international-ladies-special", 
+          icon: Sparkles, 
+          subDropdown: internationalCountries,
+          isCountryList: true 
+        },
+        { 
+          label: "Senior Citizen Tours", 
+          href: "#international-senior-citizens", 
+          icon: UsersRound, 
+          subDropdown: internationalCountries,
+          isCountryList: true 
+        },
+        { 
+          label: "Students Tours", 
+          href: "#international-students-tours", 
+          icon: GraduationCap, 
+          subDropdown: internationalCountries,
+          isCountryList: true 
+        },
+        { 
+          label: "Honeymoon Tours", 
+          href: "#international-honeymoon-tours", 
+          icon: Heart, 
+          subDropdown: internationalCountries,
+          isCountryList: true 
+        },
       ],
     },
     { 
@@ -235,9 +691,7 @@ const getHighlightClass = (
       dropdown: [
         { label: "Online Flight Blocks", href: "/alert" },
         { label: "Offline Filght Blocks", href: "/alert" },
-
         { label: "Offline Hotel Blocks", href: "/alert" },
-        
       ]
     },
     { icon: Ship, label: "Exhibitions", href: "/alert" },
@@ -259,51 +713,6 @@ const getHighlightClass = (
     { icon: UsersRound, label: "About Us", href: "/about" },
     { icon: Phone, label: "Contact Us", href: "/contact" },
   ];
-
-  // Helper function to generate href for destinations
-  const getDestinationHref = (
-    isIndian: boolean,
-    isIndividualTour: boolean,
-    isGroupTour: boolean,
-    isLadiesTour: boolean,
-    isSeniorTour: boolean,
-    isStudentTour: boolean,
-    isHoneymoonTour: boolean,
-    destination: string
-  ) => {
-    if (isIndian) {
-      // Indian tours routing
-      if (isIndividualTour) {
-        return `/tours-packages/${encodeURIComponent(destination)}`;
-      } else if (isGroupTour) {
-        return `/tours_groups/${encodeURIComponent(destination)}`;
-      } else if (isLadiesTour) {
-        return `/ladies_tours/${encodeURIComponent(destination)}`;
-      } else if (isSeniorTour) {
-        return `/senior_tours/${encodeURIComponent(destination)}`;
-      } else if (isStudentTour) {
-        return `/students_tours/${encodeURIComponent(destination)}`;
-      } else if (isHoneymoonTour) {
-        return `/honeymoon_tours/${encodeURIComponent(destination)}`;
-      }
-    } else {
-      // International tours routing
-      if (isIndividualTour) {
-        return `/international-tours-packages/${encodeURIComponent(destination)}`;
-      } else if (isGroupTour) {
-        return `/international-tours_groups/${encodeURIComponent(destination)}`;
-      } else if (isLadiesTour) {
-        return `/international-ladies_tours/${encodeURIComponent(destination)}`;
-      } else if (isSeniorTour) {
-        return `/international-senior_tours/${encodeURIComponent(destination)}`;
-      } else if (isStudentTour) {
-        return `/international-students_tours/${encodeURIComponent(destination)}`;
-      } else if (isHoneymoonTour) {
-        return `/international-honeymoon_tours/${encodeURIComponent(destination)}`;
-      }
-    }
-    return "#";
-  };
 
   return (
     <header className="bg-primary text-primary-foreground sticky top-0 z-50 shadow-xl border-b-2 border-blue-400 w-full">
@@ -350,8 +759,9 @@ const getHighlightClass = (
                         <ChevronDown className="w-3 h-3" />
                       </div>
                     </div>
+                    
                     {/* MEGA DROPDOWN */}
-                    <div className="absolute left-1/2 -translate-x-1/2 top-full opacity-0 -translate-y-4 invisible group-hover:opacity-100 group-hover:translate-y-0 group-hover:visible bg-red-50 text-gray-800 rounded-xl shadow-2xl w-44 sm:w-52 py-4 border border-gray-200 transition-all duration-300 ease-in-out z-50">
+                    <div className={`absolute left-1/2 -translate-x-1/2 top-full opacity-0 -translate-y-4 invisible group-hover:opacity-100 group-hover:translate-y-0 group-hover:visible bg-red-50 text-gray-800 rounded-xl shadow-2xl min-w-[200px] py-4 border border-gray-200 transition-all duration-300 ease-in-out z-50`}>
                       {item.dropdown.map((sub, idx) => {
                         const isIndian = item.label === "Indian Tours";
                         const isIntl = item.label === "International Tours";
@@ -418,48 +828,48 @@ const getHighlightClass = (
                           leaveStatesHandler = h.leave;
                           topOffset = "top-[-16rem]";
                         } else if (isIntl && isIndividual) {
-                          showThisStates = showIntlIndividualStates;
-                          const h = createHoverHandlers(setShowIntlIndividualStates, intlIndividualTimer);
+                          showThisStates = showIntlIndividualCountries;
+                          const h = createHoverHandlers(setShowIntlIndividualCountries, intlIndividualTimer);
                           enterHandler = h.enter;
                           leaveHandler = h.leave;
                           enterStatesHandler = h.enter;
                           leaveStatesHandler = h.leave;
                           topOffset = "top-[-1rem]";
                         } else if (isIntl && isGroup) {
-                          showThisStates = showIntlGroupStates;
-                          const h = createHoverHandlers(setShowIntlGroupStates, intlGroupTimer);
+                          showThisStates = showIntlGroupCountries;
+                          const h = createHoverHandlers(setShowIntlGroupCountries, intlGroupTimer);
                           enterHandler = h.enter;
                           leaveHandler = h.leave;
                           enterStatesHandler = h.enter;
                           leaveStatesHandler = h.leave;
                           topOffset = "top-[-4rem]";
                         } else if (isIntl && isLadies) {
-                          showThisStates = showIntlLadiesStates;
-                          const h = createHoverHandlers(setShowIntlLadiesStates, intlLadiesTimer);
+                          showThisStates = showIntlLadiesCountries;
+                          const h = createHoverHandlers(setShowIntlLadiesCountries, intlLadiesTimer);
                           enterHandler = h.enter;
                           leaveHandler = h.leave;
                           enterStatesHandler = h.enter;
                           leaveStatesHandler = h.leave;
                           topOffset = "top-[-7rem]";
                         } else if (isIntl && isSenior) {
-                          showThisStates = showIntlSeniorStates;
-                          const h = createHoverHandlers(setShowIntlSeniorStates, intlSeniorTimer);
+                          showThisStates = showIntlSeniorCountries;
+                          const h = createHoverHandlers(setShowIntlSeniorCountries, intlSeniorTimer);
                           enterHandler = h.enter;
                           leaveHandler = h.leave;
                           enterStatesHandler = h.enter;
                           leaveStatesHandler = h.leave;
                           topOffset = "top-[-10rem]";
                         } else if (isIntl && isStudent) {
-                          showThisStates = showIntlStudentStates;
-                          const h = createHoverHandlers(setShowIntlStudentStates, intlStudentTimer);
+                          showThisStates = showIntlStudentCountries;
+                          const h = createHoverHandlers(setShowIntlStudentCountries, intlStudentTimer);
                           enterHandler = h.enter;
                           leaveHandler = h.leave;
                           enterStatesHandler = h.enter;
                           leaveStatesHandler = h.leave;
                           topOffset = "top-[-13rem]";
                         } else if (isIntl && isHoneymoon) {
-                          showThisStates = showIntlHoneymoonStates;
-                          const h = createHoverHandlers(setShowIntlHoneymoonStates, intlHoneymoonTimer);
+                          showThisStates = showIntlHoneymoonCountries;
+                          const h = createHoverHandlers(setShowIntlHoneymoonCountries, intlHoneymoonTimer);
                           enterHandler = h.enter;
                           leaveHandler = h.leave;
                           enterStatesHandler = h.enter;
@@ -480,95 +890,163 @@ const getHighlightClass = (
                                 {sub.subDropdown && <ChevronRight className="w-4 h-4 text-gray-500 flex-shrink-0" />}
                               </a>
                             </div>
-                            {/* STATES / DESTINATIONS SUB-DROPDOWN */}
+                            
+                            {/* STATES / COUNTRIES SUB-DROPDOWN */}
                             {sub.subDropdown && showThisStates && (
                               <div
-                                className={`absolute left-full ${topOffset} ml-3 bg-white text-gray-800 rounded-xl shadow-2xl w-[400px] sm:w-[450px] py-4 border border-gray-200 opacity-100 visible transition-all duration-300 ease-in-out z-[60] max-h-[70vh] overflow-y-auto`}
+                                className={`absolute left-full ${topOffset} ml-3 bg-white text-gray-800 rounded-lg shadow-2xl w-[450px] min-w-[450px] py-2 border border-gray-300 opacity-100 visible transition-all duration-300 ease-in-out z-[60] max-h-[70vh] overflow-hidden`}
                                 onMouseEnter={enterStatesHandler ?? undefined}
                                 onMouseLeave={leaveStatesHandler ?? undefined}
                               >
-                                <table className="min-w-full divide-y divide-gray-200">
-                                  <tbody className="bg-white divide-y divide-gray-200">
-                                    {sub.subDropdown.reduce((rows: any[], dest, index) => {
-                                      if (index % 3 === 0) rows.push([]);
-                                      rows[rows.length - 1].push(dest);
-                                      return rows;
-                                    }, []).map((row, rowIndex) => (
-                                      <tr key={rowIndex} className={rowIndex % 2 === 0 ? "bg-blue-50" : "bg-blue-100"}>
-                                        {row.map((dest: string, colIndex: number) => {
-                                          const isAndaman = dest === "Andaman";
-                                          const isIndividualTour = isIndividual;
-                                          const isGroupTour = isGroup;
-                                          const isLadiesTour = isLadies;
-                                          const isSeniorTour = isSenior;
-                                          const isStudentTour = isStudent;
-                                          const isHoneymoonTour = isHoneymoon;
-                                          
-                                          // Different routing for different tour types
-                                          let href = "";
-                                           if (isIntl) {
-                                            // International Tours with intl- prefix
-                                            if (isIndividualTour) {
-                                              href = `/intl-tours-packages/${encodeURIComponent(dest)}`;
-                                            } else if (isGroupTour) {
-                                              href = `/intl-tours_groups/${encodeURIComponent(dest)}`;
-                                            } else if (isLadiesTour) {
-                                              href = `/intl-ladies_tours/${encodeURIComponent(dest)}`;
-                                            } else if (isSeniorTour) {
-                                              href = `/intl-senior_tours/${encodeURIComponent(dest)}`;
-                                            } else if (isStudentTour) {
-                                              href = `/intl-students_tours/${encodeURIComponent(dest)}`;
-                                            } else if (isHoneymoonTour) {
-                                              href = `/intl-honeymoon_tours/${encodeURIComponent(dest)}`;
-                                            }
-                                          }
-                                         else if (isIndividualTour) {
-                                            href = `/tours-packages/${encodeURIComponent(dest)}`;
-                                          } else if (isGroupTour) {
-                                            href = `/tours_groups/${encodeURIComponent(dest)}`;
-                                          } else if (isLadiesTour) {
-                                            href = `/ladies_tours/${encodeURIComponent(dest)}`;
-                                          } else if (isSeniorTour) {
-                                            href = `/senior_tours/${encodeURIComponent(dest)}`;
-                                          } else if (isStudentTour) {
-                                            href = `/students_tours/${encodeURIComponent(dest)}`;
-                                          } else if (isHoneymoonTour) {
-                                            href = `/honeymoon_tours/${encodeURIComponent(dest)}`;
-                                          }
-                                          
-                                          // Get highlight class based on tour availability
-                                          const highlightClass = getHighlightClass(
-                                            dest,
-                                            isIndian,
-                                            isIndividualTour,
-                                            isGroupTour,
-                                            isLadiesTour,
-                                            isSeniorTour,
-                                            isStudentTour,
-                                            isHoneymoonTour,
-                                            rowIndex
-                                          );
-                                          
-                                          return (
-                                            <td key={colIndex} className="w-1/3 px-2 py-2.5 whitespace-nowrap border-r border-gray-400">
-                                             <a
-  href={href}
-  className={`block w-full text-sm font-medium text-left transition-colors ${highlightClass}`}
-  title={dest}
->
-  {isAndaman ? "Andaman (P. Blair)" : dest}
-</a>
-
-                                            </td>
-                                          );
-                                        })}
-                                        {row.length < 3 && [...Array(3 - row.length)].map((_, colIndex) => (
-                                          <td key={colIndex} className={`w-1/3 px-2 py-2.5 border-r border-gray-400 ${rowIndex % 2 === 0 ? "bg-blue-50" : "bg-blue-100"}`}></td>
+                                {isIntl && sub.isCountryList ? (
+                                  (() => {
+                                    if (isIndividual && showIntlIndividualDestinations) {
+                                      return renderDestinationsForCountry(
+                                        showIntlIndividualDestinations.countryId,
+                                        showIntlIndividualDestinations.countryName,
+                                        isIndividual,
+                                        isGroup,
+                                        isLadies,
+                                        isSenior,
+                                        isStudent,
+                                        isHoneymoon
+                                      );
+                                    } else if (isGroup && showIntlGroupDestinations) {
+                                      return renderDestinationsForCountry(
+                                        showIntlGroupDestinations.countryId,
+                                        showIntlGroupDestinations.countryName,
+                                        isIndividual,
+                                        isGroup,
+                                        isLadies,
+                                        isSenior,
+                                        isStudent,
+                                        isHoneymoon
+                                      );
+                                    } else if (isLadies && showIntlLadiesDestinations) {
+                                      return renderDestinationsForCountry(
+                                        showIntlLadiesDestinations.countryId,
+                                        showIntlLadiesDestinations.countryName,
+                                        isIndividual,
+                                        isGroup,
+                                        isLadies,
+                                        isSenior,
+                                        isStudent,
+                                        isHoneymoon
+                                      );
+                                    } else if (isSenior && showIntlSeniorDestinations) {
+                                      return renderDestinationsForCountry(
+                                        showIntlSeniorDestinations.countryId,
+                                        showIntlSeniorDestinations.countryName,
+                                        isIndividual,
+                                        isGroup,
+                                        isLadies,
+                                        isSenior,
+                                        isStudent,
+                                        isHoneymoon
+                                      );
+                                    } else if (isStudent && showIntlStudentDestinations) {
+                                      return renderDestinationsForCountry(
+                                        showIntlStudentDestinations.countryId,
+                                        showIntlStudentDestinations.countryName,
+                                        isIndividual,
+                                        isGroup,
+                                        isLadies,
+                                        isSenior,
+                                        isStudent,
+                                        isHoneymoon
+                                      );
+                                    } else if (isHoneymoon && showIntlHoneymoonDestinations) {
+                                      return renderDestinationsForCountry(
+                                        showIntlHoneymoonDestinations.countryId,
+                                        showIntlHoneymoonDestinations.countryName,
+                                        isIndividual,
+                                        isGroup,
+                                        isLadies,
+                                        isSenior,
+                                        isStudent,
+                                        isHoneymoon
+                                      );
+                                    } else {
+                                      // Show countries list
+                                      return renderCountriesList(
+                                        isIndividual,
+                                        isGroup,
+                                        isLadies,
+                                        isSenior,
+                                        isStudent,
+                                        isHoneymoon
+                                      );
+                                    }
+                                  })()
+                                ) : (
+                                  // INDIAN TOURS TABLE
+                                  <div className="max-h-[70vh] overflow-y-auto p-1">
+                                    <table className="min-w-full border border-gray-400">
+                                      <tbody>
+                                        {sub.subDropdown.reduce((rows: any[], dest, index) => {
+                                          if (index % 3 === 0) rows.push([]);
+                                          rows[rows.length - 1].push(dest);
+                                          return rows;
+                                        }, []).map((row, rowIndex) => (
+                                          <tr key={rowIndex} className={rowIndex % 2 === 0 ? "bg-blue-50" : "bg-blue-100"}>
+                                            {row.map((dest: string, colIndex: number) => {
+                                              const isAndaman = dest === "Andaman";
+                                              const href = getDestinationHref(
+                                                isIndian,
+                                                isIndividual,
+                                                isGroup,
+                                                isLadies,
+                                                isSenior,
+                                                isStudent,
+                                                isHoneymoon,
+                                                dest
+                                              );
+                                              
+                                              const hasTours = hasToursForDestination(
+                                                dest,
+                                                isIndividual ? "Individual" : 
+                                                isGroup ? "Group" :
+                                                isLadies ? "Ladies Special" :
+                                                isSenior ? "Senior Citizen" :
+                                                isStudent ? "Student" : "Honeymoon",
+                                                false
+                                              );
+                                              
+                                              return (
+                                                <td 
+                                                  key={colIndex} 
+                                                  className="border border-gray-400 p-0"
+                                                >
+                                                  <a
+                                                    href={href}
+                                                    className={`block w-full p-2 text-sm text-center transition-all duration-200 min-h-[40px] flex items-center justify-center ${
+                                                      hasTours 
+                                                        ? "bg-blue-700 text-white font-bold hover:bg-blue-800"
+                                                        : "text-gray-700 hover:bg-gray-100"
+                                                    }`}
+                                                    title={dest}
+                                                  >
+                                                    {isAndaman ? "Andaman (P. Blair)" : dest}
+                                                  </a>
+                                                </td>
+                                              );
+                                            })}
+                                            
+                                            {/* Fill empty cells */}
+                                            {row.length < 3 && [...Array(3 - row.length)].map((_, colIndex) => (
+                                              <td 
+                                                key={colIndex} 
+                                                className="border border-gray-400 p-0 bg-gray-50"
+                                              >
+                                                <div className="block w-full p-2 h-full min-h-[40px]"></div>
+                                              </td>
+                                            ))}
+                                          </tr>
                                         ))}
-                                      </tr>
-                                    ))}
-                                  </tbody>
-                                </table>
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                )}
                               </div>
                             )}
                           </div>
@@ -652,85 +1130,162 @@ const getHighlightClass = (
                       </button>
                       {mobileSubmenuOpen[item.label] && (
                         <ul className="bg-primary border-t border-blue-500">
-                          {item.dropdown.map((sub, i) => (
-                            <li key={i} className="border-b border-blue-600">
-                              {!sub.subDropdown ? (
-                                <a href={sub.href} className="flex items-center gap-2 px-8 py-2 hover:bg-white/10 transition-colors font-normal text-sm">
-                                  {sub.icon && <sub.icon className="w-4 h-4" />}
-                                  <span>{sub.label}</span>
-                                </a>
-                              ) : (
-                                <>
-                                  <button
-                                    onClick={() => toggleMobileSubmenu(sub.label)}
-                                    className="w-full flex justify-between items-center px-8 py-2 hover:bg-white/10 transition-colors font-normal text-sm"
-                                  >
-                                    <div className="flex items-center gap-2">
-                                      {sub.icon && <sub.icon className="w-4 h-4" />}
-                                      <span>{sub.label}</span>
-                                    </div>
-                                    <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${mobileSubmenuOpen[sub.label] ? "rotate-180" : ""}`} />
-                                  </button>
-                                  {mobileSubmenuOpen[sub.label] && (
-                                    <ul className="bg-primary border-t border-blue-600">
-                                      {sub.subDropdown.map((dest, j) => {
-                                        const isIndian = item.label === "Indian Tours";
-                                        const isIndividualTour = sub.label === "Individual Tours";
-                                        const isGroupTour = sub.label === "Group Tours";
-                                        const isLadiesTour = sub.label === "Ladies Special Tours";
-                                        const isSeniorTour = sub.label === "Senior Citizen Tours";
-                                        const isStudentTour = sub.label === "Students Tours";
-                                        const isHoneymoonTour = sub.label === "Honeymoon Tours";
-                                        
-                                        let href = "";
-                                        if (item.label === "International Tours") {
-                                          // All International Tours destinations go to /alert
-                                           if (isIndividualTour) {
-                                            href = `/intl-tours-packages/${encodeURIComponent(dest)}`;
-                                          } else if (isGroupTour) {
-                                            href = `/intl-tours_groups/${encodeURIComponent(dest)}`;
-                                          } else if (isLadiesTour) {
-                                            href = `/intl-ladies_tours/${encodeURIComponent(dest)}`;
-                                          } else if (isSeniorTour) {
-                                            href = `/intl-senior_tours/${encodeURIComponent(dest)}`;
-                                          } else if (isStudentTour) {
-                                            href = `/intl-students_tours/${encodeURIComponent(dest)}`;
-                                          } else if (isHoneymoonTour) {
-                                            href = `/intl-honeymoon_tours/${encodeURIComponent(dest)}`;
-                                          } 
-                                        } else if (isIndividualTour) {
-                                          href = `/tours-packages/${encodeURIComponent(dest)}`;
-                                        } else if (isGroupTour) {
-                                          href = `/tours_groups/${encodeURIComponent(dest)}`;
-                                        } else if (isLadiesTour) {
-                                          href = `/ladies_tours/${encodeURIComponent(dest)}`;
-                                        } else if (isSeniorTour) {
-                                          href = `/senior_tours/${encodeURIComponent(dest)}`;
-                                        } else if (isStudentTour) {
-                                          href = `/students_tours/${encodeURIComponent(dest)}`;
-                                        } else if (isHoneymoonTour) {
-                                          href = `/honeymoon_tours/${encodeURIComponent(dest)}`;
-                                        }
-                                        
-                                        const isAndaman = dest === "Andaman";
-                                        
-                                        return (
-                                          <li key={j}>
-                                            <a
-                                              href={href}
-                                              className={`block px-12 py-2 text-sm font-medium ${isAndaman ? "text-cyan-400 font-bold" : "text-gray-300"} hover:text-white`}
-                                            >
-                                              {dest} {isAndaman && "(Featured)"}
-                                            </a>
-                                          </li>
-                                        );
-                                      })}
-                                    </ul>
-                                  )}
-                                </>
-                              )}
-                            </li>
-                          ))}
+                          {item.dropdown.map((sub, i) => {
+                            return (
+                              <li key={i} className="border-b border-blue-600">
+                                {!sub.subDropdown ? (
+                                  <a href={sub.href} className="flex items-center gap-2 px-8 py-2 hover:bg-white/10 transition-colors font-normal text-sm">
+                                    {sub.icon && <sub.icon className="w-4 h-4" />}
+                                    <span>{sub.label}</span>
+                                  </a>
+                                ) : (
+                                  <>
+                                    <button
+                                      onClick={() => toggleMobileSubmenu(sub.label)}
+                                      className="w-full flex justify-between items-center px-8 py-2 hover:bg-white/10 transition-colors font-normal text-sm"
+                                    >
+                                      <div className="flex items-center gap-2">
+                                        {sub.icon && <sub.icon className="w-4 h-4" />}
+                                        <span>{sub.label}</span>
+                                      </div>
+                                      <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${mobileSubmenuOpen[sub.label] ? "rotate-180" : ""}`} />
+                                    </button>
+                                    {mobileSubmenuOpen[sub.label] && (
+                                      <ul className="bg-primary border-t border-blue-600">
+                                        {item.label === "International Tours" ? (
+                                          internationalCountries
+                                            .filter(countryName => {
+                                              const countryId = getCountryIdByName(countryName);
+                                              if (!countryId) return false;
+                                              
+                                              const isIndividual = sub.label === "Individual Tours";
+                                              const isGroup = sub.label === "Group Tours";
+                                              const isLadies = sub.label === "Ladies Special Tours";
+                                              const isSenior = sub.label === "Senior Citizen Tours";
+                                              const isStudent = sub.label === "Students Tours";
+                                              const isHoneymoon = sub.label === "Honeymoon Tours";
+                                              
+                                              return countryHasActiveToursForType(
+                                                countryId,
+                                                isIndividual,
+                                                isGroup,
+                                                isLadies,
+                                                isSenior,
+                                                isStudent,
+                                                isHoneymoon
+                                              );
+                                            })
+                                            .map((countryName, j) => {
+                                              const countryId = getCountryIdByName(countryName);
+                                              if (!countryId) return null;
+                                              
+                                              return (
+                                                <li key={j} className="px-12 py-2">
+                                                  <div className="font-bold text-white mb-1">{countryName}</div>
+                                                  <ul className="pl-4">
+                                                    {groupedInternationalDestinations[countryId]?.destinations
+                                                      .filter(dest => {
+                                                        const isIndividualTour = sub.label === "Individual Tours";
+                                                        const isGroupTour = sub.label === "Group Tours";
+                                                        const isLadiesTour = sub.label === "Ladies Special Tours";
+                                                        const isSeniorTour = sub.label === "Senior Citizen Tours";
+                                                        const isStudentTour = sub.label === "Students Tours";
+                                                        const isHoneymoonTour = sub.label === "Honeymoon Tours";
+                                                        
+                                                        const hasToursForThisCategory = hasToursForDestination(
+                                                          dest.name,
+                                                          isIndividualTour ? "Individual" : 
+                                                          isGroupTour ? "Group" :
+                                                          isLadiesTour ? "Ladies Special" :
+                                                          isSeniorTour ? "Senior Citizen" :
+                                                          isStudentTour ? "Student" : "Honeymoon",
+                                                          true
+                                                        );
+                                                        
+                                                        return hasToursForThisCategory;
+                                                      })
+                                                      .map((dest, k) => {
+                                                        const isIndividualTour = sub.label === "Individual Tours";
+                                                        const isGroupTour = sub.label === "Group Tours";
+                                                        const isLadiesTour = sub.label === "Ladies Special Tours";
+                                                        const isSeniorTour = sub.label === "Senior Citizen Tours";
+                                                        const isStudentTour = sub.label === "Students Tours";
+                                                        const isHoneymoonTour = sub.label === "Honeymoon Tours";
+                                                        
+                                                        let href = "";
+                                                        if (isIndividualTour) {
+                                                          href = `/intl-tours-packages/${encodeURIComponent(dest.name)}`;
+                                                        } else if (isGroupTour) {
+                                                          href = `/intl-tours_groups/${encodeURIComponent(dest.name)}`;
+                                                        } else if (isLadiesTour) {
+                                                          href = `/intl-ladies_tours/${encodeURIComponent(dest.name)}`;
+                                                        } else if (isSeniorTour) {
+                                                          href = `/intl-senior_tours/${encodeURIComponent(dest.name)}`;
+                                                        } else if (isStudentTour) {
+                                                          href = `/intl-students_tours/${encodeURIComponent(dest.name)}`;
+                                                        } else if (isHoneymoonTour) {
+                                                          href = `/intl-honeymoon_tours/${encodeURIComponent(dest.name)}`;
+                                                        }
+                                                        
+                                                        return (
+                                                          <li key={k}>
+                                                            <a
+                                                              href={href}
+                                                              className="block px-2 py-1 text-sm text-gray-300 hover:text-white"
+                                                            >
+                                                              {dest.name}
+                                                            </a>
+                                                          </li>
+                                                        );
+                                                      })}
+                                                  </ul>
+                                                </li>
+                                              );
+                                            })
+                                        ) : (
+                                          sub.subDropdown.map((dest, j) => {
+                                            const isAndaman = dest === "Andaman";
+                                            const isIndividualTour = sub.label === "Individual Tours";
+                                            const isGroupTour = sub.label === "Group Tours";
+                                            const isLadiesTour = sub.label === "Ladies Special Tours";
+                                            const isSeniorTour = sub.label === "Senior Citizen Tours";
+                                            const isStudentTour = sub.label === "Students Tours";
+                                            const isHoneymoonTour = sub.label === "Honeymoon Tours";
+                                            
+                                            let href = "";
+                                            if (isIndividualTour) {
+                                              href = `/tours-packages/${encodeURIComponent(dest)}`;
+                                            } else if (isGroupTour) {
+                                              href = `/tours_groups/${encodeURIComponent(dest)}`;
+                                            } else if (isLadiesTour) {
+                                              href = `/ladies_tours/${encodeURIComponent(dest)}`;
+                                            } else if (isSeniorTour) {
+                                              href = `/senior_tours/${encodeURIComponent(dest)}`;
+                                            } else if (isStudentTour) {
+                                              href = `/students_tours/${encodeURIComponent(dest)}`;
+                                            } else if (isHoneymoonTour) {
+                                              href = `/honeymoon_tours/${encodeURIComponent(dest)}`;
+                                            }
+                                            
+                                            return (
+                                              <li key={j}>
+                                                <a
+                                                  href={href}
+                                                  className={`block px-12 py-2 text-sm font-medium ${isAndaman ? "text-cyan-400 font-bold" : "text-gray-300"} hover:text-white`}
+                                                >
+                                                  {dest} {isAndaman && "(Featured)"}
+                                                </a>
+                                              </li>
+                                            );
+                                          })
+                                        )}
+                                      </ul>
+                                    )}
+                                  </>
+                                )}
+                              </li>
+                            );
+                          })}
                         </ul>
                       )}
                     </>

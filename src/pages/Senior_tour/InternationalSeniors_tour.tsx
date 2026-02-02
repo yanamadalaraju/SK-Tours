@@ -83,9 +83,9 @@ const TourPackages = () => {
   const [showMoreWorld, setShowMoreWorld] = useState(false);
   const [sortType, setSortType] = useState("recommended");
   const [showAllDepartureMonths, setShowAllDepartureMonths] = useState(false);
-const [searchQuery, setSearchQuery] = useState(""); // ADD THIS
-const [isSearchActive, setIsSearchActive] = useState(false); // ADD THIS
-const [showSearchBtn, setShowSearchBtn] = useState(false); 
+  const [searchQuery, setSearchQuery] = useState(""); // ADD THIS
+  const [isSearchActive, setIsSearchActive] = useState(false); // ADD THIS
+  const [showSearchBtn, setShowSearchBtn] = useState(false);
   const [durationRange, setDurationRange] = useState([0, 150]);
   const [priceRange, setPriceRange] = useState([0, 10000000]);
   const [selectedDepartureMonths, setSelectedDepartureMonths] = useState<string[]>([]);
@@ -96,11 +96,15 @@ const [showSearchBtn, setShowSearchBtn] = useState(false);
   const [selectedState, setSelectedState] = useState<string>(state || "Andaman");
   const [tourDepartures, setTourDepartures] = useState<Record<number | string, string[]>>({});
   const [departureMonths, setDepartureMonths] = useState<string[]>([]);
+  const [internationalDestinations, setInternationalDestinations] = useState<string[]>([]);
+  const [loadingDestinations, setLoadingDestinations] = useState(false);
+  const [appliedSearchQuery, setAppliedSearchQuery] = useState("");
 
   const [allTours, setAllTours] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [tourImages, setTourImages] = useState<Record<number | string, string>>({});
   const [tourEmiData, setTourEmiData] = useState<Record<number | string, any>>({}); // NEW: Store EMI data for senior citizen
+  const [activeSearchQuery, setActiveSearchQuery] = useState("");
 
   // ---------- Fetch base tours ----------
   useEffect(() => {
@@ -120,7 +124,6 @@ const [showSearchBtn, setShowSearchBtn] = useState(false);
     fetchTours();
   }, []);
 
-  // ---------- Fetch full tour details including EMI for each senior citizen tour ----------
   useEffect(() => {
     if (!allTours || allTours.length === 0) return;
 
@@ -137,23 +140,23 @@ const [showSearchBtn, setShowSearchBtn] = useState(false);
               const data = await res.json();
 
 
-                             console.log("Departures:", data.departures);
+              console.log("Departures:", data.departures);
 
-      // ✅ Extract departure months
-          const departureMonths: string[] = [];
-          if (Array.isArray(data.departures)) {
-            data.departures.forEach((dep: any) => {
-              if (dep.departure_date) {
-                const date = new Date(dep.departure_date);
-                const month = date.toLocaleString("en-US", {
-                  month: "long",
-                  year: "numeric",
+              // ✅ Extract departure months
+              const departureMonths: string[] = [];
+              if (Array.isArray(data.departures)) {
+                data.departures.forEach((dep: any) => {
+                  if (dep.departure_date) {
+                    const date = new Date(dep.departure_date);
+                    const month = date.toLocaleString("en-US", {
+                      month: "long",
+                      year: "numeric",
+                    });
+                    departureMonths.push(month);
+                  }
                 });
-                departureMonths.push(month);
               }
-            });
-          }
-            
+
               // Get cover image
               const images = data.images || [];
               const cover =
@@ -161,13 +164,13 @@ const [showSearchBtn, setShowSearchBtn] = useState(false);
 
               // Get EMI price from basic_details for senior citizen tours
               const emiPrice = data.basic_details?.emi_price || "0";
-              
+
               return {
                 tourId: tour.tour_id,
                 imageUrl: cover?.url || "",
                 emiPrice: emiPrice,
                 basicDetails: data.basic_details || {},
-                 departureMonths: [...new Set(departureMonths)], 
+                departureMonths: [...new Set(departureMonths)],
 
               };
             } catch (err) {
@@ -176,12 +179,12 @@ const [showSearchBtn, setShowSearchBtn] = useState(false);
                 tour.tour_id,
                 err
               );
-              return { 
-                tourId: tour.tour_id, 
-                imageUrl: "", 
+              return {
+                tourId: tour.tour_id,
+                imageUrl: "",
                 emiPrice: "0",
                 basicDetails: {},
-                             departureMonths: [],
+                departureMonths: [],
 
               };
             }
@@ -190,8 +193,8 @@ const [showSearchBtn, setShowSearchBtn] = useState(false);
 
         const imageMap: Record<number | string, string> = {};
         const emiMap: Record<number | string, any> = {};
-    const departureMap: Record<number | string, string[]> = {};
-    const allMonthsSet = new Set<string>();
+        const departureMap: Record<number | string, string[]> = {};
+        const allMonthsSet = new Set<string>();
 
         results.forEach((r) => {
           if (r.imageUrl) {
@@ -203,27 +206,27 @@ const [showSearchBtn, setShowSearchBtn] = useState(false);
               basicDetails: r.basicDetails
             };
           }
-                               departureMap[r.tourId] = r.departureMonths;
-      r.departureMonths.forEach((month: string) => allMonthsSet.add(month));
+          departureMap[r.tourId] = r.departureMonths;
+          r.departureMonths.forEach((month: string) => allMonthsSet.add(month));
 
         });
 
 
         const allMonths = Array.from(allMonthsSet).sort((a, b) => {
-      const [monthA, yearA] = a.split(' ');
-      const [monthB, yearB] = b.split(' ');
-      const dateA = new Date(`${monthA} 1, ${yearA}`);
-      const dateB = new Date(`${monthB} 1, ${yearB}`);
-      return dateA.getTime() - dateB.getTime();
+          const [monthA, yearA] = a.split(' ');
+          const [monthB, yearB] = b.split(' ');
+          const dateA = new Date(`${monthA} 1, ${yearA}`);
+          const dateB = new Date(`${monthB} 1, ${yearB}`);
+          return dateA.getTime() - dateB.getTime();
         });
 
         console.log("Senior citizen tour images map:", imageMap);
         console.log("Senior citizen tour EMI data map:", emiMap);
-        
+
         setTourImages(imageMap);
         setTourEmiData(emiMap);
-                    setTourDepartures(departureMap);
-    setDepartureMonths(allMonths);
+        setTourDepartures(departureMap);
+        setDepartureMonths(allMonths);
 
       } catch (err) {
         console.error("Error building senior citizen tour details map:", err);
@@ -232,6 +235,45 @@ const [showSearchBtn, setShowSearchBtn] = useState(false);
 
     fetchTourDetails();
   }, [allTours]);
+
+
+
+
+
+  useEffect(() => {
+    const fetchInternationalDestinations = async () => {
+      try {
+        setLoadingDestinations(true);
+        console.log("Fetching international destinations...");
+
+        const destinationsRes = await fetch(`${BASE_URL}/api/destinations/international`);
+
+        if (!destinationsRes.ok) {
+          throw new Error(`Failed to fetch destinations: ${destinationsRes.status}`);
+        }
+
+        // Tell TS what the API returns
+        const data: { name: string }[] = await destinationsRes.json();
+        console.log("Fetched international destinations:", data);
+
+        // Now TS knows dest.name is a string
+        const destinationNames: string[] = data.map(dest => dest.name);
+
+        const uniqueSortedDestinations: string[] = [...new Set(destinationNames)].sort(
+          (a, b) => a.localeCompare(b)
+        );
+
+        setInternationalDestinations(uniqueSortedDestinations);
+      } catch (err) {
+        console.error("Error fetching international destinations:", err);
+      } finally {
+        setLoadingDestinations(false);
+      }
+    };
+
+    fetchInternationalDestinations();
+  }, []);
+
 
   // ---------- Decode state from URL ----------
   useEffect(() => {
@@ -250,14 +292,14 @@ const [showSearchBtn, setShowSearchBtn] = useState(false);
 
     console.log("Filtering senior citizen tours for state:", selectedState);
     console.log("Total tours to filter:", allTours.length);
-    
+
     // Filter by state AND tour_type = "seniorcitizen" (case-insensitive)
     const filtered = allTours.filter((tour) => {
       const stateMatch = tour.primary_destination_name?.toLowerCase() === selectedState.toLowerCase();
       const typeMatch = tour.tour_type?.toLowerCase() === "seniorcitizen";
-      
+
       console.log(`Tour ${tour.tour_id}: stateMatch=${stateMatch}, typeMatch=${typeMatch}`);
-      
+
       return stateMatch && typeMatch;
     });
 
@@ -269,7 +311,7 @@ const [showSearchBtn, setShowSearchBtn] = useState(false);
   // Function to format tours with dynamic EMI for senior citizen
   const formatTours = (tours: any[]) => {
     console.log("Formatting", tours.length, "senior citizen tours");
-    
+
     return tours.map((tour) => {
       console.log("Formatting senior citizen tour:", {
         id: tour.tour_id,
@@ -277,21 +319,21 @@ const [showSearchBtn, setShowSearchBtn] = useState(false);
         type: tour.tour_type,
         price: tour.base_price_adult
       });
-      
+
       const imgUrl =
         tourImages[tour.tour_id] ||
         "https://via.placeholder.com/800x600?text=Tour+Image";
 
       const priceValue = Number(tour.base_price_adult) || 0;
       const days = tour.duration_days || 1;
-      
+
       // Get EMI price from stored data (already fetched for senior citizen)
       const emiData = tourEmiData[tour.tour_id];
       const emiPrice = emiData?.emiPrice || "0";
-                            const tourDepartureMonths = tourDepartures[tour.tour_id] || [];
+      const tourDepartureMonths = tourDepartures[tour.tour_id] || [];
 
-                          const basicDetails = emiData?.basicDetails || {};  // Extract basicDetails here
-       const isInternational = basicDetails.is_international === 1;
+      const basicDetails = emiData?.basicDetails || {};  // Extract basicDetails here
+      const isInternational = basicDetails.is_international === 1;
 
       // Format EMI price (remove the /12 calculation and use dynamic value)
       const formattedEmi = emiPrice !== "0" ? `₹${parseFloat(emiPrice).toLocaleString()}` : "₹0";
@@ -312,33 +354,16 @@ const [showSearchBtn, setShowSearchBtn] = useState(false);
         locationTags: [tour.primary_destination_name || ""],
         tourType: tour.tour_type,
         rawTourType: tour.tour_type,
-       is_international: isInternational,
-                 departureMonths: tourDepartureMonths, // ADD THIS LINE
+        is_international: isInternational,
+        departureMonths: tourDepartureMonths, // ADD THIS LINE
 
 
       };
     });
   };
 
-     const handleSearchTourCode = (e: React.FormEvent) => {
-  e.preventDefault();
-  const query = searchQuery.trim().toUpperCase();
-  
-  if (query === "") {
-    setIsSearchActive(false);
-    return;
-  }
-  
-  setIsSearchActive(true);
-  console.log("Search activated for:", query);
-};
 
-// Add this function to clear search
-const clearSearch = () => {
-  setSearchQuery("");
-  setIsSearchActive(false);
-  setShowSearchBtn(false);
-};
+
   // ---------- Format tours when data changes ----------
   useEffect(() => {
     if (allTours.length === 0) {
@@ -356,13 +381,13 @@ const clearSearch = () => {
     console.log("All tours available:", allTours.length);
     console.log("Selected state:", selectedState);
     console.log("Senior citizen tour EMI data available for:", Object.keys(tourEmiData).length, "tours");
-    
+
     const currentStateTours = getCurrentStateTours();
     console.log("Senior citizen tours for current state:", currentStateTours.length);
-    
+
     const formatted = formatTours(currentStateTours);
     console.log("Formatted senior citizen tours:", formatted);
-    
+
     setFormattedTours(formatted);
   }, [allTours, tourImages, tourEmiData, selectedState]);
 
@@ -371,7 +396,7 @@ const clearSearch = () => {
     console.log("=== APPLYING FILTERS ===");
     console.log("Starting with formatted senior citizen tours:", formattedTours.length);
     console.log("Formatted tour IDs:", formattedTours.map(t => t.id));
-    
+
     if (formattedTours.length === 0) {
       setFilteredTours([]);
       return;
@@ -379,23 +404,17 @@ const clearSearch = () => {
 
     let result = [...formattedTours];
 
-  if (isSearchActive && searchQuery.trim() !== "") {
-    const query = searchQuery.trim().toUpperCase();
-    console.log("Applying search filter for query:", query);
-    
-    result = result.filter(tour => {
-      // Search by tour code (case-insensitive)
-      const codeMatch = tour.code?.toUpperCase().includes(query);
-      
-      // Optional: also search by title if you want
-      const titleMatch = tour.title?.toUpperCase().includes(query);
-      
-      return codeMatch || titleMatch;
-    });
-    
-    console.log("After search filter:", result.length);
-  }
+    if (isSearchActive && appliedSearchQuery !== "") {
+      const query = appliedSearchQuery.toUpperCase();
+      console.log("Applying search filter for query:", query);
 
+      result = result.filter(tour => {
+        const codeMatch = tour.code?.toUpperCase().includes(query);
+        const titleMatch = tour.title?.toUpperCase().includes(query);
+        return codeMatch || titleMatch;
+      });
+      console.log("After search filter:", result.length);
+    }
     console.log("Initial senior citizen tours count:", result.length);
 
     // Duration filter
@@ -416,19 +435,19 @@ const clearSearch = () => {
     }
 
 
-  // ✅ DEPARTURE MONTH FILTER - FIXED (removed duplicate)
-  if (selectedDepartureMonths.length > 0) {
-    console.log("Selected departure months:", selectedDepartureMonths);
-    console.log("First tour departure months sample:", result[0]?.departureMonths);
-    
-    result = result.filter((tour) => {
-      // Check if tour has any departure month that matches selected months
-      return selectedDepartureMonths.some(selectedMonth => 
-        tour.departureMonths?.includes(selectedMonth)
-      );
-    });
-    console.log("After departure month filter:", result.length);
-  }
+    // ✅ DEPARTURE MONTH FILTER - FIXED (removed duplicate)
+    if (selectedDepartureMonths.length > 0) {
+      console.log("Selected departure months:", selectedDepartureMonths);
+      console.log("First tour departure months sample:", result[0]?.departureMonths);
+
+      result = result.filter((tour) => {
+        // Check if tour has any departure month that matches selected months
+        return selectedDepartureMonths.some(selectedMonth =>
+          tour.departureMonths?.includes(selectedMonth)
+        );
+      });
+      console.log("After departure month filter:", result.length);
+    }
 
     // Indian tours filter
     if (selectedIndianTours.length > 0) {
@@ -436,25 +455,25 @@ const clearSearch = () => {
       result = result.filter((tour) => {
         return selectedIndianTours.some((sel) => {
           const selLower = sel.toLowerCase();
-          return tour.locations?.toLowerCase() === selLower || 
-                 tour.title?.toLowerCase().includes(selLower) ||
-                 tour.locations?.toLowerCase().includes(selLower);
+          return tour.locations?.toLowerCase() === selLower ||
+            tour.title?.toLowerCase().includes(selLower) ||
+            tour.locations?.toLowerCase().includes(selLower);
         });
       });
     }
 
     // World tours filter (won't really match for isIndian=true, but safe)
-    if (selectedWorldTours.length > 0) {
-      console.log("Selected World tours:", selectedWorldTours);
-      result = result.filter((tour) => {
-        if (tour.isIndian) return false;
-        return selectedWorldTours.some((selectedLocation) =>
-          (tour.locationTags || []).some((tag: string) =>
-            tag.toLowerCase().includes(selectedLocation.toLowerCase())
-          )
-        );
-      });
-    }
+    // if (selectedWorldTours.length > 0) {
+    //   console.log("Selected World tours:", selectedWorldTours);
+    //   result = result.filter((tour) => {
+    //     if (tour.isIndian) return false;
+    //     return selectedWorldTours.some((selectedLocation) =>
+    //       (tour.locationTags || []).some((tag: string) =>
+    //         tag.toLowerCase().includes(selectedLocation.toLowerCase())
+    //       )
+    //     );
+    //   });
+    // }
 
     // Sorting
     console.log("Sort type:", sortType);
@@ -473,8 +492,8 @@ const clearSearch = () => {
     formattedTours,
     durationRange,
     priceRange,
-  isSearchActive, // ADD THIS
-  searchQuery, // ADD THIS
+    isSearchActive,
+    appliedSearchQuery,
 
     selectedDepartureMonths,
     selectedIndianTours,
@@ -484,7 +503,28 @@ const clearSearch = () => {
 
 
 
-  
+  const handleSearchTourCode = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const query = searchQuery.trim().toUpperCase();
+
+    if (!query) {
+      setIsSearchActive(false);
+      setAppliedSearchQuery("");
+      return;
+    }
+
+    setAppliedSearchQuery(query); // ✅ freeze search value
+    setIsSearchActive(true);
+  };
+
+  const clearSearch = () => {
+    setSearchQuery("");
+    setAppliedSearchQuery("");
+    setIsSearchActive(false);
+    setShowSearchBtn(false);
+  };
+
   // ---------- Filter handlers ----------
   const handleDepartureMonthChange = (month: string, checked: boolean) => {
     if (checked) {
@@ -519,7 +559,7 @@ const clearSearch = () => {
     setSelectedIndianTours([]);
     setSelectedWorldTours([]);
     setSortType("recommended");
-          clearSearch(); // ADD THIS
+    clearSearch(); // ADD THIS
 
   };
 
@@ -544,464 +584,468 @@ const clearSearch = () => {
 
   return (
     <>
-    <div className="min-h-screen bg-[#E53C42] bg-opacity-10">
-      <Header />
+      <div className="min-h-screen bg-[#E53C42] bg-opacity-10">
+        <Header />
 
-      {/* Combined Hero and Filter Section */}
-      <div className="container mx-auto px-4 py-6">
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Filters Sidebar */}
-          <aside className="lg:w-80">
-            <div className="bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl shadow-lg p-6 border border-blue-200 sticky top-24">
-              <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
-                <h2 className="text-2xl font-bold text-[#2E4D98]">Senior CTZ Tours</h2>
-                <button 
-                  onClick={clearAllFilters}
-                  className="text-sm text-[#E53C42] hover:underline"
-                >
-                  Clear All
-                </button>
-              </div>
-
-              {/* Duration */}
-              <div className="mb-8">
-                <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Duration</h3>
-                <div className="flex justify-between text-sm text-gray-600 mb-3">
-                  <span>{durationRange[0]} days</span>
-                  <span>{durationRange[1]} days</span>
+        {/* Combined Hero and Filter Section */}
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex flex-col lg:flex-row gap-6">
+            {/* Filters Sidebar */}
+            <aside className="lg:w-80">
+              <div className="bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl shadow-lg p-6 border border-blue-200 sticky top-24">
+                <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
+                  <h2 className="text-2xl font-bold text-[#2E4D98]">Senior CTZ Tours</h2>
+                  <button
+                    onClick={clearAllFilters}
+                    className="text-sm text-[#E53C42] hover:underline"
+                  >
+                    Clear All
+                  </button>
                 </div>
-                <Slider 
-                  value={durationRange} 
-                  onValueChange={setDurationRange}
-                  max={15} 
-                  step={1} 
-                  className="w-full" 
-                />
-              </div>
 
-              {/* Price */}
-              <div className="mb-8">
-                <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Price</h3>
-                <div className="flex justify-between text-sm text-gray-600 mb-3">
-                  <span>₹{priceRange[0].toLocaleString()}</span>
-                  <span>₹{priceRange[1].toLocaleString()}</span>
+                {/* Duration */}
+                <div className="mb-8">
+                  <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Duration</h3>
+                  <div className="flex justify-between text-sm text-gray-600 mb-3">
+                    <span>{durationRange[0]} days</span>
+                    <span>{durationRange[1]} days</span>
+                  </div>
+                  <Slider
+                    value={durationRange}
+                    onValueChange={setDurationRange}
+                    max={15}
+                    step={1}
+                    className="w-full"
+                  />
                 </div>
-                <Slider 
-                  value={priceRange} 
-                  onValueChange={setPriceRange}
-                  min={0} 
-                  max={200000} 
-                  step={1000} 
-                />
-              </div>
 
-    <div className="mb-8">
-      <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">
-        Departure Months
-      </h3>
-    
-      <div className="space-y-3">
-        {departureMonths.length === 0 ? (
-          <p className="text-sm text-gray-500">Loading departure months...</p>
-        ) : (
-          departureMonths
-            .slice(0, showAllDepartureMonths ? departureMonths.length : 6)
-            .map((month) => (
-              <label key={month} className="flex items-center gap-3 cursor-pointer">
-                <Checkbox
-                  checked={selectedDepartureMonths.includes(month)}
-                  onCheckedChange={(checked) =>
-                    handleDepartureMonthChange(month, checked as boolean)
-                  }
-                  className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
-                />
-                <span className="text-gray-700">{month}</span>
-                {/* <span className="text-xs text-gray-500 ml-auto">
+                {/* Price */}
+                <div className="mb-8">
+                  <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Price</h3>
+                  <div className="flex justify-between text-sm text-gray-600 mb-3">
+                    <span>₹{priceRange[0].toLocaleString()}</span>
+                    <span>₹{priceRange[1].toLocaleString()}</span>
+                  </div>
+                  <Slider
+                    value={priceRange}
+                    onValueChange={setPriceRange}
+                    min={0}
+                    max={200000}
+                    step={1000}
+                  />
+                </div>
+
+                <div className="mb-8">
+                  <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">
+                    Departure Months
+                  </h3>
+
+                  <div className="space-y-3">
+                    {departureMonths.length === 0 ? (
+                      <p className="text-sm text-gray-500">Loading departure months...</p>
+                    ) : (
+                      departureMonths
+                        .slice(0, showAllDepartureMonths ? departureMonths.length : 6)
+                        .map((month) => (
+                          <label key={month} className="flex items-center gap-3 cursor-pointer">
+                            <Checkbox
+                              checked={selectedDepartureMonths.includes(month)}
+                              onCheckedChange={(checked) =>
+                                handleDepartureMonthChange(month, checked as boolean)
+                              }
+                              className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
+                            />
+                            <span className="text-gray-700">{month}</span>
+                            {/* <span className="text-xs text-gray-500 ml-auto">
                   ({formattedTours.filter(t => t.departureMonths?.includes(month)).length})
                 </span> */}
-              </label>
-            ))
-        )}
-      </div>
-    
-      {departureMonths.length > 6 && (
-        <button
-          onClick={() => setShowAllDepartureMonths(!showAllDepartureMonths)}
-          className="mt-4 text-[#2E4D98] font-medium hover:text-[#1E3A8A]"
-        >
-          {showAllDepartureMonths ? "Show Less" : `Show ${departureMonths.length - 6} More`}
-        </button>
-      )}
-    </div>
+                          </label>
+                        ))
+                    )}
+                  </div>
 
-              {/* Indian Tours */}
-              <div className="mb-8">
+                  {departureMonths.length > 6 && (
+                    <button
+                      onClick={() => setShowAllDepartureMonths(!showAllDepartureMonths)}
+                      className="mt-4 text-[#2E4D98] font-medium hover:text-[#1E3A8A]"
+                    >
+                      {showAllDepartureMonths ? "Show Less" : `Show ${departureMonths.length - 6} More`}
+                    </button>
+                  )}
+                </div>
 
-        
-                          <div className="mb-4">
-                            <form onSubmit={handleSearchTourCode} className="flex gap-2">
-                              <div className="relative flex-1">
-                                <Input
-                                  type="text"
-                                  placeholder="Search by tour code"
-                                  value={searchQuery}
-                                  onChange={(e) => {
-                                    setSearchQuery(e.target.value);
-                                    setShowSearchBtn(e.target.value.trim() !== "");
-                                  }}
-                                  onFocus={() => setShowSearchBtn(true)}
-                                  onKeyDown={(e) => {
-                                    if (e.key === "Enter") {
-                                      handleSearchTourCode(e);
+                {/* Indian Tours */}
+                <div className="mb-8">
+
+
+                  {/* Indian Tours */}
+                  <div className="mb-8">
+
+                    <div className="mb-4">
+                      <form onSubmit={handleSearchTourCode} className="flex gap-2">
+                        <div className="relative flex-1">
+                          <Input
+                            type="text"
+                            placeholder="Search by tour code"
+                            value={searchQuery}
+                            onChange={(e) => {
+                              setSearchQuery(e.target.value);
+                              setShowSearchBtn(e.target.value.trim() !== "");
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                handleSearchTourCode(e);
+                              }
+                            }}
+                            className="border-[#2E4D98] focus:border-[#2E4D98] focus:ring-[#2E4D98] pr-8"
+                          />
+
+                          {searchQuery && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                clearSearch();
+                                setShowSearchBtn(false);
+                              }}
+                              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                            >
+                              ✕
+                            </button>
+                          )}
+                        </div>
+
+                        {showSearchBtn && (
+                          <Button
+                            type="submit"
+                            className="bg-red-600 hover:bg-red-700 text-white px-6"
+                          >
+                            Search
+                          </Button>
+                        )}
+                      </form>
+                    </div>
+
+               
+
+                  <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
+                    <h2 className="text-2xl font-bold text-[#2E4D98]">India Dom Tours</h2>
+                  </div>
+
+                  <div className={`${showMoreIndian ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
+                    {[
+                      'Andaman', 'Goa', 'Kerala', 'Kashmir', 'Rajasthan', 'Himachal',
+                      ...(showMoreIndian
+                        ? [
+                          'Andhra Pradesh',
+                          'Bihar',
+                          'Chhattisgarh',
+                          'Dadra & Nagar Haveli',
+                          'Daman & Diu',
+                          'Delhi',
+                          'Gujarat',
+                          'Haryana',
+                          'Jharkhand',
+                          'Karnataka',
+                          'Ladakh',
+                          'Lakshadweep',
+                          'Madhya Pradesh',
+                          'Maharashtra',
+                          'North East',
+                          'Odisha',
+                          'Puducherry',
+                          'Punjab & Haryana',
+                          'Seven Sisters',
+                          'Tamil Nadu',
+                          'Uttar Pradesh',
+                          'Uttarakhand',
+                          'West Bengal'
+                        ]
+                        : [])
+                    ]
+                      .sort((a, b) => a.localeCompare(b)) // 👈 ONLY CHANGE
+                      .map((place) => {
+                        const isCurrentState = selectedState === place;
+
+                        return (
+                          <div key={place} className="flex items-center gap-3 cursor-pointer">
+                            <Checkbox
+                              checked={isCurrentState}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  clearAllFilters();
+                                  navigate(`/senior_tours/${encodeURIComponent(place)}`);
+                                }
+                              }}
+                              className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
+                            />
+
+                            <span
+                              className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${isCurrentState ? 'font-bold text-[#2E4D98]' : ''
+                                }`}
+                              onClick={() => {
+                                clearAllFilters();
+                                navigate(`/senior_tours/${encodeURIComponent(place)}`);
+                              }}
+                            >
+                              {place}
+                            </span>
+                          </div>
+                        );
+                      })}
+                  </div>
+
+                  <button
+                    onClick={() => setShowMoreIndian(!showMoreIndian)}
+                    className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
+                  >
+                    {showMoreIndian ? "Show Less" : "Show More"}
+                  </button>
+                </div>
+                  
+              
+                  </div>
+
+
+
+
+                <div>
+                  <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
+                    <h2 className="text-2xl font-bold text-[#2E4D98]">International Tours</h2>
+                  </div>
+
+                  {loadingDestinations ? (
+                    <div className="text-center py-4">
+                      <p className="text-gray-500">Loading international destinations...</p>
+                    </div>
+                  ) : internationalDestinations.length === 0 ? (
+                    <div className="text-center py-4">
+                      <p className="text-gray-500">No international destinations found</p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className={`${showMoreWorld ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
+                        {internationalDestinations
+                          .slice(0, showMoreWorld ? internationalDestinations.length : 6)
+                          .map((place) => {
+                            const isSelected = selectedWorldTours.includes(place);
+
+                            return (
+                              <div
+                                key={place}
+                                className="flex items-center gap-3 cursor-pointer"
+                                onClick={() => {
+                                  if (!selectedWorldTours.includes(place)) {
+                                    setSelectedWorldTours([...selectedWorldTours, place]);
+                                  }
+                                  const encodedDestination = encodeURIComponent(place);
+                                  navigate(`/intl-senior_tours/${encodedDestination}`);
+                                }}
+                              >
+                                <Checkbox
+                                  checked={isSelected}
+                                  onCheckedChange={(checked) => {
+                                    if (checked) {
+                                      setSelectedWorldTours([...selectedWorldTours, place]);
+                                      const encodedDestination = encodeURIComponent(place);
+                                      navigate(`/intl-senior_tours/${encodedDestination}`);
+                                    } else {
+                                      setSelectedWorldTours(selectedWorldTours.filter(t => t !== place));
                                     }
                                   }}
-                                  className="border-[#2E4D98] focus:border-[#2E4D98] focus:ring-[#2E4D98] pr-8   placeholder:text-sm"
+                                  className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                  }}
                                 />
-        
-        
-                                {searchQuery && (
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      clearSearch();
-                                      setShowSearchBtn(false);
-                                    }}
-                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                                  >
-                                    ✕
-                                  </button>
-                                )}
-                              </div>
-        
-                              {showSearchBtn && (
-                                <Button
-                                  type="submit"
-                                  className="bg-red-600 hover:bg-red-700 text-white px-6"
+                                <span
+                                  className={`${isSelected ? 'font-bold text-[#2E4D98]' : 'text-gray-700 hover:text-[#2E4D98]'} cursor-pointer flex-1`}
                                 >
-                                  Search
-                                </Button>
-                              )}
-                            </form>
-                          </div>
-        
+                                  {place}
+                                </span>
+                              </div>
+                            );
+                          })}
+                      </div>
 
-             
-                             <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
-                               <h2 className="text-2xl font-bold text-[#2E4D98]">India Dom Tours</h2>
-                             </div>
-                           
-                             <div className={`${showMoreIndian ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
-                               {[
-                                 'Andaman', 'Goa', 'Kerala', 'Kashmir', 'Rajasthan','Himachal',  
-                                 ...(showMoreIndian
-                                   ? [
-                                       'Andhra Pradesh',
-                                       'Bihar',
-                                       'Chhattisgarh',
-                                       'Dadra & Nagar Haveli',
-                                       'Daman & Diu',
-                                       'Delhi',
-                                       'Gujarat',
-                                       'Haryana',
-                                       'Jharkhand',
-                                       'Karnataka',
-                                       'Ladakh',
-                                       'Lakshadweep',
-                                       'Madhya Pradesh',
-                                       'Maharashtra',
-                                       'North East',
-                                       'Odisha',
-                                       'Puducherry',
-                                       'Punjab & Haryana',
-                                       'Seven Sisters',
-                                       'Tamil Nadu',
-                                       'Uttar Pradesh',
-                                       'Uttarakhand',
-                                       'West Bengal'
-                                     ]
-                                   : [])
-                               ]
-                                 .sort((a, b) => a.localeCompare(b)) // 👈 ONLY CHANGE
-                                 .map((place) => {
-                                   const isCurrentState = selectedState === place;
-                           
-                                   return (
-                                     <div key={place} className="flex items-center gap-3 cursor-pointer">
-                                       <Checkbox
-                                         checked={isCurrentState}
-                                         onCheckedChange={(checked) => {
-                                           if (checked) {
-                                             clearAllFilters();
-                                             navigate(`/tours-packages/${encodeURIComponent(place)}`);
-                                           }
-                                         }}
-                                         className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
-                                       />
-                           
-                                       <span
-                                         className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${
-                                           isCurrentState ? 'font-bold text-[#2E4D98]' : ''
-                                         }`}
-                                         onClick={() => {
-                                           clearAllFilters();
-                                           navigate(`/tours-packages/${encodeURIComponent(place)}`);
-                                         }}
-                                       >
-                                         {place}
-                                       </span>
-                                     </div>
-                                   );
-                                 })}
-                             </div>
-                           
-                             <button
-                               onClick={() => setShowMoreIndian(!showMoreIndian)}
-                               className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
-                             >
-                               {showMoreIndian ? "Show Less" : "Show More"}
-                             </button>
-                            </div>
-            
-            
-                            {/* World Tours */}
-                           <div>
-                                    <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
-                                      <h2 className="text-2xl font-bold text-[#2E4D98]">Intl Indv Tours</h2>
-                                    </div>
-                                  
-                                    {(() => {
-                                      const allWorldTours = [
-                                        'Africa',
-                                        'America',
-                                        'Australia NewZealand',
-                                        'Bhutan',
-                                        'Dubai and MiddleEast',
-                                        'Eurasia',
-                                        'Europe',
-                                        'Japan China',
-                                        'Mauritius',
-                                        'Nepal',
-                                        'Seychelles',
-                                        'South East Asia',
-                                        'SriLanka Maldives'
-                                      ];
-                                  
-                                      const sortedWorldTours = [...allWorldTours].sort((a, b) =>
-                                        a.localeCompare(b)
-                                      );
-                                  
-                                      const visibleWorldTours = showMoreWorld
-                                        ? sortedWorldTours
-                                        : sortedWorldTours.slice(0, 6);
-                                  
-                                      return (
-                                        <div className={`${showMoreWorld ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
-                                          {visibleWorldTours.map((place) => {
-                                            const isCurrentWorldTour = selectedWorldTours.includes(place);
-                                  
-                                            return (
-                                              <div key={place} className="flex items-center gap-3 cursor-pointer">
-                                                <Checkbox
-                                                  checked={isCurrentWorldTour}
-                                                  onCheckedChange={(checked) => {
-                                                    if (checked) {
-                                                      clearAllFilters();
-                                                      navigate(`/intl-senior_tours/${encodeURIComponent(place)}`);
-                                                    }
-                                                  }}
-                                                  className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
-                                                />
-                                                <span
-                                                  className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${isCurrentWorldTour ? 'font-bold text-[#2E4D98]' : ''
-                                                    }`}
-                                                  onClick={() => {
-                                                    clearAllFilters();
-                                                    navigate(`/intl-senior_tours/${encodeURIComponent(place)}`);
-                                                  }}
-                                                >
-                                                  {place}
-                                                </span>
-                                              </div>
-                                            );
-                                          })}
-                                        </div>
-                                      );
-                                    })()}
-                                  
-                                    <button
-                                      onClick={() => setShowMoreWorld(!showMoreWorld)}
-                                      className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
-                                    >
-                                      {showMoreWorld ? "Show Less" : "Show More"}
-                                    </button>
-                                  </div>
-            </div>
-          </aside>
+                      {internationalDestinations.length > 6 && (
+                        <button
+                          onClick={() => setShowMoreWorld(!showMoreWorld)}
+                          className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
+                        >
+                          {showMoreWorld ? "Show Less" : "Show More"}
+                        </button>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            </aside>
 
-          {/* Hero and Main Content Area */}
-          <main className="flex-1">
-            {/* Hero Section */}
-            <div className="relative rounded-2xl overflow-hidden mb-6">
-              <div
-                className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-                style={{
-                  backgroundImage: `url('${heroImage}')`
-                }}
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-black/90 to-black/10"></div>
+            {/* Hero and Main Content Area */}
+            <main className="flex-1">
+              {/* Hero Section */}
+              <div className="relative rounded-2xl overflow-hidden mb-6">
+                <div
+                  className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                  style={{
+                    backgroundImage: `url('${heroImage}')`
+                  }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-black/90 to-black/10"></div>
+                </div>
+
+                {/* Hero Content */}
+                <div className="relative p-8 min-h-[200px] flex items-center">
+                  <div className="text-white">
+                    <h1 className="text-3xl font-bold mb-2">{selectedState} Senior Tour Packages</h1>
+                    <p className="text-base opacity-90 max-w-2xl">
+                      {heroDescription}
+                    </p>
+                    <p className="text-sm opacity-80 mt-2">
+                      Showing {filteredTours.length} senior citizen tour packages for {selectedState}
+                      <span className="ml-2 text-xs">(Total available: {formattedTours.length})</span>
+                    </p>
+                  </div>
+                </div>
               </div>
 
-              {/* Hero Content */}
-              <div className="relative p-8 min-h-[200px] flex items-center">
-                <div className="text-white">
-                  <h1 className="text-3xl font-bold mb-2">{selectedState} Senior Tour Packages</h1>
-                  <p className="text-base opacity-90 max-w-2xl">
-                    {heroDescription}
-                  </p>
-                  <p className="text-sm opacity-80 mt-2">
-                    Showing {filteredTours.length} senior citizen tour packages for {selectedState}
-                    <span className="ml-2 text-xs">(Total available: {formattedTours.length})</span>
+              {/* Main Content Header */}
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                <div>
+                  <h2 className="text-3xl font-bold text-gray-800">{selectedState} Senior Holiday Packages</h2>
+                  <p className="text-gray-600 mt-1">
+                    Showing {filteredTours.length} of {formattedTours.length} senior citizen tours • Best prices guaranteed
                   </p>
                 </div>
               </div>
-            </div>
 
-            {/* Main Content Header */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-              <div>
-                <h2 className="text-3xl font-bold text-gray-800">{selectedState} Senior Holiday Packages</h2>
-                <p className="text-gray-600 mt-1">
-                  Showing {filteredTours.length} of {formattedTours.length} senior citizen tours • Best prices guaranteed
-                </p>
-              </div>
-            </div>
+              {/* 3 Cards Per Row */}
+              {filteredTours.length === 0 ? (
+                <div className="text-center py-12">
+                  <h3 className="text-xl font-semibold text-gray-600">No senior citizen tours found for the selected filters</h3>
+                  <p className="text-gray-500 mt-2">
+                    Total available senior citizen tours for {selectedState}: {formattedTours.length}
+                  </p>
+                  <Button
+                    onClick={clearAllFilters}
+                    className="mt-4 bg-[#2E4D98] hover:bg-[#2E4D98] hover:opacity-90 text-white"
+                  >
+                    Clear All Filters
+                  </Button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredTours.map((tour) => (
+                    <div key={tour.id} className="flex flex-col">
+                      {/* Separate Top Block - Excel-like box design */}
+                       <div className="bg-white border-2 border-gray-300 rounded-lg p-3 mb-3 shadow-sm">
+  <div className="grid grid-cols-3 gap-0 border border-gray-400 rounded overflow-hidden">
 
-            {/* 3 Cards Per Row */}
-            {filteredTours.length === 0 ? (
-              <div className="text-center py-12">
-                <h3 className="text-xl font-semibold text-gray-600">No senior citizen tours found for the selected filters</h3>
-                <p className="text-gray-500 mt-2">
-                  Total available senior citizen tours for {selectedState}: {formattedTours.length}
-                </p>
-                <Button
-                  onClick={clearAllFilters}
-                  className="mt-4 bg-[#2E4D98] hover:bg-[#2E4D98] hover:opacity-90 text-white"
-                >
-                  Clear All Filters
-                </Button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredTours.map((tour) => (
-                  <div key={tour.id} className="flex flex-col">
-                    {/* Separate Top Block - Excel-like box design */}
-                    <div className="bg-white border-2 border-gray-300 rounded-lg p-3 mb-3 shadow-sm">
-                      <div className="grid grid-cols-3 gap-0 border border-gray-400 rounded overflow-hidden">
-                        {/* Box 1 - Code Label */}
-                        <div className="bg-gray-100 border-r border-gray-400 p-2">
-                          <div className="text-xs font-semibold text-gray-700 text-center">CODE</div>
+    {/* Box 1 - Code Label */}
+    <div className="bg-[#2E4D98] border-r border-gray-400 p-2 flex items-center justify-center flex-1">
+      <div className="text-sm font-bold text-white text-center">CODE</div>
+    </div>
+
+    {/* Box 2 - Code Value */}
+    <div className="bg-gradient-to-br from-blue-100 to-blue-50 border-gray-400 p-2 flex items-center justify-center flex-1">
+      <div className="text-sm font-bold text-gray-900 text-center">{tour.code}</div>
+    </div>
+
+    {/* Box 3 - Duration */}
+    <div className="bg-[#2E4D98] p-2 flex items-center justify-center flex-1">
+      <div className="text-sm font-bold text-white text-center">{tour.duration}</div>
+    </div>
+
+  </div>
+</div>
+                      {/* Separate Card with Light Blue Background */}
+                      <div className="group bg-blue-50 rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer border border-blue-100 flex flex-col flex-1 min-h-0">
+                        {/* Image Section */}
+                        <div className="relative h-56 overflow-hidden flex-shrink-0">
+                          <img
+                            src={tour.image}
+                            alt={tour.title}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
                         </div>
 
-                        {/* Box 2 - Code Value */}
-                        <div className="bg-white border-r border-gray-400 p-2">
-                          <div className="text-sm font-bold text-gray-900 text-center">{tour.code}</div>
-                        </div>
+                        {/* Content Section */}
+                        <div className="p-5 flex-1 flex flex-col min-h-0">
+                          <h3 className="font-bold text-lg text-gray-800 line-clamp-2 mb-2">
+                            {tour.title}
+                          </h3>
 
-                        {/* Box 3 - Duration */}
-                        <div className="bg-gray-50 p-2">
-                          <div className="text-sm font-bold text-gray-900 text-center">{tour.duration}</div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Separate Card with Light Blue Background */}
-                    <div className="group bg-blue-50 rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer border border-blue-100 flex flex-col flex-1 min-h-0">
-                      {/* Image Section */}
-                      <div className="relative h-56 overflow-hidden flex-shrink-0">
-                        <img
-                          src={tour.image}
-                          alt={tour.title}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-                      </div>
-
-                      {/* Content Section */}
-                      <div className="p-5 flex-1 flex flex-col min-h-0">
-                        <h3 className="font-bold text-lg text-gray-800 line-clamp-2 mb-2">
-                          {tour.title}
-                        </h3>
-
-                        {/* Price Details */}
-                        <div className="mb-3">
+                                 <div className="mb-3">
                           <div className="flex items-center justify-between mb-1">
-                            <span className="text-sm font-semibold text-gray-700">Tour Cost</span>
+                            <span className="text-sm text-[#2E4D98] font-bold">Tour Cost P.P</span>
                             <p className="text-2xl font-bold text-gray-900">{tour.price}</p>
                           </div>
                           
                           <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-600">EMI per/month</span>
-                            <p className="text-sm font-bold text-gray-900">{tour.emi}</p>
-                          </div>
+  <span className="text-sm text-[#2E4D98] font-bold">EMI Per Month</span>
+  <p className="text-sm font-bold text-gray-900">{tour.emi}</p>
+</div>
+
                         </div>
 
-                        <p className="text-sm text-gray-600 mb-3 flex-1 line-clamp-2">{tour.locations}</p>
+                        <p className="text-sm text-[#2E4D98] font-bold mb-3">{tour.locations}</p>
 
                         <div className="flex items-center justify-between text-sm text-gray-500 mb-0">
                           <span>{tour.dates}</span>
                         </div>
 
-                        {/* Buttons */}
-                        <div className="flex gap-2 mt-0">
-                       <Button
-                                        size="sm"
-                                        variant="outline"
-                                        className="flex-1 border-[#2E4D98] text-[#2E4D98] hover:bg-[#2E4D98] hover:text-white"
-                                        onClick={() => {
-                                          
-                                          // Check if it's an international tour
-                                          if (tour.is_international === true) {
-                                            navigate(`/international_tour_details/${tour.id}`);
-                                          } else {
-                                            navigate(`/tour_details/${tour.id}`); 
-                                          }
-                                        }}
-                                      >
-                                        View Tour
-                                      </Button>
-                          <Button 
-                            size="sm" 
-                            className="flex-1 bg-[#E53C42] hover:bg-[#E53C42] hover:opacity-90 text-white"
-                            onClick={() => {
-                              // Save tour data to localStorage as backup
-                              localStorage.setItem('selectedTour', JSON.stringify(tour));
-                              // Navigate to checkout page with tour data
-                              navigate('/checkout', { state: { tour } });
-                            }}
-                          >
-                            Book Now
-                          </Button>
+                          {/* Buttons */}
+                          <div className="flex gap-2 mt-0">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="flex-1 border-[#2E4D98] text-[#2E4D98] hover:bg-[#2E4D98] hover:text-white"
+                              onClick={() => {
+
+                                // Check if it's an international tour
+                                if (tour.is_international === true) {
+                                  navigate(`/international_tour_details/${tour.id}`);
+                                } else {
+                                  navigate(`/tour_details/${tour.id}`);
+                                }
+                              }}
+                            >
+                              View Tour
+                            </Button>
+                            <Button
+                              size="sm"
+                              className="flex-1 bg-[#E53C42] hover:bg-[#E53C42] hover:opacity-90 text-white"
+                              onClick={() => {
+                                // Save tour data to localStorage as backup
+                                localStorage.setItem('selectedTour', JSON.stringify(tour));
+                                // Navigate to checkout page with tour data
+                                navigate('/checkout', { state: { tour } });
+                              }}
+                            >
+                              Book Now
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
 
-            {/* Load More */}
-            {filteredTours.length > 0 && (
-              <div className="text-center mt-8">
-                <Button size="lg" className="bg-[#2E4D98] hover:bg-[#2E4D98] hover:opacity-90 px-12 text-white">
-                  Load More Tours
-                </Button>
-              </div>
-            )}
-          </main>
+              {/* Load More */}
+              {filteredTours.length > 0 && (
+                <div className="text-center mt-8">
+                  <Button size="lg" className="bg-[#2E4D98] hover:bg-[#2E4D98] hover:opacity-90 px-12 text-white">
+                    Load More Tours
+                  </Button>
+                </div>
+              )}
+            </main>
+          </div>
         </div>
       </div>
-    </div>
-    <Footer />
+      <Footer />
     </>
   );
 };
