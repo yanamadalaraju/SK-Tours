@@ -517,43 +517,46 @@ const SeatSelection: React.FC<SeatSelectionProps> = ({
     }
   };
 
-  const fetchBookingDetails = async (referenceId: string) => {
-    try {
-      const bookingDetailsPayload = {
-        reference_id: referenceId,
-        transaction_id: referenceId,
-        end_user_ip: endUserIp || "183.83.43.117",
-        token: token || "3-1-NEWTEST-dmjkwj78BJHk8"
-      };
+const fetchBookingDetails = async (referenceId: string) => {
+  try {
+    const bookingDetailsPayload = {
+      reference_id: referenceId,
+      transaction_id: referenceId,
+      end_user_ip: endUserIp || "183.83.43.117",
+      token: token || "3-1-NEWTEST-dmjkwj78BJHk8"
+    };
 
-      const response = await axios.post(
-        'https://devapi.flightapi.co.in/v1/fbapi/booking_details',
-        bookingDetailsPayload,
-        {
-          headers: {
-            'x-api-key': '1FMQKB1639407126571',
-            'Content-Type': 'application/json'
-          }
+    const response = await axios.post(
+      'https://devapi.flightapi.co.in/v1/fbapi/booking_details',
+      bookingDetailsPayload,
+      {
+        headers: {
+          'x-api-key': '1FMQKB1639407126571',
+          'Content-Type': 'application/json'
         }
-      );
-
-      if (response.data.replyCode === 0 && response.data.data) {
-        onBookingComplete({
-          bookingData: response.data.data,
-          referenceId: referenceId,
-          passengerDetails: passengerDetails,
-          contactDetails: contactDetails
-        });
-      } else {
-        window.alert("⚠️ Booking created but unable to fetch details. Reference ID: " + referenceId);
-        onBookingComplete({
-          referenceId: referenceId,
-          passengerDetails: passengerDetails,
-          contactDetails: contactDetails
-        });
       }
-    } catch (error: any) {
-      console.error("Error fetching booking details:", error);
+    );
+
+    if (response.data.replyCode === 0 && response.data.data) {
+      const bookingData = response.data.data;
+      
+      const passengerDetailsWithPrices = passengerDetails.map((passenger, index) => {
+        const matchingTraveller = bookingData.travellers?.[index];
+        
+        return {
+          ...passenger,
+          ticket_price: matchingTraveller?.ticket_price || 0,
+          ticketPrice: matchingTraveller?.ticket_price || 0 // Add both for compatibility
+        };
+      });
+
+      onBookingComplete({
+        bookingData: bookingData,
+        referenceId: referenceId,
+        passengerDetails: passengerDetailsWithPrices, // Use the updated array
+        contactDetails: contactDetails
+      });
+    } else {
       window.alert("⚠️ Booking created but unable to fetch details. Reference ID: " + referenceId);
       onBookingComplete({
         referenceId: referenceId,
@@ -561,7 +564,16 @@ const SeatSelection: React.FC<SeatSelectionProps> = ({
         contactDetails: contactDetails
       });
     }
-  };
+  } catch (error: any) {
+    console.error("Error fetching booking details:", error);
+    window.alert("⚠️ Booking created but unable to fetch details. Reference ID: " + referenceId);
+    onBookingComplete({
+      referenceId: referenceId,
+      passengerDetails: passengerDetails,
+      contactDetails: contactDetails
+    });
+  }
+};
 
   const handleContactSave = () => {
     if (!contactDetails.name.trim()) {

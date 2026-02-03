@@ -395,7 +395,7 @@ const emiValue = emiPrice > 0 ? emiPrice : 0;
 
   return (
     <div 
-      className="rounded-2xl shadow-lg p-6 mb-12 border border-gray-100 relative overflow-hidden"
+      className="rounded-2xl shadow-lg p-6 mb-10 border border-gray-100 relative overflow-hidden"
       style={{
         background: 'radial-gradient(circle at center, #5a92edff 0%, #4c70e7ff 30%, #0F1F5C 70%, #0A1128 100%)',
       }}
@@ -524,7 +524,7 @@ const emiValue = emiPrice > 0 ? emiPrice : 0;
                           </div>
                           
                           <div className="flex items-center justify-between w-full">
-                            <span className="text-sm text-gray-600">EMI per/month</span>
+                            <span className="text-sm text-gray-600">EMI Per Month</span>
                             <p className="text-sm font-bold text-gray-900">
                               {tour.emi}
                             </p>
@@ -600,7 +600,7 @@ const DomesticToursSection: React.FC = () => {
         />
 
         <div className="text-center">
-          <button className="inline-flex mb-6 items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-xl shadow transition-all duration-300 transform hover:scale-105 border border-white/20">
+          <button className="inline-flex mb-10 items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-xl shadow transition-all duration-300 transform hover:scale-105 border border-white/20">
             <MapPin className="h-4 w-4" />
             View All Tours
             <ChevronRight className="h-4 w-4" />

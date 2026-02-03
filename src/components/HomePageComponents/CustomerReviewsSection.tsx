@@ -626,7 +626,7 @@ const CustomerReviewsSection = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Reviews Container with Gradient Background */}
         <div 
-          className="rounded-2xl shadow-2xl p-8 mb-12 relative overflow-hidden"
+          className="rounded-2xl shadow-2xl p-8 mb-10 relative overflow-hidden"
           style={{
             background: 'radial-gradient(circle at center, #3B82F6 0%, #1E40AF 30%, #0F1F5C 70%, #0A1128 100%)',
           }}
@@ -753,7 +753,7 @@ const CustomerReviewsSection = () => {
 
         {/* Bottom CTA */}
         <div className="text-center">
-          <button className="inline-flex mb-6 items-center gap-3 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white font-semibold px-8 py-4 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105 border border-white/20">
+          <button className="inline-flex mb-10 items-center gap-3 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white font-semibold px-8 py-4 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105 border border-white/20">
             <Star className="h-5 w-5" />
             Share Your Experience
             <ChevronRight className="h-5 w-5" />

@@ -76,7 +76,7 @@ interface DayCardProps {
 const DayCard = ({ dayNumber, headerColor, bodyColor, dayData }: DayCardProps) => {
   const [meals, setMeals] = useState({ B: false, L: false, D: false });
 
-const navigate = useNavigate();
+  const navigate = useNavigate();
 
 
 
@@ -113,8 +113,8 @@ const navigate = useNavigate();
           <div className="flex items-center gap-1">
             <div
               className={`h-4 w-4 border flex items-center justify-center transition-colors ${meals.B
-                  ? 'bg-white border-gray-400'
-                  : 'bg-white border-gray-400'
+                ? 'bg-white border-gray-400'
+                : 'bg-white border-gray-400'
                 }`}
               style={{ borderRadius: '2px' }}
             >
@@ -153,8 +153,8 @@ const navigate = useNavigate();
           <div className="flex items-center gap-1">
             <div
               className={`h-4 w-4 border flex items-center justify-center transition-colors ${meals.L
-                  ? 'bg-white border-gray-400'
-                  : 'bg-white border-gray-400'
+                ? 'bg-white border-gray-400'
+                : 'bg-white border-gray-400'
                 }`}
               style={{ borderRadius: '2px' }}
             >
@@ -193,8 +193,8 @@ const navigate = useNavigate();
           <div className="flex items-center gap-1">
             <div
               className={`h-4 w-4 border flex items-center justify-center transition-colors ${meals.D
-                  ? 'bg-white border-gray-400'
-                  : 'bg-white border-gray-400'
+                ? 'bg-white border-gray-400'
+                : 'bg-white border-gray-400'
                 }`}
               style={{ borderRadius: '2px' }}
             >
@@ -244,14 +244,14 @@ const navigate = useNavigate();
           {dayData?.description || ""}
         </div>
       </div>
-<div className="mt-1">
-  <button
-   onClick={() => navigate("/alert")}
-    className={`w-full  font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90`}
-  >
-    Customize your tour on chargeable basis
-  </button>
-</div>
+      <div className="mt-1">
+        <button
+          onClick={() => navigate("/alert")}
+          className={`w-full  font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90`}
+        >
+          Customize your tour on chargeable basis
+        </button>
+      </div>
 
 
     </div>
@@ -262,8 +262,8 @@ const TourDetails = () => {
   const { tourId } = useParams<{ tourId: string }>();
   const [activeTab, setActiveTab] = useState("itinerary");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-const [showEmailModal, setShowEmailModal] = useState(false);
-const [emailLoading, setEmailLoading] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailLoading, setEmailLoading] = useState(false);
   // Add these state variables near your other state declarations
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [showMoreIndian, setShowMoreIndian] = useState(false);
@@ -275,13 +275,15 @@ const [emailLoading, setEmailLoading] = useState(false);
   const [selectedWorldTours, setSelectedWorldTours] = useState<string[]>([]);
   const [selectedState, setSelectedState] = useState<string>("");
 
-  // Tour data state
+  const [internationalDestinations, setInternationalDestinations] = useState<string[]>([]);
+  const [loadingDestinations, setLoadingDestinations] = useState(false);
+
   const [tour, setTour] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [tourType, setTourType] = useState<'Individual' | 'Group'>('Individual');
-const navigate = useNavigate();
-  // Departure date states for Group tours
+  // In the TourDetails component, update the tourType state declaration (line ~146):
+  const [tourType, setTourType] = useState<'Individual' | 'Group' | 'Ladies Special' | 'Senior Citizen' | 'Student' | 'Honeymoon'>('Individual');
+  const navigate = useNavigate();
   const [selectedMonth, setSelectedMonth] = useState("ALL");
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
@@ -312,61 +314,61 @@ const navigate = useNavigate();
   };
 
 
-const handleEmailSubmit = async (emailData: EmailFormData) => {
-  try {
-    setEmailLoading(true);
+  const handleEmailSubmit = async (emailData: EmailFormData) => {
+    try {
+      setEmailLoading(true);
 
-    // Generate PDF
-    const { pdf } = await import('@react-pdf/renderer');
-    const TourPdfDocument = (await import('./TourPdfDocument')).default;
+      // Generate PDF
+      const { pdf } = await import('@react-pdf/renderer');
+      const TourPdfDocument = (await import('./TourPdfDocument')).default;
 
-    const pdfInstance = (
-      <TourPdfDocument
-        tour={tour || {}}
-        tourType={tourType}
-        isGroupTour={isGroupTour}
-        selectedCostMonth={selectedCostMonth}
-        selectedCostDate={selectedCostDate}
-        selectedDeparture={selectedDeparture}
-        currentImageIndex={currentImageIndex}
-        tourImages={tour?.images || []}
-      />
-    );
+      const pdfInstance = (
+        <TourPdfDocument
+          tour={tour || {}}
+          tourType={tourType}
+          isGroupTour={isGroupTour}
+          selectedCostMonth={selectedCostMonth}
+          selectedCostDate={selectedCostDate}
+          selectedDeparture={selectedDeparture}
+          currentImageIndex={currentImageIndex}
+          tourImages={tour?.images || []}
+        />
+      );
 
-    const pdfBlob = await pdf(pdfInstance).toBlob();
+      const pdfBlob = await pdf(pdfInstance).toBlob();
 
-    // Prepare FormData
-    const formData = new FormData();
-    formData.append('to', emailData.to);
-    formData.append('subject', emailData.subject);
-    formData.append('message', emailData.message);
-    formData.append('tourTitle', tour?.title || '');
-    formData.append('tourCode', tour?.code || '');
-    formData.append('pdf', pdfBlob, `tour_${tour?.code || 'details'}.pdf`);
+      // Prepare FormData
+      const formData = new FormData();
+      formData.append('to', emailData.to);
+      formData.append('subject', emailData.subject);
+      formData.append('message', emailData.message);
+      formData.append('tourTitle', tour?.title || '');
+      formData.append('tourCode', tour?.code || '');
+      formData.append('pdf', pdfBlob, `tour_${tour?.code || 'details'}.pdf`);
 
-    // Send email
-    const response = await fetch(`${BASE_URL}/api/send-tour-pdf`, {
-      method: 'POST',
-      body: formData,
-    });
+      // Send email
+      const response = await fetch(`${BASE_URL}/api/send-tour-pdf`, {
+        method: 'POST',
+        body: formData,
+      });
 
-    const result = await response.json();
+      const result = await response.json();
 
-    if (!response.ok || !result.success) {
-      throw new Error(result.message || 'Failed to send email');
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'Failed to send email');
+      }
+
+      // ✅ SUCCESS
+      setShowEmailModal(false);
+      alert('Email sent successfully!');
+
+    } catch (error: any) {
+      console.error('Error sending email:', error);
+      alert(`Failed to send email: ${error.message || 'Unknown error'}`);
+    } finally {
+      setEmailLoading(false);
     }
-
-    // ✅ SUCCESS
-    setShowEmailModal(false);
-    alert('Email sent successfully!');
-
-  } catch (error: any) {
-    console.error('Error sending email:', error);
-    alert(`Failed to send email: ${error.message || 'Unknown error'}`);
-  } finally {
-    setEmailLoading(false);
-  }
-};
+  };
 
 
 
@@ -764,7 +766,6 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
     };
   };
 
-  // Fetch tour details - UPDATED TO SUPPORT ALL TOUR TYPES
   const fetchTourDetails = async () => {
     try {
       setLoading(true);
@@ -782,7 +783,7 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
 
       let response = null;
       let data = null;
-      let foundTourType = null;
+      let foundTourType: 'Individual' | 'Group' | 'Honeymoon' | 'Ladies Special' | 'Senior Citizen' | 'Student' = 'Individual';
 
       // Try each endpoint until we find the tour
       for (const endpoint of tourEndpoints) {
@@ -793,7 +794,7 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
             data = await response.json();
 
             if (data.success) {
-              foundTourType = endpoint.type;
+              foundTourType = endpoint.type as 'Individual' | 'Group' | 'Honeymoon' | 'Ladies Special' | 'Senior Citizen' | 'Student';
               break;
             }
           }
@@ -813,7 +814,7 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
       console.log("Found tour type:", foundTourType);
 
       setTour(processedData);
-      setTourType(foundTourType || 'Individual');
+      setTourType(foundTourType);
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -828,6 +829,41 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
       fetchTourDetails();
     }
   }, [tourId]);
+
+
+  useEffect(() => {
+    const fetchInternationalDestinations = async () => {
+      try {
+        setLoadingDestinations(true);
+        console.log("Fetching international destinations...");
+
+        const destinationsRes = await fetch(`${BASE_URL}/api/destinations/international`);
+
+        if (!destinationsRes.ok) {
+          throw new Error(`Failed to fetch destinations: ${destinationsRes.status}`);
+        }
+
+        // Tell TS what the API returns
+        const data: { name: string }[] = await destinationsRes.json();
+        console.log("Fetched international destinations:", data);
+
+        // Now TS knows dest.name is a string
+        const destinationNames: string[] = data.map(dest => dest.name);
+
+        const uniqueSortedDestinations: string[] = [...new Set(destinationNames)].sort(
+          (a, b) => a.localeCompare(b)
+        );
+
+        setInternationalDestinations(uniqueSortedDestinations);
+      } catch (err) {
+        console.error("Error fetching international destinations:", err);
+      } finally {
+        setLoadingDestinations(false);
+      }
+    };
+
+    fetchInternationalDestinations();
+  }, []);
 
   // Handle departure month selection
   const handleDepartureMonthChange = (month: string, checked: boolean) => {
@@ -1060,7 +1096,7 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                 </div>
 
                 {/* Indian Tours */}
-                {/* Indian Tours */}
+
                 <div className="mb-8">
                   <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
                     <h2 className="text-2xl font-bold text-[#2E4D98]">Indian Tours</h2>
@@ -1097,33 +1133,62 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                         ]
                         : []),
                     ]
-                      .sort((a, b) => a.localeCompare(b)) // Alphabetical order
+                      .sort((a, b) => a.localeCompare(b))
                       .map((place) => {
-                        const isCurrentState = selectedState === place; // assuming you have selectedState state
-
                         return (
                           <div
                             key={place}
-                            className={`flex items-center gap-3 cursor-pointer group px-1 py-0.5 rounded-md transition-colors ${isCurrentState ? 'bg-blue-50' : ''
-                              }`}
+                            className="flex items-center gap-3 cursor-pointer group px-1 py-0.5 rounded-md transition-colors hover:bg-blue-50"
                             onClick={() => {
                               clearAllFilters();
-                              navigate(`/tours-packages/${encodeURIComponent(place)}`);
+
+                              // Determine which listing page to navigate to based on current tour type
+                              let basePath = '/tours-packages'; // default for Individual tours
+
+                              if (tourType === 'Group') {
+                                basePath = '/tours_groups';
+                              } else if (tourType === 'Ladies Special') {
+                                basePath = '/ladies_tours';
+                              } else if (tourType === 'Senior Citizen') {
+                                basePath = '/senior_tours';
+                              } else if (tourType === 'Student') {
+                                basePath = '/students_tours';
+                              } else if (tourType === 'Honeymoon') {
+                                basePath = '/honeymoon_tours';
+                              }
+
+                              // Navigate to the correct path with place as parameter (NOT query string)
+                              navigate(`${basePath}/${encodeURIComponent(place)}`);
                             }}
                           >
                             <Checkbox
-                              checked={isCurrentState}
-                              onCheckedChange={(checked) => {
-                                if (checked) {
-                                  clearAllFilters();
-                                  navigate(`/tours-packages/${encodeURIComponent(place)}`);
+                              checked={selectedState === place}
+                              onCheckedChange={() => {
+                                setSelectedState(place);
+                                clearAllFilters();
+
+                                let basePath = '/tours-packages';
+
+                                if (tourType === 'Group') {
+                                  basePath = '/tours_groups';
+                                } else if (tourType === 'Ladies Special') {
+                                  basePath = '/ladies_tours';
+                                } else if (tourType === 'Senior Citizen') {
+                                  basePath = '/senior_tours';
+                                } else if (tourType === 'Student') {
+                                  basePath = '/students_tours';
+                                } else if (tourType === 'Honeymoon') {
+                                  basePath = '/honeymoon_tours';
                                 }
+
+                                // Navigate to the correct path with place as parameter
+                                navigate(`${basePath}/${encodeURIComponent(place)}`);
                               }}
-                              className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98] pointer-events-none"
+                              className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
                             />
 
                             <span
-                              className={`text-gray-800 transition-colors group-hover:text-[#2E4D98] ${isCurrentState ? 'font-semibold text-[#2E4D98]' : ''
+                              className={`text-gray-800 transition-colors group-hover:text-[#2E4D98] ${selectedState === place ? 'font-semibold text-[#2E4D98]' : ''
                                 }`}
                             >
                               {place}
@@ -1141,77 +1206,110 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                   </button>
                 </div>
 
-  <div>
-    <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
-      <h2 className="text-2xl font-bold text-[#2E4D98]">Intl Indv Tours</h2>
-    </div>
+                <div>
+                  <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
+                    <h2 className="text-2xl font-bold text-[#2E4D98]">International Tours</h2>
+                  </div>
 
-    {(() => {
-      const allWorldTours = [
-        'Africa',
-        'America',
-        'Australia NewZealand',
-        'Bhutan',
-        'Dubai and MiddleEast',
-        'Eurasia',
-        'Europe',
-        'Japan China',
-        'Mauritius',
-        'Nepal',
-        'Seychelles',
-        'South East Asia',
-        'SriLanka Maldives'
-      ];
+                  {loadingDestinations ? (
+                    <div className="text-center py-4">
+                      <p className="text-gray-500">Loading international destinations...</p>
+                    </div>
+                  ) : internationalDestinations.length === 0 ? (
+                    <div className="text-center py-4">
+                      <p className="text-gray-500">No international destinations found</p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className={`${showMoreWorld ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
+                        {internationalDestinations
+                          .slice(0, showMoreWorld ? internationalDestinations.length : 6)
+                          .map((place) => {
+                            const isSelected = selectedWorldTours.includes(place);
 
-      const sortedWorldTours = [...allWorldTours].sort((a, b) =>
-        a.localeCompare(b)
-      );
+                            return (
+                              <div
+                                key={place}
+                                className="flex items-center gap-3 cursor-pointer"
+                                onClick={() => {
+                                  if (!selectedWorldTours.includes(place)) {
+                                    setSelectedWorldTours([...selectedWorldTours, place]);
+                                  }
 
-      const visibleWorldTours = showMoreWorld
-        ? sortedWorldTours
-        : sortedWorldTours.slice(0, 6);
+                                  let basePath = '/intl-tours-packages'; // default for Individual tours
 
-      return (
-        <div className={`${showMoreWorld ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
-          {visibleWorldTours.map((place) => {
-            const isCurrentWorldTour = selectedWorldTours.includes(place);
+                                  const currentTourType = tourType as string; // Type assertion to fix TypeScript error
 
-            return (
-              <div key={place} className="flex items-center gap-3 cursor-pointer">
-                <Checkbox
-                  checked={isCurrentWorldTour}
-                  onCheckedChange={(checked) => {
-                    if (checked) {
-                      clearAllFilters();
-                      navigate(`/intl-tours-packages/${encodeURIComponent(place)}`);
-                    }
-                  }}
-                  className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
-                />
-                <span
-                  className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${isCurrentWorldTour ? 'font-bold text-[#2E4D98]' : ''
-                    }`}
-                  onClick={() => {
-                    clearAllFilters();
-                    navigate(`/intl-tours-packages/${encodeURIComponent(place)}`);
-                  }}
-                >
-                  {place}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      );
-    })()}
+                                  if (currentTourType === 'Group') {
+                                    basePath = '/intl-tours_groups';
+                                  } else if (currentTourType === 'Ladies Special') {
+                                    basePath = '/intl-ladies_tours';
+                                  } else if (currentTourType === 'Senior Citizen') {
+                                    basePath = '/intl-senior_tours';
+                                  } else if (currentTourType === 'Student') {
+                                    basePath = '/intl-students_tours';
+                                  } else if (currentTourType === 'Honeymoon') {
+                                    basePath = '/intl-honeymoon_tours';
+                                  }
 
-    <button
-      onClick={() => setShowMoreWorld(!showMoreWorld)}
-      className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
-    >
-      {showMoreWorld ? "Show Less" : "Show More"}
-    </button>
-  </div>
+                                  const encodedDestination = encodeURIComponent(place);
+                                  navigate(`${basePath}/${encodedDestination}`);
+                                }}
+                              >
+                                <Checkbox
+                                  checked={isSelected}
+                                  onCheckedChange={(checked) => {
+                                    if (checked) {
+                                      setSelectedWorldTours([...selectedWorldTours, place]);
+
+                                      let basePath = '/intl-tours-packages'; // default for Individual tours
+
+                                      const currentTourType = tourType as string; // Type assertion to fix TypeScript error
+
+                                      if (currentTourType === 'Group') {
+                                        basePath = '/intl-tours_groups';
+                                      } else if (currentTourType === 'Ladies Special') {
+                                        basePath = '/intl-ladies_tours';
+                                      } else if (currentTourType === 'Senior Citizen') {
+                                        basePath = '/intl-senior_tours';
+                                      } else if (currentTourType === 'Student') {
+                                        basePath = '/intl-students_tours';
+                                      } else if (currentTourType === 'Honeymoon') {
+                                        basePath = '/intl-honeymoon_tours';
+                                      }
+
+                                      const encodedDestination = encodeURIComponent(place);
+                                      navigate(`${basePath}/${encodedDestination}`);
+                                    } else {
+                                      setSelectedWorldTours(selectedWorldTours.filter(t => t !== place));
+                                    }
+                                  }}
+                                  className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                  }}
+                                />
+                                <span
+                                  className={`${isSelected ? 'font-bold text-[#2E4D98]' : 'text-gray-700 hover:text-[#2E4D98]'} cursor-pointer flex-1`}
+                                >
+                                  {place}
+                                </span>
+                              </div>
+                            );
+                          })}
+                      </div>
+
+                      {internationalDestinations.length > 6 && (
+                        <button
+                          onClick={() => setShowMoreWorld(!showMoreWorld)}
+                          className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
+                        >
+                          {showMoreWorld ? "Show Less" : "Show More"}
+                        </button>
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
             </aside>
 
@@ -1270,8 +1368,8 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                             resetAutoScroll(); // Reset timer when clicking thumbnail
                           }}
                           className={`w-16 h-16 lg:w-20 lg:h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 ${index === currentImageIndex
-                              ? 'border-[#2E4D98] ring-2 ring-[#2E4D98] ring-opacity-50 scale-105'
-                              : 'border-transparent hover:border-gray-300'
+                            ? 'border-[#2E4D98] ring-2 ring-[#2E4D98] ring-opacity-50 scale-105'
+                            : 'border-transparent hover:border-gray-300'
                             }`}
                         >
                           <img
@@ -1460,10 +1558,10 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
 
                                   {/* Status with conditional styling */}
                                   <div className={`font-semibold ${item.status === 'Sold Out'
-                                      ? 'text-red-600'
-                                      : item.status === 'Available'
-                                        ? 'text-green-600'
-                                        : 'text-blue-700'
+                                    ? 'text-red-600'
+                                    : item.status === 'Available'
+                                      ? 'text-green-600'
+                                      : 'text-blue-700'
                                     }`}>
                                     {item.status}
                                   </div>
@@ -1477,8 +1575,8 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                                     onClick={() => toggleTable(index)}
                                     disabled={item.status === 'Sold Out'}
                                     className={`px-6 py-2 transition-colors ${item.status === 'Sold Out'
-                                        ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                                        : 'bg-[#003366] text-white hover:bg-[#002244]'
+                                      ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                                      : 'bg-[#003366] text-white hover:bg-[#002244]'
                                       } ${openIndex === index ? 'bg-[#002244]' : ''}`}
                                   >
                                     {item.status === 'Sold Out'
@@ -1552,13 +1650,13 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                         </div>
                       </div>
                       <div className="mt-1">
-  <button
-   onClick={() => navigate("/alert")}
-    className={`w-full  font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90`}
-  >
-    Customize your tour on chargeable basis
-  </button>
-</div>
+                        <button
+                          onClick={() => navigate("/alert")}
+                          className={`w-full  font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90`}
+                        >
+                          Customize your tour on chargeable basis
+                        </button>
+                      </div>
                     </div>
                   ) : (
                     // Individual Tour Departure Descriptions (unchanged)
@@ -1585,16 +1683,16 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                         </div>
                       </div>
                       <div className="mt-1">
-  <button
-   onClick={() => navigate("/alert")}
-    className={`w-full  font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90`}
-  >
-    Customize your tour on chargeable basis
-  </button>
-</div>
+                        <button
+                          onClick={() => navigate("/alert")}
+                          className={`w-full  font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90`}
+                        >
+                          Customize your tour on chargeable basis
+                        </button>
+                      </div>
 
                     </div>
-                    
+
                   )
                 )}
 
@@ -1654,12 +1752,12 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                             {selectedDeparture ? (
                               <div className="border-2 border-black overflow-hidden animate-fadeIn">
                                 {/* HEADER */}
-                               <div className="grid grid-cols-4 bg-[#0A1D4A] text-white font-semibold text-center">
-                                      <div className="p-2 border-r-2 border-white">Particulars - Tour Cost</div>
-                                      <div className="p-2 border-r-2 border-white">Standard</div>
-                                      <div className="p-2 border-r-2 border-white">Deluxe</div>
-                                      <div className="p-2">Luxury</div>
-                                    </div>
+                                <div className="grid grid-cols-4 bg-[#0A1D4A] text-white font-semibold text-center">
+                                  <div className="p-2 border-r-2 border-white">Particulars - Tour Cost</div>
+                                  <div className="p-2 border-r-2 border-white">Standard</div>
+                                  <div className="p-2 border-r-2 border-white">Deluxe</div>
+                                  <div className="p-2">Luxury</div>
+                                </div>
 
                                 {/* ROWS */}
                                 {[
@@ -1930,7 +2028,7 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                       {/* Tour Cost EMI Remarks */}
                       <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
                         <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
-                           EMI Remarks
+                          EMI Remarks
                         </div>
                         <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
                           <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
@@ -1953,13 +2051,13 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                         </div>
                       </div>
                       <div className="mt-1">
-  <button
-   onClick={() => navigate("/alert")}
-    className={`w-full  font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90`}
-  >
-    Customize your tour on chargeable basis
-  </button>
-</div>
+                        <button
+                          onClick={() => navigate("/alert")}
+                          className={`w-full  font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90`}
+                        >
+                          Customize your tour on chargeable basis
+                        </button>
+                      </div>
 
                     </div>
                   </div>
@@ -2017,16 +2115,16 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                           </div>
                         </div>
                       </div>
-                      
+
                     </div>
                     <div className="mt-1">
-  <button
-   onClick={() => navigate("/alert")}
-    className={`w-full  font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90`}
-  >
-    Customize your tour on chargeable basis
-  </button>
-</div>
+                      <button
+                        onClick={() => navigate("/alert")}
+                        className={`w-full  font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90`}
+                      >
+                        Customize your tour on chargeable basis
+                      </button>
+                    </div>
 
                   </div>
                 )}
@@ -2040,134 +2138,134 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                         Flight Details
                       </div>
 
-                      <div className="border-2 border-[#1e3a8a] rounded-t-none border-t-0 rounded-lg overflow-hidden w-full">
+                      <div className="border-2 border-[#1e3a8a] rounded-t-none border-t-0 rounded-lg overflow-hidden w-full mb-1">
                         <div className="min-h-[300px] max-h-[400px] overflow-y-auto p-1 bg-[#FFEBEE] w-full">
                           {isGroupTour ? (
                             // ===== GROUP TOUR - TABLE STRUCTURE =====
                             <div className="overflow-x-auto border shadow-sm">
-                        <table className="w-full border-collapse table-fixed">
-  {/* ===== TABLE HEADER ===== */}
-  <thead>
-    <tr className="bg-[red]">
-      <th className="border border-black px-3 py-3 text-center font-semibold text-white text-sm h-9 w-[12%]">
-        Airlines
-      </th>
-      <th className="border border-black px-4 py-3 text-center font-semibold text-white text-sm h-9 w-[12%]">
-        Flight No
-      </th>
-      <th className="border border-black px-4 py-3 text-center font-semibold text-white text-sm h-9 w-[15%]">
-        From
-      </th>
-      <th className="border border-black px-4 py-3 text-center font-semibold text-white text-sm h-9 w-[10%]">
-        Date
-      </th>
-      <th className="border border-black px-4 py-3 text-center font-semibold text-white text-sm h-9 w-[8%]">
-        Time
-      </th>
-      <th className="border border-black px-4 py-3 text-center font-semibold text-white text-sm h-9 w-[15%]">
-        To
-      </th>
-      <th className="border border-black px-4 py-3 text-center font-semibold text-white text-sm h-9 w-[10%]">
-        Date
-      </th>
-      <th className="border border-black px-4 py-3 text-center font-semibold text-white text-sm h-9 w-[8%]">
-        Time
-      </th>
-    </tr>
-  </thead>
+                              <table className="w-full border-collapse table-fixed">
+                                {/* ===== TABLE HEADER ===== */}
+                                <thead>
+                                  <tr className="bg-[red]">
+                                    <th className="border border-black px-3 py-3 text-center font-semibold text-white text-sm h-9 w-[12%]">
+                                      Airlines
+                                    </th>
+                                    <th className="border border-black px-4 py-3 text-center font-semibold text-white text-sm h-9 w-[12%]">
+                                      Flight No
+                                    </th>
+                                    <th className="border border-black px-4 py-3 text-center font-semibold text-white text-sm h-9 w-[15%]">
+                                      From
+                                    </th>
+                                    <th className="border border-black px-4 py-3 text-center font-semibold text-white text-sm h-9 w-[10%]">
+                                      Date
+                                    </th>
+                                    <th className="border border-black px-4 py-3 text-center font-semibold text-white text-sm h-9 w-[8%]">
+                                      Time
+                                    </th>
+                                    <th className="border border-black px-4 py-3 text-center font-semibold text-white text-sm h-9 w-[15%]">
+                                      To
+                                    </th>
+                                    <th className="border border-black px-4 py-3 text-center font-semibold text-white text-sm h-9 w-[10%]">
+                                      Date
+                                    </th>
+                                    <th className="border border-black px-4 py-3 text-center font-semibold text-white text-sm h-9 w-[8%]">
+                                      Time
+                                    </th>
+                                  </tr>
+                                </thead>
 
-  {/* ===== TABLE BODY - DYNAMIC DATA ===== */}
-  <tbody>
-    {tour.airlines.tableData && tour.airlines.tableData.length > 0 ? (
-      tour.airlines.tableData.map((flight: any, index: number) => {
-        // Format date to Indian format (dd-mm-yyyy)
-        const formatDateToIndian = (dateString: string) => {
-          if (!dateString) return '';
-          try {
-            const date = new Date(dateString);
-            if (isNaN(date.getTime())) return dateString;
-            
-            const day = String(date.getDate()).padStart(2, '0');
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const year = date.getFullYear();
-            return `${day}-${month}-${year}`;
-          } catch (error) {
-            return dateString;
-          }
-        };
+                                {/* ===== TABLE BODY - DYNAMIC DATA ===== */}
+                                <tbody>
+                                  {tour.airlines.tableData && tour.airlines.tableData.length > 0 ? (
+                                    tour.airlines.tableData.map((flight: any, index: number) => {
+                                      // Format date to Indian format (dd-mm-yyyy)
+                                      const formatDateToIndian = (dateString: string) => {
+                                        if (!dateString) return '';
+                                        try {
+                                          const date = new Date(dateString);
+                                          if (isNaN(date.getTime())) return dateString;
 
-        // Format time to AM/PM format (HH:MM AM/PM)
-        const formatTimeToAMPM = (timeString: string) => {
-          if (!timeString) return '';
-          try {
-            // If time is in HH:MM:SS or HH:MM format
-            if (timeString.includes(':')) {
-              const timeParts = timeString.split(':');
-              if (timeParts.length >= 2) {
-                let hours = parseInt(timeParts[0], 10);
-                const minutes = timeParts[1];
-                const ampm = hours >= 12 ? 'PM' : 'AM';
-                
-                // Convert 24-hour to 12-hour format
-                hours = hours % 12;
-                hours = hours === 0 ? 12 : hours; // 0 should be 12 for 12 AM
-                
-                return `${hours}:${minutes} ${ampm}`;
-              }
-            }
-            // If it's already in some other format, return as is
-            return timeString;
-          } catch (error) {
-            return timeString;
-          }
-        };
+                                          const day = String(date.getDate()).padStart(2, '0');
+                                          const month = String(date.getMonth() + 1).padStart(2, '0');
+                                          const year = date.getFullYear();
+                                          return `${day}-${month}-${year}`;
+                                        } catch (error) {
+                                          return dateString;
+                                        }
+                                      };
 
-        return (
-          <tr key={index} className={index % 2 === 0 ? 'bg-[#FFEBEE]' : 'bg-[#FFEBEE]/80'}>
-            <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[12%]">
-              {flight.airline || ''}
-            </td>
-            <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[12%]">
-              {flight.flightNo || ''}
-            </td>
-            <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[15%]">
-              {flight.from || ''}
-            </td>
-            <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[10%]">
-              {formatDateToIndian(flight.depDate) || ''}
-            </td>
-            <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[8%]">
-              {formatTimeToAMPM(flight.depTime) || ''}
-            </td>
-            <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[15%]">
-              {flight.to || ''}
-            </td>
-            <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[10%]">
-              {formatDateToIndian(flight.arrDate) || ''}
-            </td>
-            <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[8%]">
-              {formatTimeToAMPM(flight.arrTime) || ''}
-            </td>
-          </tr>
-        );
-      })
-    ) : (
-      // Show empty rows if no data
-      [1, 2, 3, 4].map((row, index) => (
-        <tr key={index} className={index % 2 === 0 ? 'bg-[#FFEBEE]' : 'bg-[#FFEBEE]/80'}>
-          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[12%]">&nbsp;</td>
-          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[12%]">&nbsp;</td>
-          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[15%]">&nbsp;</td>
-          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[10%]">&nbsp;</td>
-          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[8%]">&nbsp;</td>
-          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[15%]">&nbsp;</td>
-          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[10%]">&nbsp;</td>
-          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[8%]">&nbsp;</td>
-        </tr>
-      ))
-    )}
-  </tbody>
-</table>
+                                      // Format time to AM/PM format (HH:MM AM/PM)
+                                      const formatTimeToAMPM = (timeString: string) => {
+                                        if (!timeString) return '';
+                                        try {
+                                          // If time is in HH:MM:SS or HH:MM format
+                                          if (timeString.includes(':')) {
+                                            const timeParts = timeString.split(':');
+                                            if (timeParts.length >= 2) {
+                                              let hours = parseInt(timeParts[0], 10);
+                                              const minutes = timeParts[1];
+                                              const ampm = hours >= 12 ? 'PM' : 'AM';
+
+                                              // Convert 24-hour to 12-hour format
+                                              hours = hours % 12;
+                                              hours = hours === 0 ? 12 : hours; // 0 should be 12 for 12 AM
+
+                                              return `${hours}:${minutes} ${ampm}`;
+                                            }
+                                          }
+                                          // If it's already in some other format, return as is
+                                          return timeString;
+                                        } catch (error) {
+                                          return timeString;
+                                        }
+                                      };
+
+                                      return (
+                                        <tr key={index} className={index % 2 === 0 ? 'bg-[#FFEBEE]' : 'bg-[#FFEBEE]/80'}>
+                                          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[12%]">
+                                            {flight.airline || ''}
+                                          </td>
+                                          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[12%]">
+                                            {flight.flightNo || ''}
+                                          </td>
+                                          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[15%]">
+                                            {flight.from || ''}
+                                          </td>
+                                          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[10%]">
+                                            {formatDateToIndian(flight.depDate) || ''}
+                                          </td>
+                                          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[8%]">
+                                            {formatTimeToAMPM(flight.depTime) || ''}
+                                          </td>
+                                          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[15%]">
+                                            {flight.to || ''}
+                                          </td>
+                                          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[10%]">
+                                            {formatDateToIndian(flight.arrDate) || ''}
+                                          </td>
+                                          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[8%]">
+                                            {formatTimeToAMPM(flight.arrTime) || ''}
+                                          </td>
+                                        </tr>
+                                      );
+                                    })
+                                  ) : (
+                                    // Show empty rows if no data
+                                    [1, 2, 3, 4].map((row, index) => (
+                                      <tr key={index} className={index % 2 === 0 ? 'bg-[#FFEBEE]' : 'bg-[#FFEBEE]/80'}>
+                                        <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[12%]">&nbsp;</td>
+                                        <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[12%]">&nbsp;</td>
+                                        <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[15%]">&nbsp;</td>
+                                        <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[10%]">&nbsp;</td>
+                                        <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[8%]">&nbsp;</td>
+                                        <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[15%]">&nbsp;</td>
+                                        <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[10%]">&nbsp;</td>
+                                        <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[8%]">&nbsp;</td>
+                                      </tr>
+                                    ))
+                                  )}
+                                </tbody>
+                              </table>
 
                               {/* ===== DESCRIPTION AREA FOR GROUP TOURS ===== */}
                               {tour.airlines.tableData && tour.airlines.tableData.some((flight: any) => flight.description) && (
@@ -2216,11 +2314,51 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                           )}
                         </div>
                       </div>
+           {/* Flight Remarks Section - Only for Group Tours */}
+{isGroupTour && (
+  tour.airlines.remarks.length > 0 ? (
+    <div className="mb-1">
+      <div className="bg-red-600 text-white text-center font-bold text-xl py-3 rounded-t-lg w-full">
+        Flight Remarks
+      </div>
+      
+      <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg overflow-hidden w-full">
+        <div className="min-h-[150px] max-h-[160px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+          <ul className="space-y-2 w-full">
+            {tour.airlines.remarks.map((remark: string, index: number) => (
+              <li key={`flight-${index}`} className="flex items-start gap-1 w-full">
+                <span className="text-black break-words whitespace-pre-wrap text-justify w-full">
+                  {remark}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  ) : (
+    <div className="mb-4">
+      <div className="bg-red-600 text-white text-center font-bold text-xl py-3 rounded-t-lg w-full">
+        Flight Remarks
+      </div>
+      
+      <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg overflow-hidden w-full">
+        <div className="min-h-[150px] max-h-[160px] overflow-y-auto p-2 bg-[#FFEBEE] w-full flex items-center justify-center">
+          <div className="text-gray-500 text-center">
+            <div className="text-lg font-semibold">No remarks available</div>
+            <div className="text-sm mt-1">There are no flight remarks at this time</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+)}
                     </div>
 
 
+
                     {/* Hotels Section */}
-                    <div className='p-1 -mt-2 w-full overflow-x-hidden'>
+                    <div className='p-1 -mt-3 w-full overflow-x-hidden'>
                       <div className="bg-red-600 text-white text-center font-bold text-xl rounded-t-lg py-3 mb-1 w-full">
                         Hotel Details
                       </div>
@@ -2280,238 +2418,241 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                         )}
                       </div>
 
-                      {/* Combined Remarks Section */}
-                      {(tour.hotels.remarks.length > 0 || tour.airlines.remarks.length > 0) && (
-                        <div className="bg-[#E8F0FF] rounded-lg mt-1 w-full overflow-x-hidden">
-                          <div className="bg-red-600 text-white text-center font-bold text-xl py-3 rounded-t-lg w-full">
-                            Hotel Remarks
-                          </div>
-
-                          <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg overflow-hidden w-full">
-                            <div className="min-h-[150px] max-h-[200px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-                              <ul className="space-y-2 w-full">
-                                {[...tour.hotels.remarks, ...tour.airlines.remarks].map((remark: string, index: number) => (
-                                  <li key={index} className="flex items-start gap-1 w-full">
-                                    <span className="text-black break-words whitespace-pre-wrap text-justify w-full">
-                                      {remark}
-                                    </span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          </div>
-                        </div>
-                      )}
+                     {/* Combined Remarks Section */}
+{tour.hotels.remarks.length > 0 && (
+  <div className="bg-[#E8F0FF] rounded-lg mt-1 w-full overflow-x-hidden">
+    
+    {/* Hotel Remarks Section */}
+    <div className="mb-0">
+      <div className="bg-red-600 text-white text-center font-bold text-xl py-3 rounded-t-lg w-full">
+        Hotel Remarks
+      </div>
+      
+      <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg overflow-hidden w-full">
+        <div className="min-h-[150px] max-h-[160px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+          <ul className="space-y-2 w-full">
+            {tour.hotels.remarks.map((remark: string, index: number) => (
+              <li key={`hotel-${index}`} className="flex items-start gap-1 w-full">
+                <span className="text-black break-words whitespace-pre-wrap text-justify w-full">
+                  {remark}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+    
+  </div>
+)}
                       <div className="mt-1">
-  <button
-   onClick={() => navigate("/alert")}
-    className={`w-full  font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90`}
-  >
-    Customize your tour on chargeable basis
-  </button>
-</div>
+                        <button
+                          onClick={() => navigate("/alert")}
+                          className={`w-full  font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90`}
+                        >
+                          Customize your tour on chargeable basis
+                        </button>
+                      </div>
 
                     </div>
-                    
+
                   </div>
                 )}
 
-{/* Bookings POI Tab */}
-{/* Bookings POI Tab */}
+             {/* Bookings POI Tab */}
 {activeTab === "bookings-poi" && (
   <div className="bg-[#E8F0FF] rounded-lg p-1">
     <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg mb-1">
       Booking Policy
     </div>
 
-<div className="flex flex-col lg:flex-row gap-1 mt-1 h-[320px]">
-  {/* Left Card - Booking Policy - 70% width */}
-  <div className="h-full w-full lg:w-8/12 flex flex-col">
-    <div className="bg-[#2E4D98] text-white text-center py-3 rounded-t-lg">
-      <h3 className="text-xl font-bold">Booking Policy</h3>
-    </div>
-    <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-white overflow-hidden">
-      <div className="h-full overflow-y-auto bg-[#FFEBEE]">
-        <div className="p-1"> 
-          {tour.booking.items.map((item: string, index: number) => (
-            <React.Fragment key={index}>
-              <div className="flex items-start gap-3 p-2">
-                <span className="text-black text-[15px] whitespace-normal text-justify w-full">
-                  {item}
-                </span>
-              </div>
-              {/* Horizontal line after EACH item - even the last one */}
-              {index < tour.booking.items.length && (
-                <div className="border-b-[1px] border-black"></div> 
-              )}
-            </React.Fragment>
-          ))}
+    <div className="flex flex-col lg:flex-row gap-1 mt-1 h-[320px]">
+      {/* Left Card - Booking Policy - 68% width */}
+      <div className="h-full w-full lg:w-[65%] flex flex-col">
+        <div className="bg-[#2E4D98] text-white text-center py-3 rounded-t-lg">
+          <h3 className="text-xl font-bold">Booking Policy</h3>
         </div>
-      </div>
-    </div>
-  </div>
-
-  {/* Right Card - Amount Details - 30% width */}
-<div className="h-full w-full lg:w-4/12 flex flex-col">
-  <div className="bg-[#2E4D98] text-white text-center py-3 rounded-t-lg">
-    <h3 className="text-xl font-bold">Amount Details</h3>
-  </div>
-  <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-white overflow-hidden">
-    <div className="h-full overflow-y-auto bg-[#FFEBEE]">
-      <div className="p-1">
-        {tour.booking.amountDetails.map((amount: string, index: number) => (
-          <React.Fragment key={index}>
-            <div className="flex items-center p-2 pl-4"> {/* Added pl-4 for left padding */}
-              <div className="text-left w-full">
-                <span className="text-sm font-bold text-green-600">
-                  {amount}
-                </span>
-              </div>
+        <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-white overflow-hidden">
+          <div className="h-full overflow-y-auto bg-[#FFEBEE]">
+            <div className="p-1">
+              {tour.booking.items.map((item: string, index: number) => (
+                <React.Fragment key={index}>
+                  <div className="flex items-start gap-3 p-2">
+                    <span className="text-black text-[15px] whitespace-normal text-justify w-full">
+                      {item}
+                    </span>
+                  </div>
+                  {index < tour.booking.items.length && (
+                    <div className="border-b-[1px] border-black"></div>
+                  )}
+                </React.Fragment>
+              ))}
             </div>
-            {/* Horizontal line after EACH amount - even the last one */}
-            {index < tour.booking.amountDetails.length && (
-              <div className="border-b-[1px] border-black"></div> 
-            )}
-          </React.Fragment>
-        ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="h-full w-full lg:w-[35%] flex flex-col">
+        <div className="bg-[#2E4D98] text-white text-center py-3 rounded-t-lg">
+          <h3 className="text-xl font-bold">Amount Details</h3>
+        </div>
+        <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-white overflow-hidden">
+          <div className="h-full overflow-y-auto bg-[#FFEBEE]">
+            <div className="p-1">
+              {tour.booking.amountDetails.map((amount: string, index: number) => (
+                <React.Fragment key={index}>
+                  <div className="flex items-center p-2 pl-1"> 
+                    <div className="text-left w-full">
+                      <span className="text-sm font-bold text-green-600">
+                        {amount}
+                      </span>
+                    </div>
+                  </div>
+                  {index < tour.booking.amountDetails.length && (
+                    <div className="border-b-[1px] border-black"></div>
+                  )}
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-</div>
-</div>
-    
+
     <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
-  <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
-    Booking Policy Remarks
-  </div>
-  <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-    <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-      {tour.bookingRemarks && tour.bookingRemarks.length > 0 ? (
-        <ul className="space-y-2 w-full">
-          {tour.bookingRemarks.map((remark: string, index: number) => (
-            <li key={index} className="w-full">
-              <div className="flex items-start gap-2 w-full p-2">
-                <span className="text-black whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
-                  {remark}
-                </span>
-              </div>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <div className="flex items-center justify-center h-full">
-          <span className="text-gray-500 italic">No booking policy remarks available</span>
+      <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
+        Booking Policy Remarks
+      </div>
+      <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
+        <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+          {tour.bookingRemarks && tour.bookingRemarks.length > 0 ? (
+            <ul className="space-y-2 w-full">
+              {tour.bookingRemarks.map((remark: string, index: number) => (
+                <li key={index} className="w-full">
+                  <div className="flex items-start gap-2 w-full p-2">
+                    <span className="text-black whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
+                      {remark}
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <span className="text-gray-500 italic">No booking policy remarks available</span>
+            </div>
+          )}
         </div>
-      )}
+      </div>
+      <div className="mt-1">
+        <button
+          onClick={() => navigate("/alert")}
+          className="w-full font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90"
+        >
+          Customize your tour on chargeable basis
+        </button>
+      </div>
     </div>
-  </div>
-  <div className="mt-1">
-    <button
-      onClick={() => navigate("/alert")}
-      className="w-full font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90"
-    >
-      Customize your tour on chargeable basis
-    </button>
-  </div>
-</div>
   </div>
 )}
-                {activeTab === "cancellation" && (
-                  <div className="bg-[#E8F0FF] rounded-lg p-1">
-                    <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg mb-1">
-                      Cancellation Policy
-                    </div>
 
-                  <div className="flex flex-col lg:flex-row gap-1 mt-1 h-[320px]">
-  <div className="h-full w-full lg:w-8/12 flex flex-col">
-    <div className="bg-[#A72703] text-white text-center py-3 rounded-t-lg">
-      <h3 className="text-xl font-bold">Cancellation Policy</h3>
+{/* Cancellation Tab */}
+{activeTab === "cancellation" && (
+  <div className="bg-[#E8F0FF] rounded-lg p-1">
+    <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg mb-1">
+      Cancellation Policy
     </div>
-    <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-[#FFEBEE] overflow-hidden">
-      <div className="h-full overflow-y-auto bg-[#FFEBEE]">
-        <div className="p-1">
-          {tour.cancellation.policies.map((item: string, index: number) => (
-            <React.Fragment key={index}>
-              <div className="flex items-start gap-3 p-2">
-                <span className="text-black text-[15px] whitespace-normal text-justify w-full">
-                  {item}
-                </span>
-              </div>
-              {/* Horizontal line after EACH item - even the last one */}
-              {index < tour.cancellation.policies.length && (
-                <div className="border-b-[1px] border-black"></div>
-              )}
-            </React.Fragment>
-          ))}
+
+    <div className="flex flex-col lg:flex-row gap-1 mt-1 h-[320px]">
+      {/* Left Card - Cancellation Policy - 68% width */}
+      <div className="h-full w-full lg:w-[65%] flex flex-col">
+        <div className="bg-[#A72703] text-white text-center py-3 rounded-t-lg">
+          <h3 className="text-xl font-bold">Cancellation Policy</h3>
+        </div>
+        <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-[#FFEBEE] overflow-hidden">
+          <div className="h-full overflow-y-auto bg-[#FFEBEE]">
+            <div className="p-1">
+              {tour.cancellation.policies.map((item: string, index: number) => (
+                <React.Fragment key={index}>
+                  <div className="flex items-start gap-3 p-2">
+                    <span className="text-black text-[15px] whitespace-normal text-justify w-full">
+                      {item}
+                    </span>
+                  </div>
+                  {/* Horizontal line after EACH item - even the last one */}
+                  {index < tour.cancellation.policies.length && (
+                    <div className="border-b-[1px] border-black"></div>
+                  )}
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="h-full w-full lg:w-[35%] flex flex-col">
+        <div className="bg-[#A72703] text-white text-center py-3 rounded-t-lg">
+          <h3 className="text-xl font-bold">Charges</h3>
+        </div>
+        <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-[#FFEBEE] overflow-hidden">
+          <div className="h-full overflow-y-auto bg-[#FFEBEE]">
+            <div className="p-1">
+              {tour.cancellation.charges.map((charge: string, index: number) => (
+                <React.Fragment key={index}>
+                  <div className="flex items-center justify-start p-2">
+                    <div className="text-left w-full">
+                      <span className="text-sm font-bold text-[#A72703]">
+                        {charge}
+                      </span>
+                    </div>
+                  </div>
+                  {/* Horizontal line after EACH charge - even the last one */}
+                  {index < tour.cancellation.charges.length && (
+                    <div className="border-b-[1px] border-black"></div>
+                  )}
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-<div className="h-full w-full lg:w-4/12 flex flex-col">
-  <div className="bg-[#A72703] text-white text-center py-3 rounded-t-lg">
-    <h3 className="text-xl font-bold">Charges</h3>
-  </div>
-  <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-[#FFEBEE] overflow-hidden">
-    <div className="h-full overflow-y-auto bg-[#FFEBEE]">
-      <div className="p-1">
-        {tour.cancellation.charges.map((charge: string, index: number) => (
-          <React.Fragment key={index}>
-            <div className="flex items-center justify-start p-2">
-              <div className="text-left w-full">
-                <span className="text-sm font-bold text-[#A72703]">
-                  {charge}
-                </span>
-              </div>
+    {/* Cancellation Policy Remarks Section */}
+    <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
+      <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
+        Cancellation Policy Remarks
+      </div>
+      <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
+        <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+          {tour.cancellationRemarks && tour.cancellationRemarks.length > 0 ? (
+            <ul className="space-y-2 w-full">
+              {tour.cancellationRemarks.map((remark: string, index: number) => (
+                <li key={index} className="flex items-start gap-2 w-full">
+                  <span className="text-black whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
+                    {remark}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <span className="text-gray-500 italic">No cancellation policy remarks available</span>
             </div>
-            {/* Horizontal line after EACH charge - even the last one */}
-            {index < tour.cancellation.charges.length && (
-              <div className="border-b-[1px] border-black"></div>
-            )}
-          </React.Fragment>
-        ))}
+          )}
+        </div>
       </div>
     </div>
+    <div className="mt-1">
+      <button
+        onClick={() => navigate("/alert")}
+        className="w-full font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90"
+      >
+        Customize your tour on chargeable basis
+      </button>
+    </div>
   </div>
-</div>
-</div>
-
-                    {/* Cancellation Policy Remarks Section */}
-                    <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
-                      <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
-                        Cancellation Policy Remarks
-                      </div>
-                      <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-                        <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-                          {tour.cancellationRemarks && tour.cancellationRemarks.length > 0 ? (
-                            <ul className="space-y-2 w-full">
-                              {tour.cancellationRemarks.map((remark: string, index: number) => (
-                                <li key={index} className="flex items-start gap-2 w-full">
-                                  <span className="text-black whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
-                                    {remark}
-                                  </span>
-                                </li>
-                              ))}
-                            </ul>
-                          ) : (
-                            <div className="flex items-center justify-center h-full">
-                              <span className="text-gray-500 italic">No cancellation policy remarks available</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="mt-1">
-  <button
-   onClick={() => navigate("/alert")}
-    className={`w-full  font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90`}
-  >
-    Customize your tour on chargeable basis
-  </button>
-</div>
-
-                  </div>
-                )}
+)}
 
                 {/* Instructions Tab */}
                 {activeTab === "instructions" && (
@@ -2536,13 +2677,13 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                       </div>
                     </div>
                     <div className="mt-1">
-  <button
-   onClick={() => navigate("/alert")}
-    className={`w-full  font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90`}
-  >
-    Customize your tour on chargeable basis
-  </button>
-</div>
+                      <button
+                        onClick={() => navigate("/alert")}
+                        className={`w-full  font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90`}
+                      >
+                        Customize your tour on chargeable basis
+                      </button>
+                    </div>
 
                   </div>
                 )}
@@ -2559,7 +2700,7 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                         isGroupTour={isGroupTour}
                         selectedCostMonth={selectedCostMonth}
                         selectedCostDate={selectedCostDate}
-                        selectedDeparture={selectedDeparture}  
+                        selectedDeparture={selectedDeparture}
                         currentImageIndex={currentImageIndex}
                         tourImages={tour?.images || []}
                       />
@@ -2592,26 +2733,26 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                   </PDFDownloadLink>
                 </div>
 
-           {/* Email Button */}
-<div className="w-32 border border-blue-700 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-  <button 
-    onClick={() => setShowEmailModal(true)}
-    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-3 flex items-center justify-center gap-2 transition-colors text-sm"
-  >
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-    </svg>
-    Email
-  </button>
-</div>
+                {/* Email Button */}
+                <div className="w-32 border border-blue-700 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                  <button
+                    onClick={() => setShowEmailModal(true)}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-3 flex items-center justify-center gap-2 transition-colors text-sm"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    Email
+                  </button>
+                </div>
 
-{/* Email Modal */}
-<EmailModal
-  isOpen={showEmailModal}
-  onClose={() => setShowEmailModal(false)}
-  onSubmit={handleEmailSubmit}
-  tour={tour}
-/>
+                {/* Email Modal */}
+                <EmailModal
+                  isOpen={showEmailModal}
+                  onClose={() => setShowEmailModal(false)}
+                  onSubmit={handleEmailSubmit}
+                  tour={tour}
+                />
 
                 <div className="w-32 border border-red-700 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                   <button

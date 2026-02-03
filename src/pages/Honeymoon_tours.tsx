@@ -689,7 +689,7 @@ const handleBookNowClick = (tour) => {
                   </div>
 
                   <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
-                    <h2 className="text-2xl font-bold text-[#2E4D98]">India Indv Tours</h2>
+                    <h2 className="text-2xl font-bold text-[#2E4D98]">Indian Tours</h2>
                   </div>
 
                   <div className={`${showMoreIndian ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>

@@ -387,8 +387,6 @@ const LeadPopup = () => {
                   />
                 </div>
               </div>
-
-             
             </div>
 
             {/* Mobile-only mini carousel */}
@@ -422,140 +420,161 @@ const LeadPopup = () => {
               </div>
             </div>
 
-            {/* RIGHT FORM SECTION */}
-            <div className="w-full md:w-1/2 p-4 sm:p-6 md:p-6 flex flex-col justify-center">
-              {/* Error Message */}
-              {submitError && (
-                <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg flex items-center gap-2 text-sm">
-                  <AlertCircle className="w-4 h-4" />
-                  {submitError}
-                </div>
-              )}
-              
-              {/* Header */}
-              <div className="text-center mb-4 sm:mb-5">
-                <div className="inline-flex items-center gap-1.5 bg-orange-50 text-orange-600 px-3 py-1.5 rounded-full text-xs font-semibold mb-2 sm:mb-3">
-                  <div className="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse" />
-                  Exclusive Offer
-                </div>
-                
-                <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 mb-1 sm:mb-2">
-                  Join <span className="text-red-600">1M+</span>
-                </h2>
-                <h3 className="text-base sm:text-lg md:text-xl font-semibold text-gray-700 mb-2 sm:mb-3">
-                  Happy Travelers!
-                </h3>
-              </div>
+<div className="w-full md:w-1/2 p-4 sm:p-6 md:p-6 flex flex-col justify-center bg-gradient-to-r from-[#0F1F5C] via-[#1F3F93] to-[#0F1F5C] rounded-l-none rounded-r-xl">
+  {/* Error Message */}
+  {submitError && (
+    <div className="mb-4 p-3 bg-red-500/20 backdrop-blur-sm border border-red-400/30 text-white rounded-lg flex items-center gap-2 text-sm shadow-lg">
+      <div className="bg-red-500/20 p-1 rounded-full">
+        <AlertCircle className="w-4 h-4 text-white" />
+      </div>
+      {submitError}
+    </div>
+  )}
+  
+  {/* Header */}
+  <div className="text-center mb-4 sm:mb-5 text-white">
+    <div className="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-xs font-semibold mb-2 sm:mb-3 border border-white/30 shadow-lg">
+      <div className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-pulse" />
+      Exclusive Offer
+    </div>
+    
+    <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-1 sm:mb-2 text-white">
+      Join <span className="text-red-300">1M+</span>
+    </h2>
+    <h3 className="text-base sm:text-lg md:text-xl font-semibold mb-2 sm:mb-3 text-white">
+      Happy Travelers!
+    </h3>
+  </div>
 
-              <p className="text-gray-600 mb-4 sm:mb-5 text-center text-xs sm:text-sm leading-relaxed">
-                Get exclusive access to best travel deals, early bird discounts, 
-                and personalized travel inspiration.
-              </p>
+  <p className="text-white/90 mb-4 sm:mb-5 text-center text-xs sm:text-sm leading-relaxed">
+    Get exclusive access to best travel deals, early bird discounts, 
+    and personalized travel inspiration.
+  </p>
 
-              {/* Form */}
-              <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
-                <div>
-                  <input
-                    type="text"
-                    name="first_name"
-                    value={formData.first_name}
-                    onChange={handleInputChange}
-                    placeholder="First Name *"
-                    className={`w-full border ${formErrors.first_name ? 'border-red-500' : 'border-gray-300'} rounded-lg sm:rounded-xl p-3 sm:p-4 text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-300`}
-                  />
-                  {formErrors.first_name && (
-                    <p className="mt-1 text-xs text-red-600">{formErrors.first_name}</p>
-                  )}
-                </div>
-                
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      placeholder="Phone *"
-                      className={`w-full border ${formErrors.phone ? 'border-red-500' : 'border-gray-300'} rounded-lg sm:rounded-xl p-3 sm:p-4 text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-300`}
-                    />
-                    {formErrors.phone && (
-                      <p className="mt-1 text-xs text-red-600">{formErrors.phone}</p>
-                    )}
-                  </div>
-                  <div>
-                    <input
-                      type="text"
-                      name="city"
-                      value={formData.city}
-                      onChange={handleInputChange}
-                      placeholder="City *"
-                      className={`w-full border ${formErrors.city ? 'border-red-500' : 'border-gray-300'} rounded-lg sm:rounded-xl p-3 sm:p-4 text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-300`}
-                    />
-                    {formErrors.city && (
-                      <p className="mt-1 text-xs text-red-600">{formErrors.city}</p>
-                    )}
-                  </div>
-                </div>
-                
-                <div>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    placeholder="Email Address *"
-                    className={`w-full border ${formErrors.email ? 'border-red-500' : 'border-gray-300'} rounded-lg sm:rounded-xl p-3 sm:p-4 text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-300`}
-                  />
-                  {formErrors.email && (
-                    <p className="mt-1 text-xs text-red-600">{formErrors.email}</p>
-                  )}
-                </div>
-                
-                {/* Submit Button */}
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className={`bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white w-full py-3 sm:py-4 rounded-lg sm:rounded-xl mt-4 sm:mt-5 font-semibold text-sm sm:text-base shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
-                >
-                  {loading ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      Processing...
-                    </span>
-                  ) : (
-                    <>
-                      Unlock Exclusive Deals
-                      <div className="w-1.5 h-1.5 bg-white/80 rounded-full animate-pulse inline-block ml-2" />
-                    </>
-                  )}
-                </button>
-              </form>
-
-              {/* Trust Indicators */}
-              <div className="text-center mt-4 sm:mt-5">
-                <div className="flex flex-wrap justify-center items-center gap-3 sm:gap-4 text-xs text-gray-500 mb-2">
-                  <div className="flex items-center gap-1">
-                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
-                    <span className="text-xs">41+ Years</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
-                    <span className="text-xs">400+ Experts</span>
-                  </div>
-                </div>
-                <p className="text-xs text-gray-400">
-                  3000+ Destinations • 24/7 Support
-                </p>
-              </div>
-
-              {/* Security Badge */}
-              <div className="flex items-center justify-center gap-1.5 mt-3 text-gray-400">
-                <div className="w-3 h-3 bg-green-500 rounded-full flex items-center justify-center">
-                  <div className="w-1.5 h-1.5 bg-white rounded-full" />
-                </div>
-                <span className="text-xs">100% secure information</span>
-              </div>
+  {/* Form */}
+  <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+    <div>
+      <input
+        type="text"
+        name="first_name"
+        value={formData.first_name}
+        onChange={handleInputChange}
+        placeholder="First Name *"
+        className={`w-full ${formErrors.first_name ? 'border-red-500' : 'border-white'} border-2 rounded-lg sm:rounded-xl p-3 sm:p-4 text-sm focus:ring-2 focus:ring-white focus:border-transparent transition-all duration-300 bg-white/5 text-white placeholder-white/70 shadow-lg`}
+      />
+      {formErrors.first_name && (
+        <div className="mt-2 flex items-center gap-2 bg-red-500/20 backdrop-blur-sm text-white px-3 py-2 rounded-lg shadow-lg">
+          <div className="bg-red-500/20 p-1 rounded-full">
+            <AlertCircle className="w-3 h-3 text-white" />
+          </div>
+          <p className="text-xs">{formErrors.first_name}</p>
+        </div>
+      )}
+    </div>
+    
+    <div className="grid grid-cols-2 gap-3">
+      <div>
+        <input
+          type="tel"
+          name="phone"
+          value={formData.phone}
+          onChange={handleInputChange}
+          placeholder="Phone *"
+          className={`w-full ${formErrors.phone ? 'border-red-500' : 'border-white'} border-2 rounded-lg sm:rounded-xl p-3 sm:p-4 text-sm focus:ring-2 focus:ring-white focus:border-transparent transition-all duration-300 bg-white/5 text-white placeholder-white/70 shadow-lg`}
+        />
+        {formErrors.phone && (
+          <div className="mt-2 flex items-center gap-2 bg-red-500/20 backdrop-blur-sm text-white px-3 py-2 rounded-lg shadow-lg">
+            <div className="bg-red-500/20 p-1 rounded-full">
+              <AlertCircle className="w-3 h-3 text-white" />
             </div>
+            <p className="text-xs">{formErrors.phone}</p>
+          </div>
+        )}
+      </div>
+      <div>
+        <input
+          type="text"
+          name="city"
+          value={formData.city}
+          onChange={handleInputChange}
+          placeholder="City *"
+          className={`w-full ${formErrors.city ? 'border-red-500' : 'border-white'} border-2 rounded-lg sm:rounded-xl p-3 sm:p-4 text-sm focus:ring-2 focus:ring-white focus:border-transparent transition-all duration-300 bg-white/5 text-white placeholder-white/70 shadow-lg`}
+        />
+        {formErrors.city && (
+          <div className="mt-2 flex items-center gap-2 bg-red-500/20 backdrop-blur-sm text-white px-3 py-2 rounded-lg shadow-lg">
+            <div className="bg-red-500/20 p-1 rounded-full">
+              <AlertCircle className="w-3 h-3 text-white" />
+            </div>
+            <p className="text-xs">{formErrors.city}</p>
+          </div>
+        )}
+      </div>
+    </div>
+    
+    <div>
+      <input
+        type="email"
+        name="email"
+        value={formData.email}
+        onChange={handleInputChange}
+        placeholder="Email Address *"
+        className={`w-full ${formErrors.email ? 'border-red-500' : 'border-white'} border-2 rounded-lg sm:rounded-xl p-3 sm:p-4 text-sm focus:ring-2 focus:ring-white focus:border-transparent transition-all duration-300 bg-white/5 text-white placeholder-white/70 shadow-lg`}
+      />
+      {formErrors.email && (
+        <div className="mt-2 flex items-center gap-2 bg-red-500/20 backdrop-blur-sm text-white px-3 py-2 rounded-lg shadow-lg">
+          <div className="bg-red-500/20 p-1 rounded-full">
+            <AlertCircle className="w-3 h-3 text-white" />
+          </div>
+          <p className="text-xs">{formErrors.email}</p>
+        </div>
+      )}
+    </div>
+    
+    {/* Submit Button */}
+    <button
+      type="submit"
+      disabled={loading}
+      className={`bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white w-full py-3 sm:py-4 rounded-lg sm:rounded-xl mt-4 sm:mt-5 font-semibold text-sm sm:text-base shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+    >
+      {loading ? (
+        <span className="flex items-center justify-center gap-2">
+          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+          Processing...
+        </span>
+      ) : (
+        <>
+          Unlock Exclusive Deals
+          <div className="w-1.5 h-1.5 bg-white/80 rounded-full animate-pulse inline-block ml-2" />
+        </>
+      )}
+    </button>
+  </form>
+
+  {/* Trust Indicators */}
+  <div className="text-center mt-4 sm:mt-5 text-white">
+    <div className="flex flex-wrap justify-center items-center gap-3 sm:gap-4 text-xs mb-2 text-white/90">
+      <div className="flex items-center gap-1">
+        <div className="w-1.5 h-1.5 bg-green-400 rounded-full" />
+        <span className="text-xs">41+ Years</span>
+      </div>
+      <div className="flex items-center gap-1">
+        <div className="w-1.5 h-1.5 bg-blue-400 rounded-full" />
+        <span className="text-xs">400+ Experts</span>
+      </div>
+    </div>
+    <p className="text-xs text-white/70">
+      3000+ Destinations • 24/7 Support
+    </p>
+  </div>
+
+  {/* Security Badge */}
+  <div className="flex items-center justify-center gap-1.5 mt-3 text-white/70">
+    <div className="w-3 h-3 bg-green-500 rounded-full flex items-center justify-center">
+      <div className="w-1.5 h-1.5 bg-white rounded-full" />
+    </div>
+    <span className="text-xs">100% secure information</span>
+  </div>
+</div>
           </div>
         )}
       </div>

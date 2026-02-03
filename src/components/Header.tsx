@@ -404,7 +404,7 @@ const Header = () => {
 
     return (
       <div className="max-h-[70vh] overflow-y-auto p-1">
-        <table className="min-w-full border border-gray-400">
+        <table className="min-w-full border border-black">
           <tbody>
             {internationalCountries.reduce((rows: any[], country, index) => {
               if (index % 3 === 0) rows.push([]);
@@ -431,12 +431,12 @@ const Header = () => {
                   return (
                     <td 
                       key={colIndex} 
-                      className="border border-gray-400 p-0"
+                      className="border border-black p-0"
                     >
                       <div
                         className={`block w-full p-2 text-sm text-center transition-all duration-200 min-h-[40px] flex items-center justify-center ${
                           hasActiveTours 
-                            ? "bg-blue-700 text-white font-bold hover:bg-blue-800 cursor-pointer"
+                            ? "bg-[#2E3a8a] text-white font-bold hover:bg-[#1e2a6a] cursor-pointer"
                             : "text-gray-700 hover:bg-gray-100 cursor-pointer"
                         }`}
                         title={country}
@@ -466,7 +466,7 @@ const Header = () => {
                 {row.length < 3 && [...Array(3 - row.length)].map((_, colIndex) => (
                   <td 
                     key={colIndex} 
-                    className="border border-gray-400 p-0 bg-gray-50"
+                    className="border border-black p-0 bg-gray-50"
                   >
                     <div className="block w-full p-2 h-full min-h-[40px]"></div>
                   </td>
@@ -573,7 +573,7 @@ const Header = () => {
           </button>
           <h3 className="font-bold text-blue-900 text-sm">{countryName}</h3>
         </div>
-        <table className="min-w-full border border-gray-400">
+        <table className="min-w-full border border-black">
           <tbody>
             {activeDestinations.reduce((rows: any[], dest, index) => {
               if (index % 3 === 0) rows.push([]);
@@ -596,11 +596,11 @@ const Header = () => {
                   return (
                     <td 
                       key={colIndex} 
-                      className="border border-gray-400 p-0"
+                      className="border border-black p-0"
                     >
                       <a
                         href={href}
-                        className="block w-full p-2 text-sm text-center bg-blue-700 text-white font-bold hover:bg-blue-800 transition-all duration-200 min-h-[40px] flex items-center justify-center"
+                        className="block w-full p-2 text-sm text-center bg-[#2E3a8a] text-white font-bold hover:bg-[#1e2a6a] transition-all duration-200 min-h-[40px] flex items-center justify-center"
                         title={dest.name}
                       >
                         {dest.name}
@@ -611,7 +611,7 @@ const Header = () => {
                 {row.length < 3 && [...Array(3 - row.length)].map((_, colIndex) => (
                   <td 
                     key={colIndex} 
-                    className="border border-gray-400 p-0 bg-gray-50"
+                    className="border border-black p-0 bg-gray-50"
                   >
                     <div className="block w-full p-2 h-full min-h-[40px]"></div>
                   </td>
@@ -981,7 +981,7 @@ const Header = () => {
                                 ) : (
                                   // INDIAN TOURS TABLE
                                   <div className="max-h-[70vh] overflow-y-auto p-1">
-                                    <table className="min-w-full border border-gray-400">
+                                    <table className="min-w-full border border-black">
                                       <tbody>
                                         {sub.subDropdown.reduce((rows: any[], dest, index) => {
                                           if (index % 3 === 0) rows.push([]);
@@ -1015,13 +1015,13 @@ const Header = () => {
                                               return (
                                                 <td 
                                                   key={colIndex} 
-                                                  className="border border-gray-400 p-0"
+                                                  className="border border-black p-0"
                                                 >
                                                   <a
                                                     href={href}
                                                     className={`block w-full p-2 text-sm text-center transition-all duration-200 min-h-[40px] flex items-center justify-center ${
                                                       hasTours 
-                                                        ? "bg-blue-700 text-white font-bold hover:bg-blue-800"
+                                                        ? "bg-[#2E3a8a] text-white font-bold hover:bg-[#1e2a6a]"
                                                         : "text-gray-700 hover:bg-gray-100"
                                                     }`}
                                                     title={dest}
@@ -1036,7 +1036,7 @@ const Header = () => {
                                             {row.length < 3 && [...Array(3 - row.length)].map((_, colIndex) => (
                                               <td 
                                                 key={colIndex} 
-                                                className="border border-gray-400 p-0 bg-gray-50"
+                                                className="border border-black p-0 bg-gray-50"
                                               >
                                                 <div className="block w-full p-2 h-full min-h-[40px]"></div>
                                               </td>

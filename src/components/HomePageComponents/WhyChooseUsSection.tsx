@@ -289,10 +289,10 @@ const WhyChooseUsSection = () => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 mt-10">
         {/* Main Container with Gradient Background */}
         <div 
-          className="rounded-2xl shadow-2xl p-6 mb-8 relative overflow-hidden"
+          className="rounded-2xl shadow-2xl p-6 mb-10 relative overflow-hidden"
           style={{
             background: 'radial-gradient(circle at center, #3B82F6 0%, #1E40AF 30%, #0F1F5C 70%, #0A1128 100%)',
           }}
@@ -357,7 +357,7 @@ const WhyChooseUsSection = () => {
 
         {/* Bottom CTA */}
         <div className="text-center">
-          <button className="inline-flex mb-4 items-center gap-3 bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white font-semibold px-8 py-3 rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105 border border-white/20 text-lg">
+          <button className="inline-flex mb-10 items-center gap-3 bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white font-semibold px-8 py-3 rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105 border border-white/20 text-lg">
             <Handshake className="h-5 w-5" />
             Start Your Journey With Us
             <Heart className="h-5 w-5" />

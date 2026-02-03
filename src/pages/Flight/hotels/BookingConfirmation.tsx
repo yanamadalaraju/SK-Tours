@@ -75,6 +75,36 @@ const BookingConfirmation: React.FC<BookingConfirmationProps> = ({
       console.error("Email error:", error);
     }
   };
+const getPassengerPrice = (passenger: any) => {
+  // Debug: Check what's in passenger object
+  console.log("Passenger object:", passenger);
+  console.log("Passenger ticket_price:", passenger.ticket_price);
+  
+  // Check if ticket_price is available directly
+  if (passenger.ticket_price) {
+    return passenger.ticket_price;
+  }
+  
+  // If not, check bookingData travellers array
+  if (bookingData?.travellers && Array.isArray(bookingData.travellers)) {
+    // Find this passenger in travellers array by matching some identifier
+    const traveller = bookingData.travellers.find((t: any) => 
+      t.first_name === passenger.firstName && 
+      t.last_name === passenger.lastName
+    );
+    
+    if (traveller?.ticket_price) {
+      return traveller.ticket_price;
+    }
+  }
+  
+  // Fallback based on age
+  if (passenger.age >= 12) return 9000; // Adult
+  if (passenger.age >= 2 && passenger.age < 12) return 9000; // Child
+  if (passenger.age < 2) return 5000; // Infant
+  
+  return 0;
+};
 
   return (
     <div style={{ 
@@ -513,9 +543,9 @@ const BookingConfirmation: React.FC<BookingConfirmationProps> = ({
                         {passenger.type === 'adult' ? 'Adult' : passenger.type === 'child' ? 'Child' : 'Infant'}
                       </span>
                     </td>
-                    <td style={{ padding: '16px 12px', color: '#374151', fontWeight: '600' }}>
-                      ₹{passenger.ticketPrice?.toLocaleString('en-IN') || '0'}
-                    </td>
+                <td style={{ padding: '16px 12px', color: '#374151', fontWeight: '600' }}>
+  ₹{getPassengerPrice(passenger).toLocaleString('en-IN')}
+</td>
                     <td style={{ padding: '16px 12px', color: '#374151', fontFamily: 'monospace' }}>
                       {passenger.passportNo || 'N/A'}
                     </td>

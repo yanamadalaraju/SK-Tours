@@ -29,7 +29,7 @@ const FlightSearchRoundTrip: React.FC<FlightSearchRoundTripProps> = ({
   const [selectedSector, setSelectedSector] = useState<string>('');
   const [selectedOnwardDate, setSelectedOnwardDate] = useState<string>('');
   const [selectedReturnDate, setSelectedReturnDate] = useState<string>('');
-  const [adults, setAdults] = useState<number>(1);
+  const [adults, setAdults] = useState<number>(0);
   const [children, setChildren] = useState<number>(0);
   const [infants, setInfants] = useState<number>(0);
   
@@ -336,31 +336,32 @@ const FlightSearchRoundTrip: React.FC<FlightSearchRoundTripProps> = ({
           </div>
         </div>
         
-        <div className="ffc-price-section">
-          <div className="ffc-price-details">
-            <div className="ffc-total-price">
-              <strong>₹{flight.total_payable_price}</strong>
-              <small>Total for {adults + children + infants} passengers</small>
-            </div>
-            <div className="ffc-per-person">
-              <div>Adult: ₹{flight.per_adult_child_price}</div>
-              {children > 0 && <div>Child: ₹{flight.per_adult_child_price}</div>}
-              {infants > 0 && <div>Infant: ₹{flight.per_infant_price}</div>}
-            </div>
-          </div>
-          
-          <div className="ffc-availability">
-            {flight.available_seats} seats available
-          </div>
-          
-          <button 
-            className="ffc-book-btn"
-            onClick={() => handleBookFlight(flight)}
-            disabled={loading}
-          >
-            {loading ? 'Preparing...' : 'Book Now'}
-          </button>
-        </div>
+   <div className="ffc-price-section">
+  <div className="ffc-price-details">
+    <div className="ffc-total-price">
+      <strong>₹{flight.total_payable_price}</strong>
+      <small>Total for {adults + children + infants} passengers</small>
+    </div>
+    {/* ADD THIS SECTION HERE: */}
+    <div className="ffc-per-person">
+      {adults > 0 && <div>Adult: ₹{flight.per_adult_child_price || 0}</div>}
+      {children > 0 && <div>Child: ₹{flight.per_adult_child_price || 0}</div>}
+      {infants > 0 && <div>Infant: ₹{flight.per_infant_price || 0}</div>}
+    </div>
+  </div>
+  
+  <div className="ffc-availability">
+    {flight.available_seats} seats available
+  </div>
+  
+  <button 
+    className="ffc-book-btn"
+    onClick={() => handleBookFlight(flight)}
+    disabled={loading}
+  >
+    {loading ? 'Preparing...' : 'Book Now'}
+  </button>
+</div>
       </div>
     </div>
   );

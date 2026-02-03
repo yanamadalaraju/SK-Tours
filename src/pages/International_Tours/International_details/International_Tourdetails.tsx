@@ -472,14 +472,12 @@ const [loadingDestinations, setLoadingDestinations] = useState(false);
       };
     };
 
-    // Process optional tours
-// Process optional tours
 const processOptionalTours = (optionalToursArray) => {
   if (optionalToursArray && optionalToursArray.length > 0) {
     return optionalToursArray.map(tour => ({
       tourName: tour.tour_name || '',
-      adultPrice: tour.adult_price || '', // Keep the original text with price
-      childPrice: tour.child_price || ''  // Keep the original text with price
+      adultPrice: tour.adult_price || '', 
+      childPrice: tour.child_price || ''  
     }));
   }
   return [];
@@ -1020,165 +1018,222 @@ useEffect(() => {
                            />
                          </div>
          
-                         {/* Indian Tours */}
-                         {/* Indian Tours */}
-                         <div className="mb-8">
-                           <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
-                             <h2 className="text-2xl font-bold text-[#2E4D98]">Indian Tours</h2>
-                           </div>
+             <div className="mb-8">
+               <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
+                 <h2 className="text-2xl font-bold text-[#2E4D98]">Indian Tours</h2>
+               </div>
+             
+               <div className={`${showMoreIndian ? "max-h-80 overflow-y-auto pr-2" : ""} space-y-2.5`}>
+                 {[
+                   'Andaman', 'Goa', 'Himachal', 'Kashmir', 'Kerala', 'Rajasthan',
+                   ...(showMoreIndian
+                     ? [
+                       'Andhra Pradesh',
+                       'Bihar',
+                       'Chhattisgarh',
+                       'Dadra & Nagar Haveli',
+                       'Daman & Diu',
+                       'Delhi',
+                       'Gujarat',
+                       'Haryana',
+                       'Jharkhand',
+                       'Karnataka',
+                       'Ladakh',
+                       'Lakshadweep',
+                       'Madhya Pradesh',
+                       'Maharashtra',
+                       'North East',
+                       'Odisha',
+                       'Puducherry',
+                       'Punjab & Haryana',
+                       'Seven Sisters',
+                       'Tamil Nadu',
+                       'Uttar Pradesh',
+                       'Uttarakhand',
+                       'West Bengal',
+                     ]
+                     : []),
+                 ]
+                   .sort((a, b) => a.localeCompare(b))
+                   .map((place) => {
+                     return (
+                       <div
+                         key={place}
+                         className="flex items-center gap-3 cursor-pointer group px-1 py-0.5 rounded-md transition-colors hover:bg-blue-50"
+                         onClick={() => {
+                           clearAllFilters();
+                           
+                           let basePath = '/tours-packages'; 
+                           
+                           if (tourType === 'Group') {
+                             basePath = '/tours_groups';
+                           } else if (tourType === 'Ladies Special') {
+                             basePath = '/ladies_tours';
+                           } else if (tourType === 'Senior Citizen') {
+                             basePath = '/senior_tours';
+                           } else if (tourType === 'Student') {
+                             basePath = '/students_tours';
+                           } else if (tourType === 'Honeymoon') {
+                             basePath = '/honeymoon_tours';
+                           }
+                           
+                           navigate(`${basePath}/${encodeURIComponent(place)}`);
+                         }}
+                       >
+                         <Checkbox
+                           checked={selectedState === place}
+                           onCheckedChange={() => {
+                             setSelectedState(place);
+                             clearAllFilters();
+                             
+                             let basePath = '/tours-packages'; 
+                             
+                             if (tourType === 'Group') {
+                               basePath = '/tours_groups';
+                             } else if (tourType === 'Ladies Special') {
+                               basePath = '/ladies_tours';
+                             } else if (tourType === 'Senior Citizen') {
+                               basePath = '/senior_tours';
+                             } else if (tourType === 'Student') {
+                               basePath = '/students_tours';
+                             } else if (tourType === 'Honeymoon') {
+                               basePath = '/honeymoon_tours';
+                             }
+                             
+                             // Navigate to the correct path with place as parameter
+                             navigate(`${basePath}/${encodeURIComponent(place)}`);
+                           }}
+                           className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
+                         />
+             
+                         <span
+                           className={`text-gray-800 transition-colors group-hover:text-[#2E4D98] ${selectedState === place ? 'font-semibold text-[#2E4D98]' : ''
+                             }`}
+                         >
+                           {place}
+                         </span>
+                       </div>
+                     );
+                   })}
+               </div>
+             
+               <button
+                 onClick={() => setShowMoreIndian(!showMoreIndian)}
+                 className="mt-4 text-[#2E4D98] text-sm font-medium hover:underline flex items-center gap-1"
+               >
+                 {showMoreIndian ? 'Show Less' : 'Show More States'}
+               </button>
+             </div>
          
-                           <div className={`${showMoreIndian ? "max-h-80 overflow-y-auto pr-2" : ""} space-y-2.5`}>
-                             {[
-                               'Andaman', 'Goa', 'Himachal', 'Kashmir', 'Kerala', 'Rajasthan',
-                               ...(showMoreIndian
-                                 ? [
-                                   'Andhra Pradesh',
-                                   'Bihar',
-                                   'Chhattisgarh',
-                                   'Dadra & Nagar Haveli',
-                                   'Daman & Diu',
-                                   'Delhi',
-                                   'Gujarat',
-                                   'Haryana',
-                                   'Jharkhand',
-                                   'Karnataka',
-                                   'Ladakh',
-                                   'Lakshadweep',
-                                   'Madhya Pradesh',
-                                   'Maharashtra',
-                                   'North East',
-                                   'Odisha',
-                                   'Puducherry',
-                                   'Punjab & Haryana',
-                                   'Seven Sisters',
-                                   'Tamil Nadu',
-                                   'Uttar Pradesh',
-                                   'Uttarakhand',
-                                   'West Bengal',
-                                 ]
-                                 : []),
-                             ]
-                               .sort((a, b) => a.localeCompare(b)) // Alphabetical order
-                               .map((place) => {
-                                 const isCurrentState = selectedState === place; // assuming you have selectedState state
-         
-                                 return (
-                                   <div
-                                     key={place}
-                                     className={`flex items-center gap-3 cursor-pointer group px-1 py-0.5 rounded-md transition-colors ${isCurrentState ? 'bg-blue-50' : ''
-                                       }`}
-                                     onClick={() => {
-                                       clearAllFilters();
-                                       navigate(`/tours-packages/${encodeURIComponent(place)}`);
-                                     }}
-                                   >
-                                     <Checkbox
-                                       checked={isCurrentState}
-                                       onCheckedChange={(checked) => {
-                                         if (checked) {
-                                           clearAllFilters();
-                                           navigate(`/tours-packages/${encodeURIComponent(place)}`);
-                                         }
-                                       }}
-                                       className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98] pointer-events-none"
-                                     />
-         
-                                     <span
-                                       className={`text-gray-800 transition-colors group-hover:text-[#2E4D98] ${isCurrentState ? 'font-semibold text-[#2E4D98]' : ''
-                                         }`}
-                                     >
-                                       {place}
-                                     </span>
-                                   </div>
-                                 );
-                               })}
-                           </div>
-         
-                           <button
-                             onClick={() => setShowMoreIndian(!showMoreIndian)}
-                             className="mt-4 text-[#2E4D98] text-sm font-medium hover:underline flex items-center gap-1"
-                           >
-                             {showMoreIndian ? 'Show Less' : 'Show More States'}
-                           </button>
-                         </div>
-         
-       <div>
-                            <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
-                              <h2 className="text-2xl font-bold text-[#2E4D98]">International Tours</h2>
-                            </div>
-          
-                            {loadingDestinations ? (
-                              <div className="text-center py-4">
-                                <p className="text-gray-500">Loading international destinations...</p>
-                              </div>
-                            ) : internationalDestinations.length === 0 ? (
-                              <div className="text-center py-4">
-                                <p className="text-gray-500">No international destinations found</p>
-                              </div>
-                            ) : (
-                              <>
-                                <div className={`${showMoreWorld ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
-                                  {internationalDestinations
-                                    .slice(0, showMoreWorld ? internationalDestinations.length : 6)
-                                    .map((place) => {
-                                      const isSelected = selectedWorldTours.includes(place);
-          
-                                      return (
-                                        <div
-                                          key={place}
-                                          className="flex items-center gap-3 cursor-pointer"
-                                          onClick={() => {
-                                            if (!selectedWorldTours.includes(place)) {
-                                              setSelectedWorldTours([...selectedWorldTours, place]);
-                                            }
-                                            const encodedDestination = encodeURIComponent(place);
-                                            navigate(`/intl-honeymoon_tours/${encodedDestination}`);
-                                          }}
-                                        >
-                                          <Checkbox
-                                            checked={isSelected}
-                                            onCheckedChange={(checked) => {
-                                              if (checked) {
-                                                setSelectedWorldTours([...selectedWorldTours, place]);
-                                                const encodedDestination = encodeURIComponent(place);
-                                                navigate(`/intl-honeymoon_tours/${encodedDestination}`);
-                                              } else {
-                                                setSelectedWorldTours(selectedWorldTours.filter(t => t !== place));
-                                              }
-                                            }}
-                                            className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                            }}
-                                          />
-                                          <span
-                                            className={`${isSelected ? 'font-bold text-[#2E4D98]' : 'text-gray-700 hover:text-[#2E4D98]'} cursor-pointer flex-1`}
-                                          >
-                                            {place}
-                                          </span>
-                                        </div>
-                                      );
-                                    })}
-                                </div>
-          
-                                {internationalDestinations.length > 6 && (
-                                  <button
-                                    onClick={() => setShowMoreWorld(!showMoreWorld)}
-                                    className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
-                                  >
-                                    {showMoreWorld ? "Show Less" : "Show More"}
-                                  </button>
-                                )}
-                              </>
-                            )}
-                          </div>
+   <div>
+  <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
+    <h2 className="text-2xl font-bold text-[#2E4D98]">International Tours</h2>
+  </div>
+
+  {loadingDestinations ? (
+    <div className="text-center py-4">
+      <p className="text-gray-500">Loading international destinations...</p>
+    </div>
+  ) : internationalDestinations.length === 0 ? (
+    <div className="text-center py-4">
+      <p className="text-gray-500">No international destinations found</p>
+    </div>
+  ) : (
+    <>
+      <div className={`${showMoreWorld ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
+        {internationalDestinations
+          .slice(0, showMoreWorld ? internationalDestinations.length : 6)
+          .map((place) => {
+            const isSelected = selectedWorldTours.includes(place);
+
+            return (
+              <div
+                key={place}
+                className="flex items-center gap-3 cursor-pointer"
+                onClick={() => {
+                  if (!selectedWorldTours.includes(place)) {
+                    setSelectedWorldTours([...selectedWorldTours, place]);
+                  }
+                  
+                  let basePath = '/intl-tours-packages'; // default for Individual tours
+                  
+                  const currentTourType = tourType as string; // Type assertion to fix TypeScript error
+                  
+                  if (currentTourType === 'Group') {
+                    basePath = '/intl-tours_groups';
+                  } else if (currentTourType === 'Ladies Special') {
+                    basePath = '/intl-ladies_tours';
+                  } else if (currentTourType === 'Senior Citizen') {
+                    basePath = '/intl-senior_tours';
+                  } else if (currentTourType === 'Student') {
+                    basePath = '/intl-students_tours';
+                  } else if (currentTourType === 'Honeymoon') {
+                    basePath = '/intl-honeymoon_tours';
+                  }
+                  
+                  const encodedDestination = encodeURIComponent(place);
+                  navigate(`${basePath}/${encodedDestination}`);
+                }}
+              >
+                <Checkbox
+                  checked={isSelected}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setSelectedWorldTours([...selectedWorldTours, place]);
+                      
+                      let basePath = '/intl-tours-packages'; // default for Individual tours
+                      
+                      const currentTourType = tourType as string; // Type assertion to fix TypeScript error
+                      
+                      if (currentTourType === 'Group') {
+                        basePath = '/intl-tours_groups';
+                      } else if (currentTourType === 'Ladies Special') {
+                        basePath = '/intl-ladies_tours';
+                      } else if (currentTourType === 'Senior Citizen') {
+                        basePath = '/intl-senior_tours';
+                      } else if (currentTourType === 'Student') {
+                        basePath = '/intl-students_tours';
+                      } else if (currentTourType === 'Honeymoon') {
+                        basePath = '/intl-honeymoon_tours';
+                      }
+                      
+                      const encodedDestination = encodeURIComponent(place);
+                      navigate(`${basePath}/${encodedDestination}`);
+                    } else {
+                      setSelectedWorldTours(selectedWorldTours.filter(t => t !== place));
+                    }
+                  }}
+                  className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                />
+                <span
+                  className={`${isSelected ? 'font-bold text-[#2E4D98]' : 'text-gray-700 hover:text-[#2E4D98]'} cursor-pointer flex-1`}
+                >
+                  {place}
+                </span>
+              </div>
+            );
+          })}
+      </div>
+
+      {internationalDestinations.length > 6 && (
+        <button
+          onClick={() => setShowMoreWorld(!showMoreWorld)}
+          className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
+        >
+          {showMoreWorld ? "Show Less" : "Show More"}
+        </button>
+      )}
+    </>
+  )}
+</div>
                        </div>
                      </aside>
          
 
-            {/* Main Content */}
             <main className="flex-1">
-              {/* Hero Section with Image Carousel */}
               <div className="relative rounded-2xl overflow-hidden mb-1">
                 <div className="relative h-96 lg:h-[500px] overflow-hidden">
                   <img
