@@ -894,7 +894,7 @@ const Header = () => {
                             {/* STATES / COUNTRIES SUB-DROPDOWN */}
                             {sub.subDropdown && showThisStates && (
                               <div
-                                className={`absolute left-full ${topOffset} ml-3 bg-white text-gray-800 rounded-lg shadow-2xl w-[450px] min-w-[450px] py-2 border border-gray-300 opacity-100 visible transition-all duration-300 ease-in-out z-[60] max-h-[70vh] overflow-hidden`}
+                                className={`absolute left-full ${topOffset} ml-3 bg-white text-gray-800 rounded-lg shadow-2xl w-[450px] min-w-[450px] py-0 border border-gray-300 opacity-100 visible transition-all duration-300 ease-in-out z-[60] max-h-[70vh] overflow-hidden`}
                                 onMouseEnter={enterStatesHandler ?? undefined}
                                 onMouseLeave={leaveStatesHandler ?? undefined}
                               >

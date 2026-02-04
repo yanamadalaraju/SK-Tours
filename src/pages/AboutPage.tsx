@@ -67,7 +67,7 @@ const AboutPage = () => {
               <div
                 className="rounded-2xl shadow-lg px-7 py-8 border border-gray-100 relative overflow-hidden"
                 style={{
-                  background: 'radial-gradient(circle at center, #0F1F5C  70%, #0F1F5C  70%, #0F1F5C 70%, #0F1F5C  70%)',
+                  background: 'linear-gradient(135deg, #0F1F5C 0%, #1F3F93 50%, #0F1F5C 100%)',
                 }}
               >
                 <div className="space-y-6">
@@ -120,7 +120,7 @@ const AboutPage = () => {
                 <div
                   className="rounded-2xl shadow-lg px-7 py-8 mb-8 border border-gray-100 relative overflow-hidden"
                   style={{
-                    background: 'radial-gradient(circle at center, #0F1F5C  70%, #0F1F5C  70%, #0F1F5C 70%, #0F1F5C  70%)',
+                    background: 'linear-gradient(135deg, #0F1F5C 0%, #1F3F93 50%, #0F1F5C 100%)',
                   }}
                 >
                   <p className="text-lg md:text-xl text-white leading-relaxed mb-2 text-justify">
@@ -170,7 +170,7 @@ const AboutPage = () => {
                 <div
                   className="rounded-2xl shadow-lg px-7 py-8 mb-7 border border-gray-100 relative overflow-hidden"
                   style={{
-                    background: 'radial-gradient(circle at center, #0F1F5C  70%, #0F1F5C  70%, #0F1F5C 70%, #0F1F5C  70%)',
+                    background: 'linear-gradient(135deg, #0F1F5C 0%, #1F3F93 50%, #0F1F5C 100%)',
                   }}
                 >
                   <div className="space-y-8 text-white">
@@ -256,7 +256,7 @@ const AboutPage = () => {
                 <div
                   className="rounded-2xl shadow-lg px-7 py-10 border border-blue-400"
                   style={{
-                    background: 'radial-gradient(circle at center, #0F1F5C  70%, #0F1F5C  70%, #0F1F5C 70%, #0F1F5C  70%)',
+                    background: 'linear-gradient(135deg, #0F1F5C 0%, #1F3F93 50%, #0F1F5C 100%)',
                   }}
                 >
                   <div className="space-y-10 text-white">
@@ -354,7 +354,7 @@ const AboutPage = () => {
       <div
         className="rounded-2xl shadow-lg px-8 py-10 border border-blue-400"
         style={{
-          background: 'radial-gradient(circle at center, #0F1F5C  70%, #0F1F5C  70%, #0F1F5C 70%, #0F1F5C  70%)',
+          background: 'linear-gradient(135deg, #0F1F5C 0%, #1F3F93 50%, #0F1F5C 100%)',
         }}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 text-white">
@@ -421,7 +421,7 @@ const AboutPage = () => {
                 <div
                   className="rounded-2xl shadow-lg px-7 py-10 border border-blue-400"
                   style={{
-                    background: 'radial-gradient(circle at center, #0F1F5C  70%, #0F1F5C  70%, #0F1F5C 70%, #0F1F5C  70%)',
+                    background: 'linear-gradient(135deg, #0F1F5C 0%, #1F3F93 50%, #0F1F5C 100%)',
                   }}
                 >
                   <div className="space-y-8 text-white">

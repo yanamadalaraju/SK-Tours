@@ -615,50 +615,53 @@ const TourPdfDocument: React.FC<TourPdfDocumentProps> = ({
     );
   };
 
-  // Function to render airlines table (ONLY for group tours)
-  const renderGroupAirlinesTable = () => {
-    if (!isGroupTour || !tour?.airlines?.tableData || tour.airlines.tableData.length === 0) {
-      return null;
-    }
-
-    return (
-      <View style={styles.tableContainer}>
-        {/* Header */}
-        <View style={styles.tableHeader}>
-          <Text style={[styles.tableHeaderCell, { width: '12%' }]}>Airlines</Text>
-          <Text style={[styles.tableHeaderCell, { width: '12%' }]}>Flight No</Text>
-          <Text style={[styles.tableHeaderCell, { width: '15%' }]}>From</Text>
-          <Text style={[styles.tableHeaderCell, { width: '10%' }]}>Date</Text>
-          <Text style={[styles.tableHeaderCell, { width: '8%' }]}>Time</Text>
-          <Text style={[styles.tableHeaderCell, { width: '15%' }]}>To</Text>
-          <Text style={[styles.tableHeaderCell, { width: '10%' }]}>Date</Text>
-          <Text style={[styles.tableHeaderCell, { width: '8%' }]}>Time</Text>
-          <Text style={[styles.tableHeaderCell, { width: '10%' }]}>Via</Text>
-        </View>
-
-        {/* Rows */}
-        {tour.airlines.tableData.map((flight, index) => (
-          <View 
-            key={index} 
-            style={[
-              styles.tableRow,
-              { backgroundColor: index % 2 === 0 ? '#FFEBEE' : '#FFEBEE80' }
-            ]}
-          >
-            <Text style={[styles.tableCell, { width: '12%' }]}>{flight.airline || '-'}</Text>
-            <Text style={[styles.tableCell, { width: '12%' }]}>{flight.flightNo || '-'}</Text>
-            <Text style={[styles.tableCell, { width: '15%' }]}>{flight.from || '-'}</Text>
-            <Text style={[styles.tableCell, { width: '10%' }]}>{flight.depDate || '-'}</Text>
-            <Text style={[styles.tableCell, { width: '8%' }]}>{flight.depTime || '-'}</Text>
-            <Text style={[styles.tableCell, { width: '15%' }]}>{flight.to || '-'}</Text>
-            <Text style={[styles.tableCell, { width: '10%' }]}>{flight.arrDate || '-'}</Text>
-            <Text style={[styles.tableCell, { width: '8%' }]}>{flight.arrTime || '-'}</Text>
-            <Text style={[styles.tableCell, { width: '10%' }]}>{flight.via || '-'}</Text>
-          </View>
-        ))}
+const renderGroupAirlinesTable = () => {
+  if (!isGroupTour || !tour?.airlines?.tableData || tour.airlines.tableData.length === 0) {
+    return ( // <-- NEW: Shows message instead of returning null
+      <View style={styles.highlight}>
+        <Text style={styles.text}>No flight information available</Text>
       </View>
     );
-  };
+  }
+
+  return (
+    <View style={styles.tableContainer}>
+      {/* Header */}
+      <View style={styles.tableHeader}>
+        <Text style={[styles.tableHeaderCell, { width: '12%' }]}>Airlines</Text>
+        <Text style={[styles.tableHeaderCell, { width: '12%' }]}>Flight No</Text>
+        <Text style={[styles.tableHeaderCell, { width: '15%' }]}>From</Text>
+        <Text style={[styles.tableHeaderCell, { width: '10%' }]}>Date</Text>
+        <Text style={[styles.tableHeaderCell, { width: '8%' }]}>Time</Text>
+        <Text style={[styles.tableHeaderCell, { width: '15%' }]}>To</Text>
+        <Text style={[styles.tableHeaderCell, { width: '10%' }]}>Date</Text>
+        <Text style={[styles.tableHeaderCell, { width: '8%' }]}>Time</Text>
+        <Text style={[styles.tableHeaderCell, { width: '10%' }]}>Via</Text>
+      </View>
+
+      {/* Rows */}
+      {tour.airlines.tableData.map((flight, index) => (
+        <View 
+          key={index} 
+          style={[
+            styles.tableRow,
+            { backgroundColor: index % 2 === 0 ? '#FFEBEE' : '#FFEBEE80' }
+          ]}
+        >
+          <Text style={[styles.tableCell, { width: '12%' }]}>{flight.airline || '-'}</Text>
+          <Text style={[styles.tableCell, { width: '12%' }]}>{flight.flightNo || '-'}</Text>
+          <Text style={[styles.tableCell, { width: '15%' }]}>{flight.from || '-'}</Text>
+          <Text style={[styles.tableCell, { width: '10%' }]}>{flight.depDate || '-'}</Text>
+          <Text style={[styles.tableCell, { width: '8%' }]}>{flight.depTime || '-'}</Text>
+          <Text style={[styles.tableCell, { width: '15%' }]}>{flight.to || '-'}</Text>
+          <Text style={[styles.tableCell, { width: '10%' }]}>{flight.arrDate || '-'}</Text>
+          <Text style={[styles.tableCell, { width: '8%' }]}>{flight.arrTime || '-'}</Text>
+          <Text style={[styles.tableCell, { width: '10%' }]}>{flight.via || '-'}</Text>
+        </View>
+      ))}
+    </View>
+  );
+};
 
   // Function to render individual tour flight descriptions
   const renderIndividualFlightDescriptions = () => {
@@ -1066,54 +1069,74 @@ const TourPdfDocument: React.FC<TourPdfDocumentProps> = ({
         )} fixed />
       </Page>
 
-      {/* Page 5: Flight & Hotels */}
-      <Page size="A4" style={styles.page}>
-        {/* FLIGHT SECTION */}
-        {isGroupTour ? (
-          // GROUP TOUR: Show flight table
-          <View style={styles.section}>
-            <Text style={styles.subHeader}>Flight Details</Text>
-            {renderGroupAirlinesTable()}
-            
-            {tour?.airlines?.remarks && tour.airlines.remarks.length > 0 && (
-              <View style={styles.section}>
-                <Text style={styles.title}>Flight Remarks:</Text>
-                {tour.airlines.remarks.map((remark, index) => (
-                  <View key={index} style={styles.listItem}>
-                    <Text style={styles.bullet}>•</Text>
-                    <Text style={styles.listText}>{remark}</Text>
-                  </View>
-                ))}
+  {/* Page 5: Flight & Hotels */}
+<Page size="A4" style={styles.page}>
+  {/* FLIGHT SECTION */}
+  <View style={styles.section}>
+    <Text style={styles.subHeader}>Flight Details</Text>
+    
+    {isGroupTour ? (
+      // GROUP TOUR: Show flight table
+      <>
+        {renderGroupAirlinesTable()}
+        
+        {/* Flight Remarks for Group Tours */}
+        {tour?.airlines?.remarks && tour.airlines.remarks.length > 0 && (
+          <View style={[styles.section, { marginTop: 15 }]}> {/* NEW: Added marginTop */}
+            <Text style={[styles.title, { color: '#E53C42', marginBottom: 5 }]}>Flight Remarks:</Text> {/* NEW: Added color and margin */}
+            {tour.airlines.remarks.map((remark, index) => (
+              <View key={index} style={styles.listItem}>
+                <Text style={styles.bullet}>•</Text>
+                <Text style={styles.listText}>{remark}</Text>
               </View>
-            )}
+            ))}
           </View>
-        ) : (
-          // INDIVIDUAL TOUR: Show flight descriptions
-          renderIndividualFlightDescriptions()
         )}
         
-        {/* HOTELS SECTION (for both) */}
-        <View style={styles.section}>
-          <Text style={styles.subHeader}>Hotel Details</Text>
-          {renderHotelsTable()}
-          
-          {tour?.hotels?.remarks && tour.hotels.remarks.length > 0 && (
-            <View style={styles.section}>
-              <Text style={styles.title}>Hotel Remarks:</Text>
-              {tour.hotels.remarks.map((remark, index) => (
-                <View key={index} style={styles.listItem}>
-                  <Text style={styles.bullet}>•</Text>
-                  <Text style={styles.listText}>{remark}</Text>
+        {/* Flight Descriptions if available */}
+        {tour?.airlines?.tableData && tour.airlines.tableData.length > 0 && (
+          <View style={[styles.section, { marginTop: 10 }]}>
+            {tour.airlines.tableData.map((flight, index) => (
+              flight.description && (
+                <View key={index} style={[styles.flightDescription, { marginBottom: 8 }]}>
+                  <Text style={[styles.text, { fontWeight: 'bold', marginBottom: 3 }]}>
+                    Flight {index + 1}: {flight.airline} {flight.flightNo ? `(${flight.flightNo})` : ''}
+                  </Text>
+                  <Text style={styles.text}>{flight.description}</Text>
                 </View>
-              ))}
-            </View>
-          )}
-        </View>
-        
-        <Text style={styles.pageNumber} render={({ pageNumber, totalPages }) => (
-          `${pageNumber} / ${totalPages}`
-        )} fixed />
-      </Page>
+              )
+            ))}
+          </View>
+        )}
+      </>
+    ) : (
+      // INDIVIDUAL TOUR: Show flight descriptions
+      renderIndividualFlightDescriptions()
+    )}
+  </View>
+  
+  {/* HOTELS SECTION (for both) */}
+  <View style={styles.section}>
+    <Text style={styles.subHeader}>Hotel Details</Text>
+    {renderHotelsTable()}
+    
+    {tour?.hotels?.remarks && tour.hotels.remarks.length > 0 && (
+      <View style={[styles.section, { marginTop: 10 }]}> 
+        <Text style={[styles.title, { color: '#E53C42', marginBottom: 5 }]}>Hotel Remarks:</Text> 
+        {tour.hotels.remarks.map((remark, index) => (
+          <View key={index} style={styles.listItem}>
+            <Text style={styles.bullet}>•</Text>
+            <Text style={styles.listText}>{remark}</Text>
+          </View>
+        ))}
+      </View>
+    )}
+  </View>
+  
+  <Text style={styles.pageNumber} render={({ pageNumber, totalPages }) => (
+    `${pageNumber} / ${totalPages}`
+  )} fixed />
+</Page>
 
       {/* Page 6: Booking & Cancellation Policies */}
       <Page size="A4" style={styles.page}>

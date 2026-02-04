@@ -439,7 +439,7 @@ const LeadPopup = () => {
     </div>
     
     <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-1 sm:mb-2 text-white">
-      Join <span className="text-red-300">1M+</span>
+      Join <span className="text-[#E31B23]">1M+</span>
     </h2>
     <h3 className="text-base sm:text-lg md:text-xl font-semibold mb-2 sm:mb-3 text-white">
       Happy Travelers!
@@ -452,85 +452,84 @@ const LeadPopup = () => {
   </p>
 
   {/* Form */}
-  <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
-    <div>
-      <input
-        type="text"
-        name="first_name"
-        value={formData.first_name}
-        onChange={handleInputChange}
-        placeholder="First Name *"
-        className={`w-full ${formErrors.first_name ? 'border-red-500' : 'border-white'} border-2 rounded-lg sm:rounded-xl p-3 sm:p-4 text-sm focus:ring-2 focus:ring-white focus:border-transparent transition-all duration-300 bg-white/5 text-white placeholder-white/70 shadow-lg`}
-      />
-      {formErrors.first_name && (
-        <div className="mt-2 flex items-center gap-2 bg-red-500/20 backdrop-blur-sm text-white px-3 py-2 rounded-lg shadow-lg">
-          <div className="bg-red-500/20 p-1 rounded-full">
-            <AlertCircle className="w-3 h-3 text-white" />
-          </div>
-          <p className="text-xs">{formErrors.first_name}</p>
-        </div>
-      )}
-    </div>
-    
-    <div className="grid grid-cols-2 gap-3">
-      <div>
-        <input
-          type="tel"
-          name="phone"
-          value={formData.phone}
-          onChange={handleInputChange}
-          placeholder="Phone *"
-          className={`w-full ${formErrors.phone ? 'border-red-500' : 'border-white'} border-2 rounded-lg sm:rounded-xl p-3 sm:p-4 text-sm focus:ring-2 focus:ring-white focus:border-transparent transition-all duration-300 bg-white/5 text-white placeholder-white/70 shadow-lg`}
-        />
-        {formErrors.phone && (
-          <div className="mt-2 flex items-center gap-2 bg-red-500/20 backdrop-blur-sm text-white px-3 py-2 rounded-lg shadow-lg">
-            <div className="bg-red-500/20 p-1 rounded-full">
-              <AlertCircle className="w-3 h-3 text-white" />
-            </div>
-            <p className="text-xs">{formErrors.phone}</p>
-          </div>
-        )}
+  <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-3">
+<div>
+  <input
+    type="text"
+    name="first_name"
+    value={formData.first_name}
+    onChange={handleInputChange}
+    placeholder="First Name *"
+    className={`w-full ${formErrors.first_name ? 'border-red-500' : 'border-white'} border-2 rounded-lg sm:rounded-xl px-3 py-2 sm:px-4 sm:py-3.5 text-base focus:ring-2 focus:ring-white focus:border-transparent transition-all duration-300 bg-red-100 text-black placeholder-gray-600 placeholder:text-base placeholder:font-bold shadow-lg focus:outline-none`}
+  />
+  {formErrors.first_name && (
+    <div className="mt-2 flex items-center gap-2 bg-red-500/20 backdrop-blur-sm text-white px-3 py-2 rounded-lg shadow-lg">
+      <div className="bg-red-500/20 p-1 rounded-full">
+        <AlertCircle className="w-3 h-3 text-white" />
       </div>
-      <div>
-        <input
-          type="text"
-          name="city"
-          value={formData.city}
-          onChange={handleInputChange}
-          placeholder="City *"
-          className={`w-full ${formErrors.city ? 'border-red-500' : 'border-white'} border-2 rounded-lg sm:rounded-xl p-3 sm:p-4 text-sm focus:ring-2 focus:ring-white focus:border-transparent transition-all duration-300 bg-white/5 text-white placeholder-white/70 shadow-lg`}
-        />
-        {formErrors.city && (
-          <div className="mt-2 flex items-center gap-2 bg-red-500/20 backdrop-blur-sm text-white px-3 py-2 rounded-lg shadow-lg">
-            <div className="bg-red-500/20 p-1 rounded-full">
-              <AlertCircle className="w-3 h-3 text-white" />
-            </div>
-            <p className="text-xs">{formErrors.city}</p>
-          </div>
-        )}
-      </div>
+      <p className="text-xs">{formErrors.first_name}</p>
     </div>
+  )}
+</div>
     
-    <div>
-      <input
-        type="email"
-        name="email"
-        value={formData.email}
-        onChange={handleInputChange}
-        placeholder="Email Address *"
-        className={`w-full ${formErrors.email ? 'border-red-500' : 'border-white'} border-2 rounded-lg sm:rounded-xl p-3 sm:p-4 text-sm focus:ring-2 focus:ring-white focus:border-transparent transition-all duration-300 bg-white/5 text-white placeholder-white/70 shadow-lg`}
-      />
-      {formErrors.email && (
-        <div className="mt-2 flex items-center gap-2 bg-red-500/20 backdrop-blur-sm text-white px-3 py-2 rounded-lg shadow-lg">
-          <div className="bg-red-500/20 p-1 rounded-full">
-            <AlertCircle className="w-3 h-3 text-white" />
-          </div>
-          <p className="text-xs">{formErrors.email}</p>
+  <div className="grid grid-cols-2 gap-3">
+  <div>
+    <input
+      type="tel"
+      name="phone"
+      value={formData.phone}
+      onChange={handleInputChange}
+      placeholder="Phone *"
+      className={`w-full ${formErrors.phone ? 'border-red-500' : 'border-white'} border-2 rounded-lg sm:rounded-xl px-3 py-1.5 sm:px-4 sm:py-3.5 text-base focus:ring-2 focus:ring-white focus:border-transparent transition-all duration-300 bg-red-100 text-black placeholder-gray-600 placeholder:text-base placeholder:font-bold shadow-lg focus:outline-none`}
+    />
+    {formErrors.phone && (
+      <div className="mt-2 flex items-center gap-2 bg-red-500/20 backdrop-blur-sm text-white px-3 py-2 rounded-lg shadow-lg">
+        <div className="bg-red-500/20 p-1 rounded-full">
+          <AlertCircle className="w-3 h-3 text-white" />
         </div>
-      )}
+        <p className="text-xs">{formErrors.phone}</p>
+      </div>
+    )}
+  </div>
+  <div>
+    <input
+      type="text"
+      name="city"
+      value={formData.city}
+      onChange={handleInputChange}
+      placeholder="City *"
+      className={`w-full ${formErrors.city ? 'border-red-500' : 'border-white'} border-2 rounded-lg sm:rounded-xl px-3 py-2.5 sm:px-4 sm:py-3.5 text-base focus:ring-2 focus:ring-white focus:border-transparent transition-all duration-300 bg-red-100 text-black placeholder-gray-600 placeholder:text-base placeholder:font-bold shadow-lg focus:outline-none`}
+    />
+    {formErrors.city && (
+      <div className="mt-2 flex items-center gap-2 bg-red-500/20 backdrop-blur-sm text-white px-3 py-2 rounded-lg shadow-lg">
+        <div className="bg-red-500/20 p-1 rounded-full">
+          <AlertCircle className="w-3 h-3 text-white" />
+        </div>
+        <p className="text-xs">{formErrors.city}</p>
+      </div>
+    )}
+  </div>
+</div>
+
+<div>
+  <input
+    type="email"
+    name="email"
+    value={formData.email}
+    onChange={handleInputChange}
+    placeholder="Email Address *"
+    className={`w-full ${formErrors.email ? 'border-red-500' : 'border-white'} border-2 rounded-lg sm:rounded-xl px-3 py-1.5 sm:px-4 sm:py-3.5 text-base focus:ring-2 focus:ring-white focus:border-transparent transition-all duration-300 bg-red-100 text-black placeholder-gray-600 placeholder:text-base placeholder:font-bold shadow-lg focus:outline-none`}
+  />
+  {formErrors.email && (
+    <div className="mt-2 flex items-center gap-2 bg-red-500/20 backdrop-blur-sm text-white px-3 py-2 rounded-lg shadow-lg">
+      <div className="bg-red-500/20 p-1 rounded-full">
+        <AlertCircle className="w-3 h-3 text-white" />
+      </div>
+      <p className="text-xs">{formErrors.email}</p>
     </div>
+  )}
+</div>
     
-    {/* Submit Button */}
     <button
       type="submit"
       disabled={loading}

@@ -207,7 +207,7 @@ const ContactPage = () => {
     <div
       className="rounded-2xl shadow-lg p-10 border border-blue-400 mb-0"
       style={{
-        background: 'radial-gradient(circle at center, #0F1F5C  70%, #0F1F5C  70%, #0F1F5C 70%, #0F1F5C  70%)',
+        background: 'linear-gradient(135deg, #0F1F5C 0%, #1F3F93 50%, #0F1F5C 100%)',
       }}
     >
       {/* Contact Info Grid */}
@@ -283,8 +283,8 @@ const ContactPage = () => {
     </h3>
   </div>
 </div>
- <div className="max-w-4xl mx-auto mt-9">
- <div className="bg-gradient-to-r from-[#0F1F5C] via-[#1F3F93] to-[#0F1F5C] rounded-xl shadow-xl p-6 md:p-8 border-2 border-white">
+<div className="max-w-4xl mx-auto mt-9">
+  <div className="bg-gradient-to-r from-[#0F1F5C] via-[#1F3F93] to-[#0F1F5C] rounded-xl shadow-xl p-6 md:p-8 border-2 border-white">
     <div className="text-center mb-5">
       <p className="text-white max-w-2xl mx-auto font-medium">
         Fill out the form below and our travel specialists will prepare a customized proposal for you.
@@ -309,7 +309,7 @@ const ContactPage = () => {
               value={formData.name}
               onChange={handleChange}
               required
-              className="w-full px-4 py-3 border border-white rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-300 outline-none transition-colors bg-white/10 text-white placeholder:text-white/70"
+              className="w-full px-4 py-3 border-2 border-white rounded-lg focus:ring-2 focus:ring-white focus:border-transparent outline-none transition-all duration-300 bg-red-100 text-black placeholder-gray-600 shadow-lg focus:outline-none"
               placeholder="Enter your full name"
             />
           </div>
@@ -324,7 +324,7 @@ const ContactPage = () => {
               value={formData.email}
               onChange={handleChange}
               required
-              className="w-full px-4 py-3 border border-white rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-300 outline-none transition-colors bg-white/10 text-white placeholder:text-white/70"
+              className="w-full px-4 py-3 border-2 border-white rounded-lg focus:ring-2 focus:ring-white focus:border-transparent outline-none transition-all duration-300 bg-red-100 text-black placeholder-gray-600 shadow-lg focus:outline-none"
               placeholder="your.email@example.com"
             />
           </div>
@@ -339,7 +339,7 @@ const ContactPage = () => {
               value={formData.phone}
               onChange={handleChange}
               required
-              className="w-full px-4 py-3 border border-white rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-300 outline-none transition-colors bg-white/10 text-white placeholder:text-white/70"
+              className="w-full px-4 py-3 border-2 border-white rounded-lg focus:ring-2 focus:ring-white focus:border-transparent outline-none transition-all duration-300 bg-red-100 text-black placeholder-gray-600 shadow-lg focus:outline-none"
               placeholder="+91 98765 43210"
             />
           </div>
@@ -361,16 +361,16 @@ const ContactPage = () => {
               name="destination"
               value={formData.destination}
               onChange={handleChange}
-              className="w-full px-4 py-3 border border-white rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-300 outline-none transition-colors bg-white/10 text-white"
+              className="w-full px-4 py-3 border-2 border-white rounded-lg focus:ring-2 focus:ring-white focus:border-transparent outline-none transition-all duration-300 bg-red-100 text-black shadow-lg focus:outline-none"
             >
-              <option value="" className="text-white/70">Select destination</option>
-              <option value="domestic" className="text-[#0F1F5C]">Domestic (India)</option>
-              <option value="international" className="text-[#0F1F5C]">International</option>
-              <option value="europe" className="text-[#0F1F5C]">Europe</option>
-              <option value="asia" className="text-[#0F1F5C]">Southeast Asia</option>
-              <option value="middle-east" className="text-[#0F1F5C]">Middle East</option>
-              <option value="usa" className="text-[#0F1F5C]">USA & Canada</option>
-              <option value="australia" className="text-[#0F1F5C]">Australia & NZ</option>
+              <option value="" className="text-gray-600">Select destination</option>
+              <option value="domestic" className="text-black">Domestic (India)</option>
+              <option value="international" className="text-black">International</option>
+              <option value="europe" className="text-black">Europe</option>
+              <option value="asia" className="text-black">Southeast Asia</option>
+              <option value="middle-east" className="text-black">Middle East</option>
+              <option value="usa" className="text-black">USA & Canada</option>
+              <option value="australia" className="text-black">Australia & NZ</option>
             </select>
           </div>
 
@@ -385,18 +385,18 @@ const ContactPage = () => {
                 value={formData.travelDate}
                 onChange={handleChange}
                 min={new Date().toISOString().split('T')[0]}
-                className="w-full px-4 py-3 border border-white rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-300 outline-none transition-colors bg-white/10 text-white appearance-none"
+                className="w-full px-4 py-3 border-2 border-white rounded-lg focus:ring-2 focus:ring-white focus:border-transparent outline-none transition-all duration-300 bg-red-100 text-black shadow-lg focus:outline-none [color-scheme:light]"
               />
-              {/* Calendar icon styling - ensures white icon */}
+              {/* Calendar icon styling */}
               <style jsx>{`
                 input[type="date"]::-webkit-calendar-picker-indicator {
-                  filter: invert(1) brightness(2);
+                  filter: invert(0%) sepia(100%) saturate(0%) hue-rotate(0deg) brightness(0%) contrast(100%);
                   cursor: pointer;
                   padding: 4px;
                   background-size: 18px;
                 }
                 input[type="date"]::-moz-calendar-picker-indicator {
-                  filter: invert(1) brightness(2);
+                  filter: invert(0%) sepia(100%) saturate(0%) hue-rotate(0deg) brightness(0%) contrast(100%);
                   cursor: pointer;
                   padding: 4px;
                   background-size: 18px;
@@ -413,15 +413,15 @@ const ContactPage = () => {
               name="travelers"
               value={formData.travelers}
               onChange={handleChange}
-              className="w-full px-4 py-3 border border-white rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-300 outline-none transition-colors bg-white/10 text-white"
+              className="w-full px-4 py-3 border-2 border-white rounded-lg focus:ring-2 focus:ring-white focus:border-transparent outline-none transition-all duration-300 bg-red-100 text-black shadow-lg focus:outline-none"
             >
-              <option value="" className="text-white/70">Select</option>
-              <option value="1" className="text-[#0F1F5C]">1 Traveler</option>
-              <option value="2" className="text-[#0F1F5C]">2 Travelers</option>
-              <option value="3-4" className="text-[#0F1F5C]">3-4 Travelers</option>
-              <option value="5-10" className="text-[#0F1F5C]">5-10 Travelers</option>
-              <option value="10+" className="text-[#0F1F5C]">10+ Travelers</option>
-              <option value="corporate" className="text-[#0F1F5C]">Corporate Group</option>
+              <option value="" className="text-gray-600">Select</option>
+              <option value="1" className="text-black">1 Traveler</option>
+              <option value="2" className="text-black">2 Travelers</option>
+              <option value="3-4" className="text-black">3-4 Travelers</option>
+              <option value="5-10" className="text-black">5-10 Travelers</option>
+              <option value="10+" className="text-black">10+ Travelers</option>
+              <option value="corporate" className="text-black">Corporate Group</option>
             </select>
           </div>
         </div>
@@ -443,7 +443,7 @@ const ContactPage = () => {
             onChange={handleChange}
             required
             rows={5}
-            className="w-full px-4 py-3 border border-white rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-300 outline-none transition-colors resize-none bg-white/10 text-white placeholder:text-white/70"
+            className="w-full px-4 py-3 border-2 border-white rounded-lg focus:ring-2 focus:ring-white focus:border-transparent outline-none transition-all duration-300 resize-none bg-red-100 text-black placeholder-gray-600 shadow-lg focus:outline-none"
             placeholder="Please describe your travel requirements, preferred activities, budget range, and any special requests..."
           ></textarea>
           <div className="text-right text-sm text-white/70 mt-1">
@@ -616,7 +616,7 @@ const ContactPage = () => {
        <div className="max-w-5xl mx-auto px-4 mt-8">
   {/* Dark Blue Gradient Card Container */}
   <div className="bg-gradient-to-r from-[#0F1F5C] via-[#1F3F93] to-[#0F1F5C] rounded-xl shadow-xl p-6 md:p-8 border-2 border-white">
-    <div className="text-center mb-2">
+    <div className="text-center mb-6">
       <p className="text-white">
         Common queries about our services and support
       </p>
