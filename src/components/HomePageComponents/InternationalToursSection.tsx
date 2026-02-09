@@ -103,7 +103,8 @@ const TourCarousel: React.FC<{
 
         const res = await fetch(endpoint);
         const data = await res.json();
-console.log("data",data);
+        console.log("data",data);
+
         if (!data.success) {
           throw new Error(data.error || 'Failed to fetch tours');
         }
@@ -113,8 +114,8 @@ console.log("data",data);
           const tour = tourData.basic_details;
           const images = tourData.images || [];
           
-const emiPrice = parseFloat(tour.emi_price) || 0;
-const emiValue = emiPrice > 0 ? emiPrice : 0;
+          const emiPrice = parseFloat(tour.emi_price) || 0;
+          const emiValue = emiPrice > 0 ? emiPrice : 0;
           
           // Get first image URL, or use placeholder
           const firstImage = images.length > 0 ? images[0].url : 'https://via.placeholder.com/400x250';
@@ -201,7 +202,7 @@ const emiValue = emiPrice > 0 ? emiPrice : 0;
     const updateCardSizes = () => {
       if (window.innerWidth < 768) {
         setVisibleCards(1);
-        setCardWidth('280px');
+        setCardWidth('250px'); // Reduced from 280px
       } else if (window.innerWidth < 1024) {
         setVisibleCards(2);
         setCardWidth('280px');
@@ -360,8 +361,8 @@ const emiValue = emiPrice > 0 ? emiPrice : 0;
 
   if (loading || destinationsLoading) {
     return (
-      <div className="rounded-2xl shadow-lg p-6 mb-12 border border-gray-100 relative overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50">
-        <div className="text-center py-8">
+      <div className="rounded-2xl shadow-lg p-6 mb-8 md:mb-12 border border-gray-100 relative overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50">
+        <div className="text-center py-6 md:py-8">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-600 border-t-transparent mb-4"></div>
           <p className="text-gray-600">Loading {tourType} tours...</p>
         </div>
@@ -371,8 +372,8 @@ const emiValue = emiPrice > 0 ? emiPrice : 0;
 
   if (error && tours.length === 0) {
     return (
-      <div className="rounded-2xl shadow-lg p-6 mb-12 border border-gray-100 relative overflow-hidden bg-gradient-to-br from-red-50 to-pink-50">
-        <div className="text-center py-8">
+      <div className="rounded-2xl shadow-lg p-6 mb-8 md:mb-12 border border-gray-100 relative overflow-hidden bg-gradient-to-br from-red-50 to-pink-50">
+        <div className="text-center py-6 md:py-8">
           <p className="text-red-600 mb-2">{error}</p>
           <p className="text-gray-600">Showing sample data</p>
         </div>
@@ -382,8 +383,8 @@ const emiValue = emiPrice > 0 ? emiPrice : 0;
 
   if (filteredTours.length === 0 && tours.length > 0) {
     return (
-      <div className="rounded-2xl shadow-lg p-6 mb-12 border border-gray-100 relative overflow-hidden bg-gradient-to-br from-yellow-50 to-orange-50">
-        <div className="text-center py-8">
+      <div className="rounded-2xl shadow-lg p-6 mb-8 md:mb-12 border border-gray-100 relative overflow-hidden bg-gradient-to-br from-yellow-50 to-orange-50">
+        <div className="text-center py-6 md:py-8">
           <p className="text-yellow-600 mb-2">No active {tourType} tours available</p>
           <p className="text-gray-600">All tours are currently inactive (status: 0)</p>
         </div>
@@ -395,7 +396,7 @@ const emiValue = emiPrice > 0 ? emiPrice : 0;
 
   return (
     <div 
-      className="rounded-2xl shadow-lg p-6 mb-10 border border-gray-100 relative overflow-hidden"
+      className="rounded-2xl shadow-lg p-4 md:p-6 mb-6 md:mb-10 border border-gray-100 relative overflow-hidden"
       style={{
         background: 'radial-gradient(circle at center, #5a92edff 0%, #4c70e7ff 30%, #0F1F5C 70%, #0A1128 100%)',
       }}
@@ -408,29 +409,29 @@ const emiValue = emiPrice > 0 ? emiPrice : 0;
       />
       
       <div className="relative z-10">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-4 md:mb-6">
           <div>
-            <h3 className="text-xl font-bold text-white drop-shadow-lg">
+            <h3 className="text-lg md:text-xl font-bold text-white drop-shadow-lg">
               {title}
             </h3>
-            <p className="text-white/80 text-sm drop-shadow">
+            <p className="text-white/80 text-xs md:text-sm drop-shadow">
               {subtitle}
             </p>
           </div>
           {filteredTours.length > 1 && (
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="flex items-center gap-1 md:gap-2">
                 <button
                   onClick={prevSlide}
-                  className="bg-blue-600 hover:bg-blue-700 text-white w-8 h-8 rounded-full flex items-center justify-center shadow transition-all duration-300 hover:scale-110 active:scale-95 border border-white/20"
+                  className="bg-blue-600 hover:bg-blue-700 text-white w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center shadow transition-all duration-300 hover:scale-110 active:scale-95 border border-white/20"
                 >
-                  <ChevronLeft className="h-4 w-4" />
+                  <ChevronLeft className="h-3 w-3 md:h-4 md:w-4" />
                 </button>
                 <button
                   onClick={nextSlide}
-                  className="bg-blue-600 hover:bg-blue-700 text-white w-8 h-8 rounded-full flex items-center justify-center shadow transition-all duration-300 hover:scale-110 active:scale-95 border border-white/20"
+                  className="bg-blue-600 hover:bg-blue-700 text-white w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center shadow transition-all duration-300 hover:scale-110 active:scale-95 border border-white/20"
                 >
-                  <ChevronRight className="h-4 w-4" />
+                  <ChevronRight className="h-3 w-3 md:h-4 md:w-4" />
                 </button>
               </div>
             </div>
@@ -439,14 +440,14 @@ const emiValue = emiPrice > 0 ? emiPrice : 0;
 
         <div className="relative">
           {filteredTours.length === 0 ? (
-            <div className="text-center py-8">
+            <div className="text-center py-6 md:py-8">
               <p className="text-white">No {tourType} tours available</p>
             </div>
           ) : (
             <>
               <div 
                 ref={scrollContainerRef}
-                className="flex gap-4 overflow-x-auto scrollbar-hide px-1"
+                className="flex gap-3 md:gap-4 overflow-x-auto scrollbar-hide px-1"
                 style={{ 
                   scrollBehavior: 'auto',
                   cursor: 'grab',
@@ -487,7 +488,7 @@ const emiValue = emiPrice > 0 ? emiPrice : 0;
                     onMouseLeave={handleCardMouseLeave}
                   >
                     <div className="group cursor-pointer bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 h-full border border-gray-100 flex flex-col w-full">
-                      <div className="relative h-48 overflow-hidden flex-shrink-0">
+                      <div className="relative h-40 md:h-48 overflow-hidden flex-shrink-0">
                         <img
                           src={tour.image}
                           alt={tour.name}
@@ -505,7 +506,7 @@ const emiValue = emiPrice > 0 ? emiPrice : 0;
                         </div>
                       </div>
 
-                      <div className="p-4 flex flex-col flex-grow w-full">
+                      <div className="p-3 md:p-4 flex flex-col flex-grow w-full">
                         <div className="flex items-start justify-between mb-2 w-full">
                           <h3 className="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-300 flex-1 pr-2 line-clamp-2">
                             {tour.name}
@@ -520,7 +521,7 @@ const emiValue = emiPrice > 0 ? emiPrice : 0;
                         <div className="mb-3 mt-auto w-full">
                           <div className="flex items-center justify-between mb-1 w-full">
                             <span className="text-sm font-semibold text-gray-700">Tour Cost</span>
-                            <p className="text-2xl font-bold text-gray-900">{tour.price}</p>
+                            <p className="text-lg md:text-2xl font-bold text-gray-900">{tour.price}</p>
                           </div>
                           
                           <div className="flex items-center justify-between w-full">
@@ -544,8 +545,8 @@ const emiValue = emiPrice > 0 ? emiPrice : 0;
               </div>
 
               {shouldDuplicate && filteredTours.length > 0 && (
-                <div className="flex justify-center items-center mt-6 gap-2">
-                  <div className={`w-3 h-3 rounded-full ${
+                <div className="flex justify-center items-center mt-4 md:mt-6 gap-2">
+                  <div className={`w-2 h-2 md:w-3 md:h-3 rounded-full ${
                     isAutoPlaying ? 'bg-green-400 animate-pulse' : 'bg-red-400'
                   }`} />
                   <span className="text-xs text-white drop-shadow-lg">
@@ -564,15 +565,15 @@ const emiValue = emiPrice > 0 ? emiPrice : 0;
 const DomesticToursSection: React.FC = () => {
   return (
     <section className="py-0 bg-gradient-to-br from-sky-200 via-sky-200 to-sky-200">
-      <div className="w-full bg-gradient-to-r from-[#0F1F5C] via-[#1F3F93] to-[#0F1F5C] py-8 mb-10 shadow-lg">
+      <div className="w-full bg-gradient-to-r from-[#0F1F5C] via-[#1F3F93] to-[#0F1F5C] py-6 md:py-8 mb-6 md:mb-10 shadow-lg">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h2
-              className="text-4xl md:text-6xl font-extrabold mb-4 tracking-tight"
+              className="text-3xl md:text-4xl lg:text-6xl font-extrabold mb-3 md:mb-4 tracking-tight"
               style={{
                 fontFamily: "'Baloo 2', sans-serif",
                 color: "white",
-                letterSpacing: "-2px",
+                letterSpacing: "-1px",
                 textShadow: `
                   2px 2px 0 #1F3F5C,
                   -2px -2px 0 #1F3F5C,
@@ -588,7 +589,7 @@ const DomesticToursSection: React.FC = () => {
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <TourCarousel 
-          title="International  Individual  Tours"
+          title="International Individual Tours"
           subtitle=""
           tourType="individual"
         />
@@ -600,7 +601,7 @@ const DomesticToursSection: React.FC = () => {
         />
 
         <div className="text-center">
-          <button className="inline-flex mb-10 items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-xl shadow transition-all duration-300 transform hover:scale-105 border border-white/20">
+          <button className="inline-flex mb-6 md:mb-10 items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 md:px-6 md:py-3 rounded-xl shadow transition-all duration-300 transform hover:scale-105 border border-white/20">
             <MapPin className="h-4 w-4" />
             View All Tours
             <ChevronRight className="h-4 w-4" />

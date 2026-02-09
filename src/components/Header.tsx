@@ -689,7 +689,7 @@ const Header = () => {
       label: "Flight / Hotel", 
       href: "#offline-flight-tickets",
       dropdown: [
-        { label: "Online Flight Blocks", href: "/alert" },
+        { label: "Online Flight Blocks", href: "/flightfrontend" },
         { label: "Offline Filght Blocks", href: "/alert" },
         { label: "Offline Hotel Blocks", href: "/alert" },
       ]
@@ -1104,197 +1104,245 @@ const Header = () => {
             </div>
           </div>
         </div>
-
-        {/* MOBILE MENU */}
-        {mobileMenuOpen && (
-          <nav className="lg:hidden bg-primary text-primary-foreground border-t border-blue-400">
-            <ul className="flex flex-col">
-              {navItems.map((item, index) => (
-                <li key={index} className="border-b border-blue-500">
-                  {!item.dropdown ? (
-                    <a href={item.href} className="flex gap-2 items-center px-4 py-3 hover:bg-white/10 transition-colors">
-                      <item.icon className="w-5 h-5" />
-                      <span className="font-medium text-sm">{item.label}</span>
-                    </a>
-                  ) : (
-                    <>
-                      <button
-                        onClick={() => toggleMobileSubmenu(item.label)}
-                        className="w-full flex justify-between items-center px-4 py-3 hover:bg-white/10 transition-colors font-medium text-sm"
-                      >
-                        <div className="flex items-center gap-2">
-                          <item.icon className="w-5 h-5" />
-                          <span>{item.label}</span>
-                        </div>
-                        <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${mobileSubmenuOpen[item.label] ? "rotate-180" : ""}`} />
-                      </button>
-                      {mobileSubmenuOpen[item.label] && (
-                        <ul className="bg-primary border-t border-blue-500">
-                          {item.dropdown.map((sub, i) => {
-                            return (
-                              <li key={i} className="border-b border-blue-600">
-                                {!sub.subDropdown ? (
-                                  <a href={sub.href} className="flex items-center gap-2 px-8 py-2 hover:bg-white/10 transition-colors font-normal text-sm">
-                                    {sub.icon && <sub.icon className="w-4 h-4" />}
-                                    <span>{sub.label}</span>
-                                  </a>
+{/* MOBILE MENU */}
+{mobileMenuOpen && (
+  <nav className="lg:hidden bg-primary text-primary-foreground border-t border-blue-400">
+    <ul className="flex flex-col">
+      {navItems.map((item, index) => (
+        <li key={index} className="border-b border-blue-500">
+          {!item.dropdown ? (
+            <a href={item.href} className="flex gap-2 items-center px-4 py-3 hover:bg-white/10 transition-colors">
+              <item.icon className="w-5 h-5" />
+              <span className="font-medium text-sm">{item.label}</span>
+            </a>
+          ) : (
+            <>
+              <button
+                onClick={() => toggleMobileSubmenu(item.label)}
+                className="w-full flex justify-between items-center px-4 py-3 hover:bg-white/10 transition-colors font-medium text-sm"
+              >
+                <div className="flex items-center gap-2">
+                  <item.icon className="w-5 h-5" />
+                  <span>{item.label}</span>
+                </div>
+                <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${mobileSubmenuOpen[item.label] ? "rotate-180" : ""}`} />
+              </button>
+              {mobileSubmenuOpen[item.label] && (
+                <ul className="bg-primary border-t border-blue-500">
+                  {item.dropdown.map((sub, i) => {
+                    return (
+                      <li key={i} className="border-b border-blue-600">
+                        {!sub.subDropdown ? (
+                          <a href={sub.href} className="flex items-center gap-2 px-8 py-2 hover:bg-white/10 transition-colors font-normal text-sm">
+                            {sub.icon && <sub.icon className="w-4 h-4" />}
+                            <span>{sub.label}</span>
+                          </a>
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => toggleMobileSubmenu(sub.label)}
+                              className="w-full flex justify-between items-center px-8 py-2 hover:bg-white/10 transition-colors font-normal text-sm"
+                            >
+                              <div className="flex items-center gap-2">
+                                {sub.icon && <sub.icon className="w-4 h-4" />}
+                                <span>{sub.label}</span>
+                              </div>
+                              <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${mobileSubmenuOpen[sub.label] ? "rotate-180" : ""}`} />
+                            </button>
+                            {mobileSubmenuOpen[sub.label] && (
+                              <ul className="bg-primary border-t border-blue-600">
+                                {item.label === "International Tours" ? (
+                                  internationalCountries
+                                    .filter(countryName => {
+                                      const countryId = getCountryIdByName(countryName);
+                                      if (!countryId) return false;
+                                      
+                                      const isIndividual = sub.label === "Individual Tours";
+                                      const isGroup = sub.label === "Group Tours";
+                                      const isLadies = sub.label === "Ladies Special Tours";
+                                      const isSenior = sub.label === "Senior Citizen Tours";
+                                      const isStudent = sub.label === "Students Tours";
+                                      const isHoneymoon = sub.label === "Honeymoon Tours";
+                                      
+                                      return countryHasActiveToursForType(
+                                        countryId,
+                                        isIndividual,
+                                        isGroup,
+                                        isLadies,
+                                        isSenior,
+                                        isStudent,
+                                        isHoneymoon
+                                      );
+                                    })
+                                    .map((countryName, j) => {
+                                      const countryId = getCountryIdByName(countryName);
+                                      if (!countryId) return null;
+                                      
+                                      return (
+                                        <li key={j} className="px-12 py-2">
+                                          <div className="font-bold text-white mb-1">{countryName}</div>
+                                          <ul className="pl-4">
+                                            {groupedInternationalDestinations[countryId]?.destinations
+                                              .filter(dest => {
+                                                const isIndividualTour = sub.label === "Individual Tours";
+                                                const isGroupTour = sub.label === "Group Tours";
+                                                const isLadiesTour = sub.label === "Ladies Special Tours";
+                                                const isSeniorTour = sub.label === "Senior Citizen Tours";
+                                                const isStudentTour = sub.label === "Students Tours";
+                                                const isHoneymoonTour = sub.label === "Honeymoon Tours";
+                                                
+                                                const hasToursForThisCategory = hasToursForDestination(
+                                                  dest.name,
+                                                  isIndividualTour ? "Individual" : 
+                                                  isGroupTour ? "Group" :
+                                                  isLadiesTour ? "Ladies Special" :
+                                                  isSeniorTour ? "Senior Citizen" :
+                                                  isStudentTour ? "Student" : "Honeymoon",
+                                                  true
+                                                );
+                                                
+                                                return hasToursForThisCategory;
+                                              })
+                                              .map((dest, k) => {
+                                                const isIndividualTour = sub.label === "Individual Tours";
+                                                const isGroupTour = sub.label === "Group Tours";
+                                                const isLadiesTour = sub.label === "Ladies Special Tours";
+                                                const isSeniorTour = sub.label === "Senior Citizen Tours";
+                                                const isStudentTour = sub.label === "Students Tours";
+                                                const isHoneymoonTour = sub.label === "Honeymoon Tours";
+                                                
+                                                let href = "";
+                                                if (isIndividualTour) {
+                                                  href = `/intl-tours-packages/${encodeURIComponent(dest.name)}`;
+                                                } else if (isGroupTour) {
+                                                  href = `/intl-tours_groups/${encodeURIComponent(dest.name)}`;
+                                                } else if (isLadiesTour) {
+                                                  href = `/intl-ladies_tours/${encodeURIComponent(dest.name)}`;
+                                                } else if (isSeniorTour) {
+                                                  href = `/intl-senior_tours/${encodeURIComponent(dest.name)}`;
+                                                } else if (isStudentTour) {
+                                                  href = `/intl-students_tours/${encodeURIComponent(dest.name)}`;
+                                                } else if (isHoneymoonTour) {
+                                                  href = `/intl-honeymoon_tours/${encodeURIComponent(dest.name)}`;
+                                                }
+                                                
+                                                return (
+                                                  <li key={k}>
+                                                    <a
+                                                      href={href}
+                                                      className="block px-2 py-1 text-sm text-gray-300 hover:text-white"
+                                                    >
+                                                      {dest.name}
+                                                    </a>
+                                                  </li>
+                                                );
+                                              })}
+                                          </ul>
+                                        </li>
+                                      );
+                                    })
                                 ) : (
-                                  <>
-                                    <button
-                                      onClick={() => toggleMobileSubmenu(sub.label)}
-                                      className="w-full flex justify-between items-center px-8 py-2 hover:bg-white/10 transition-colors font-normal text-sm"
-                                    >
-                                      <div className="flex items-center gap-2">
-                                        {sub.icon && <sub.icon className="w-4 h-4" />}
-                                        <span>{sub.label}</span>
-                                      </div>
-                                      <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${mobileSubmenuOpen[sub.label] ? "rotate-180" : ""}`} />
-                                    </button>
-                                    {mobileSubmenuOpen[sub.label] && (
-                                      <ul className="bg-primary border-t border-blue-600">
-                                        {item.label === "International Tours" ? (
-                                          internationalCountries
-                                            .filter(countryName => {
-                                              const countryId = getCountryIdByName(countryName);
-                                              if (!countryId) return false;
-                                              
-                                              const isIndividual = sub.label === "Individual Tours";
-                                              const isGroup = sub.label === "Group Tours";
-                                              const isLadies = sub.label === "Ladies Special Tours";
-                                              const isSenior = sub.label === "Senior Citizen Tours";
-                                              const isStudent = sub.label === "Students Tours";
-                                              const isHoneymoon = sub.label === "Honeymoon Tours";
-                                              
-                                              return countryHasActiveToursForType(
-                                                countryId,
-                                                isIndividual,
-                                                isGroup,
-                                                isLadies,
-                                                isSenior,
-                                                isStudent,
-                                                isHoneymoon
-                                              );
-                                            })
-                                            .map((countryName, j) => {
-                                              const countryId = getCountryIdByName(countryName);
-                                              if (!countryId) return null;
-                                              
-                                              return (
-                                                <li key={j} className="px-12 py-2">
-                                                  <div className="font-bold text-white mb-1">{countryName}</div>
-                                                  <ul className="pl-4">
-                                                    {groupedInternationalDestinations[countryId]?.destinations
-                                                      .filter(dest => {
-                                                        const isIndividualTour = sub.label === "Individual Tours";
-                                                        const isGroupTour = sub.label === "Group Tours";
-                                                        const isLadiesTour = sub.label === "Ladies Special Tours";
-                                                        const isSeniorTour = sub.label === "Senior Citizen Tours";
-                                                        const isStudentTour = sub.label === "Students Tours";
-                                                        const isHoneymoonTour = sub.label === "Honeymoon Tours";
-                                                        
-                                                        const hasToursForThisCategory = hasToursForDestination(
-                                                          dest.name,
-                                                          isIndividualTour ? "Individual" : 
-                                                          isGroupTour ? "Group" :
-                                                          isLadiesTour ? "Ladies Special" :
-                                                          isSeniorTour ? "Senior Citizen" :
-                                                          isStudentTour ? "Student" : "Honeymoon",
-                                                          true
-                                                        );
-                                                        
-                                                        return hasToursForThisCategory;
-                                                      })
-                                                      .map((dest, k) => {
-                                                        const isIndividualTour = sub.label === "Individual Tours";
-                                                        const isGroupTour = sub.label === "Group Tours";
-                                                        const isLadiesTour = sub.label === "Ladies Special Tours";
-                                                        const isSeniorTour = sub.label === "Senior Citizen Tours";
-                                                        const isStudentTour = sub.label === "Students Tours";
-                                                        const isHoneymoonTour = sub.label === "Honeymoon Tours";
-                                                        
-                                                        let href = "";
-                                                        if (isIndividualTour) {
-                                                          href = `/intl-tours-packages/${encodeURIComponent(dest.name)}`;
-                                                        } else if (isGroupTour) {
-                                                          href = `/intl-tours_groups/${encodeURIComponent(dest.name)}`;
-                                                        } else if (isLadiesTour) {
-                                                          href = `/intl-ladies_tours/${encodeURIComponent(dest.name)}`;
-                                                        } else if (isSeniorTour) {
-                                                          href = `/intl-senior_tours/${encodeURIComponent(dest.name)}`;
-                                                        } else if (isStudentTour) {
-                                                          href = `/intl-students_tours/${encodeURIComponent(dest.name)}`;
-                                                        } else if (isHoneymoonTour) {
-                                                          href = `/intl-honeymoon_tours/${encodeURIComponent(dest.name)}`;
-                                                        }
-                                                        
-                                                        return (
-                                                          <li key={k}>
-                                                            <a
-                                                              href={href}
-                                                              className="block px-2 py-1 text-sm text-gray-300 hover:text-white"
-                                                            >
-                                                              {dest.name}
-                                                            </a>
-                                                          </li>
-                                                        );
-                                                      })}
-                                                  </ul>
-                                                </li>
-                                              );
-                                            })
-                                        ) : (
-                                          sub.subDropdown.map((dest, j) => {
-                                            const isAndaman = dest === "Andaman";
-                                            const isIndividualTour = sub.label === "Individual Tours";
-                                            const isGroupTour = sub.label === "Group Tours";
-                                            const isLadiesTour = sub.label === "Ladies Special Tours";
-                                            const isSeniorTour = sub.label === "Senior Citizen Tours";
-                                            const isStudentTour = sub.label === "Students Tours";
-                                            const isHoneymoonTour = sub.label === "Honeymoon Tours";
-                                            
-                                            let href = "";
-                                            if (isIndividualTour) {
-                                              href = `/tours-packages/${encodeURIComponent(dest)}`;
-                                            } else if (isGroupTour) {
-                                              href = `/tours_groups/${encodeURIComponent(dest)}`;
-                                            } else if (isLadiesTour) {
-                                              href = `/ladies_tours/${encodeURIComponent(dest)}`;
-                                            } else if (isSeniorTour) {
-                                              href = `/senior_tours/${encodeURIComponent(dest)}`;
-                                            } else if (isStudentTour) {
-                                              href = `/students_tours/${encodeURIComponent(dest)}`;
-                                            } else if (isHoneymoonTour) {
-                                              href = `/honeymoon_tours/${encodeURIComponent(dest)}`;
-                                            }
-                                            
-                                            return (
-                                              <li key={j}>
-                                                <a
-                                                  href={href}
-                                                  className={`block px-12 py-2 text-sm font-medium ${isAndaman ? "text-cyan-400 font-bold" : "text-gray-300"} hover:text-white`}
-                                                >
-                                                  {dest} {isAndaman && "(Featured)"}
-                                                </a>
-                                              </li>
-                                            );
-                                          })
-                                        )}
-                                      </ul>
-                                    )}
-                                  </>
+                                  sub.subDropdown.map((dest, j) => {
+                                    const isAndaman = dest === "Andaman";
+                                    const isIndividualTour = sub.label === "Individual Tours";
+                                    const isGroupTour = sub.label === "Group Tours";
+                                    const isLadiesTour = sub.label === "Ladies Special Tours";
+                                    const isSeniorTour = sub.label === "Senior Citizen Tours";
+                                    const isStudentTour = sub.label === "Students Tours";
+                                    const isHoneymoonTour = sub.label === "Honeymoon Tours";
+                                    
+                                    let href = "";
+                                    if (isIndividualTour) {
+                                      href = `/tours-packages/${encodeURIComponent(dest)}`;
+                                    } else if (isGroupTour) {
+                                      href = `/tours_groups/${encodeURIComponent(dest)}`;
+                                    } else if (isLadiesTour) {
+                                      href = `/ladies_tours/${encodeURIComponent(dest)}`;
+                                    } else if (isSeniorTour) {
+                                      href = `/senior_tours/${encodeURIComponent(dest)}`;
+                                    } else if (isStudentTour) {
+                                      href = `/students_tours/${encodeURIComponent(dest)}`;
+                                    } else if (isHoneymoonTour) {
+                                      href = `/honeymoon_tours/${encodeURIComponent(dest)}`;
+                                    }
+                                    
+                                    return (
+                                   <li key={j}>
+  <a
+    href={href}
+    className={`block px-12 py-2 text-sm font-medium ${isAndaman ? "text-cyan-400 font-bold" : "text-gray-300"} hover:text-white`}
+  >
+    {dest}
+  </a>
+</li>
+                                    );
+                                  })
                                 )}
-                              </li>
-                            );
-                          })}
-                        </ul>
-                      )}
-                    </>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </nav>
-        )}
+                              </ul>
+                            )}
+                          </>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </>
+          )}
+        </li>
+      ))}
+      
+      {/* BUTTONS ROW - ADDED AFTER CONTACT US */}
+      <li className="px-4 py-4 border-b border-blue-500">
+        <div className="flex gap-3">
+          {/* Mobile Sign Up with Dropdown */}
+          <div className="relative group flex-1">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="w-full bg-green-500 hover:bg-green-600 text-white px-4 py-2.5 rounded-lg border border-green-600 flex items-center justify-center gap-2"
+            >
+              <UserPlus className="w-4 h-4" />
+              <span className="font-medium text-sm">Sign Up</span>
+              <ChevronDown className="w-3 h-3" />
+            </Button>
+            {/* Dropdown for Sign Up */}
+            <div className="absolute left-0 right-0 mt-1 opacity-0 -translate-y-4 invisible group-hover:opacity-100 group-hover:translate-y-0 group-hover:visible bg-green-50 text-gray-800 rounded-xl shadow-2xl py-2 border border-green-200 transition-all duration-300 z-50">
+              <a href="#new-user" className="flex items-center gap-3 px-4 py-2 text-sm font-medium hover:bg-green-100 hover:text-green-700 rounded-lg transition-colors mx-2">
+                <UserPlus className="w-4 h-4 text-green-600" /> New User
+              </a>
+              <a href="#new-agent" className="flex items-center gap-3 px-4 py-2 text-sm font-medium hover:bg-green-100 hover:text-green-700 rounded-lg transition-colors mx-2">
+                <Users className="w-4 h-4 text-green-600" /> New Agent
+              </a>
+            </div>
+          </div>
+          
+          {/* Mobile Login with Dropdown */}
+          <div className="relative group flex-1">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="w-full bg-red-500 hover:bg-red-600 text-white px-4 py-2.5 rounded-lg border border-red-600 flex items-center justify-center gap-2"
+            >
+              <UserCircle className="w-4 h-4" />
+              <span className="font-medium text-sm">Login</span>
+              <ChevronDown className="w-3 h-3" />
+            </Button>
+            {/* Dropdown for Login */}
+            <div className="absolute left-0 right-0 mt-1 opacity-0 -translate-y-4 invisible group-hover:opacity-100 group-hover:translate-y-0 group-hover:visible bg-red-50 text-gray-800 rounded-xl shadow-2xl py-2 border border-red-200 transition-all duration-300 z-50">
+              <a href="#user-login" className="flex items-center gap-3 px-4 py-2 text-sm font-medium hover:bg-red-100 hover:text-red-700 rounded-lg transition-colors mx-2">
+                <UserCircle className="w-4 h-4 text-red-600" /> User Login
+              </a>
+              <a href="#agent-login" className="flex items-center gap-3 px-4 py-2 text-sm font-medium hover:bg-red-100 hover:text-red-700 rounded-lg transition-colors mx-2">
+                <Users className="w-4 h-4 text-red-600" /> Agent Login
+              </a>
+            </div>
+          </div>
+        </div>
+      </li>
+    </ul>
+  </nav>
+)}
       </div>
     </header>
   );

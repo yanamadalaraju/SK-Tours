@@ -104,10 +104,10 @@ const Hero = () => {
   // Loading state
   if (loading) {
     return (
-      <section className="relative text-white overflow-hidden min-h-[90vh] flex items-center justify-center">
+      <section className="relative text-white overflow-hidden min-h-[70vh] sm:min-h-[80vh] lg:min-h-[90vh] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white mx-auto"></div>
-          <p className="mt-4">Loading videos...</p>
+          <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-t-2 border-b-2 border-white mx-auto"></div>
+          <p className="mt-3 sm:mt-4 text-sm sm:text-base">Loading videos...</p>
         </div>
       </section>
     );
@@ -116,12 +116,12 @@ const Hero = () => {
   // Error state
   if (error && videoCarousel.length === 0) {
     return (
-      <section className="relative text-white overflow-hidden min-h-[90vh] flex items-center justify-center">
-        <div className="text-center p-8 bg-red-900/20 rounded-lg max-w-md">
-          <p className="text-red-300 mb-4">{error}</p>
+      <section className="relative text-white overflow-hidden min-h-[70vh] sm:min-h-[80vh] lg:min-h-[90vh] flex items-center justify-center">
+        <div className="text-center p-4 sm:p-6 lg:p-8 bg-red-900/20 rounded-lg max-w-xs sm:max-w-sm lg:max-w-md mx-4">
+          <p className="text-red-300 mb-3 sm:mb-4 text-sm sm:text-base">{error}</p>
           <button 
             onClick={handleRetry}
-            className="mt-4 px-4 py-2 bg-white/20 rounded-lg hover:bg-white/30 transition-colors"
+            className="mt-3 sm:mt-4 px-3 sm:px-4 py-1.5 sm:py-2 bg-white/20 rounded-lg hover:bg-white/30 transition-colors text-sm sm:text-base"
           >
             Retry Loading
           </button>
@@ -133,13 +133,13 @@ const Hero = () => {
   // Empty state (no videos available)
   if (videoCarousel.length === 0) {
     return (
-      <section className="relative text-white overflow-hidden min-h-[90vh] flex items-center justify-center">
-        <div className="text-center p-8 bg-blue-900/20 rounded-lg max-w-md">
-          <p className="text-xl mb-2">No videos available</p>
-          <p className="text-white/60 mb-4">Add videos from the admin panel</p>
+      <section className="relative text-white overflow-hidden min-h-[70vh] sm:min-h-[80vh] lg:min-h-[90vh] flex items-center justify-center">
+        <div className="text-center p-4 sm:p-6 lg:p-8 bg-blue-900/20 rounded-lg max-w-xs sm:max-w-sm lg:max-w-md mx-4">
+          <p className="text-lg sm:text-xl mb-2">No videos available</p>
+          <p className="text-white/60 mb-3 sm:mb-4 text-sm sm:text-base">Add videos from the admin panel</p>
           <button 
             onClick={handleRetry}
-            className="px-4 py-2 bg-white/20 rounded-lg hover:bg-white/30 transition-colors"
+            className="px-3 sm:px-4 py-1.5 sm:py-2 bg-white/20 rounded-lg hover:bg-white/30 transition-colors text-sm sm:text-base"
           >
             Check Again
           </button>
@@ -149,7 +149,7 @@ const Hero = () => {
   }
 
   return (
-    <section className="relative text-white overflow-hidden min-h-[90vh] flex items-center">
+    <section className="relative text-white overflow-hidden min-h-[70vh] sm:min-h-[80vh] lg:min-h-[90vh] flex items-center">
       {/* Video Background Only */}
       <div className="absolute inset-0">
         {videoCarousel.map((video, index) => (
@@ -179,40 +179,43 @@ const Hero = () => {
         ))}
       </div>
 
-      {/* Video controls - SIMPLIFIED */}
-      <div className="absolute bottom-8 right-8 z-20">
-        <div className="flex items-center gap-4 bg-black/40 backdrop-blur-lg rounded-2xl p-4 border border-white/20">
+      {/* Video controls - RESPONSIVE */}
+      <div className="absolute bottom-4 sm:bottom-6 lg:bottom-8 right-4 sm:right-6 lg:right-8 z-20">
+        <div className="flex items-center gap-2 sm:gap-3 lg:gap-4 bg-black/50 backdrop-blur-lg rounded-xl sm:rounded-2xl p-2 sm:p-3 lg:p-4 border border-white/20">
           <button
             onClick={togglePlay}
-            className="p-3 bg-white/20 rounded-xl hover:bg-white/30 transition-all duration-300 transform hover:scale-110"
+            className="p-2 sm:p-3 bg-white/20 rounded-lg sm:rounded-xl hover:bg-white/30 transition-all duration-300 transform hover:scale-105 sm:hover:scale-110"
             aria-label={isPlaying ? "Pause" : "Play"}
           >
             {isPlaying ? (
-              <span className="w-6 h-6 flex items-center justify-center">⏸️</span>
+              <span className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 flex items-center justify-center text-sm sm:text-base lg:text-lg">⏸️</span>
             ) : (
-              <span className="w-6 h-6 flex items-center justify-center">▶️</span>
+              <span className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 flex items-center justify-center text-sm sm:text-base lg:text-lg">▶️</span>
             )}
           </button>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             {videoCarousel.map((_, index) => (
               <button
                 key={index}
                 onClick={() => handleVideoSelect(index)}
-                className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                className={`w-2 h-2 sm:w-2.5 sm:h-2.5 lg:w-3 lg:h-3 rounded-full transition-all duration-300 ${
                   index === currentVideo 
-                    ? "bg-white scale-125" 
+                    ? "bg-white scale-110 sm:scale-125" 
                     : "bg-white/40 hover:bg-white/60"
                 }`}
                 aria-label={`Go to video ${index + 1}`}
               />
             ))}
           </div>
-          {/* SIMPLIFIED: Just showing count like "1 / 3" */}
-          <div className="text-sm text-white/70 ml-2">
+          {/* Video counter - hidden on very small screens, shown on sm and up */}
+          <div className="text-xs sm:text-sm lg:text-sm text-white/70 ml-1 sm:ml-2 hidden xs:block">
             {currentVideo + 1} / {videoCarousel.length}
           </div>
         </div>
       </div>
+
+      {/* Optional: Add mobile touch controls overlay for better mobile UX */}
+      <div className="absolute inset-0 z-10 lg:hidden" onClick={togglePlay}></div>
     </section>
   );
 };

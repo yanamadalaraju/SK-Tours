@@ -62,6 +62,7 @@ import Flightfrontend from "./pages/Flight/hotels/Flightfrontend";
 import TourPdfDocumentinternational from "./pages/TourPdfDocumentinternational";
 import Login from "./pages/Loginpage/Login";
 import SignUp from "./pages/SignUp/SignUp";
+import OfflineFlightBooking from "./pages/OfflineFlightBooking/OfflineFlightBooking"
 
 const queryClient = new QueryClient();
 
@@ -108,7 +109,7 @@ const App = () => (
 <Route path="/cancellation_refund" element={<Cancellation_Refund />} />
 
 <Route path="/international-tours-packages/:state" element={<International_tours_packages />} />
-<Route path="/tourpdfdocument" element={<TourPdfDocument />} />
+<Route path="/tourpdfdocument" element={<TourPdfDocument tour={undefined} tourType={""} isGroupTour={false} selectedCostMonth={""} selectedCostDate={""} selectedDeparture={undefined} currentImageIndex={0} />} />
 <Route path="/international-tours_groups/:state" element={<International_group />} />
 <Route path="/international-ladies_tours/:state" element={<International_ladies />} />
 <Route path="/international-senior_tours/:state" element={<International_students />} />
@@ -116,15 +117,18 @@ const App = () => (
 <Route path="/international-senior_tours/:state" element={<International_senior />} />
 <Route path="/international_tour_details/:tourId" element={<International_Tourdetails />} />
 <Route path="/exhibition" element={<Exhibition />} />
-<Route path="/flighthotels" element={<FlightHotels />} />
-<Route path="/FlightSeatSelection" element={<SeatSelection />} />
-<Route path="/bookinginformation" element={<BookingConfirmation />} />
+<Route path="/flighthotels" element={<FlightHotels />} /> 
+<Route path="/FlightSeatSelection" element={<SeatSelection flightData={undefined} fareQuoteData={undefined} passengers={{ adults: 0, children: 0, infants: 0 }} onBack={() => { } } onBookingComplete={function (bookingResponse: any): void {
+            throw new Error("Function not implemented.");
+          } } bookingTokenId={""} token={""} endUserIp={""} staticParam={""} />} />
+<Route path="/bookinginformation" element={<BookingConfirmation bookingData={{}} referenceId="" passengerDetails={[]} contactDetails={{}} onBack={() => {}} />} />
 <Route path="/flightfrontend" element={<Flightfrontend />} />
 
-<Route path="/tour-enquiry" element={<TourEnquiry />} />
-<Route path="/tourpdfinternational" element={<TourPdfDocumentinternational />} />
+<Route path="/tour-enquiry" element={<TourEnquiry />} />    
+<Route path="/tourpdfinternational" element={<TourPdfDocumentinternational tour={undefined} tourType={""} isGroupTour={false} selectedCostMonth={""} selectedCostDate={""} selectedDeparture={undefined} currentImageIndex={0} />} />
 <Route path="/login" element={<Login />} />
-<Route path="/signup" element={<SignUp />} />
+<Route path="/signup" element={<SignUp />} /> 
+<Route path="/offlineflightbooking" element={<OfflineFlightBooking />} />
 
 
         </Routes>

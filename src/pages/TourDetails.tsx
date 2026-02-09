@@ -76,10 +76,6 @@ interface DayCardProps {
 const DayCard = ({ dayNumber, headerColor, bodyColor, dayData }: DayCardProps) => {
   const [meals, setMeals] = useState({ B: false, L: false, D: false });
 
-  const navigate = useNavigate();
-
-
-
   // Parse meals from dayData
   useEffect(() => {
     if (dayData?.meals) {
@@ -93,167 +89,141 @@ const DayCard = ({ dayNumber, headerColor, bodyColor, dayData }: DayCardProps) =
   }, [dayData?.meals]);
 
   return (
-
     <div className="rounded-lg">
-      {/* Header Row */}
-      <div className="flex gap-1 mb-1">
-        {/* Day Number - Fixed width */}
-        <div className={`${headerColor} text-white font-bold px-4 py-2 rounded-lg text-start w-[120px] flex-shrink-0 border border-black`}>
-          {dayNumber}
-        </div>
+      {/* HEADER ROW - Scrollable horizontally on mobile */}
+      <div className="mb-1 w-full">
+        <div className="relative">
+          {/* Scrollable wrapper */}
+          <div className="overflow-x-auto lg:overflow-visible">
+            <div className="flex gap-1 w-max lg:w-full min-w-full lg:min-w-0">
+              {/* Day Number */}
+              <div className={`${headerColor} text-white font-bold px-3 lg:px-4 py-2 rounded-lg text-center w-[70px] lg:w-[100px] flex-shrink-0 border border-black`}>
+                <span className="text-xs lg:text-sm">{dayNumber}</span>
+              </div>
 
-        {/* Title - Flexible width */}
-        <div className={`${headerColor} text-white font-bold px-4 py-2 rounded-lg flex-1 min-w-0 border border-black`}>
-          <div className="truncate">{dayData?.title || "Day Details"}</div>
-        </div>
+              {/* Day Title - Flexible width */}
+              <div className={`${headerColor} text-white font-bold px-3 lg:px-4 py-2 rounded-lg border border-black flex-1 min-w-[180px] lg:min-w-0 flex items-center`}>
+                <div className="truncate lg:whitespace-normal text-xs lg:text-base">
+                  {dayData?.title || "Day Details"}
+                </div>
+              </div>
 
-        {/* Meal Checkboxes - Fixed width, right aligned */}
-        <div className={`${headerColor} text-white border border-black rounded-lg px-3 py-1.5 flex items-center justify-center gap-3 w-[140px] flex-shrink-0`}>
-          {/* Breakfast - Square checkbox */}
-          <div className="flex items-center gap-1">
-            <div
-              className={`h-4 w-4 border flex items-center justify-center transition-colors ${meals.B
-                ? 'bg-white border-gray-400'
-                : 'bg-white border-gray-400'
-                }`}
-              style={{ borderRadius: '2px' }}
-            >
-              {meals.B ? (
-                // Dark blue checkmark ✓ for active - LARGER
-                <svg
-                  className="h-4 w-4 text-blue-700"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="3"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path d="M5 13l4 4L19 7"></path>
-                </svg>
-              ) : (
-                // Red X mark ✗ for inactive/wrong - LARGER
-                <svg
-                  className="h-4 w-4 text-red-600"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="3"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-              )}
+              {/* Meals Checkboxes */}
+              <div className={`
+                ${headerColor} text-white border border-black rounded-lg
+                px-1.5 lg:px-3 py-1.5
+                flex items-center justify-center
+                gap-1 lg:gap-3
+                w-full max-w-[120px] lg:w-[130px]
+                flex-shrink-0
+              `}>
+                {/* Breakfast */}
+                <div className="flex items-center gap-1">
+                  <div className="h-4 w-4 border border-gray-400 bg-white flex items-center justify-center">
+                    {meals.B ? (
+                      <svg
+                        className="h-3 w-3 text-blue-700"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      <svg
+                        className="h-3 w-3 text-red-600"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    )}
+                  </div>
+                  <span className="text-white text-xs lg:text-sm font-bold">B</span>
+                </div>
+
+                {/* Lunch */}
+                <div className="flex items-center gap-1">
+                  <div className="h-4 w-4 border border-gray-400 bg-white flex items-center justify-center">
+                    {meals.L ? (
+                      <svg
+                        className="h-3 w-3 text-blue-700"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      <svg
+                        className="h-3 w-3 text-red-600"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    )}
+                  </div>
+                  <span className="text-white text-xs lg:text-sm font-bold">L</span>
+                </div>
+
+                {/* Dinner */}
+                <div className="flex items-center gap-1">
+                  <div className="h-4 w-4 border border-gray-400 bg-white flex items-center justify-center">
+                    {meals.D ? (
+                      <svg
+                        className="h-3 w-3 text-blue-700"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      <svg
+                        className="h-3 w-3 text-red-600"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    )}
+                  </div>
+                  <span className="text-white text-xs lg:text-sm font-bold">D</span>
+                </div>
+              </div>
             </div>
-            <span className="text-white text-sm font-bold">B</span>
-          </div>
-
-          {/* Lunch - Square checkbox */}
-          <div className="flex items-center gap-1">
-            <div
-              className={`h-4 w-4 border flex items-center justify-center transition-colors ${meals.L
-                ? 'bg-white border-gray-400'
-                : 'bg-white border-gray-400'
-                }`}
-              style={{ borderRadius: '2px' }}
-            >
-              {meals.L ? (
-                // Dark blue checkmark ✓ for active - LARGER
-                <svg
-                  className="h-4 w-4 text-blue-700"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="3"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path d="M5 13l4 4L19 7"></path>
-                </svg>
-              ) : (
-                // Red X mark ✗ for inactive/wrong - LARGER
-                <svg
-                  className="h-4 w-4 text-red-600"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="3"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-              )}
-            </div>
-            <span className="text-white text-sm font-bold">L</span>
-          </div>
-
-          {/* Dinner - Square checkbox */}
-          <div className="flex items-center gap-1">
-            <div
-              className={`h-4 w-4 border flex items-center justify-center transition-colors ${meals.D
-                ? 'bg-white border-gray-400'
-                : 'bg-white border-gray-400'
-                }`}
-              style={{ borderRadius: '2px' }}
-            >
-              {meals.D ? (
-                // Dark blue checkmark ✓ for active - LARGER
-                <svg
-                  className="h-4 w-4 text-blue-700"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="3"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path d="M5 13l4 4L19 7"></path>
-                </svg>
-              ) : (
-                // Red X mark ✗ for inactive/wrong - LARGER
-                <svg
-                  className="h-4 w-4 text-red-600"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="3"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-              )}
-            </div>
-            <span className="text-white text-sm font-bold">D</span>
           </div>
         </div>
       </div>
 
-      {/* Content Area - Scrollable with justified text */}
+      {/* DESCRIPTION - Fixed, no horizontal scroll */}
       <div className={`${bodyColor} rounded-lg border border-black overflow-hidden`}>
-        <div
-          className="p-2 text-black whitespace-pre-line text-justify"
-          style={{
-            height: '150px', // Fixed height
-            overflowY: 'auto',
-            scrollbarWidth: 'thin', // Firefox
-          }}
-        >
+        <div className="p-2 text-black whitespace-pre-line text-justify h-[150px] overflow-y-auto">
           {dayData?.description || ""}
         </div>
       </div>
-      <div className="mt-1">
-        <button
-          onClick={() => navigate("/alert")}
-          className={`w-full  font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90`}
-        >
-          Customize your tour on chargeable basis
-        </button>
-      </div>
-
-
     </div>
   );
 };
@@ -1051,10 +1021,10 @@ const TourDetails = () => {
           <div className="flex flex-col lg:flex-row gap-6">
 
             {/* Filters Sidebar */}
-            <aside className="lg:w-80">
-              <div className="bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl shadow-lg p-6 border border-blue-200 sticky top-24">
+            <aside className="lg:w-80 w-full order-1">
+              <div className="bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl shadow-lg p-4 lg:p-6 border border-blue-200 lg:sticky lg:top-24">
                 <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
-                  <h2 className="text-2xl font-bold text-[#2E4D98]">Domestic Tours</h2>
+                  <h2 className="text-xl lg:text-2xl font-bold text-[#2E4D98]">Domestic Tours</h2>
                   <button
                     onClick={clearAllFilters}
                     className="text-sm text-[#E53C42] hover:underline"
@@ -1065,8 +1035,8 @@ const TourDetails = () => {
 
                 {/* Duration */}
                 <div className="mb-8">
-                  <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Duration</h3>
-                  <div className="flex justify-between text-sm text-gray-600 mb-3">
+                  <h3 className="font-semibold text-base lg:text-lg mb-4 text-[#2E4D98]">Duration</h3>
+                  <div className="flex justify-between text-xs lg:text-sm text-gray-600 mb-3">
                     <span>{durationRange[0]} days</span>
                     <span>{durationRange[1]} days</span>
                   </div>
@@ -1081,8 +1051,8 @@ const TourDetails = () => {
 
                 {/* Price */}
                 <div className="mb-8">
-                  <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Price</h3>
-                  <div className="flex justify-between text-sm text-gray-600 mb-3">
+                  <h3 className="font-semibold text-base lg:text-lg mb-4 text-[#2E4D98]">Price</h3>
+                  <div className="flex justify-between text-xs lg:text-sm text-gray-600 mb-3">
                     <span>₹{priceRange[0].toLocaleString()}</span>
                     <span>₹{priceRange[1].toLocaleString()}</span>
                   </div>
@@ -1096,10 +1066,9 @@ const TourDetails = () => {
                 </div>
 
                 {/* Indian Tours */}
-
                 <div className="mb-8">
                   <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
-                    <h2 className="text-2xl font-bold text-[#2E4D98]">Indian Tours</h2>
+                    <h2 className="text-xl lg:text-2xl font-bold text-[#2E4D98]">Indian Tours</h2>
                   </div>
 
                   <div className={`${showMoreIndian ? "max-h-80 overflow-y-auto pr-2" : ""} space-y-2.5`}>
@@ -1184,11 +1153,11 @@ const TourDetails = () => {
                                 // Navigate to the correct path with place as parameter
                                 navigate(`${basePath}/${encodeURIComponent(place)}`);
                               }}
-                              className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
+                              className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98] w-3 h-3 lg:w-4 lg:h-4"
                             />
 
                             <span
-                              className={`text-gray-800 transition-colors group-hover:text-[#2E4D98] ${selectedState === place ? 'font-semibold text-[#2E4D98]' : ''
+                              className={`text-sm lg:text-base text-gray-800 transition-colors group-hover:text-[#2E4D98] ${selectedState === place ? 'font-semibold text-[#2E4D98]' : ''
                                 }`}
                             >
                               {place}
@@ -1200,7 +1169,7 @@ const TourDetails = () => {
 
                   <button
                     onClick={() => setShowMoreIndian(!showMoreIndian)}
-                    className="mt-4 text-[#2E4D98] text-sm font-medium hover:underline flex items-center gap-1"
+                    className="mt-4 text-[#2E4D98] text-xs lg:text-sm font-medium hover:underline flex items-center gap-1"
                   >
                     {showMoreIndian ? 'Show Less' : 'Show More States'}
                   </button>
@@ -1208,16 +1177,16 @@ const TourDetails = () => {
 
                 <div>
                   <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
-                    <h2 className="text-2xl font-bold text-[#2E4D98]">International Tours</h2>
+                    <h2 className="text-xl lg:text-2xl font-bold text-[#2E4D98]">International Tours</h2>
                   </div>
 
                   {loadingDestinations ? (
                     <div className="text-center py-4">
-                      <p className="text-gray-500">Loading international destinations...</p>
+                      <p className="text-gray-500 text-sm lg:text-base">Loading international destinations...</p>
                     </div>
                   ) : internationalDestinations.length === 0 ? (
                     <div className="text-center py-4">
-                      <p className="text-gray-500">No international destinations found</p>
+                      <p className="text-gray-500 text-sm lg:text-base">No international destinations found</p>
                     </div>
                   ) : (
                     <>
@@ -1284,13 +1253,13 @@ const TourDetails = () => {
                                       setSelectedWorldTours(selectedWorldTours.filter(t => t !== place));
                                     }
                                   }}
-                                  className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
+                                  className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98] w-4 h-4 lg:w-4 lg:h-4"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                   }}
                                 />
                                 <span
-                                  className={`${isSelected ? 'font-bold text-[#2E4D98]' : 'text-gray-700 hover:text-[#2E4D98]'} cursor-pointer flex-1`}
+                                  className={`${isSelected ? 'font-bold text-[#2E4D98]' : 'text-gray-700 hover:text-[#2E4D98]'} cursor-pointer flex-1 text-sm lg:text-base`}
                                 >
                                   {place}
                                 </span>
@@ -1302,7 +1271,7 @@ const TourDetails = () => {
                       {internationalDestinations.length > 6 && (
                         <button
                           onClick={() => setShowMoreWorld(!showMoreWorld)}
-                          className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
+                          className="mt-3 text-[#2E4D98] text-xs lg:text-sm font-semibold hover:underline"
                         >
                           {showMoreWorld ? "Show Less" : "Show More"}
                         </button>
@@ -1314,10 +1283,10 @@ const TourDetails = () => {
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1">
+            <main className="flex-1 order-1 lg:order-2">
               {/* Hero Section with Image Carousel */}
               <div className="relative rounded-2xl overflow-hidden mb-1">
-                <div className="relative h-96 lg:h-[500px] overflow-hidden">
+                <div className="relative h-64 sm:h-80 lg:h-[500px] overflow-hidden">
                   <img
                     src={tour.images[currentImageIndex]}
                     alt={tour.title}
@@ -1332,25 +1301,25 @@ const TourDetails = () => {
                           prevImage();
                           resetAutoScroll(); // Reset timer when manually navigating
                         }}
-                        className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all duration-200"
+                        className="absolute left-2 lg:left-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-1 lg:p-2 rounded-full transition-all duration-200"
                       >
-                        <ChevronLeft className="w-6 h-6" />
+                        <ChevronLeft className="w-4 h-4 lg:w-6 lg:h-6" />
                       </button>
                       <button
                         onClick={() => {
                           nextImage();
                           resetAutoScroll(); // Reset timer when manually navigating
                         }}
-                        className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all duration-200"
+                        className="absolute right-2 lg:right-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-1 lg:p-2 rounded-full transition-all duration-200"
                       >
-                        <ChevronRight className="w-6 h-6" />
+                        <ChevronRight className="w-4 h-4 lg:w-6 lg:h-6" />
                       </button>
                     </>
                   )}
 
                   {/* Image Counter */}
                   {tour.images.length > 1 && (
-                    <div className="absolute top-4 right-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
+                    <div className="absolute top-2 lg:top-4 right-2 lg:right-4 bg-black/50 text-white px-2 lg:px-3 py-0.5 lg:py-1 rounded-full text-xs lg:text-sm">
                       {currentImageIndex + 1} / {tour.images.length}
                     </div>
                   )}
@@ -1358,8 +1327,8 @@ const TourDetails = () => {
 
                 {/* Thumbnail Gallery */}
                 {tour.images.length > 1 && (
-                  <div className="bg-gradient-to-r from-blue-100 to-blue-100 p-4 border-t">
-                    <div className="flex justify-center gap-2">
+                  <div className="bg-gradient-to-r from-blue-100 to-blue-100 p-2 lg:p-4 border-t">
+                    <div className="flex justify-center gap-1 lg:gap-2 overflow-x-auto pb-2">
                       {tour.images.map((image: string, index: number) => (
                         <button
                           key={index}
@@ -1367,8 +1336,8 @@ const TourDetails = () => {
                             goToImage(index);
                             resetAutoScroll(); // Reset timer when clicking thumbnail
                           }}
-                          className={`w-16 h-16 lg:w-20 lg:h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 ${index === currentImageIndex
-                            ? 'border-[#2E4D98] ring-2 ring-[#2E4D98] ring-opacity-50 scale-105'
+                          className={`flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 lg:w-20 lg:h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 ${index === currentImageIndex
+                            ? 'border-[#2E4D98] ring-1 lg:ring-2 ring-[#2E4D98] ring-opacity-50 scale-105'
                             : 'border-transparent hover:border-gray-300'
                             }`}
                         >
@@ -1385,78 +1354,80 @@ const TourDetails = () => {
               </div>
 
               {/* Excel-like Table Layout */}
-              <div className="bg-white rounded-xl shadow-sm mb-1.5 overflow-hidden border border-black">
-                {/* ===== FIRST ROW: HEADERS ===== */}
-                <div className="grid grid-cols-8 bg-[#E8F0FF] border-b border-black">
-                  <div className="border-r border-white bg-[#2E3a8a] px-4 py-3">
-                    <h3 className="font-bold text-white text-start text-lg">Tour Code</h3>
+              <div className="bg-white rounded-xl shadow-sm mb-1.5 overflow-hidden border border-black overflow-x-auto">
+                <div className="min-w-[800px] lg:min-w-0">
+                  {/* ===== FIRST ROW: HEADERS ===== */}
+                  <div className="grid grid-cols-8 bg-[#E8F0FF] border-b border-black">
+                    <div className="border-r border-white bg-[#2E3a8a] px-2 lg:px-4 py-2 lg:py-3">
+                      <h3 className="font-bold text-white text-start text-sm lg:text-lg">Tour Code</h3>
+                    </div>
+
+                    <div className="col-span-6 border-r border-white bg-[#2E3a8a] px-2 lg:px-4 py-2 lg:py-3">
+                      <h3 className="font-bold text-white text-left text-sm lg:text-lg">Tour Name</h3>
+                    </div>
+
+                    <div className="px-2 lg:px-4 py-2 lg:py-3 bg-[#2E3a8a]">
+                      <h3 className="font-bold text-white text-start text-sm lg:text-lg">Days</h3>
+                    </div>
                   </div>
 
-                  <div className="col-span-6 border-r border-white bg-[#2E3a8a] px-4 py-3">
-                    <h3 className="font-bold text-white text-left text-lg">Tour Name</h3>
+                  {/* ===== SECOND ROW: VALUES ===== */}
+                  <div className="grid grid-cols-8 border-black border-black">
+                    <div className="border-r border-black px-1 lg:px-4 py-2 lg:py-3 bg-blue-50">
+                      <p className="text-sm lg:text-lg font-bold text-[#2E4D98] text-center tracking-wide">
+                        {tour.code}
+                      </p>
+                    </div>
+
+                    <div className="col-span-6 border-r border-black px-2 lg:px-4 py-2 lg:py-3 bg-gray-50">
+                      <p className="text-sm lg:text-lg font-semibold text-gray-900 text-left break-words">
+                        {tour.title}
+                      </p>
+                    </div>
+
+                    <div className="px-2 lg:px-4 py-2 lg:py-3 bg-red-50">
+                      <p className="text-sm lg:text-lg font-bold text-[#E53C42] text-center">
+                        {tour.duration}
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="px-4 py-3 bg-[#2E3a8a]">
-                    <h3 className="font-bold text-white text-start text-lg">Days</h3>
+                  {/* ===== THIRD ROW: TABS ===== */}
+                  <div className="grid grid-cols-8 bg-white border-t border-black">
+                    {[
+                      "Itinerary",
+                      "Dep Date",
+                      "Tour Cost",
+                      "Cost inc./Cost ex.",
+                      "Flights & Hotels",
+                      "Bookings POI",
+                      "Cancellation",
+                      "Instructions"
+                    ].map((label, idx) => (
+                      <button
+                        key={label}
+                        onClick={() => setActiveTab(label.toLowerCase().replace(/\s+/g, '-'))}
+                        className={`px-1 lg:px-3 py-2 lg:py-4 text-[10px] xs:text-xs sm:text-sm font-semibold text-center whitespace-nowrap
+                        ${idx < 7 ? "border-r border-black" : ""} transition 
+                        ${activeTab === label.toLowerCase().replace(/\s+/g, '-')
+                            ? "bg-[#A72703] text-white"
+                            : "bg-[#FFE797] text-gray-800"
+                          }
+                      `}
+                      >
+                        {label}
+                      </button>
+                    ))}
                   </div>
-                </div>
-
-                {/* ===== SECOND ROW: VALUES ===== */}
-                <div className="grid grid-cols-8 border-black border-black">
-                  <div className="border-r border-black px-1 py-3 bg-blue-50">
-                    <p className="text-lg font-bold text-[#2E4D98] text-center tracking-wide">
-                      {tour.code}
-                    </p>
-                  </div>
-
-                  <div className="col-span-6 border-r border-black px-4 py-3 bg-gray-50">
-                    <p className="text-lg font-semibold text-gray-900 text-left">
-                      {tour.title}
-                    </p>
-                  </div>
-
-                  <div className="px-4 py-3 bg-red-50">
-                    <p className="text-lg font-bold text-[#E53C42] text-center">
-                      {tour.duration}
-                    </p>
-                  </div>
-                </div>
-
-                {/* ===== THIRD ROW: TABS ===== */}
-                <div className="grid grid-cols-8 bg-white border-t border-black">
-                  {[
-                    "Itinerary",
-                    "Dep Date",
-                    "Tour Cost",
-                    "Cost inc./Cost ex.",
-                    "Flights & Hotels",
-                    "Bookings POI",
-                    "Cancellation",
-                    "Instructions"
-                  ].map((label, idx) => (
-                    <button
-                      key={label}
-                      onClick={() => setActiveTab(label.toLowerCase().replace(/\s+/g, '-'))}
-                      className={`px-3 py-4 text-sm font-semibold text-center whitespace-nowrap
-                      ${idx < 7 ? "border-r border-black" : ""} transition 
-                      ${activeTab === label.toLowerCase().replace(/\s+/g, '-')
-                          ? "bg-[#A72703] text-white"
-                          : "bg-[#FFE797] text-gray-800"
-                        }
-                    `}
-                    >
-                      {label}
-                    </button>
-                  ))}
                 </div>
               </div>
 
-              <div className="bg-[#2E4D98] rounded-md shadow-sm p-4">
+              <div className="bg-[#2E4D98] rounded-md shadow-sm p-2 lg:p-4">
                 {/* Itinerary Tab */}
                 {activeTab === "itinerary" && (
                   <div className="bg-[#C2E2FA] rounded-lg p-1 h-full">
                     <div className="mx-auto bg-white rounded-lg shadow-lg h-full flex flex-col min-h-0">
-                      <div className="bg-red-600 text-white text-center font-bold text-2xl py-2 rounded-t-lg flex-shrink-0">
+                      <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 rounded-t-lg flex-shrink-0">
                         Tour Itinerary
                       </div>
                       <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg flex-1 min-h-0">
@@ -1471,24 +1442,33 @@ const TourDetails = () => {
                                 dayData={day}
                               />
                             ))}
+                            <div className="pt-0">
+                              <button
+                                onClick={() => navigate("/alert")}
+                                className="w-full font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90 text-sm lg:text-base"
+                              >
+                                Customize your tour on chargeable basis
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
                 )}
+                
                 {/* Dep Date Tab - Different for Group vs Individual */}
                 {activeTab === "dep-date" && (
                   isGroupTour ? (
                     // Group Tour Departure Dates
                     <div className="bg-[#E8F0FF] rounded-lg p-1 w-full">
-                      <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
+                      <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
                         Departure Dates
                       </div>
 
-                      <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg w-full flex flex-col min-h-[580px] max-h-[580px] overflow-hidden">
+                      <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg w-full flex flex-col min-h-[400px] lg:min-h-[580px] max-h-[400px] lg:max-h-[580px] overflow-hidden">
                         <div className="flex-1 overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-                          <div className="flex flex-wrap gap-2 mb-2">
+                          <div className="flex flex-wrap gap-1 lg:gap-2 mb-2">
                             {(() => {
                               // Get unique months from departure data
                               const availableMonths = tour.departures.data
@@ -1513,24 +1493,26 @@ const TourDetails = () => {
                               const allTabs = ["ALL", ...availableMonths];
 
                               return (
-                                <div className="flex flex-wrap gap-2 mb-1">
+                                <div className="flex flex-wrap gap-1 lg:gap-2 mb-1 overflow-x-auto pb-2">
                                   {allTabs.map((tab) => (
                                     <button
                                       key={tab}
                                       onClick={() => setSelectedMonth(tab)}
                                       className={`
-                        px-3 py-2 
-                        border-2 
-                        font-semibold
-                        text-center
-                        w-32
-                        transition-all
-                        duration-200
-                        ${selectedMonth === tab
+                                        px-2 lg:px-3 py-1 lg:py-2 
+                                        border-2 
+                                        font-semibold
+                                        text-center
+                                        w-20 lg:w-32
+                                        text-xs lg:text-sm
+                                        transition-all
+                                        duration-200
+                                        flex-shrink-0
+                                        ${selectedMonth === tab
                                           ? "bg-blue-100 border-blue-600 text-blue-800 shadow-md"
                                           : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400"
                                         }
-                      `}
+                                      `}
                                     >
                                       {tab}
                                     </button>
@@ -1543,30 +1525,34 @@ const TourDetails = () => {
                           {/* Departure Cards */}
                           <div className="space-y-4 w-full">
                             {filteredDepartureData.map((item: any, index: number) => (
-                              <div key={item.id || index} className="border border-2 border-black p-4 bg-white space-y-4">
+                              <div key={item.id || index} className="border border-2 border-black p-3 lg:p-4 bg-white space-y-4">
                                 {/* MAIN CARD */}
-                                <div className="grid grid-cols-5 items-center">
+                                <div className="grid grid-cols-2 lg:grid-cols-5 items-center gap-2 lg:gap-0">
                                   <div>
-                                    <p className="text-gray-500">{item.fromDay}</p>
-                                    <p className="font-semibold">{item.fromDate}</p>
+                                    <p className="text-xs lg:text-sm text-gray-500">From</p>
+                                    <p className="font-semibold text-sm lg:text-base">{item.fromDate}</p>
+                                    <p className="text-xs text-gray-500">{item.fromDay}</p>
                                   </div>
 
                                   <div>
-                                    <p className="text-gray-500">{item.toDay}</p>
-                                    <p className="font-semibold">{item.toDate}</p>
+                                    <p className="text-xs lg:text-sm text-gray-500">To</p>
+                                    <p className="font-semibold text-sm lg:text-base">{item.toDate}</p>
+                                    <p className="text-xs text-gray-500">{item.toDay}</p>
                                   </div>
 
-                                  {/* Status with conditional styling */}
-                                  <div className={`font-semibold ${item.status === 'Sold Out'
-                                    ? 'text-red-600'
-                                    : item.status === 'Available'
-                                      ? 'text-green-600'
-                                      : 'text-blue-700'
-                                    }`}>
-                                    {item.status}
+                                  {/* Status with conditional styling - mobile: col-span-2 */}
+                                  <div className="col-span-2 lg:col-span-1 flex items-center justify-center">
+                                    <span className={`font-semibold text-sm lg:text-base ${item.status === 'Sold Out'
+                                      ? 'text-red-600'
+                                      : item.status === 'Available'
+                                        ? 'text-green-600'
+                                        : 'text-blue-700'
+                                      }`}>
+                                      {item.status}
+                                    </span>
                                   </div>
 
-                                  <div className="text-lg font-bold text-gray-900">
+                                  <div className="text-sm lg:text-lg font-bold text-gray-900">
                                     {formatPrice(item.price)}
                                   </div>
 
@@ -1574,7 +1560,7 @@ const TourDetails = () => {
                                   <button
                                     onClick={() => toggleTable(index)}
                                     disabled={item.status === 'Sold Out'}
-                                    className={`px-6 py-2 transition-colors ${item.status === 'Sold Out'
+                                    className={`px-3 lg:px-6 py-1 lg:py-2 transition-colors text-xs lg:text-sm ${item.status === 'Sold Out'
                                       ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
                                       : 'bg-[#003366] text-white hover:bg-[#002244]'
                                       } ${openIndex === index ? 'bg-[#002244]' : ''}`}
@@ -1590,43 +1576,45 @@ const TourDetails = () => {
 
                                 {/* TABLE SHOW WHEN BUTTON CLICKED - Only show if not Sold Out */}
                                 {openIndex === index && item.status !== 'Sold Out' && (
-                                  <div className="border-2 border-black overflow-hidden animate-fadeIn">
-                                    {/* HEADER */}
-                                    <div className="grid grid-cols-4 bg-[#0A1D4A] text-white font-semibold text-center">
-                                      <div className="p-2 border-r-2 border-white">Particulars - Tour Cost</div>
-                                      <div className="p-2 border-r-2 border-white">Standard</div>
-                                      <div className="p-2 border-r-2 border-white">Deluxe</div>
-                                      <div className="p-2">Luxury</div>
-                                    </div>
-
-                                    {/* ROWS */}
-                                    {[
-                                      { particular: "Per pax on Twin Basis", star3: item.threeStar.twin, star4: item.fourStar.twin, star5: item.fiveStar.twin },
-                                      { particular: "Per pax on Triple Basis", star3: item.threeStar.triple, star4: item.fourStar.triple, star5: item.fiveStar.triple },
-                                      { particular: "Child with Bed", star3: item.threeStar.childWithBed, star4: item.fourStar.childWithBed, star5: item.fiveStar.childWithBed },
-                                      { particular: "Child without Bed", star3: item.threeStar.childWithoutBed, star4: item.fourStar.childWithoutBed, star5: item.fiveStar.childWithoutBed },
-                                      { particular: "Infant", star3: item.threeStar.infant, star4: item.fourStar.infant, star5: item.fiveStar.infant },
-                                      { particular: "Per pax Single Occupancy", star3: item.threeStar.single, star4: item.fourStar.single, star5: item.fiveStar.single },
-                                    ].map((row, i) => (
-                                      <div
-                                        key={i}
-                                        className={`grid grid-cols-4 text-center border-b-2 border-black ${i % 2 === 0 ? "bg-[#EEF1F7]" : "bg-white"
-                                          } ${i === 5 ? 'border-b-0' : ''}`}
-                                      >
-                                        <div className="p-2 border-r-2 border-black font-medium">
-                                          {row.particular}
-                                        </div>
-                                        <div className="p-2 border-r-2 border-black">
-                                          {row.star3}
-                                        </div>
-                                        <div className="p-2 border-r-2 border-black font-semibold text-green-700">
-                                          {row.star4}
-                                        </div>
-                                        <div className="p-2">
-                                          {row.star5}
-                                        </div>
+                                  <div className="border-2 border-black overflow-hidden animate-fadeIn overflow-x-auto">
+                                    <div className="min-w-[600px] lg:min-w-0">
+                                      {/* HEADER */}
+                                      <div className="grid grid-cols-4 bg-[#0A1D4A] text-white font-semibold text-center">
+                                        <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Particulars - Tour Cost</div>
+                                        <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Standard</div>
+                                        <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Deluxe</div>
+                                        <div className="p-2 text-xs lg:text-sm">Luxury</div>
                                       </div>
-                                    ))}
+
+                                      {/* ROWS */}
+                                      {[
+                                        { particular: "Per pax on Twin Basis", star3: item.threeStar.twin, star4: item.fourStar.twin, star5: item.fiveStar.twin },
+                                        { particular: "Per pax on Triple Basis", star3: item.threeStar.triple, star4: item.fourStar.triple, star5: item.fiveStar.triple },
+                                        { particular: "Child with Bed", star3: item.threeStar.childWithBed, star4: item.fourStar.childWithBed, star5: item.fiveStar.childWithBed },
+                                        { particular: "Child without Bed", star3: item.threeStar.childWithoutBed, star4: item.fourStar.childWithoutBed, star5: item.fiveStar.childWithoutBed },
+                                        { particular: "Infant", star3: item.threeStar.infant, star4: item.fourStar.infant, star5: item.fiveStar.infant },
+                                        { particular: "Per pax Single Occupancy", star3: item.threeStar.single, star4: item.fourStar.single, star5: item.fiveStar.single },
+                                      ].map((row, i) => (
+                                        <div
+                                          key={i}
+                                          className={`grid grid-cols-4 text-center border-b-2 border-black ${i % 2 === 0 ? "bg-[#EEF1F7]" : "bg-white"
+                                            } ${i === 5 ? 'border-b-0' : ''}`}
+                                        >
+                                          <div className="p-2 border-r-2 border-black font-medium text-xs lg:text-sm">
+                                            {row.particular}
+                                          </div>
+                                          <div className="p-2 border-r-2 border-black text-xs lg:text-sm">
+                                            {row.star3}
+                                          </div>
+                                          <div className="p-2 border-r-2 border-black font-semibold text-green-700 text-xs lg:text-sm">
+                                            {row.star4}
+                                          </div>
+                                          <div className="p-2 text-xs lg:text-sm">
+                                            {row.star5}
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
                                   </div>
                                 )}
                               </div>
@@ -1634,14 +1622,14 @@ const TourDetails = () => {
 
                             {/* Show message when no departures for selected month */}
                             {filteredDepartureData.length === 0 && (
-                              <div className="text-center py-8 bg-white border border-gray-300 rounded-lg">
-                                <p className="text-gray-600 text-lg mb-2">
+                              <div className="text-center py-6 lg:py-8 bg-white border border-gray-300 rounded-lg">
+                                <p className="text-gray-600 text-base lg:text-lg mb-2">
                                   {selectedMonth === "ALL"
                                     ? "No departure dates available for this tour"
                                     : `No departure dates available for ${selectedMonth}`
                                   }
                                 </p>
-                                <p className="text-gray-500 text-sm">
+                                <p className="text-gray-500 text-xs lg:text-sm">
                                   Please check back later or contact us for more information
                                 </p>
                               </div>
@@ -1652,7 +1640,7 @@ const TourDetails = () => {
                       <div className="mt-1">
                         <button
                           onClick={() => navigate("/alert")}
-                          className={`w-full  font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90`}
+                          className={`w-full font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90 text-sm lg:text-base`}
                         >
                           Customize your tour on chargeable basis
                         </button>
@@ -1661,18 +1649,18 @@ const TourDetails = () => {
                   ) : (
                     // Individual Tour Departure Descriptions (unchanged)
                     <div className="bg-[#E8F0FF] rounded-lg p-1 w-full">
-                      <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
+                      <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
                         Departure Dates
                       </div>
 
-                      <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg w-full flex flex-col min-h-[280px] max-h-[280px] overflow-hidden">
+                      <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg w-full flex flex-col min-h-[200px] lg:min-h-[280px] max-h-[200px] lg:max-h-[280px] overflow-hidden">
                         <div className="flex-1 overflow-y-auto p-2 bg-[#FFEBEE] w-full">
                           <div className="space-y-4 w-full">
                             {tour.departures.descriptions.map((description: string, index: number) => (
                               <div key={index} className="border-gray-200 rounded-lg w-full">
                                 <div className="flex items-start w-full">
                                   <div className="flex-1 min-w-0">
-                                    <p className="text-black break-words whitespace-pre-wrap text-justify w-full">
+                                    <p className="text-black break-words whitespace-pre-wrap text-justify w-full text-sm lg:text-base">
                                       {description}
                                     </p>
                                   </div>
@@ -1685,253 +1673,252 @@ const TourDetails = () => {
                       <div className="mt-1">
                         <button
                           onClick={() => navigate("/alert")}
-                          className={`w-full  font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90`}
+                          className={`w-full font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90 text-sm lg:text-base`}
                         >
                           Customize your tour on chargeable basis
                         </button>
                       </div>
-
                     </div>
-
                   )
                 )}
 
                 {activeTab === "tour-cost" && (
                   <div className="bg-[#E8F0FF] rounded-lg p-1">
-                    <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg mb-1.5">
+                    <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg mb-1.5">
                       Tour Cost
                     </div>
 
-                    <div className="border rounded-b-lg rounded-t overflow-hidden -mt-1">
-                      {/* Group Tour Cost Section - Show only for Group-like tours */}
-                      {isGroupTour ? (
-                        <div className="mb-4">
-                          {/* Month and Date Selection */}
-                          <div className="p-4 mb-4 border-2 border-black rounded-lg">
-                            <div className="grid grid-cols-2 gap-4 mb-4">
-                              {/* MONTH */}
-                              <div>
-                                <label className="block text-gray-700 font-bold mb-2">Month</label>
-                                <select
-                                  className="w-full border-2 border-black rounded-md px-3 py-2 bg-white"
-                                  value={selectedCostMonth}
-                                  onChange={(e) => {
-                                    setSelectedCostMonth(e.target.value);
-                                    setSelectedCostDate(""); // reset date
-                                  }}
-                                >
-                                  <option value="">Select Month</option>
-                                  {availableMonths.map(month => (
-                                    <option key={month} value={month}>
-                                      {month}
-                                    </option>
-                                  ))}
-                                </select>
-                              </div>
+                  <div className="border rounded-b-lg rounded-t overflow-hidden -mt-1">
+  {isGroupTour ? (
+    <div className="mb-0">
+      <div className="p-3 lg:p-4 mb-1 border-2 border-black rounded-lg"> {/* Changed from mb-4 to mb-1 */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+          {/* MONTH */}
+          <div>
+            <label className="block text-gray-700 font-bold mb-2 text-sm lg:text-base">Month</label>
+            <select
+              className="w-full border-2 border-black rounded-md px-3 py-2 bg-white text-sm lg:text-base"
+              value={selectedCostMonth}
+              onChange={(e) => {
+                setSelectedCostMonth(e.target.value);
+                setSelectedCostDate(""); // reset date
+              }}
+            >
+              <option value="">Select Month</option>
+              {availableMonths.map(month => (
+                <option key={month} value={month}>
+                  {month}
+                </option>
+              ))}
+            </select>
+          </div>
 
-                              {/* DATE */}
-                              <div>
-                                <label className="block text-gray-700 font-bold mb-2">Date</label>
-                                <select
-                                  className="w-full border-2 border-black rounded-md px-3 py-2 bg-white"
-                                  value={selectedCostDate}
-                                  onChange={(e) => setSelectedCostDate(e.target.value)}
-                                  disabled={!selectedCostMonth}
-                                >
-                                  <option value="">Select Date</option>
-                                  {availableDates.map(dep => (
-                                    <option key={dep.id} value={dep.fromDate}>
-                                      {dep.fromDate} – {dep.toDate}
-                                    </option>
-                                  ))}
-                                </select>
-                              </div>
-                            </div>
+          {/* DATE */}
+          <div>
+            <label className="block text-gray-700 font-bold mb-2 text-sm lg:text-base">Date</label>
+            <select
+              className="w-full border-2 border-black rounded-md px-3 py-2 bg-white text-sm lg:text-base"
+              value={selectedCostDate}
+              onChange={(e) => setSelectedCostDate(e.target.value)}
+              disabled={!selectedCostMonth}
+            >
+              <option value="">Select Date</option>
+              {availableDates.map(dep => (
+                <option key={dep.id} value={dep.fromDate}>
+                  {dep.fromDate} – {dep.toDate}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
 
-                            {/* Tour Cost Table for Group Tours */}
-                            {selectedDeparture ? (
-                              <div className="border-2 border-black overflow-hidden animate-fadeIn">
-                                {/* HEADER */}
-                                <div className="grid grid-cols-4 bg-[#0A1D4A] text-white font-semibold text-center">
-                                  <div className="p-2 border-r-2 border-white">Particulars - Tour Cost</div>
-                                  <div className="p-2 border-r-2 border-white">Standard</div>
-                                  <div className="p-2 border-r-2 border-white">Deluxe</div>
-                                  <div className="p-2">Luxury</div>
-                                </div>
+        {/* Tour Cost Table for Group Tours */}
+        {selectedDeparture ? (
+          <div className="border-2 border-black overflow-hidden animate-fadeIn overflow-x-auto mb-1"> {/* Added mb-1 */}
+            <div className="min-w-[600px] lg:min-w-0">
+              {/* HEADER */}
+              <div className="grid grid-cols-4 bg-[#0A1D4A] text-white font-semibold text-center">
+                <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Particulars - Tour Cost</div>
+                <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Standard</div>
+                <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Deluxe</div>
+                <div className="p-2 text-xs lg:text-sm">Luxury</div>
+              </div>
 
-                                {/* ROWS */}
-                                {[
-                                  {
-                                    particular: "Per pax on Twin Basis",
-                                    star3: selectedDeparture.threeStar.twin,
-                                    star4: selectedDeparture.fourStar.twin,
-                                    star5: selectedDeparture.fiveStar.twin
-                                  },
-                                  {
-                                    particular: "Per pax on Triple Basis",
-                                    star3: selectedDeparture.threeStar.triple,
-                                    star4: selectedDeparture.fourStar.triple,
-                                    star5: selectedDeparture.fiveStar.triple
-                                  },
-                                  {
-                                    particular: "Child with Bed",
-                                    star3: selectedDeparture.threeStar.childWithBed,
-                                    star4: selectedDeparture.fourStar.childWithBed,
-                                    star5: selectedDeparture.fiveStar.childWithBed
-                                  },
-                                  {
-                                    particular: "Child without Bed",
-                                    star3: selectedDeparture.threeStar.childWithoutBed,
-                                    star4: selectedDeparture.fourStar.childWithoutBed,
-                                    star5: selectedDeparture.fiveStar.childWithoutBed
-                                  },
-                                  {
-                                    particular: "Infant",
-                                    star3: selectedDeparture.threeStar.infant,
-                                    star4: selectedDeparture.fourStar.infant,
-                                    star5: selectedDeparture.fiveStar.infant
-                                  },
-                                  {
-                                    particular: "Per pax Single Occupancy",
-                                    star3: selectedDeparture.threeStar.single,
-                                    star4: selectedDeparture.fourStar.single,
-                                    star5: selectedDeparture.fiveStar.single
-                                  },
-                                ].map((row, i) => (
-                                  <div
-                                    key={i}
-                                    className={`grid grid-cols-4 text-center border-b-2 border-black ${i % 2 === 0 ? "bg-[#EEF1F7]" : "bg-white"
-                                      } ${i === 5 ? 'border-b-0' : ''}`}
-                                  >
-                                    <div className="p-2 border-r-2 border-black font-medium">
-                                      {row.particular}
-                                    </div>
-                                    <div className="p-2 border-r-2 border-black">
-                                      {row.star3}
-                                    </div>
-                                    <div className="p-2 border-r-2 border-black font-semibold text-green-700">
-                                      {row.star4}
-                                    </div>
-                                    <div className="p-2">
-                                      {row.star5}
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            ) : (
-                              <div className="text-center p-4 border-2 border-dashed border-gray-300 rounded-lg">
-                                <p className="text-gray-500">Please select a month and date to view tour cost</p>
-                                <p className="text-gray-400 text-sm mt-2">Departure dates are available in the "Dep Date" tab</p>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ) : (
-                        // Individual Tour Cost Section - Show Passenger Table
-                        <div>
-                          {/* Passenger Table - ONLY for Individual tours */}
-                          <div className="overflow-x-auto border shadow-sm">
-                            <table className="w-full border-collapse table-fixed">
-                              <thead>
-                                <tr className="bg-[#2E4D98]">
-                                  <th className="border border-white px-4 py-3 text-center font-semibold text-white text-base h-12 w-1/6">
-                                    Passenger
-                                  </th>
-                                  <th className="border border-white px-4 py-3 text-center font-semibold text-white text-base h-12 w-1/6">
-                                    Standard Hotel
-                                  </th>
-                                  <th className="border border-white px-4 py-3 text-center font-semibold text-white text-base h-12 w-1/6">
-                                    Deluxe Hotel
-                                  </th>
-                                  <th className="border border-white px-4 py-3 text-center font-semibold text-white text-base h-12 w-1/6">
-                                    Executive Hotel
-                                  </th>
-                                  <th className="border border-white px-4 py-3 text-center font-semibold text-white text-base h-12 w-1/6">
-                                    Child With Bed
-                                  </th>
-                                  <th className="border border-white px-4 py-3 text-center font-semibold text-white text-base h-12 w-1/6">
-                                    Child No Bed
-                                  </th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {tour.tourCost.tableData.length > 0 ? (
-                                  tour.tourCost.tableData.map((row: any, index: number) => (
-                                    <tr key={index} className={index % 2 === 0 ? 'bg-[#FFEBEE]' : 'bg-[#FFEBEE]/80'}>
-                                      <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center font-medium text-gray-700 text-base h-12 w-1/6">
-                                        {row.passenger}
-                                      </td>
-                                      <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-blue-800 font-semibold text-base h-12 w-1/6">
-                                        {row.standard}
-                                      </td>
-                                      <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-green-800 font-semibold text-base h-12 w-1/6">
-                                        {row.deluxe}
-                                      </td>
-                                      <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-[#A72703] font-semibold text-base h-12 w-1/6">
-                                        {row.executive}
-                                      </td>
-                                      <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-blue-600 font-medium text-base h-12 w-1/6">
-                                        {row.childWithBed}
-                                      </td>
-                                      <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-purple-600 font-medium text-base h-12 w-1/6">
-                                        {row.childNoBed}
-                                      </td>
-                                    </tr>
-                                  ))
-                                ) : (
-                                  <tr className="bg-[#FFEBEE]">
-                                    <td colSpan={6} className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-gray-500">
-                                      No cost information available
-                                    </td>
-                                  </tr>
-                                )}
-                              </tbody>
-                            </table>
-                          </div>
-                        </div>
-                      )}
-                      <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
-                        <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
-                          Tour Cost Remarks
-                        </div>
-                        <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-                          <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-                            {tour.tourCost.remarks && tour.tourCost.remarks.length > 0 ? (
-                              <ul className="space-y-2 w-full">
-                                {tour.tourCost.remarks.map((remark: string, index: number) => (
-                                  <li key={index} className="flex items-start gap-2 w-full">
-                                    <span className="text-black whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
-                                      {remark}
-                                    </span>
-                                  </li>
-                                ))}
-                              </ul>
-                            ) : (
-                              <div className="flex items-center justify-center h-full">
-                                <span className="text-gray-500 italic">No tour cost remarks available</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
+              {/* ROWS */}
+              {[
+                {
+                  particular: "Per pax on Twin Basis",
+                  star3: selectedDeparture.threeStar.twin,
+                  star4: selectedDeparture.fourStar.twin,
+                  star5: selectedDeparture.fiveStar.twin
+                },
+                {
+                  particular: "Per pax on Triple Basis",
+                  star3: selectedDeparture.threeStar.triple,
+                  star4: selectedDeparture.fourStar.triple,
+                  star5: selectedDeparture.fiveStar.triple
+                },
+                {
+                  particular: "Child with Bed",
+                  star3: selectedDeparture.threeStar.childWithBed,
+                  star4: selectedDeparture.fourStar.childWithBed,
+                  star5: selectedDeparture.fiveStar.childWithBed
+                },
+                {
+                  particular: "Child without Bed",
+                  star3: selectedDeparture.threeStar.childWithoutBed,
+                  star4: selectedDeparture.fourStar.childWithoutBed,
+                  star5: selectedDeparture.fiveStar.childWithoutBed
+                },
+                {
+                  particular: "Infant",
+                  star3: selectedDeparture.threeStar.infant,
+                  star4: selectedDeparture.fourStar.infant,
+                  star5: selectedDeparture.fiveStar.infant
+                },
+                {
+                  particular: "Per pax Single Occupancy",
+                  star3: selectedDeparture.threeStar.single,
+                  star4: selectedDeparture.fourStar.single,
+                  star5: selectedDeparture.fiveStar.single
+                },
+              ].map((row, i) => (
+                <div
+                  key={i}
+                  className={`grid grid-cols-4 text-center border-b-2 border-black ${i % 2 === 0 ? "bg-[#EEF1F7]" : "bg-white"
+                    } ${i === 5 ? 'border-b-0' : ''}`}
+                >
+                  <div className="p-2 border-r-2 border-black font-medium text-xs lg:text-sm">
+                    {row.particular}
+                  </div>
+                  <div className="p-2 border-r-2 border-black text-xs lg:text-sm">
+                    {row.star3}
+                  </div>
+                  <div className="p-2 border-r-2 border-black font-semibold text-green-700 text-xs lg:text-sm">
+                    {row.star4}
+                  </div>
+                  <div className="p-2 text-xs lg:text-sm">
+                    {row.star5}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="text-center p-4 border-2 border-dashed border-gray-300 rounded-lg">
+            <p className="text-gray-500 text-sm lg:text-base">Please select a month and date to view tour cost</p>
+            <p className="text-gray-400 text-xs lg:text-sm mt-2">Departure dates are available in the "Dep Date" tab</p>
+          </div>
+        )}
+      </div>
+    </div>
+  ) : (
+    <div>
+      <div className="overflow-x-auto border shadow-sm">
+        <table className="w-full border-collapse table-fixed min-w-[600px] lg:min-w-0">
+          <thead>
+            <tr className="bg-[#2E4D98]">
+              <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-base h-10 lg:h-12 w-1/6">
+                Passenger
+              </th>
+              <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-base h-10 lg:h-12 w-1/6">
+                Standard Hotel
+              </th>
+              <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-base h-10 lg:h-12 w-1/6">
+                Deluxe Hotel
+              </th>
+              <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-base h-10 lg:h-12 w-1/6">
+                Executive Hotel
+              </th>
+              <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-base h-10 lg:h-12 w-1/6">
+                Child With Bed
+              </th>
+              <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-base h-10 lg:h-12 w-1/6">
+                Child No Bed
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {tour.tourCost.tableData.length > 0 ? (
+              tour.tourCost.tableData.map((row: any, index: number) => (
+                <tr key={index} className={index % 2 === 0 ? 'bg-[#FFEBEE]' : 'bg-[#FFEBEE]/80'}>
+                  <td className="border-2 border-[#1e3a8a] px-2 lg:px-4 py-2 lg:py-3 text-center font-medium text-gray-700 text-xs lg:text-base h-10 lg:h-12 w-1/6">
+                    {row.passenger}
+                  </td>
+                  <td className="border-2 border-[#1e3a8a] px-2 lg:px-4 py-2 lg:py-3 text-center text-blue-800 font-semibold text-xs lg:text-base h-10 lg:h-12 w-1/6">
+                    {row.standard}
+                  </td>
+                  <td className="border-2 border-[#1e3a8a] px-2 lg:px-4 py-2 lg:py-3 text-center text-green-800 font-semibold text-xs lg:text-base h-10 lg:h-12 w-1/6">
+                    {row.deluxe}
+                  </td>
+                  <td className="border-2 border-[#1e3a8a] px-2 lg:px-4 py-2 lg:py-3 text-center text-[#A72703] font-semibold text-xs lg:text-base h-10 lg:h-12 w-1/6">
+                    {row.executive}
+                  </td>
+                  <td className="border-2 border-[#1e3a8a] px-2 lg:px-4 py-2 lg:py-3 text-center text-blue-600 font-medium text-xs lg:text-base h-10 lg:h-12 w-1/6">
+                    {row.childWithBed}
+                  </td>
+                  <td className="border-2 border-[#1e3a8a] px-2 lg:px-4 py-2 lg:py-3 text-center text-purple-600 font-medium text-xs lg:text-base h-10 lg:h-12 w-1/6">
+                    {row.childNoBed}
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr className="bg-[#FFEBEE]">
+                <td colSpan={6} className="border-2 border-[#1e3a8a] px-2 lg:px-4 py-2 lg:py-3 text-center text-gray-500 text-sm lg:text-base">
+                  No cost information available
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )}
+  
+  {/* Tour Cost Remarks - with minimal gap */}
+  <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-0"> {/* Changed from mt-1 to mt-0 */}
+    <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
+      Tour Cost Remarks
+    </div>
+    <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
+      <div className="min-h-[150px] lg:min-h-[180px] max-h-[150px] lg:max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+        {tour.tourCost.remarks && tour.tourCost.remarks.length > 0 ? (
+          <ul className="space-y-2 w-full">
+            {tour.tourCost.remarks.map((remark: string, index: number) => (
+              <li key={index} className="flex items-start gap-2 w-full">
+                <span className="text-black whitespace-pre-wrap break-words hyphens-auto text-justify w-full text-sm lg:text-base">
+                  {remark}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="flex items-center justify-center h-full">
+            <span className="text-gray-500 italic text-sm lg:text-base">No tour cost remarks available</span>
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+
 
                       {/* Optional Tour Section (show for both types if has data) */}
                       {tour.optionalTours && tour.optionalTours.length > 0 && (
                         <div className='mt-1'>
-                          <div className="bg-red-600 text-white text-center font-bold text-xl rounded-t-lg py-3 mb-1">
+                          <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-xl rounded-t-lg py-2 lg:py-3 mb-1">
                             Optional Tour
                           </div>
                           <div className="overflow-x-auto">
-                            <table className="w-full border-collapse">
+                            <table className="w-full border-collapse min-w-[500px] lg:min-w-0">
                               <thead>
                                 <tr className="bg-[#2E4D98]">
-                                  <th className="border border-white px-4 py-3 text-left font-semibold text-white w-[70%]">
+                                  <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-left font-semibold text-white text-xs lg:text-sm w-[70%]">
                                     Tour Name
                                   </th>
-                                  <th className="border border-white px-4 py-3 text-left font-semibold text-white w-[15%]">
+                                  <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-left font-semibold text-white text-xs lg:text-sm w-[15%]">
                                     Adult Price
                                   </th>
-                                  <th className="border border-white px-4 py-3 text-left font-semibold text-white w-[15%]">
+                                  <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-left font-semibold text-white text-xs lg:text-sm w-[15%]">
                                     Child Price
                                   </th>
                                 </tr>
@@ -1939,9 +1926,9 @@ const TourDetails = () => {
                               <tbody className="border-2 border-[#1e3a8a] border-t-0">
                                 {tour.optionalTours.map((optTour: any, index: number) => (
                                   <tr key={index} className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}>
-                                    <td className="border border-black px-4 py-2 text-black">{optTour.tourName}</td>
-                                    <td className="border border-black px-4 py-2 border-l-0 text-black">{optTour.adultPrice}</td>
-                                    <td className="border border-black px-4 py-2 border-l-0 text-black">{optTour.childPrice}</td>
+                                    <td className="border border-black px-2 lg:px-4 py-1 lg:py-2 text-black text-xs lg:text-sm">{optTour.tourName}</td>
+                                    <td className="border border-black px-2 lg:px-4 py-1 lg:py-2 border-l-0 text-black text-xs lg:text-sm">{optTour.adultPrice}</td>
+                                    <td className="border border-black px-2 lg:px-4 py-1 lg:py-2 border-l-0 text-black text-xs lg:text-sm">{optTour.childPrice}</td>
                                   </tr>
                                 ))}
                               </tbody>
@@ -1952,16 +1939,16 @@ const TourDetails = () => {
 
                       {/* Optional Tour Remarks Section */}
                       <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
-                        <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
+                        <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
                           Optional Tour Remarks
                         </div>
                         <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-                          <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+                          <div className="min-h-[150px] lg:min-h-[180px] max-h-[150px] lg:max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
                             {tour.optionalTourRemarks && tour.optionalTourRemarks.length > 0 ? (
                               <ul className="space-y-2 w-full">
                                 {tour.optionalTourRemarks.map((remark: string, index: number) => (
                                   <li key={index} className="flex items-start gap-2 w-full">
-                                    <span className="text-black whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
+                                    <span className="text-black whitespace-pre-wrap break-words hyphens-auto text-justify w-full text-sm lg:text-base">
                                       {remark}
                                     </span>
                                   </li>
@@ -1969,7 +1956,7 @@ const TourDetails = () => {
                               </ul>
                             ) : (
                               <div className="flex items-center justify-center h-full">
-                                <span className="text-gray-500 italic">No optional tour remarks available</span>
+                                <span className="text-gray-500 italic text-sm lg:text-base">No optional tour remarks available</span>
                               </div>
                             )}
                           </div>
@@ -1979,23 +1966,23 @@ const TourDetails = () => {
                       {/* EMI Options Section (show for both types if has data) */}
                       {tour.emiOptions && tour.emiOptions.options && tour.emiOptions.options.length > 0 && (
                         <div className='mb-1 mt-1'>
-                          <div className="bg-red-600 text-white text-center font-bold text-xl rounded-t-lg py-3 mb-1">
+                          <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-xl rounded-t-lg py-2 lg:py-3 mb-1">
                             EMI Options
                           </div>
                           <div className="overflow-x-auto">
-                            <table className="w-full border-collapse">
+                            <table className="w-full border-collapse min-w-[500px] lg:min-w-0">
                               <thead>
                                 <tr className="bg-[#2E4D98]">
-                                  <th className="border border-white px-4 py-3 text-left font-semibold text-white w-[40%]">
+                                  <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-left font-semibold text-white text-xs lg:text-sm w-[40%]">
                                     Particulars
                                   </th>
-                                  <th className="border border-white px-4 py-3 text-center font-semibold text-white w-[20%]">
+                                  <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm w-[20%]">
                                     Loan Amount
                                   </th>
-                                  <th className="border border-white px-4 py-3 text-center font-semibold text-white w-[20%]">
+                                  <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm w-[20%]">
                                     Months
                                   </th>
-                                  <th className="border border-white px-4 py-3 text-center font-semibold text-white w-[20%]">
+                                  <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm w-[20%]">
                                     EMI
                                   </th>
                                 </tr>
@@ -2003,16 +1990,16 @@ const TourDetails = () => {
                               <tbody className="border-2 border-[#1e3a8a] border-t-0">
                                 {tour.emiOptions.options.map((emi: any, index: number) => (
                                   <tr key={index} className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}>
-                                    <td className="border border-black px-4 py-2 font-bold text-base text-black">
+                                    <td className="border border-black px-2 lg:px-4 py-1 lg:py-2 font-bold text-xs lg:text-base text-black">
                                       {emi.particulars}
                                     </td>
-                                    <td className="border border-black px-4 py-2 border-l-0 text-center text-black">
+                                    <td className="border border-black px-2 lg:px-4 py-1 lg:py-2 border-l-0 text-center text-black text-xs lg:text-sm">
                                       {emi.loanAmount} {/* Changed from tour.emiOptions.loanAmount */}
                                     </td>
-                                    <td className="border border-black px-4 py-2 border-l-0 text-center text-black">
+                                    <td className="border border-black px-2 lg:px-4 py-1 lg:py-2 border-l-0 text-center text-black text-xs lg:text-sm">
                                       {emi.months}
                                     </td>
-                                    <td className="border border-black px-4 py-2 border-l-0 text-center text-black">
+                                    <td className="border border-black px-2 lg:px-4 py-1 lg:py-2 border-l-0 text-center text-black text-xs lg:text-sm">
                                       {emi.emi}
                                     </td>
                                   </tr>
@@ -2027,16 +2014,16 @@ const TourDetails = () => {
 
                       {/* Tour Cost EMI Remarks */}
                       <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
-                        <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
+                        <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
                           EMI Remarks
                         </div>
                         <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-                          <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+                          <div className="min-h-[150px] lg:min-h-[180px] max-h-[150px] lg:max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
                             {tour.emiRemarks && tour.emiRemarks.length > 0 ? (
                               <ul className="space-y-2 w-full">
                                 {tour.emiRemarks.map((remark: string, index: number) => (
                                   <li key={index} className="flex items-start gap-2 w-full">
-                                    <span className="text-black whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
+                                    <span className="text-black whitespace-pre-wrap break-words hyphens-auto text-justify w-full text-sm lg:text-base">
                                       {remark}
                                     </span>
                                   </li>
@@ -2044,7 +2031,7 @@ const TourDetails = () => {
                               </ul>
                             ) : (
                               <div className="flex items-center justify-center h-full">
-                                <span className="text-gray-500 italic">No EMI remarks available</span>
+                                <span className="text-gray-500 italic text-sm lg:text-base">No EMI remarks available</span>
                               </div>
                             )}
                           </div>
@@ -2053,7 +2040,7 @@ const TourDetails = () => {
                       <div className="mt-1">
                         <button
                           onClick={() => navigate("/alert")}
-                          className={`w-full  font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90`}
+                          className={`w-full font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90 text-sm lg:text-base`}
                         >
                           Customize your tour on chargeable basis
                         </button>
@@ -2066,15 +2053,15 @@ const TourDetails = () => {
                 {/* Cost In/Cost Ex Tab */}
                 {activeTab === "cost-inc./cost-ex." && (
                   <div className="bg-[#E8F0FF] rounded-lg p-1 w-full overflow-x-hidden">
-                    <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg mb-1 w-full">
+                    <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg mb-1 w-full">
                       Cost Inclusive & Cost Excludes
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-1 w-full">
                       {/* Cost Includes */}
-                      <div className="flex flex-col w-full min-h-[280px] max-h-[320px]">
-                        <div className="bg-[#2E4D98] text-white text-center py-3 rounded-t-lg w-full">
-                          <h3 className="text-xl font-bold">Cost Inclusive</h3>
+                      <div className="flex flex-col w-full min-h-[250px] lg:min-h-[280px] max-h-[250px] lg:max-h-[320px]">
+                        <div className="bg-[#2E4D98] text-white text-center py-2 lg:py-3 rounded-t-lg w-full">
+                          <h3 className="text-lg lg:text-xl font-bold">Cost Inclusive</h3>
                         </div>
                         <div className="flex-1 border-2 border-[#1e3a8a] rounded-b-lg bg-[#FFEBEE] w-full overflow-hidden min-h-0">
                           <div className="h-full overflow-y-auto p-2">
@@ -2082,7 +2069,7 @@ const TourDetails = () => {
                               {tour.inclusionExclusion.inclusions.map((inclusion: any, index: number) => (
                                 <li key={index} className="w-full">
                                   <div className="flex items-start gap-0 w-full">
-                                    <div className="text-black flex-1 min-w-0 text-justify break-words ml-2">
+                                    <div className="text-black flex-1 min-w-0 text-justify break-words ml-2 text-sm lg:text-base">
                                       {inclusion.item || inclusion}
                                     </div>
                                   </div>
@@ -2094,9 +2081,9 @@ const TourDetails = () => {
                       </div>
 
                       {/* Cost Excludes */}
-                      <div className="flex flex-col w-full min-h-[280px] max-h-[320px]">
-                        <div className="bg-[#2E4D98] text-white text-center py-3 rounded-t-lg w-full">
-                          <h3 className="text-xl font-bold">Cost Excludes</h3>
+                      <div className="flex flex-col w-full min-h-[250px] lg:min-h-[280px] max-h-[250px] lg:max-h-[320px]">
+                        <div className="bg-[#2E4D98] text-white text-center py-2 lg:py-3 rounded-t-lg w-full">
+                          <h3 className="text-lg lg:text-xl font-bold">Cost Excludes</h3>
                         </div>
                         <div className="flex-1 border-2 border-[#1e3a8a] rounded-b-lg bg-[#FFEBEE] w-full overflow-hidden min-h-0">
                           <div className="h-full overflow-y-auto p-2">
@@ -2105,7 +2092,7 @@ const TourDetails = () => {
                                 <li key={index} className="w-full">
                                   <div className="flex items-start gap-0 w-full">
 
-                                    <div className="text-black flex-1 min-w-0 text-justify break-words ml-2">
+                                    <div className="text-black flex-1 min-w-0 text-justify break-words ml-2 text-sm lg:text-base">
                                       {exclusion.item || exclusion}
                                     </div>
                                   </div>
@@ -2120,7 +2107,7 @@ const TourDetails = () => {
                     <div className="mt-1">
                       <button
                         onClick={() => navigate("/alert")}
-                        className={`w-full  font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90`}
+                        className={`w-full font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90 text-sm lg:text-base`}
                       >
                         Customize your tour on chargeable basis
                       </button>
@@ -2134,51 +2121,49 @@ const TourDetails = () => {
                   <div className="bg-[#E8F0FF] rounded-lg p-0.2 w-full overflow-x-hidden">
                     {/* Flights Section */}
                     <div className="bg-[#FFEBEE] rounded-lg p-1 mb-1 w-full">
-                      <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
+                      <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
                         Flight Details
                       </div>
 
                       <div className="border-2 border-[#1e3a8a] rounded-t-none border-t-0 rounded-lg overflow-hidden w-full mb-1">
-                        <div className="min-h-[300px] max-h-[400px] overflow-y-auto p-1 bg-[#FFEBEE] w-full">
+                        <div className="min-h-[250px] lg:min-h-[300px] max-h-[300px] lg:max-h-[400px] overflow-y-auto p-1 bg-[#FFEBEE] w-full">
                           {isGroupTour ? (
                             // ===== GROUP TOUR - TABLE STRUCTURE =====
                             <div className="overflow-x-auto border shadow-sm">
-                              <table className="w-full border-collapse table-fixed">
+                              <table className="w-full border-collapse table-fixed min-w-[800px] lg:min-w-0">
                                 {/* ===== TABLE HEADER ===== */}
                                 <thead>
                                   <tr className="bg-[red]">
-                                    <th className="border border-black px-3 py-3 text-center font-semibold text-white text-sm h-9 w-[12%]">
+                                    <th className="border border-black px-2 lg:px-3 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm h-8 lg:h-9 w-[12%]">
                                       Airlines
                                     </th>
-                                    <th className="border border-black px-4 py-3 text-center font-semibold text-white text-sm h-9 w-[12%]">
+                                    <th className="border border-black px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm h-8 lg:h-9 w-[12%]">
                                       Flight No
                                     </th>
-                                    <th className="border border-black px-4 py-3 text-center font-semibold text-white text-sm h-9 w-[15%]">
+                                    <th className="border border-black px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm h-8 lg:h-9 w-[15%]">
                                       From
                                     </th>
-                                    <th className="border border-black px-4 py-3 text-center font-semibold text-white text-sm h-9 w-[10%]">
+                                    <th className="border border-black px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm h-8 lg:h-9 w-[10%]">
                                       Date
                                     </th>
-                                    <th className="border border-black px-4 py-3 text-center font-semibold text-white text-sm h-9 w-[8%]">
+                                    <th className="border border-black px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm h-8 lg:h-9 w-[8%]">
                                       Time
                                     </th>
-                                    <th className="border border-black px-4 py-3 text-center font-semibold text-white text-sm h-9 w-[15%]">
+                                    <th className="border border-black px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm h-8 lg:h-9 w-[15%]">
                                       To
                                     </th>
-                                    <th className="border border-black px-4 py-3 text-center font-semibold text-white text-sm h-9 w-[10%]">
+                                    <th className="border border-black px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm h-8 lg:h-9 w-[10%]">
                                       Date
                                     </th>
-                                    <th className="border border-black px-4 py-3 text-center font-semibold text-white text-sm h-9 w-[8%]">
+                                    <th className="border border-black px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm h-8 lg:h-9 w-[8%]">
                                       Time
                                     </th>
                                   </tr>
                                 </thead>
 
-                                {/* ===== TABLE BODY - DYNAMIC DATA ===== */}
                                 <tbody>
                                   {tour.airlines.tableData && tour.airlines.tableData.length > 0 ? (
                                     tour.airlines.tableData.map((flight: any, index: number) => {
-                                      // Format date to Indian format (dd-mm-yyyy)
                                       const formatDateToIndian = (dateString: string) => {
                                         if (!dateString) return '';
                                         try {
@@ -2194,11 +2179,9 @@ const TourDetails = () => {
                                         }
                                       };
 
-                                      // Format time to AM/PM format (HH:MM AM/PM)
                                       const formatTimeToAMPM = (timeString: string) => {
                                         if (!timeString) return '';
                                         try {
-                                          // If time is in HH:MM:SS or HH:MM format
                                           if (timeString.includes(':')) {
                                             const timeParts = timeString.split(':');
                                             if (timeParts.length >= 2) {
@@ -2206,14 +2189,12 @@ const TourDetails = () => {
                                               const minutes = timeParts[1];
                                               const ampm = hours >= 12 ? 'PM' : 'AM';
 
-                                              // Convert 24-hour to 12-hour format
                                               hours = hours % 12;
                                               hours = hours === 0 ? 12 : hours; // 0 should be 12 for 12 AM
 
                                               return `${hours}:${minutes} ${ampm}`;
                                             }
                                           }
-                                          // If it's already in some other format, return as is
                                           return timeString;
                                         } catch (error) {
                                           return timeString;
@@ -2222,28 +2203,28 @@ const TourDetails = () => {
 
                                       return (
                                         <tr key={index} className={index % 2 === 0 ? 'bg-[#FFEBEE]' : 'bg-[#FFEBEE]/80'}>
-                                          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[12%]">
+                                          <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm h-8 lg:h-9 w-[12%]">
                                             {flight.airline || ''}
                                           </td>
-                                          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[12%]">
+                                          <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm h-8 lg:h-9 w-[12%]">
                                             {flight.flightNo || ''}
                                           </td>
-                                          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[15%]">
+                                          <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm h-8 lg:h-9 w-[15%]">
                                             {flight.from || ''}
                                           </td>
-                                          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[10%]">
+                                          <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm h-8 lg:h-9 w-[10%]">
                                             {formatDateToIndian(flight.depDate) || ''}
                                           </td>
-                                          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[8%]">
+                                          <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm h-8 lg:h-9 w-[8%]">
                                             {formatTimeToAMPM(flight.depTime) || ''}
                                           </td>
-                                          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[15%]">
+                                          <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm h-8 lg:h-9 w-[15%]">
                                             {flight.to || ''}
                                           </td>
-                                          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[10%]">
+                                          <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm h-8 lg:h-9 w-[10%]">
                                             {formatDateToIndian(flight.arrDate) || ''}
                                           </td>
-                                          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[8%]">
+                                          <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm h-8 lg:h-9 w-[8%]">
                                             {formatTimeToAMPM(flight.arrTime) || ''}
                                           </td>
                                         </tr>
@@ -2253,14 +2234,14 @@ const TourDetails = () => {
                                     // Show empty rows if no data
                                     [1, 2, 3, 4].map((row, index) => (
                                       <tr key={index} className={index % 2 === 0 ? 'bg-[#FFEBEE]' : 'bg-[#FFEBEE]/80'}>
-                                        <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[12%]">&nbsp;</td>
-                                        <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[12%]">&nbsp;</td>
-                                        <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[15%]">&nbsp;</td>
-                                        <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[10%]">&nbsp;</td>
-                                        <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[8%]">&nbsp;</td>
-                                        <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[15%]">&nbsp;</td>
-                                        <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[10%]">&nbsp;</td>
-                                        <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[8%]">&nbsp;</td>
+                                        <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm h-8 lg:h-9 w-[12%]">&nbsp;</td>
+                                        <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm h-8 lg:h-9 w-[12%]">&nbsp;</td>
+                                        <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm h-8 lg:h-9 w-[15%]">&nbsp;</td>
+                                        <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm h-8 lg:h-9 w-[10%]">&nbsp;</td>
+                                        <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm h-8 lg:h-9 w-[8%]">&nbsp;</td>
+                                        <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm h-8 lg:h-9 w-[15%]">&nbsp;</td>
+                                        <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm h-8 lg:h-9 w-[10%]">&nbsp;</td>
+                                        <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm h-8 lg:h-9 w-[8%]">&nbsp;</td>
                                       </tr>
                                     ))
                                   )}
@@ -2269,17 +2250,17 @@ const TourDetails = () => {
 
                               {/* ===== DESCRIPTION AREA FOR GROUP TOURS ===== */}
                               {tour.airlines.tableData && tour.airlines.tableData.some((flight: any) => flight.description) && (
-                                <div className="mt-4 p-4 bg-[#E8F0FF]  border border-gray-200 rounded-lg">
-                                  <h4 className="font-bold text-lg mb-3 text-center text-red-600">Additional Information</h4>
+                                <div className="mt-4 p-3 lg:p-4 bg-[#E8F0FF] border border-gray-200 rounded-lg">
+                                  <h4 className="font-bold text-base lg:text-lg mb-3 text-center text-red-600">Additional Information</h4>
                                   <div className="space-y-4">
                                     {tour.airlines.tableData.map((flight: any, index: number) => (
                                       flight.description && (
-                                        <div key={index} className="border border-gray-300 rounded p-3 bg-gray-50">
+                                        <div key={index} className="border border-gray-300 rounded p-2 lg:p-3 bg-gray-50">
                                           <div className="flex items-start mb-2">
-                                            <span className="font-bold mr-2">Transport {index + 1}:</span>
-                                            <span>{flight.airline} - {flight.flightNo}</span>
+                                            <span className="font-bold mr-2 text-xs lg:text-sm">Transport {index + 1}:</span>
+                                            <span className="text-xs lg:text-sm">{flight.airline} - {flight.flightNo}</span>
                                           </div>
-                                          <p className="text-gray-700 whitespace-pre-wrap">{flight.description}</p>
+                                          <p className="text-gray-700 whitespace-pre-wrap text-xs lg:text-sm">{flight.description}</p>
                                         </div>
                                       )
                                     ))}
@@ -2297,7 +2278,7 @@ const TourDetails = () => {
 
                                       {flight.description && (
                                         <div>
-                                          <p className="text-black  p-1">
+                                          <p className="text-black p-1 text-sm lg:text-base">
                                             {flight.description}
                                           </p>
                                         </div>
@@ -2306,85 +2287,85 @@ const TourDetails = () => {
                                   ))}
                                 </div>
                               ) : (
-                                <div className="flex items-center justify-center h-full min-h-[200px]">
-                                  <p className="text-gray-500 text-lg">No information available</p>
+                                <div className="flex items-center justify-center h-full min-h-[150px] lg:min-h-[200px]">
+                                  <p className="text-gray-500 text-base lg:text-lg">No information available</p>
                                 </div>
                               )}
                             </div>
                           )}
                         </div>
                       </div>
-           {/* Flight Remarks Section - Only for Group Tours */}
-{isGroupTour && (
-  tour.airlines.remarks.length > 0 ? (
-    <div className="mb-1">
-      <div className="bg-red-600 text-white text-center font-bold text-xl py-3 rounded-t-lg w-full">
-        Flight Remarks
-      </div>
-      
-      <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg overflow-hidden w-full">
-        <div className="min-h-[150px] max-h-[160px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-          <ul className="space-y-2 w-full">
-            {tour.airlines.remarks.map((remark: string, index: number) => (
-              <li key={`flight-${index}`} className="flex items-start gap-1 w-full">
-                <span className="text-black break-words whitespace-pre-wrap text-justify w-full">
-                  {remark}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-    </div>
-  ) : (
-    <div className="mb-4">
-      <div className="bg-red-600 text-white text-center font-bold text-xl py-3 rounded-t-lg w-full">
-        Flight Remarks
-      </div>
-      
-      <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg overflow-hidden w-full">
-        <div className="min-h-[150px] max-h-[160px] overflow-y-auto p-2 bg-[#FFEBEE] w-full flex items-center justify-center">
-          <div className="text-gray-500 text-center">
-            <div className="text-lg font-semibold">No remarks available</div>
-            <div className="text-sm mt-1">There are no flight remarks at this time</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-)}
+                      {/* Flight Remarks Section - Only for Group Tours */}
+                      {isGroupTour && (
+                        tour.airlines.remarks.length > 0 ? (
+                          <div className="mb-1">
+                            <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-xl py-2 lg:py-3 rounded-t-lg w-full">
+                              Flight Remarks
+                            </div>
+
+                            <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg overflow-hidden w-full">
+                              <div className="min-h-[120px] lg:min-h-[150px] max-h-[120px] lg:max-h-[160px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+                                <ul className="space-y-2 w-full">
+                                  {tour.airlines.remarks.map((remark: string, index: number) => (
+                                    <li key={`flight-${index}`} className="flex items-start gap-1 w-full">
+                                      <span className="text-black break-words whitespace-pre-wrap text-justify w-full text-sm lg:text-base">
+                                        {remark}
+                                      </span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="mb-4">
+                            <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-xl py-2 lg:py-3 rounded-t-lg w-full">
+                              Flight Remarks
+                            </div>
+
+                            <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg overflow-hidden w-full">
+                              <div className="min-h-[120px] lg:min-h-[150px] max-h-[120px] lg:max-h-[160px] overflow-y-auto p-2 bg-[#FFEBEE] w-full flex items-center justify-center">
+                                <div className="text-gray-500 text-center">
+                                  <div className="text-base lg:text-lg font-semibold">No remarks available</div>
+                                  <div className="text-xs lg:text-sm mt-1">There are no flight remarks at this time</div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      )}
                     </div>
 
 
 
                     {/* Hotels Section */}
                     <div className='p-1 -mt-3 w-full overflow-x-hidden'>
-                      <div className="bg-red-600 text-white text-center font-bold text-xl rounded-t-lg py-3 mb-1 w-full">
+                      <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-xl rounded-t-lg py-2 lg:py-3 mb-1 w-full">
                         Hotel Details
                       </div>
 
                       <div className="overflow-x-auto w-full">
                         {tour.hotels.tableData.length > 0 ? (
-                          <table className="w-full border-collapse min-w-max">
+                          <table className="w-full border-collapse min-w-[600px] lg:min-w-max">
                             <thead>
                               <tr className="bg-[#2E4D98]">
-                                <th className="border border-white px-2 py-2 text-left text-white w-[22.5%]">
+                                <th className="border border-white px-2 lg:px-3 py-2 lg:py-3 text-left text-white  text-xs lg:text-sm w-[22.5%]">
                                   City
                                 </th>
 
-                                <th className="border border-white px-2 py-2 text-left text-white w-[10%]">
+                                <th className="border border-white  px-2 lg:px-3 py-2 lg:py-3  text-left text-white text-xs lg:text-sm w-[10%]">
                                   Nights
                                 </th>
 
-                                <th className="border border-white px-2 py-2 text-left text-white w-[22.5%]">
+                                <th className="border border-white px-2 lg:px-3 py-2 lg:py-3  text-left text-white text-xs lg:text-sm w-[22.5%]">
                                   Standard
                                 </th>
 
-                                <th className="border border-white px-2 py-2 text-left text-white w-[22.5%]">
+                                <th className="border border-white px-2 lg:px-3 py-2 lg:py-3  text-left text-white text-xs lg:text-sm w-[22.5%]">
                                   Deluxe
                                 </th>
 
-                                <th className="border border-white px-2 py-2 text-left text-white w-[22.5%]">
+                                <th className="border border-white px-2 lg:px-3 py-2 lg:py-3 text-left text-white text-xs lg:text-sm w-[22.5%]">
                                   Executive
                                 </th>
                               </tr>
@@ -2396,15 +2377,15 @@ const TourDetails = () => {
                                   key={index}
                                   className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}
                                 >
-                                  <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap text-black">{hotel.city}</td>
-                                  <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap text-black">{hotel.nights}</td>
-                                  <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap text-black">
+                                  <td className="border border-black px-1 lg:px-2 py-1 lg:py-2 break-all whitespace-pre-wrap text-black text-xs lg:text-sm">{hotel.city}</td>
+                                  <td className="border border-black px-1 lg:px-2 py-1 lg:py-2 break-all whitespace-pre-wrap text-black text-xs lg:text-sm">{hotel.nights}</td>
+                                  <td className="border border-black px-1 lg:px-2 py-1 lg:py-2 break-all whitespace-pre-wrap text-black text-xs lg:text-sm">
                                     {hotel.standard}
                                   </td>
-                                  <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap">
+                                  <td className="border border-black px-1 lg:px-2 py-1 lg:py-2 break-all whitespace-pre-wrap text-xs lg:text-sm">
                                     {hotel.deluxe}
                                   </td>
-                                  <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap">
+                                  <td className="border border-black px-1 lg:px-2 py-1 lg:py-2 break-all whitespace-pre-wrap text-xs lg:text-sm">
                                     {hotel.executive}
                                   </td>
                                 </tr>
@@ -2412,43 +2393,43 @@ const TourDetails = () => {
                             </tbody>
                           </table>
                         ) : (
-                          <div className="border-2 border-[#1e3a8a] p-4 bg-white rounded-lg">
-                            <p className="text-gray-500 text-center">No hotel information available</p>
+                          <div className="border-2 border-[#1e3a8a] p-3 lg:p-4 bg-white rounded-lg">
+                            <p className="text-gray-500 text-center text-sm lg:text-base">No hotel information available</p>
                           </div>
                         )}
                       </div>
 
-                     {/* Combined Remarks Section */}
-{tour.hotels.remarks.length > 0 && (
-  <div className="bg-[#E8F0FF] rounded-lg mt-1 w-full overflow-x-hidden">
-    
-    {/* Hotel Remarks Section */}
-    <div className="mb-0">
-      <div className="bg-red-600 text-white text-center font-bold text-xl py-3 rounded-t-lg w-full">
-        Hotel Remarks
-      </div>
-      
-      <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg overflow-hidden w-full">
-        <div className="min-h-[150px] max-h-[160px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-          <ul className="space-y-2 w-full">
-            {tour.hotels.remarks.map((remark: string, index: number) => (
-              <li key={`hotel-${index}`} className="flex items-start gap-1 w-full">
-                <span className="text-black break-words whitespace-pre-wrap text-justify w-full">
-                  {remark}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-    </div>
-    
-  </div>
-)}
+                      {/* Combined Remarks Section */}
+                      {tour.hotels.remarks.length > 0 && (
+                        <div className="bg-[#E8F0FF] rounded-lg mt-1 w-full overflow-x-hidden">
+
+                          {/* Hotel Remarks Section */}
+                          <div className="mb-0">
+                            <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-xl py-2 lg:py-3 rounded-t-lg w-full">
+                              Hotel Remarks
+                            </div>
+
+                            <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg overflow-hidden w-full">
+                              <div className="min-h-[120px] lg:min-h-[150px] max-h-[120px] lg:max-h-[160px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+                                <ul className="space-y-2 w-full">
+                                  {tour.hotels.remarks.map((remark: string, index: number) => (
+                                    <li key={`hotel-${index}`} className="flex items-start gap-1 w-full">
+                                      <span className="text-black break-words whitespace-pre-wrap text-justify w-full text-sm lg:text-base">
+                                        {remark}
+                                      </span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </div>
+                          </div>
+
+                        </div>
+                      )}
                       <div className="mt-1">
                         <button
                           onClick={() => navigate("/alert")}
-                          className={`w-full  font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90`}
+                          className={`w-full font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90 text-sm lg:text-base`}
                         >
                           Customize your tour on chargeable basis
                         </button>
@@ -2459,215 +2440,217 @@ const TourDetails = () => {
                   </div>
                 )}
 
-             {/* Bookings POI Tab */}
-{activeTab === "bookings-poi" && (
-  <div className="bg-[#E8F0FF] rounded-lg p-1">
-    <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg mb-1">
-      Booking Policy
-    </div>
+                {/* Bookings POI Tab */}
+                {activeTab === "bookings-poi" && (
+                  <div className="bg-[#E8F0FF] rounded-lg p-1">
+                    <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg mb-1">
+                      Booking Policy
+                    </div>
 
-    <div className="flex flex-col lg:flex-row gap-1 mt-1 h-[320px]">
-      {/* Left Card - Booking Policy - 68% width */}
-      <div className="h-full w-full lg:w-[65%] flex flex-col">
-        <div className="bg-[#2E4D98] text-white text-center py-3 rounded-t-lg">
-          <h3 className="text-xl font-bold">Booking Policy</h3>
-        </div>
-        <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-white overflow-hidden">
-          <div className="h-full overflow-y-auto bg-[#FFEBEE]">
-            <div className="p-1">
-              {tour.booking.items.map((item: string, index: number) => (
-                <React.Fragment key={index}>
-                  <div className="flex items-start gap-3 p-2">
-                    <span className="text-black text-[15px] whitespace-normal text-justify w-full">
-                      {item}
-                    </span>
-                  </div>
-                  {index < tour.booking.items.length && (
-                    <div className="border-b-[1px] border-black"></div>
-                  )}
-                </React.Fragment>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
+                    <div className="flex flex-col lg:flex-row gap-1 mt-1 lg:h-[320px]">
 
-      <div className="h-full w-full lg:w-[35%] flex flex-col">
-        <div className="bg-[#2E4D98] text-white text-center py-3 rounded-t-lg">
-          <h3 className="text-xl font-bold">Amount Details</h3>
-        </div>
-        <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-white overflow-hidden">
-          <div className="h-full overflow-y-auto bg-[#FFEBEE]">
-            <div className="p-1">
-              {tour.booking.amountDetails.map((amount: string, index: number) => (
-                <React.Fragment key={index}>
-                  <div className="flex items-center p-2 pl-1"> 
-                    <div className="text-left w-full">
-                      <span className="text-sm font-bold text-green-600">
-                        {amount}
-                      </span>
+                      {/* Left Card - Booking Policy - 68% width */}
+                      <div className="h-full w-full lg:w-[65%] flex flex-col">
+                        <div className="bg-[#2E4D98] text-white text-center py-2 lg:py-3 rounded-t-lg">
+                          <h3 className="text-lg lg:text-xl font-bold">Booking Policy</h3>
+                        </div>
+                        <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-white overflow-hidden">
+                          <div className="h-full overflow-y-auto bg-[#FFEBEE]">
+                            <div className="p-1">
+                              {tour.booking.items.map((item: string, index: number) => (
+                                <React.Fragment key={index}>
+                                  <div className="flex items-start gap-3 p-2">
+                                    <span className="text-black text-xs lg:text-[15px] whitespace-normal text-justify w-full">
+                                      {item}
+                                    </span>
+                                  </div>
+                                  {index < tour.booking.items.length && (
+                                    <div className="border-b-[1px] border-black"></div>
+                                  )}
+                                </React.Fragment>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="h-full w-full lg:w-[35%] flex flex-col">
+                        <div className="bg-[#2E4D98] text-white text-center py-2 lg:py-3 rounded-t-lg">
+                          <h3 className="text-lg lg:text-xl font-bold">Amount Details</h3>
+                        </div>
+                        <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-white overflow-hidden">
+                          <div className="h-full overflow-y-auto bg-[#FFEBEE]">
+                            <div className="p-1">
+                              {tour.booking.amountDetails.map((amount: string, index: number) => (
+                                <React.Fragment key={index}>
+                                  <div className="flex items-center p-1 pl-1">
+                                    <div className="text-left w-full">
+                                      <span className="text-xs lg:text-sm font-bold text-green-600">
+                                        {amount}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  {index < tour.booking.amountDetails.length && (
+                                    <div className="border-b-[1px] border-black"></div>
+                                  )}
+                                </React.Fragment>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
+                      <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
+                        Booking Policy Remarks
+                      </div>
+                      <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
+                        <div className="min-h-[150px] lg:min-h-[180px] max-h-[150px] lg:max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+                          {tour.bookingRemarks && tour.bookingRemarks.length > 0 ? (
+                            <ul className="space-y-2 w-full">
+                              {tour.bookingRemarks.map((remark: string, index: number) => (
+                                <li key={index} className="w-full">
+                                  <div className="flex items-start gap-2 w-full p-2">
+                                    <span className="text-black whitespace-pre-wrap break-words hyphens-auto text-justify w-full text-sm lg:text-base">
+                                      {remark}
+                                    </span>
+                                  </div>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <div className="flex items-center justify-center h-full">
+                              <span className="text-gray-500 italic text-sm lg:text-base">No booking policy remarks available</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="mt-1">
+                        <button
+                          onClick={() => navigate("/alert")}
+                          className="w-full font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90 text-sm lg:text-base"
+                        >
+                          Customize your tour on chargeable basis
+                        </button>
+                      </div>
                     </div>
                   </div>
-                  {index < tour.booking.amountDetails.length && (
-                    <div className="border-b-[1px] border-black"></div>
-                  )}
-                </React.Fragment>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+                )}
 
-    <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
-      <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
-        Booking Policy Remarks
-      </div>
-      <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-        <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-          {tour.bookingRemarks && tour.bookingRemarks.length > 0 ? (
-            <ul className="space-y-2 w-full">
-              {tour.bookingRemarks.map((remark: string, index: number) => (
-                <li key={index} className="w-full">
-                  <div className="flex items-start gap-2 w-full p-2">
-                    <span className="text-black whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
-                      {remark}
-                    </span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <div className="flex items-center justify-center h-full">
-              <span className="text-gray-500 italic">No booking policy remarks available</span>
-            </div>
-          )}
-        </div>
-      </div>
-      <div className="mt-1">
-        <button
-          onClick={() => navigate("/alert")}
-          className="w-full font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90"
-        >
-          Customize your tour on chargeable basis
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+                {/* Cancellation Tab */}
+                {activeTab === "cancellation" && (
+                  <div className="bg-[#E8F0FF] rounded-lg p-1">
+                    <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg mb-1">
+                      Cancellation Policy
+                    </div>
 
-{/* Cancellation Tab */}
-{activeTab === "cancellation" && (
-  <div className="bg-[#E8F0FF] rounded-lg p-1">
-    <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg mb-1">
-      Cancellation Policy
-    </div>
+                    <div className="flex flex-col lg:flex-row gap-1 mt-1 lg:h-[320px]">
 
-    <div className="flex flex-col lg:flex-row gap-1 mt-1 h-[320px]">
-      {/* Left Card - Cancellation Policy - 68% width */}
-      <div className="h-full w-full lg:w-[65%] flex flex-col">
-        <div className="bg-[#A72703] text-white text-center py-3 rounded-t-lg">
-          <h3 className="text-xl font-bold">Cancellation Policy</h3>
-        </div>
-        <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-[#FFEBEE] overflow-hidden">
-          <div className="h-full overflow-y-auto bg-[#FFEBEE]">
-            <div className="p-1">
-              {tour.cancellation.policies.map((item: string, index: number) => (
-                <React.Fragment key={index}>
-                  <div className="flex items-start gap-3 p-2">
-                    <span className="text-black text-[15px] whitespace-normal text-justify w-full">
-                      {item}
-                    </span>
-                  </div>
-                  {/* Horizontal line after EACH item - even the last one */}
-                  {index < tour.cancellation.policies.length && (
-                    <div className="border-b-[1px] border-black"></div>
-                  )}
-                </React.Fragment>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
+                      {/* Left Card - Cancellation Policy - 68% width */}
+                      <div className="h-full w-full lg:w-[65%] flex flex-col">
+                        <div className="bg-[#A72703] text-white text-center py-2 lg:py-3 rounded-t-lg">
+                          <h3 className="text-lg lg:text-xl font-bold">Cancellation Policy</h3>
+                        </div>
+                        <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-[#FFEBEE] overflow-hidden">
+                          <div className="h-full overflow-y-auto bg-[#FFEBEE]">
+                            <div className="p-1">
+                              {tour.cancellation.policies.map((item: string, index: number) => (
+                                <React.Fragment key={index}>
+                                  <div className="flex items-start gap-3 p-2">
+                                    <span className="text-black text-xs lg:text-[15px] whitespace-normal text-justify w-full">
+                                      {item}
+                                    </span>
+                                  </div>
+                                  {/* Horizontal line after EACH item - even the last one */}
+                                  {index < tour.cancellation.policies.length && (
+                                    <div className="border-b-[1px] border-black"></div>
+                                  )}
+                                </React.Fragment>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
 
-      <div className="h-full w-full lg:w-[35%] flex flex-col">
-        <div className="bg-[#A72703] text-white text-center py-3 rounded-t-lg">
-          <h3 className="text-xl font-bold">Charges</h3>
-        </div>
-        <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-[#FFEBEE] overflow-hidden">
-          <div className="h-full overflow-y-auto bg-[#FFEBEE]">
-            <div className="p-1">
-              {tour.cancellation.charges.map((charge: string, index: number) => (
-                <React.Fragment key={index}>
-                  <div className="flex items-center justify-start p-2">
-                    <div className="text-left w-full">
-                      <span className="text-sm font-bold text-[#A72703]">
-                        {charge}
-                      </span>
+                      <div className="h-full w-full lg:w-[35%] flex flex-col">
+                        <div className="bg-[#A72703] text-white text-center py-2 lg:py-3 rounded-t-lg">
+                          <h3 className="text-lg lg:text-xl font-bold">Charges</h3>
+                        </div>
+                        <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-[#FFEBEE] overflow-hidden">
+                          <div className="h-full overflow-y-auto bg-[#FFEBEE]">
+                            <div className="p-1">
+                              {tour.cancellation.charges.map((charge: string, index: number) => (
+                                <React.Fragment key={index}>
+                                  <div className="flex items-center justify-start p-1">
+                                    <div className="text-left w-full">
+                                      <span className="text-xs lg:text-sm font-bold text-[#A72703]">
+                                        {charge}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  {/* Horizontal line after EACH charge - even the last one */}
+                                  {index < tour.cancellation.charges.length && (
+                                    <div className="border-b-[1px] border-black"></div>
+                                  )}
+                                </React.Fragment>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Cancellation Policy Remarks Section */}
+                    <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
+                      <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
+                        Cancellation Policy Remarks
+                      </div>
+                      <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
+                        <div className="min-h-[150px] lg:min-h-[180px] max-h-[150px] lg:max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+                          {tour.cancellationRemarks && tour.cancellationRemarks.length > 0 ? (
+                            <ul className="space-y-2 w-full">
+                              {tour.cancellationRemarks.map((remark: string, index: number) => (
+                                <li key={index} className="flex items-start gap-2 w-full">
+                                  <span className="text-black whitespace-pre-wrap break-words hyphens-auto text-justify w-full text-sm lg:text-base">
+                                    {remark}
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <div className="flex items-center justify-center h-full">
+                              <span className="text-gray-500 italic text-sm lg:text-base">No cancellation policy remarks available</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-1">
+                      <button
+                        onClick={() => navigate("/alert")}
+                        className="w-full font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90 text-sm lg:text-base"
+                      >
+                        Customize your tour on chargeable basis
+                      </button>
                     </div>
                   </div>
-                  {/* Horizontal line after EACH charge - even the last one */}
-                  {index < tour.cancellation.charges.length && (
-                    <div className="border-b-[1px] border-black"></div>
-                  )}
-                </React.Fragment>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    {/* Cancellation Policy Remarks Section */}
-    <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
-      <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
-        Cancellation Policy Remarks
-      </div>
-      <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-        <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-          {tour.cancellationRemarks && tour.cancellationRemarks.length > 0 ? (
-            <ul className="space-y-2 w-full">
-              {tour.cancellationRemarks.map((remark: string, index: number) => (
-                <li key={index} className="flex items-start gap-2 w-full">
-                  <span className="text-black whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
-                    {remark}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <div className="flex items-center justify-center h-full">
-              <span className="text-gray-500 italic">No cancellation policy remarks available</span>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-    <div className="mt-1">
-      <button
-        onClick={() => navigate("/alert")}
-        className="w-full font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90"
-      >
-        Customize your tour on chargeable basis
-      </button>
-    </div>
-  </div>
-)}
+                )}
 
                 {/* Instructions Tab */}
                 {activeTab === "instructions" && (
                   <div className="bg-[#E8F0FF] rounded-lg p-1">
-                    <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg">
+                    <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg">
                       Instructions
                     </div>
 
                     <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg">
-                      <div className="min-h-[300px] max-h-[320px] overflow-y-auto p-1 bg-[#FFEBEE]">
+                      <div className="min-h-[250px] lg:min-h-[300px] max-h-[250px] lg:max-h-[320px] overflow-y-auto p-1 bg-[#FFEBEE]">
                         <div className="space-y-4 p-0">
                           <div className="p-1">
                             <ul className="space-y-2 text-gray-700">
                               {tour.instructions.map((instruction: any, index: number) => (
-                                <li key={index} className="text-justify whitespace-normal text-black">
+                                <li key={index} className="text-justify whitespace-normal text-black text-sm lg:text-base">
                                   {instruction.item || instruction}
                                 </li>
                               ))}
@@ -2679,7 +2662,7 @@ const TourDetails = () => {
                     <div className="mt-1">
                       <button
                         onClick={() => navigate("/alert")}
-                        className={`w-full  font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90`}
+                        className={`w-full font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90 text-sm lg:text-base`}
                       >
                         Customize your tour on chargeable basis
                       </button>
@@ -2690,8 +2673,9 @@ const TourDetails = () => {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex justify-end mt-1 gap-0.5">
-                <div className="w-32 border border-green-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex justify-between lg:justify-end mt-1 gap-1 lg:gap-0.5 flex-nowrap">
+
+                <div className="w-[32%] lg:w-32 border border-green-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                   <PDFDownloadLink
                     document={
                       <TourPdfDocument
@@ -2711,12 +2695,12 @@ const TourDetails = () => {
                   >
                     {({ blob, url, loading, error }) => (
                       <button
-                        className={`w-full ${loading || isGeneratingPdf ? 'bg-green-900' : 'bg-green-700 hover:bg-green-800'} text-white font-bold py-3 px-3 flex items-center justify-center gap-2 transition-colors text-sm`}
+                        className={`w-full ${loading || isGeneratingPdf ? 'bg-green-900' : 'bg-green-700 hover:bg-green-800'} text-white font-bold py-2 lg:py-3 px-2 lg:px-3 flex items-center justify-center gap-1 lg:gap-2 transition-colors text-xs lg:text-sm`}
                         disabled={loading || isGeneratingPdf}
                       >
                         {loading || isGeneratingPdf ? (
                           <>
-                            <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <svg className="animate-spin h-3 w-3 lg:h-4 lg:w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                             </svg>
@@ -2724,7 +2708,7 @@ const TourDetails = () => {
                           </>
                         ) : (
                           <>
-                            <Download className="h-4 w-4" />
+                            <Download className="h-3 w-3 lg:h-4 lg:w-4" />
                             Download
                           </>
                         )}
@@ -2734,12 +2718,12 @@ const TourDetails = () => {
                 </div>
 
                 {/* Email Button */}
-                <div className="w-32 border border-blue-700 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-[32%] lg:w-32 border border-blue-700 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                   <button
                     onClick={() => setShowEmailModal(true)}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-3 flex items-center justify-center gap-2 transition-colors text-sm"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 lg:py-3 px-2 lg:px-3 flex items-center justify-center gap-1 lg:gap-2 transition-colors text-xs lg:text-sm"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 lg:h-4 lg:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                     Email
@@ -2754,9 +2738,9 @@ const TourDetails = () => {
                   tour={tour}
                 />
 
-                <div className="w-32 border border-red-700 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-[32%] lg:w-32 border border-red-700 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                   <button
-                    className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-3 flex items-center justify-center gap-2 transition-colors text-sm"
+                    className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 lg:py-3 px-2 lg:px-3 flex items-center justify-center gap-1 lg:gap-2 transition-colors text-xs lg:text-sm"
                     onClick={() => {
                       // Save tour data to localStorage as backup
                       localStorage.setItem('selectedTour', JSON.stringify(tour));
@@ -2767,7 +2751,7 @@ const TourDetails = () => {
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4"
+                      className="h-3 w-3 lg:h-4 lg:w-4"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"

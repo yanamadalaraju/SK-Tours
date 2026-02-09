@@ -25,11 +25,9 @@ interface EmailFormData {
   message: string;
 }
 
-// DayCard Component (keeping as is)
 const DayCard = ({ dayNumber, headerColor, bodyColor, dayData }) => {
   const [meals, setMeals] = useState({ B: false, L: false, D: false });
 
-  // Parse meals from dayData
   React.useEffect(() => {
     if (dayData?.meals) {
       const mealsStr = dayData.meals.toLowerCase();
@@ -43,138 +41,140 @@ const DayCard = ({ dayNumber, headerColor, bodyColor, dayData }) => {
 
   return (
     <div className="rounded-lg">
-      <div className="flex gap-1 mb-1">
-        <div className={`${headerColor} text-white font-bold px-4 py-2 rounded-lg text-start w-[120px] flex-shrink-0 border border-black`}>
-          {dayNumber}
-        </div>
+      {/* HEADER ROW - Full width scrollable container */}
+      <div className="mb-1 w-full">
+        <div className="relative">
+          {/* Scrollable wrapper */}
+          <div className="overflow-x-auto lg:overflow-visible">
+            <div className="flex gap-1 w-max lg:w-full min-w-full lg:min-w-0">
+              {/* Day Number */}
+              <div className={`${headerColor} text-white font-bold px-3 lg:px-4 py-2 rounded-lg text-center w-[70px] lg:w-[100px] flex-shrink-0 border border-black`}>
+                <span className="text-xs lg:text-sm">{dayNumber}</span>
+              </div>
 
-        <div className={`${headerColor} text-white font-bold px-4 py-2 rounded-lg flex-1 min-w-0 border border-black`}>
-          <div className="truncate">{dayData?.title || "Day Details"}</div>
-        </div>
+              {/* Day Title - Flexible width */}
+              <div className={`${headerColor} text-white font-bold px-3 lg:px-4 py-2 rounded-lg border border-black flex-1 min-w-[180px] lg:min-w-0 flex items-center`}>
+                <div className="truncate lg:whitespace-normal text-xs lg:text-base">
+                  {dayData?.title || "Day Details"}
+                </div>
+              </div>
 
-        <div className={`${headerColor} text-white border border-black rounded-lg px-3 py-1.5 flex items-center justify-center gap-3 w-[140px] flex-shrink-0`}>
-          <div className="flex items-center gap-1">
-            <div
-              className={`h-4 w-4 border flex items-center justify-center transition-colors ${meals.B
-                ? 'bg-white border-gray-400'
-                : 'bg-white border-gray-400'
-                }`}
-              style={{ borderRadius: '2px' }}
-            >
-              {meals.B ? (
-                <svg
-                  className="h-4 w-4 text-blue-700"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="3"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path d="M5 13l4 4L19 7"></path>
-                </svg>
-              ) : (
-                <svg
-                  className="h-4 w-4 text-red-600"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="3"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-              )}
+         {/* Meals Checkboxes */}
+<div
+  className={`
+    ${headerColor} text-white border border-black rounded-lg
+    px-1.5 lg:px-3 py-1.5
+    flex items-center justify-center
+    gap-1 lg:gap-3
+    w-full max-w-[120px] lg:w-[130px]
+    flex-shrink-0
+  `}
+>
+  {/* Breakfast */}
+  <div className="flex items-center gap-1">
+    <div className="h-4 w-4 border border-gray-400 bg-white flex items-center justify-center">
+      {meals.B ? (
+        <svg
+          className="h-3 w-3 text-blue-700"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          viewBox="0 0 24 24"
+        >
+          <path d="M5 13l4 4L19 7" />
+        </svg>
+      ) : (
+        <svg
+          className="h-3 w-3 text-red-600"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          viewBox="0 0 24 24"
+        >
+          <path d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      )}
+    </div>
+    <span className="text-white text-xs lg:text-sm font-bold">B</span>
+  </div>
+
+  {/* Lunch */}
+  <div className="flex items-center gap-1">
+    <div className="h-4 w-4 border border-gray-400 bg-white flex items-center justify-center">
+      {meals.L ? (
+        <svg
+          className="h-3 w-3 text-blue-700"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          viewBox="0 0 24 24"
+        >
+          <path d="M5 13l4 4L19 7" />
+        </svg>
+      ) : (
+        <svg
+          className="h-3 w-3 text-red-600"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          viewBox="0 0 24 24"
+        >
+          <path d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      )}
+    </div>
+    <span className="text-white text-xs lg:text-sm font-bold">L</span>
+  </div>
+
+  {/* Dinner */}
+  <div className="flex items-center gap-1">
+    <div className="h-4 w-4 border border-gray-400 bg-white flex items-center justify-center">
+      {meals.D ? (
+        <svg
+          className="h-3 w-3 text-blue-700"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          viewBox="0 0 24 24"
+        >
+          <path d="M5 13l4 4L19 7" />
+        </svg>
+      ) : (
+        <svg
+          className="h-3 w-3 text-red-600"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          viewBox="0 0 24 24"
+        >
+          <path d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      )}
+    </div>
+    <span className="text-white text-xs lg:text-sm font-bold">D</span>
+  </div>
+</div>
+
             </div>
-            <span className="text-white text-sm font-bold">B</span>
-          </div>
-
-          <div className="flex items-center gap-1">
-            <div
-              className={`h-4 w-4 border flex items-center justify-center transition-colors ${meals.L
-                ? 'bg-white border-gray-400'
-                : 'bg-white border-gray-400'
-                }`}
-              style={{ borderRadius: '2px' }}
-            >
-              {meals.L ? (
-                <svg
-                  className="h-4 w-4 text-blue-700"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="3"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path d="M5 13l4 4L19 7"></path>
-                </svg>
-              ) : (
-                <svg
-                  className="h-4 w-4 text-red-600"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="3"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-              )}
-            </div>
-            <span className="text-white text-sm font-bold">L</span>
-          </div>
-
-          <div className="flex items-center gap-1">
-            <div
-              className={`h-4 w-4 border flex items-center justify-center transition-colors ${meals.D
-                ? 'bg-white border-gray-400'
-                : 'bg-white border-gray-400'
-                }`}
-              style={{ borderRadius: '2px' }}
-            >
-              {meals.D ? (
-                <svg
-                  className="h-4 w-4 text-blue-700"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="3"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path d="M5 13l4 4L19 7"></path>
-                </svg>
-              ) : (
-                <svg
-                  className="h-4 w-4 text-red-600"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="3"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-              )}
-            </div>
-            <span className="text-white text-sm font-bold">D</span>
           </div>
         </div>
       </div>
 
+      {/* DESCRIPTION - Fixed, no horizontal scroll */}
       <div className={`${bodyColor} rounded-lg border border-black overflow-hidden`}>
-        <div
-          className="p-2 text-black whitespace-pre-line text-justify"
-          style={{
-            height: '150px',
-            overflowY: 'auto',
-            scrollbarWidth: 'thin',
-          }}
-        >
+        <div className="p-2 text-black whitespace-pre-line text-justify h-[150px] overflow-y-auto">
           {dayData?.description || ""}
         </div>
       </div>
@@ -965,367 +965,366 @@ useEffect(() => {
     );
   }
 
-  return (
-    <>
-      <div className="min-h-screen bg-[#FFEBEE]">
-        <Header />
+return (
+  <>
+    <div className="min-h-screen bg-[#FFEBEE]">
+      <Header />
 
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex flex-col lg:flex-row gap-6">
-
-            {/* Filters Sidebar */}
-              <aside className="lg:w-80">
-                       <div className="bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl shadow-lg p-6 border border-blue-200 sticky top-24">
-                         <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
-                           <h2 className="text-2xl font-bold text-[#2E4D98]">International Tours</h2>
-                           <button
-                             onClick={clearAllFilters}
-                             className="text-sm text-[#E53C42] hover:underline"
-                           >
-                             Clear All
-                           </button>
-                         </div>
-         
-                         {/* Duration */}
-                         <div className="mb-8">
-                           <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Duration</h3>
-                           <div className="flex justify-between text-sm text-gray-600 mb-3">
-                             <span>{durationRange[0]} days</span>
-                             <span>{durationRange[1]} days</span>
-                           </div>
-                           <Slider
-                             value={durationRange}
-                             onValueChange={setDurationRange}
-                             max={15}
-                             step={1}
-                             className="w-full"
-                           />
-                         </div>
-         
-                         {/* Price */}
-                         <div className="mb-8">
-                           <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Price</h3>
-                           <div className="flex justify-between text-sm text-gray-600 mb-3">
-                             <span>₹{priceRange[0].toLocaleString()}</span>
-                             <span>₹{priceRange[1].toLocaleString()}</span>
-                           </div>
-                           <Slider
-                             value={priceRange}
-                             onValueChange={setPriceRange}
-                             min={10000}
-                             max={200000}
-                             step={1000}
-                           />
-                         </div>
-         
-             <div className="mb-8">
-               <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
-                 <h2 className="text-2xl font-bold text-[#2E4D98]">Indian Tours</h2>
-               </div>
-             
-               <div className={`${showMoreIndian ? "max-h-80 overflow-y-auto pr-2" : ""} space-y-2.5`}>
-                 {[
-                   'Andaman', 'Goa', 'Himachal', 'Kashmir', 'Kerala', 'Rajasthan',
-                   ...(showMoreIndian
-                     ? [
-                       'Andhra Pradesh',
-                       'Bihar',
-                       'Chhattisgarh',
-                       'Dadra & Nagar Haveli',
-                       'Daman & Diu',
-                       'Delhi',
-                       'Gujarat',
-                       'Haryana',
-                       'Jharkhand',
-                       'Karnataka',
-                       'Ladakh',
-                       'Lakshadweep',
-                       'Madhya Pradesh',
-                       'Maharashtra',
-                       'North East',
-                       'Odisha',
-                       'Puducherry',
-                       'Punjab & Haryana',
-                       'Seven Sisters',
-                       'Tamil Nadu',
-                       'Uttar Pradesh',
-                       'Uttarakhand',
-                       'West Bengal',
-                     ]
-                     : []),
-                 ]
-                   .sort((a, b) => a.localeCompare(b))
-                   .map((place) => {
-                     return (
-                       <div
-                         key={place}
-                         className="flex items-center gap-3 cursor-pointer group px-1 py-0.5 rounded-md transition-colors hover:bg-blue-50"
-                         onClick={() => {
-                           clearAllFilters();
-                           
-                           let basePath = '/tours-packages'; 
-                           
-                           if (tourType === 'Group') {
-                             basePath = '/tours_groups';
-                           } else if (tourType === 'Ladies Special') {
-                             basePath = '/ladies_tours';
-                           } else if (tourType === 'Senior Citizen') {
-                             basePath = '/senior_tours';
-                           } else if (tourType === 'Student') {
-                             basePath = '/students_tours';
-                           } else if (tourType === 'Honeymoon') {
-                             basePath = '/honeymoon_tours';
-                           }
-                           
-                           navigate(`${basePath}/${encodeURIComponent(place)}`);
-                         }}
-                       >
-                         <Checkbox
-                           checked={selectedState === place}
-                           onCheckedChange={() => {
-                             setSelectedState(place);
-                             clearAllFilters();
-                             
-                             let basePath = '/tours-packages'; 
-                             
-                             if (tourType === 'Group') {
-                               basePath = '/tours_groups';
-                             } else if (tourType === 'Ladies Special') {
-                               basePath = '/ladies_tours';
-                             } else if (tourType === 'Senior Citizen') {
-                               basePath = '/senior_tours';
-                             } else if (tourType === 'Student') {
-                               basePath = '/students_tours';
-                             } else if (tourType === 'Honeymoon') {
-                               basePath = '/honeymoon_tours';
-                             }
-                             
-                             // Navigate to the correct path with place as parameter
-                             navigate(`${basePath}/${encodeURIComponent(place)}`);
-                           }}
-                           className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
-                         />
-             
-                         <span
-                           className={`text-gray-800 transition-colors group-hover:text-[#2E4D98] ${selectedState === place ? 'font-semibold text-[#2E4D98]' : ''
-                             }`}
-                         >
-                           {place}
-                         </span>
-                       </div>
-                     );
-                   })}
-               </div>
-             
-               <button
-                 onClick={() => setShowMoreIndian(!showMoreIndian)}
-                 className="mt-4 text-[#2E4D98] text-sm font-medium hover:underline flex items-center gap-1"
-               >
-                 {showMoreIndian ? 'Show Less' : 'Show More States'}
-               </button>
-             </div>
-         
-   <div>
-  <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
-    <h2 className="text-2xl font-bold text-[#2E4D98]">International Tours</h2>
-  </div>
-
-  {loadingDestinations ? (
-    <div className="text-center py-4">
-      <p className="text-gray-500">Loading international destinations...</p>
-    </div>
-  ) : internationalDestinations.length === 0 ? (
-    <div className="text-center py-4">
-      <p className="text-gray-500">No international destinations found</p>
-    </div>
-  ) : (
-    <>
-      <div className={`${showMoreWorld ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
-        {internationalDestinations
-          .slice(0, showMoreWorld ? internationalDestinations.length : 6)
-          .map((place) => {
-            const isSelected = selectedWorldTours.includes(place);
-
-            return (
-              <div
-                key={place}
-                className="flex items-center gap-3 cursor-pointer"
-                onClick={() => {
-                  if (!selectedWorldTours.includes(place)) {
-                    setSelectedWorldTours([...selectedWorldTours, place]);
-                  }
-                  
-                  let basePath = '/intl-tours-packages'; // default for Individual tours
-                  
-                  const currentTourType = tourType as string; // Type assertion to fix TypeScript error
-                  
-                  if (currentTourType === 'Group') {
-                    basePath = '/intl-tours_groups';
-                  } else if (currentTourType === 'Ladies Special') {
-                    basePath = '/intl-ladies_tours';
-                  } else if (currentTourType === 'Senior Citizen') {
-                    basePath = '/intl-senior_tours';
-                  } else if (currentTourType === 'Student') {
-                    basePath = '/intl-students_tours';
-                  } else if (currentTourType === 'Honeymoon') {
-                    basePath = '/intl-honeymoon_tours';
-                  }
-                  
-                  const encodedDestination = encodeURIComponent(place);
-                  navigate(`${basePath}/${encodedDestination}`);
-                }}
-              >
-                <Checkbox
-                  checked={isSelected}
-                  onCheckedChange={(checked) => {
-                    if (checked) {
-                      setSelectedWorldTours([...selectedWorldTours, place]);
-                      
-                      let basePath = '/intl-tours-packages'; // default for Individual tours
-                      
-                      const currentTourType = tourType as string; // Type assertion to fix TypeScript error
-                      
-                      if (currentTourType === 'Group') {
-                        basePath = '/intl-tours_groups';
-                      } else if (currentTourType === 'Ladies Special') {
-                        basePath = '/intl-ladies_tours';
-                      } else if (currentTourType === 'Senior Citizen') {
-                        basePath = '/intl-senior_tours';
-                      } else if (currentTourType === 'Student') {
-                        basePath = '/intl-students_tours';
-                      } else if (currentTourType === 'Honeymoon') {
-                        basePath = '/intl-honeymoon_tours';
-                      }
-                      
-                      const encodedDestination = encodeURIComponent(place);
-                      navigate(`${basePath}/${encodedDestination}`);
-                    } else {
-                      setSelectedWorldTours(selectedWorldTours.filter(t => t !== place));
-                    }
-                  }}
-                  className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                  }}
-                />
-                <span
-                  className={`${isSelected ? 'font-bold text-[#2E4D98]' : 'text-gray-700 hover:text-[#2E4D98]'} cursor-pointer flex-1`}
+      <div className="container mx-auto px-4 py-6">
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Filters Sidebar - Mobile responsive */}
+          <aside className="lg:w-80 w-full order-1">
+            <div className="bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl shadow-lg p-4 lg:p-6 border border-blue-200 lg:sticky lg:top-24">
+              <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
+                <h2 className="text-lg lg:text-2xl font-bold text-[#2E4D98]">International Tours</h2>
+                <button
+                  onClick={clearAllFilters}
+                  className="text-xs lg:text-sm text-[#E53C42] hover:underline"
                 >
-                  {place}
-                </span>
+                  Clear All
+                </button>
               </div>
-            );
-          })}
-      </div>
 
-      {internationalDestinations.length > 6 && (
-        <button
-          onClick={() => setShowMoreWorld(!showMoreWorld)}
-          className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
-        >
-          {showMoreWorld ? "Show Less" : "Show More"}
-        </button>
-      )}
-    </>
-  )}
-</div>
-                       </div>
-                     </aside>
-         
+              {/* Duration */}
+              <div className="mb-8">
+                <h3 className="font-semibold text-sm lg:text-lg mb-4 text-[#2E4D98]">Duration</h3>
+                <div className="flex justify-between text-xs lg:text-sm text-gray-600 mb-3">
+                  <span>{durationRange[0]} days</span>
+                  <span>{durationRange[1]} days</span>
+                </div>
+                <Slider
+                  value={durationRange}
+                  onValueChange={setDurationRange}
+                  max={15}
+                  step={1}
+                  className="w-full"
+                />
+              </div>
 
-            <main className="flex-1">
-              <div className="relative rounded-2xl overflow-hidden mb-1">
-                <div className="relative h-96 lg:h-[500px] overflow-hidden">
-                  <img
-                    src={tour.images[currentImageIndex]}
-                    alt={tour.title}
-                    className="w-full h-full object-cover transition-transform duration-500 ease-in-out"
-                  />
+              {/* Price */}
+              <div className="mb-8">
+                <h3 className="font-semibold text-sm lg:text-lg mb-4 text-[#2E4D98]">Price</h3>
+                <div className="flex justify-between text-xs lg:text-sm text-gray-600 mb-3">
+                  <span>₹{priceRange[0].toLocaleString()}</span>
+                  <span>₹{priceRange[1].toLocaleString()}</span>
+                </div>
+                <Slider
+                  value={priceRange}
+                  onValueChange={setPriceRange}
+                  min={10000}
+                  max={200000}
+                  step={1000}
+                />
+              </div>
 
-                  {/* Navigation Arrows */}
-                  {tour.images.length > 1 && (
-                    <>
-                      <button
-                        onClick={prevImage}
-                        className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all duration-200"
-                      >
-                        <ChevronLeft className="w-6 h-6" />
-                      </button>
-                      <button
-                        onClick={nextImage}
-                        className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all duration-200"
-                      >
-                        <ChevronRight className="w-6 h-6" />
-                      </button>
-                    </>
-                  )}
+              <div className="mb-8">
+                <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
+                  <h2 className="text-lg lg:text-2xl font-bold text-[#2E4D98]">Indian Tours</h2>
+                </div>
+              
+                <div className={`${showMoreIndian ? "max-h-80 overflow-y-auto pr-2" : ""} space-y-2.5`}>
+                  {[
+                    'Andaman', 'Goa', 'Himachal', 'Kashmir', 'Kerala', 'Rajasthan',
+                    ...(showMoreIndian
+                      ? [
+                        'Andhra Pradesh',
+                        'Bihar',
+                        'Chhattisgarh',
+                        'Dadra & Nagar Haveli',
+                        'Daman & Diu',
+                        'Delhi',
+                        'Gujarat',
+                        'Haryana',
+                        'Jharkhand',
+                        'Karnataka',
+                        'Ladakh',
+                        'Lakshadweep',
+                        'Madhya Pradesh',
+                        'Maharashtra',
+                        'North East',
+                        'Odisha',
+                        'Puducherry',
+                        'Punjab & Haryana',
+                        'Seven Sisters',
+                        'Tamil Nadu',
+                        'Uttar Pradesh',
+                        'Uttarakhand',
+                        'West Bengal',
+                      ]
+                      : []),
+                  ]
+                    .sort((a, b) => a.localeCompare(b))
+                    .map((place) => {
+                      return (
+                        <div
+                          key={place}
+                          className="flex items-center gap-3 cursor-pointer group px-1 py-0.5 rounded-md transition-colors hover:bg-blue-50"
+                          onClick={() => {
+                            clearAllFilters();
+                            
+                            let basePath = '/tours-packages'; 
+                            
+                            if (tourType === 'Group') {
+                              basePath = '/tours_groups';
+                            } else if (tourType === 'Ladies Special') {
+                              basePath = '/ladies_tours';
+                            } else if (tourType === 'Senior Citizen') {
+                              basePath = '/senior_tours';
+                            } else if (tourType === 'Student') {
+                              basePath = '/students_tours';
+                            } else if (tourType === 'Honeymoon') {
+                              basePath = '/honeymoon_tours';
+                            }
+                            
+                            navigate(`${basePath}/${encodeURIComponent(place)}`);
+                          }}
+                        >
+                          <Checkbox
+                            checked={selectedState === place}
+                            onCheckedChange={() => {
+                              setSelectedState(place);
+                              clearAllFilters();
+                              
+                              let basePath = '/tours-packages'; 
+                              
+                              if (tourType === 'Group') {
+                                basePath = '/tours_groups';
+                              } else if (tourType === 'Ladies Special') {
+                                basePath = '/ladies_tours';
+                              } else if (tourType === 'Senior Citizen') {
+                                basePath = '/senior_tours';
+                              } else if (tourType === 'Student') {
+                                basePath = '/students_tours';
+                              } else if (tourType === 'Honeymoon') {
+                                basePath = '/honeymoon_tours';
+                              }
+                              
+                              navigate(`${basePath}/${encodeURIComponent(place)}`);
+                            }}
+                            className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98] w-4 h-4 lg:w-4 lg:h-4"
+                          />
+              
+                          <span
+                            className={`text-sm lg:text-base text-gray-800 transition-colors group-hover:text-[#2E4D98] ${selectedState === place ? 'font-semibold text-[#2E4D98]' : ''
+                              }`}
+                          >
+                            {place}
+                          </span>
+                        </div>
+                      );
+                    })}
+                </div>
+              
+                <button
+                  onClick={() => setShowMoreIndian(!showMoreIndian)}
+                  className="mt-4 text-[#2E4D98] text-sm font-medium hover:underline flex items-center gap-1"
+                >
+                  {showMoreIndian ? 'Show Less' : 'Show More States'}
+                </button>
+              </div>
 
-                  {/* Image Counter */}
-                  {tour.images.length > 1 && (
-                    <div className="absolute top-4 right-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
-                      {currentImageIndex + 1} / {tour.images.length}
-                    </div>
-                  )}
+              <div>
+                <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
+                  <h2 className="text-lg lg:text-2xl font-bold text-[#2E4D98]">International Tours</h2>
                 </div>
 
-                {/* Thumbnail Gallery */}
-                {tour.images.length > 1 && (
-                  <div className="bg-gradient-to-r from-blue-100 to-blue-100 p-4 border-t">
-                    <div className="flex justify-center gap-2">
-                      {tour.images.map((image, index) => (
-                        <button
-                          key={index}
-                          onClick={() => goToImage(index)}
-                          className={`w-16 h-16 lg:w-20 lg:h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 ${index === currentImageIndex
-                            ? 'border-[#2E4D98] ring-2 ring-[#2E4D98] ring-opacity-50 scale-105'
-                            : 'border-transparent hover:border-gray-300'
-                            }`}
-                        >
-                          <img
-                            src={image}
-                            alt={`Thumbnail ${index + 1}`}
-                            className="w-full h-full object-cover"
-                          />
-                        </button>
-                      ))}
+                {loadingDestinations ? (
+                  <div className="text-center py-4">
+                    <p className="text-gray-500 text-sm lg:text-base">Loading international destinations...</p>
+                  </div>
+                ) : internationalDestinations.length === 0 ? (
+                  <div className="text-center py-4">
+                    <p className="text-gray-500 text-sm lg:text-base">No international destinations found</p>
+                  </div>
+                ) : (
+                  <>
+                    <div className={`${showMoreWorld ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
+                      {internationalDestinations
+                        .slice(0, showMoreWorld ? internationalDestinations.length : 6)
+                        .map((place) => {
+                          const isSelected = selectedWorldTours.includes(place);
+
+                          return (
+                            <div
+                              key={place}
+                              className="flex items-center gap-3 cursor-pointer"
+                              onClick={() => {
+                                if (!selectedWorldTours.includes(place)) {
+                                  setSelectedWorldTours([...selectedWorldTours, place]);
+                                }
+                                
+                                let basePath = '/intl-tours-packages';
+                                
+                                const currentTourType = tourType as string;
+                                
+                                if (currentTourType === 'Group') {
+                                  basePath = '/intl-tours_groups';
+                                } else if (currentTourType === 'Ladies Special') {
+                                  basePath = '/intl-ladies_tours';
+                                } else if (currentTourType === 'Senior Citizen') {
+                                  basePath = '/intl-senior_tours';
+                                } else if (currentTourType === 'Student') {
+                                  basePath = '/intl-students_tours';
+                                } else if (currentTourType === 'Honeymoon') {
+                                  basePath = '/intl-honeymoon_tours';
+                                }
+                                
+                                const encodedDestination = encodeURIComponent(place);
+                                navigate(`${basePath}/${encodedDestination}`);
+                              }}
+                            >
+                              <Checkbox
+                                checked={isSelected}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    setSelectedWorldTours([...selectedWorldTours, place]);
+                                    
+                                    let basePath = '/intl-tours-packages';
+                                    
+                                    const currentTourType = tourType as string;
+                                    
+                                    if (currentTourType === 'Group') {
+                                      basePath = '/intl-tours_groups';
+                                    } else if (currentTourType === 'Ladies Special') {
+                                      basePath = '/intl-ladies_tours';
+                                    } else if (currentTourType === 'Senior Citizen') {
+                                      basePath = '/intl-senior_tours';
+                                    } else if (currentTourType === 'Student') {
+                                      basePath = '/intl-students_tours';
+                                    } else if (currentTourType === 'Honeymoon') {
+                                      basePath = '/intl-honeymoon_tours';
+                                    }
+                                    
+                                    const encodedDestination = encodeURIComponent(place);
+                                    navigate(`${basePath}/${encodedDestination}`);
+                                  } else {
+                                    setSelectedWorldTours(selectedWorldTours.filter(t => t !== place));
+                                  }
+                                }}
+                                className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98] w-4 h-4 lg:w-4 lg:h-4"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                }}
+                              />
+                              <span
+                                className={`${isSelected ? 'font-bold text-[#2E4D98]' : 'text-gray-700 hover:text-[#2E4D98]'} cursor-pointer flex-1 text-sm lg:text-base`}
+                              >
+                                {place}
+                              </span>
+                            </div>
+                          );
+                        })}
                     </div>
+
+                    {internationalDestinations.length > 6 && (
+                      <button
+                        onClick={() => setShowMoreWorld(!showMoreWorld)}
+                        className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
+                      >
+                        {showMoreWorld ? "Show Less" : "Show More"}
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+          </aside>
+
+          <main className="flex-1 order-2 lg:order-2">
+            {/* Hero Section - Mobile responsive */}
+            <div className="relative rounded-2xl overflow-hidden mb-1">
+              <div className="relative h-64 sm:h-80 lg:h-[500px] overflow-hidden">
+                <img
+                  src={tour.images[currentImageIndex]}
+                  alt={tour.title}
+                  className="w-full h-full object-cover transition-transform duration-500 ease-in-out"
+                />
+
+                {/* Navigation Arrows */}
+                {tour.images.length > 1 && (
+                  <>
+                    <button
+                      onClick={prevImage}
+                      className="absolute left-2 lg:left-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-1 lg:p-2 rounded-full transition-all duration-200"
+                    >
+                      <ChevronLeft className="w-4 h-4 lg:w-6 lg:h-6" />
+                    </button>
+                    <button
+                      onClick={nextImage}
+                      className="absolute right-2 lg:right-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-1 lg:p-2 rounded-full transition-all duration-200"
+                    >
+                      <ChevronRight className="w-4 h-4 lg:w-6 lg:h-6" />
+                    </button>
+                  </>
+                )}
+
+                {/* Image Counter */}
+                {tour.images.length > 1 && (
+                  <div className="absolute top-2 lg:top-4 right-2 lg:right-4 bg-black/50 text-white px-2 lg:px-3 py-0.5 lg:py-1 rounded-full text-xs lg:text-sm">
+                    {currentImageIndex + 1} / {tour.images.length}
                   </div>
                 )}
               </div>
 
-              {/* Excel-like Table Layout */}
-              <div className="bg-white rounded-xl shadow-sm mb-1.5 overflow-hidden border border-black">
+              {/* Thumbnail Gallery - Mobile responsive */}
+              {tour.images.length > 1 && (
+                <div className="bg-gradient-to-r from-blue-100 to-blue-100 p-2 lg:p-4 border-t">
+                  <div className="flex justify-center gap-1 lg:gap-2 overflow-x-auto pb-2">
+                    {tour.images.map((image, index) => (
+                      <button
+                        key={index}
+                        onClick={() => goToImage(index)}
+                        className={`flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 lg:w-20 lg:h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 ${index === currentImageIndex
+                          ? 'border-[#2E4D98] ring-1 lg:ring-2 ring-[#2E4D98] ring-opacity-50 scale-105'
+                          : 'border-transparent hover:border-gray-300'
+                          }`}
+                      >
+                        <img
+                          src={image}
+                          alt={`Thumbnail ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Excel-like Table Layout - Mobile scrollable */}
+            <div className="bg-white rounded-xl shadow-sm mb-1.5 overflow-hidden border border-black overflow-x-auto">
+              <div className="min-w-[600px] lg:min-w-0">
                 {/* ===== FIRST ROW: HEADERS ===== */}
                 <div className="grid grid-cols-8 bg-[#E8F0FF] border-b border-black">
-                  <div className="border-r border-white bg-[#2E3a8a] px-4 py-3">
-                    <h3 className="font-bold text-white text-start text-lg">Tour Code</h3>
+             <div className="border-r border-white bg-[#2E3a8a] px-2 lg:px-4 py-2 lg:py-3">
+  <h3 className="font-bold text-white text-start text-[10px] xs:text-xs lg:text-lg">Tour Code</h3>
+</div>
+
+                  <div className="col-span-6 border-r border-white bg-[#2E3a8a] px-2 lg:px-4 py-2 lg:py-3">
+                    <h3 className="font-bold text-white text-start text-sm lg:text-lg">Tour Name</h3>
                   </div>
 
-                  <div className="col-span-6 border-r border-white bg-[#2E3a8a] px-4 py-3">
-                    <h3 className="font-bold text-white text-start text-lg">Tour Name</h3>
-                  </div>
-
-                  <div className="px-4 py-3 bg-[#2E3a8a]">
-                    <h3 className="font-bold text-white text-start text-lg">Days</h3>
+                  <div className="px-2 lg:px-4 py-2 lg:py-3 bg-[#2E3a8a]">
+                    <h3 className="font-bold text-white text-start text-sm lg:text-lg">Days</h3>
                   </div>
                 </div>
 
                 {/* ===== SECOND ROW: VALUES ===== */}
                 <div className="grid grid-cols-8 border-black border-black">
-                  <div className="border-r border-black px-1 py-3 bg-blue-50">
-                    <p className="text-lg font-bold text-[#2E4D98] text-center tracking-wide">
+                  <div className="border-r border-black px-1 lg:px-4 py-2 lg:py-3 bg-blue-50">
+                    <p className="text-sm lg:text-lg font-bold text-[#2E4D98] text-center tracking-wide">
                       {tour.code}
                     </p>
                   </div>
 
-                  <div className="col-span-6 border-r border-black px-4 py-3 bg-gray-50">
-                    <p className="text-lg font-semibold text-gray-900 text-start">
+                  <div className="col-span-6 border-r border-black px-2 lg:px-4 py-2 lg:py-3 bg-gray-50">
+                    <p className="text-sm lg:text-lg font-semibold text-gray-900 text-start break-words">
                       {tour.title}
                     </p>
                   </div>
 
-                  <div className="px-4 py-3 bg-red-50">
-                    <p className="text-lg font-bold text-[#E53C42] text-center">
+                  <div className="px-2 lg:px-4 py-2 lg:py-3 bg-red-50">
+                    <p className="text-sm lg:text-lg font-bold text-[#E53C42] text-center">
                       {tour.duration}
                     </p>
                   </div>
@@ -1346,7 +1345,7 @@ useEffect(() => {
                     <button
                       key={label}
                       onClick={() => setActiveTab(label.toLowerCase().replace(/\s+/g, '-'))}
-                      className={`px-3 py-4 text-sm font-semibold text-center whitespace-nowrap
+                      className={`px-1 lg:px-3 py-2 lg:py-4 text-[10px] xs:text-xs sm:text-sm font-semibold text-center whitespace-nowrap
                         ${idx < 7 ? "border-r border-black" : ""} transition 
                         ${activeTab === label.toLowerCase().replace(/\s+/g, '-')
                           ? "bg-[#A72703] text-white"
@@ -1359,156 +1358,154 @@ useEffect(() => {
                   ))}
                 </div>
               </div>
+            </div>
 
-              <div className="bg-[#2E4D98] rounded-md shadow-sm p-4">
-                {/* Itinerary Tab */}
-                {activeTab === "itinerary" && (
-                  <div className="bg-[#C2E2FA] rounded-lg p-1 h-full">
-                    <div className="mx-auto bg-white rounded-lg shadow-lg h-full flex flex-col min-h-0">
-                      <div className="bg-red-600 text-white text-center font-bold text-2xl py-2 rounded-t-lg flex-shrink-0">
-                        Tour Itinerary
-                      </div>
-                      <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg flex-1 min-h-0">
-                        <div className="bg-[#FFEBEE] h-full overflow-hidden">
-                          <div className="space-y-1 p-1 h-full overflow-y-auto">
-                            {tour.itinerary.map((day, index) => (
-                              <DayCard
-                                key={index}
-                                dayNumber={day.day}
-                                headerColor={dayCardColors[index]?.headerColor || "bg-[#A72703]"}
-                                bodyColor={dayCardColors[index]?.bodyColor || "bg-[#FFE797]"}
-                                dayData={day}
-                              />
-                            ))}
-                          </div>
+            <div className="bg-[#2E4D98] rounded-md shadow-sm p-2 lg:p-4">
+              {/* Itinerary Tab - Mobile responsive */}
+              {activeTab === "itinerary" && (
+                <div className="bg-[#C2E2FA] rounded-lg p-1 h-full">
+                  <div className="mx-auto bg-white rounded-lg shadow-lg h-full flex flex-col min-h-0">
+                    <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 rounded-t-lg flex-shrink-0">
+                      Tour Itinerary
+                    </div>
+                    <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg flex-1 min-h-0">
+                      <div className="bg-[#FFEBEE] h-full overflow-hidden">
+                        <div className="space-y-1 p-1 h-full overflow-y-auto">
+                          {tour.itinerary.map((day, index) => (
+                            <DayCard
+                              key={index}
+                              dayNumber={day.day}
+                              headerColor={dayCardColors[index]?.headerColor || "bg-[#A72703]"}
+                              bodyColor={dayCardColors[index]?.bodyColor || "bg-[#FFE797]"}
+                              dayData={day}
+                            />
+                          ))}
                         </div>
                       </div>
                     </div>
                   </div>
-                )}
+                </div>
+              )}
 
-                {/* Dep Date Tab - Different for Group vs Individual */}
-                {activeTab === "dep-date" && (
-                  isGroupTour ? (
-                    // Group Tour Departure Dates
-                    <div className="bg-[#E8F0FF] rounded-lg p-1 w-full">
-                      <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
-                        Departure Dates
-                      </div>
+              {/* Dep Date Tab - Mobile responsive */}
+              {activeTab === "dep-date" && (
+                isGroupTour ? (
+                  <div className="bg-[#E8F0FF] rounded-lg p-1 w-full">
+                    <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
+                      Departure Dates
+                    </div>
 
-                      <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg w-full flex flex-col min-h-[680px] max-h-[780px] overflow-hidden">
-                        <div className="flex-1 overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-                          <div className="flex flex-wrap gap-2 mb-2">
-                            {(() => {
-                              const availableMonths = tour.departures.data
-                                .map((dep) => dep.month)
-                                .filter((month, index, self) =>
-                                  self.indexOf(month) === index
-                                )
-                                .sort((a, b) => {
-                                  // Sort months chronologically
-                                  const monthOrder = [
-                                    "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
-                                    "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"
-                                  ];
-                                  const getMonthNum = (monthStr) => {
-                                    const monthAbbr = monthStr.split(' ')[0];
-                                    return monthOrder.indexOf(monthAbbr);
-                                  };
-                                  return getMonthNum(a) - getMonthNum(b);
-                                });
+                    <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg w-full flex flex-col min-h-[400px] lg:min-h-[680px] max-h-[400px] lg:max-h-[780px] overflow-hidden">
+                      <div className="flex-1 overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+                        <div className="flex flex-wrap gap-1 lg:gap-2 mb-2 overflow-x-auto pb-2">
+                          {(() => {
+                            const availableMonths = tour.departures.data
+                              .map((dep) => dep.month)
+                              .filter((month, index, self) =>
+                                self.indexOf(month) === index
+                              )
+                              .sort((a, b) => {
+                                const monthOrder = [
+                                  "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
+                                  "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"
+                                ];
+                                const getMonthNum = (monthStr) => {
+                                  const monthAbbr = monthStr.split(' ')[0];
+                                  return monthOrder.indexOf(monthAbbr);
+                                };
+                                return getMonthNum(a) - getMonthNum(b);
+                              });
 
-                              // Always include "ALL" as the first tab
-                              const allTabs = ["ALL", ...availableMonths];
+                            const allTabs = ["ALL", ...availableMonths];
 
-                              return (
-                                <div className="flex flex-wrap gap-2 mb-1">
-                                  {allTabs.map((tab) => (
-                                    <button
-                                      key={tab}
-                                      onClick={() => setSelectedMonth(tab)}
-                                      className={`
-                                        px-3 py-2 
-                                        border-2 
-                                        font-semibold
-                                        text-center
-                                        w-32
-                                        transition-all
-                                        duration-200
-                                        ${selectedMonth === tab
-                                          ? "bg-blue-100 border-blue-600 text-blue-800 shadow-md"
-                                          : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400"
-                                        }
-                                      `}
-                                    >
-                                      {tab}
-                                    </button>
-                                  ))}
+                            return (
+                              <div className="flex flex-wrap gap-1 lg:gap-2 mb-1">
+                                {allTabs.map((tab) => (
+                                  <button
+                                    key={tab}
+                                    onClick={() => setSelectedMonth(tab)}
+                                    className={`
+                                      px-2 lg:px-3 py-1 lg:py-2 
+                                      border-2 
+                                      font-semibold
+                                      text-center
+                                      w-20 lg:w-32
+                                      text-xs lg:text-sm
+                                      transition-all
+                                      duration-200
+                                      flex-shrink-0
+                                      ${selectedMonth === tab
+                                        ? "bg-blue-100 border-blue-600 text-blue-800 shadow-md"
+                                        : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400"
+                                      }
+                                    `}
+                                  >
+                                    {tab}
+                                  </button>
+                                ))}
+                              </div>
+                            );
+                          })()}
+                        </div>
+
+                        <div className="space-y-3 lg:space-y-4 w-full">
+                          {filteredDepartureData.map((item, index) => (
+                            <div key={item.id || index} className="border border-2 border-black p-2 lg:p-4 bg-white space-y-3 lg:space-y-4">
+                              <div className="grid grid-cols-2 lg:grid-cols-5 items-center gap-2 lg:gap-0">
+                                <div>
+                                  <p className="text-xs lg:text-sm text-gray-500">From</p>
+                                  <p className="font-semibold text-xs lg:text-base">{item.fromDate}</p>
+                                  <p className="text-xs text-gray-500">{item.fromDay}</p>
                                 </div>
-                              );
-                            })()}
-                          </div>
 
-                          {/* Departure Cards */}
-                          <div className="space-y-4 w-full">
-                            {filteredDepartureData.map((item, index) => (
-                              <div key={item.id || index} className="border border-2 border-black p-4 bg-white space-y-4">
-                                {/* MAIN CARD */}
-                                <div className="grid grid-cols-5 items-center">
-                                  <div>
-                                    <p className="text-gray-500">{item.fromDay}</p>
-                                    <p className="font-semibold">{item.fromDate}</p>
-                                  </div>
+                                <div>
+                                  <p className="text-xs lg:text-sm text-gray-500">To</p>
+                                  <p className="font-semibold text-xs lg:text-base">{item.toDate}</p>
+                                  <p className="text-xs text-gray-500">{item.toDay}</p>
+                                </div>
 
-                                  <div>
-                                    <p className="text-gray-500">{item.toDay}</p>
-                                    <p className="font-semibold">{item.toDate}</p>
-                                  </div>
-
-                                  {/* Status with conditional styling */}
-                                  <div className={`font-semibold ${item.status === 'Sold Out'
+                                <div className="col-span-2 lg:col-span-1 flex items-center justify-center">
+                                  <span className={`font-semibold text-xs lg:text-base ${item.status === 'Sold Out'
                                     ? 'text-red-600'
                                     : item.status === 'Available'
                                       ? 'text-green-600'
                                       : 'text-blue-700'
                                     }`}>
                                     {item.status}
-                                  </div>
-
-                                  <div className="text-lg font-bold text-gray-900">
-                                    {formatPrice(item.price)}
-                                  </div>
-
-                                  {/* Button with conditional disabling */}
-                                  <button
-                                    onClick={() => toggleTable(index)}
-                                    disabled={item.status === 'Sold Out'}
-                                    className={`px-6 py-2 transition-colors ${item.status === 'Sold Out'
-                                      ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                                      : 'bg-[#003366] text-white hover:bg-[#002244]'
-                                      } ${openIndex === index ? 'bg-[#002244]' : ''}`}
-                                  >
-                                    {item.status === 'Sold Out'
-                                      ? 'Sold Out'
-                                      : openIndex === index
-                                        ? 'Hide Table'
-                                        : 'Select'
-                                    }
-                                  </button>
+                                  </span>
                                 </div>
 
-                                {/* TABLE SHOW WHEN BUTTON CLICKED - Only show if not Sold Out */}
-                                {openIndex === index && item.status !== 'Sold Out' && (
-                                  <div className="border-2 border-black overflow-hidden animate-fadeIn">
-                                    {/* HEADER */}
+                                <div className="text-sm lg:text-lg font-bold text-gray-900">
+                                  {formatPrice(item.price)}
+                                </div>
+
+                                <button
+                                  onClick={() => toggleTable(index)}
+                                  disabled={item.status === 'Sold Out'}
+                                  className={`px-2 lg:px-6 py-1 lg:py-2 transition-colors text-xs lg:text-sm ${item.status === 'Sold Out'
+                                    ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                                    : 'bg-[#003366] text-white hover:bg-[#002244]'
+                                    } ${openIndex === index ? 'bg-[#002244]' : ''}`}
+                                >
+                                  {item.status === 'Sold Out'
+                                    ? 'Sold Out'
+                                    : openIndex === index
+                                      ? 'Hide Table'
+                                      : 'Select'
+                                  }
+                                </button>
+                              </div>
+
+                              {openIndex === index && item.status !== 'Sold Out' && (
+                                <div className="border-2 border-black overflow-hidden animate-fadeIn overflow-x-auto">
+                                  <div className="min-w-[600px] lg:min-w-0">
                                     <div className="grid grid-cols-4 bg-[#0A1D4A] text-white font-semibold text-center">
-                                      <div className="p-2 border-r-2 border-white">Particulars - Tour Cost</div>
-                                      <div className="p-2 border-r-2 border-white">Standard</div>
-                                      <div className="p-2 border-r-2 border-white">Deluxe</div>
-                                      <div className="p-2">Luxury</div>
+                                      <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Particulars - Tour Cost</div>
+                                      <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Standard</div>
+                                      <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Deluxe</div>
+                                      <div className="p-2 text-xs lg:text-sm">Luxury</div>
                                     </div>
 
-                                    {/* ROWS */}
                                     {[
                                       { particular: "Per pax on Twin Basis", star3: item.threeStar.twin, star4: item.fourStar.twin, star5: item.fiveStar.twin },
                                       { particular: "Per pax on Triple Basis", star3: item.threeStar.triple, star4: item.fourStar.triple, star5: item.fiveStar.triple },
@@ -1522,1085 +1519,1060 @@ useEffect(() => {
                                         className={`grid grid-cols-4 text-center border-b-2 border-black ${i % 2 === 0 ? "bg-[#EEF1F7]" : "bg-white"
                                           } ${i === 5 ? 'border-b-0' : ''}`}
                                       >
-                                        <div className="p-2 border-r-2 border-black font-medium text-left">
+                                        <div className="p-2 border-r-2 border-black font-medium text-xs lg:text-sm text-left">
                                           {row.particular}
                                         </div>
-                                        <div className="p-2 border-r-2 border-black">
+                                        <div className="p-2 border-r-2 border-black text-xs lg:text-sm">
                                           {row.star3}
                                         </div>
-                                        <div className="p-2 border-r-2 border-black font-semibold text-green-700">
+                                        <div className="p-2 border-r-2 border-black font-semibold text-green-700 text-xs lg:text-sm">
                                           {row.star4}
                                         </div>
-                                        <div className="p-2">
+                                        <div className="p-2 text-xs lg:text-sm">
                                           {row.star5}
                                         </div>
                                       </div>
                                     ))}
                                   </div>
-                                )}
-                              </div>
-                            ))}
+                                </div>
+                              )}
+                            </div>
+                          ))}
 
-                            {/* Show message when no departures for selected month */}
-                            {filteredDepartureData.length === 0 && (
-                              <div className="text-center py-8 bg-white border border-gray-300 rounded-lg">
-                                <p className="text-gray-600 text-lg mb-2">
-                                  {selectedMonth === "ALL"
-                                    ? "No departure dates available for this tour"
-                                    : `No departure dates available for ${selectedMonth}`
+                          {filteredDepartureData.length === 0 && (
+                            <div className="text-center py-4 lg:py-8 bg-white border border-gray-300 rounded-lg">
+                              <p className="text-gray-600 text-sm lg:text-lg mb-2">
+                                {selectedMonth === "ALL"
+                                  ? "No departure dates available for this tour"
+                                  : `No departure dates available for ${selectedMonth}`
+                                }
+                              </p>
+                              <p className="text-gray-500 text-xs lg:text-sm">
+                                Please check back later or contact us for more information
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-[#E8F0FF] rounded-lg p-1 w-full">
+                    <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
+                      Departure Dates
+                    </div>
+
+                    <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg w-full flex flex-col min-h-[200px] lg:min-h-[280px] max-h-[200px] lg:max-h-[280px] overflow-hidden">
+                      <div className="flex-1 overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+                        <div className="space-y-4 w-full">
+                          {tour.departures.descriptions.map((description, index) => (
+                            <div key={index} className="w-full">
+                              <div className="flex items-start w-full">
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-black break-words whitespace-pre-wrap text-justify w-full text-sm lg:text-base">
+                                    {description}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )
+              )}
+
+              {/* Tour Cost Tab - Mobile responsive */}
+              {activeTab === "tour-cost" && (
+                <div className="bg-[#E8F0FF] rounded-lg p-1">
+                  <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg mb-1.5">
+                    Tour Cost
+                  </div>
+
+                  <div className="border rounded-b-lg rounded-t-o overflow-hidden -mt-1.5">
+                    {isGroupTour ? (
+                      <div className="mb-0">
+                        <div className="p-3 lg:p-4 border-2 border-black border-t-0 rounded-b-lg">
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4 mb-3 lg:mb-4">
+                            <div>
+                              <label className="block text-gray-700 font-bold mb-2 text-sm lg:text-base">Month</label>
+                              <select
+                                className="w-full border-2 border-black rounded-md px-3 py-2 bg-white text-sm lg:text-base"
+                                value={selectedCostMonth}
+                                onChange={(e) => {
+                                  setSelectedCostMonth(e.target.value);
+                                  setSelectedCostDate("");
+                                }}
+                              >
+                                <option value="">Select Month</option>
+                                {availableMonths.map(month => {
+                                  const monthDepartures = departuresByMonth[month] || [];
+                                  const allSoldOut = monthDepartures.length > 0 && 
+                                                    monthDepartures.every(dep => dep.status === 'Sold Out');
+                                  
+                                  return (
+                                    <option 
+                                      key={month} 
+                                      value={month}
+                                      disabled={allSoldOut}
+                                      style={allSoldOut ? { color: '#999', fontStyle: 'italic' } : {}}
+                                    >
+                                      {month} {allSoldOut ? '(Sold Out)' : ''}
+                                    </option>
+                                  );
+                                })}
+                              </select>
+                            </div>
+
+                            <div>
+                              <label className="block text-gray-700 font-bold mb-2 text-sm lg:text-base">Date</label>
+                              <select
+                                className="w-full border-2 border-black rounded-md px-3 py-2 bg-white text-sm lg:text-base"
+                                value={selectedCostDate}
+                                onChange={(e) => setSelectedCostDate(e.target.value)}
+                                disabled={!selectedCostMonth}
+                              >
+                                <option value="">Select Date</option>
+                                {availableDates
+                                  .filter(dep => dep.status !== 'Sold Out')
+                                  .map(dep => (
+                                    <option key={dep.id} value={dep.fromDate}>
+                                      {dep.fromDate} – {dep.toDate}
+                                    </option>
+                                  ))
+                                }
+                              </select>
+                            </div>
+                          </div>
+
+                          {selectedDeparture ? (
+                            <div className="border-2 border-black overflow-hidden animate-fadeIn overflow-x-auto">
+                              <div className="min-w-[600px] lg:min-w-0">
+                                <div className="grid grid-cols-4 bg-[#0A1D4A] text-white font-semibold text-center">
+                                  <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Particulars - Tour Cost</div>
+                                  <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Standard</div>
+                                  <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Deluxe</div>
+                                  <div className="p-2 text-xs lg:text-sm">Luxury</div>
+                                </div>
+
+                                {[
+                                  {
+                                    particular: "Per pax on Twin Basis",
+                                    star3: selectedDeparture.threeStar.twin,
+                                    star4: selectedDeparture.fourStar.twin,
+                                    star5: selectedDeparture.fiveStar.twin
+                                  },
+                                  {
+                                    particular: "Per pax on Triple Basis",
+                                    star3: selectedDeparture.threeStar.triple,
+                                    star4: selectedDeparture.fourStar.triple,
+                                    star5: selectedDeparture.fiveStar.triple
+                                  },
+                                  {
+                                    particular: "Child with Bed",
+                                    star3: selectedDeparture.threeStar.childWithBed,
+                                    star4: selectedDeparture.fourStar.childWithBed,
+                                    star5: selectedDeparture.fiveStar.childWithBed
+                                  },
+                                  {
+                                    particular: "Child without Bed",
+                                    star3: selectedDeparture.threeStar.childWithoutBed,
+                                    star4: selectedDeparture.fourStar.childWithoutBed,
+                                    star5: selectedDeparture.fiveStar.childWithoutBed
+                                  },
+                                  {
+                                    particular: "Infant",
+                                    star3: selectedDeparture.threeStar.infant,
+                                    star4: selectedDeparture.fourStar.infant,
+                                    star5: selectedDeparture.fiveStar.infant
+                                  },
+                                  {
+                                    particular: "Per pax Single Occupancy",
+                                    star3: selectedDeparture.threeStar.single,
+                                    star4: selectedDeparture.fourStar.single,
+                                    star5: selectedDeparture.fiveStar.single
+                                  },
+                                ].map((row, i) => (
+                                  <div
+                                    key={i}
+                                    className={`grid grid-cols-4 text-center border-b-2 border-black ${i % 2 === 0 ? "bg-[#EEF1F7]" : "bg-white"
+                                      } ${i === 5 ? 'border-b-0' : ''}`}
+                                  >
+                                    <div className="p-2 border-r-2 border-black font-medium text-xs lg:text-sm text-left">
+                                      {row.particular}
+                                    </div>
+                                    <div className="p-2 border-r-2 border-black text-xs lg:text-sm">
+                                      {row.star3}
+                                    </div>
+                                    <div className="p-2 border-r-2 border-black font-semibold text-green-700 text-xs lg:text-sm">
+                                      {row.star4}
+                                    </div>
+                                    <div className="p-2 text-xs lg:text-sm">
+                                      {row.star5}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-center p-3 lg:p-4 border-2 border-dashed border-gray-300 rounded-lg">
+                              <p className="text-gray-500 text-sm lg:text-base">Please select a month and date to view tour cost</p>
+                              <p className="text-gray-400 text-xs lg:text-sm mt-2">Departure dates are available in the "Dep Date" tab</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <div className="overflow-x-auto border shadow-sm">
+                          <table className="w-full border-collapse table-fixed min-w-[600px] lg:min-w-0">
+                            <thead>
+                              <tr className="bg-[#2E4D98]">
+                                <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-base h-10 lg:h-12 w-1/6">
+                                  Passenger
+                                </th>
+                                <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-base h-10 lg:h-12 w-1/6">
+                                  Standard Hotel
+                                </th>
+                                <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-base h-10 lg:h-12 w-1/6">
+                                  Deluxe Hotel
+                                </th>
+                                <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-base h-10 lg:h-12 w-1/6">
+                                  Executive Hotel
+                                </th>
+                                <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-base h-10 lg:h-12 w-1/6">
+                                  Child With Bed
+                                </th>
+                                <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-base h-10 lg:h-12 w-1/6">
+                                  Child No Bed
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {tour.tourCost.tableData.length > 0 ? (
+                                tour.tourCost.tableData.map((row, index) => (
+                                  <tr key={index} className={index % 2 === 0 ? 'bg-[#FFEBEE]' : 'bg-[#FFEBEE]/80'}>
+                                    <td className="border-2 border-[#1e3a8a] px-2 lg:px-4 py-2 lg:py-3 text-center font-medium text-gray-700 text-xs lg:text-base h-10 lg:h-12 w-1/6">
+                                      {row.passenger}
+                                    </td>
+                                    <td className="border-2 border-[#1e3a8a] px-2 lg:px-4 py-2 lg:py-3 text-center text-blue-800 font-semibold text-xs lg:text-base h-10 lg:h-12 w-1/6">
+                                      {row.standard}
+                                    </td>
+                                    <td className="border-2 border-[#1e3a8a] px-2 lg:px-4 py-2 lg:py-3 text-center text-green-800 font-semibold text-xs lg:text-base h-10 lg:h-12 w-1/6">
+                                      {row.deluxe}
+                                    </td>
+                                    <td className="border-2 border-[#1e3a8a] px-2 lg:px-4 py-2 lg:py-3 text-center text-[#A72703] font-semibold text-xs lg:text-base h-10 lg:h-12 w-1/6">
+                                      {row.executive}
+                                    </td>
+                                    <td className="border-2 border-[#1e3a8a] px-2 lg:px-4 py-2 lg:py-3 text-center text-blue-600 font-medium text-xs lg:text-base h-10 lg:h-12 w-1/6">
+                                      {row.childWithBed}
+                                    </td>
+                                    <td className="border-2 border-[#1e3a8a] px-2 lg:px-4 py-2 lg:py-3 text-center text-purple-600 font-medium text-xs lg:text-base h-10 lg:h-12 w-1/6">
+                                      {row.childNoBed}
+                                    </td>
+                                  </tr>
+                                ))
+                              ) : (
+                                <tr className="bg-[#FFEBEE]">
+                                  <td colSpan={6} className="border-2 border-[#1e3a8a] px-2 lg:px-4 py-2 lg:py-3 text-center text-gray-500 text-sm lg:text-base">
+                                    No cost information available
+                                  </td>
+                                </tr>
+                              )}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
+                      <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
+                        Tour Cost Remarks
+                      </div>
+                      <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
+                        <div className="min-h-[150px] lg:min-h-[180px] max-h-[150px] lg:max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+                          {tour.tourCost.remarks && tour.tourCost.remarks.length > 0 ? (
+                            <ul className="space-y-2 w-full">
+                              {tour.tourCost.remarks.map((remark, index) => (
+                                <li key={index} className="flex items-start gap-2 w-full">
+                                  <span className="text-black whitespace-pre-wrap break-words hyphens-auto text-justify w-full text-sm lg:text-base">
+                                    {remark}
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <div className="flex items-center justify-center h-full">
+                              <span className="text-gray-500 italic text-sm lg:text-base">No tour cost remarks available</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className='mt-1'>
+                      <div className="flex flex-col lg:flex-row gap-1">
+                        <div className='flex-1 min-w-0 lg:w-1/2'>
+                          <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-xl rounded-t-lg py-2 lg:py-3 mb-1">
+                            Optional Tour
+                          </div>
+                          <div className="overflow-x-auto">
+                            <table className="w-full border-collapse min-w-[400px] lg:min-w-0">
+                              <thead>
+                                <tr className="bg-[#2E4D98]">
+                                  <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-left font-semibold text-white text-xs lg:text-sm w-[40%] lg:w-[50%]">
+                                    Tour Name
+                                  </th>
+                                  <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-left font-semibold text-white text-xs lg:text-sm w-[30%] lg:w-[25%]">
+                                    Adult Price
+                                  </th>
+                                  <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-left font-semibold text-white text-xs lg:text-sm w-[30%] lg:w-[25%]">
+                                    Child Price
+                                  </th>
+                                </tr>
+                              </thead>
+                              <tbody className="border-2 border-[#1e3a8a] border-t-0">
+                                {(() => {
+                                  const optionalTourCount = tour.optionalTours ? tour.optionalTours.length : 0;
+                                  const emiCount = tour.emiOptions && tour.emiOptions.options ? tour.emiOptions.options.length : 0;
+                                  const maxRows = Math.max(optionalTourCount, emiCount, 1);
+                                  
+                                  const rows = [];
+                                  for (let i = 0; i < maxRows; i++) {
+                                    const optTour = tour.optionalTours && tour.optionalTours[i];
+                                    rows.push(
+                                      <tr key={i} className={i % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}>
+                                        <td className="border border-black px-2 lg:px-4 py-1 lg:py-2 text-black text-xs lg:text-sm">{optTour ? optTour.tourName : "N/A"}</td>
+                                        <td className="border border-black px-2 lg:px-4 py-1 lg:py-2 border-l-0 text-black text-xs lg:text-sm">{optTour ? optTour.adultPrice : "N/A"}</td>
+                                        <td className="border border-black px-2 lg:px-4 py-1 lg:py-2 border-l-0 text-black text-xs lg:text-sm">{optTour ? optTour.childPrice : "N/A"}</td>
+                                      </tr>
+                                    );
                                   }
-                                </p>
-                                <p className="text-gray-500 text-sm">
-                                  Please check back later or contact us for more information
-                                </p>
+                                  return rows;
+                                })()}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+
+                        <div className='flex-1 min-w-0 lg:w-1/2'>
+                          <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-xl rounded-t-lg py-2 lg:py-3 mb-1">
+                            EMI Options
+                          </div>
+                          <div className="overflow-x-auto">
+                            <table className="w-full border-collapse min-w-[400px] lg:min-w-0">
+                              <thead>
+                                <tr className="bg-[#2E4D98]">
+                                  <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm w-[33.33%]">
+                                    Loan Amount
+                                  </th>
+                                  <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm w-[33.33%]">
+                                    Months
+                                  </th>
+                                  <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm w-[33.33%]">
+                                    EMI
+                                  </th>
+                                </tr>
+                              </thead>
+                              <tbody className="border-2 border-[#1e3a8a] border-t-0">
+                                {(() => {
+                                  const optionalTourCount = tour.optionalTours ? tour.optionalTours.length : 0;
+                                  const emiCount = tour.emiOptions && tour.emiOptions.options ? tour.emiOptions.options.length : 0;
+                                  const maxRows = Math.max(optionalTourCount, emiCount, 1);
+                                  
+                                  const rows = [];
+                                  for (let i = 0; i < maxRows; i++) {
+                                    const emi = tour.emiOptions && tour.emiOptions.options && tour.emiOptions.options[i];
+                                    rows.push(
+                                      <tr key={i} className={i % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}>
+                                        <td className="border border-black px-2 lg:px-4 py-1 lg:py-2 border-l-0 text-center text-black text-xs lg:text-sm">
+                                          {emi ? emi.loanAmount : "N/A"}
+                                        </td>
+                                        <td className="border border-black px-2 lg:px-4 py-1 lg:py-2 border-l-0 text-center text-black text-xs lg:text-sm">
+                                          {emi ? emi.months : "N/A"}
+                                        </td>
+                                        <td className="border border-black px-2 lg:px-4 py-1 lg:py-2 border-l-0 text-center text-black text-xs lg:text-sm">
+                                          {emi ? emi.emi : "N/A"}
+                                        </td>
+                                      </tr>
+                                    );
+                                  }
+                                  return rows;
+                                })()}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col lg:flex-row gap-1 mt-1 w-full">
+                      <div className="bg-[#E8F0FF] rounded-lg w-full lg:w-1/2 overflow-x-hidden">
+                        <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
+                          Optional Tour Remarks
+                        </div>
+                        <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
+                          <div className="min-h-[150px] lg:min-h-[180px] max-h-[150px] lg:max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+                            {tour.optionalTourRemarks && tour.optionalTourRemarks.length > 0 ? (
+                              <ul className="space-y-2 w-full">
+                                {tour.optionalTourRemarks.map((remark, index) => (
+                                  <li key={index} className="flex items-start gap-2 w-full">
+                                    <span className="text-black whitespace-pre-wrap break-words hyphens-auto text-justify w-full text-sm lg:text-base">
+                                      {remark}
+                                    </span>
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <div className="flex items-center justify-center h-full">
+                                <span className="text-gray-500 italic text-sm lg:text-base">No optional tour remarks available</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="bg-[#E8F0FF] rounded-lg w-full lg:w-1/2 overflow-x-hidden">
+                        <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
+                          EMI Remarks
+                        </div>
+                        <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
+                          <div className="min-h-[150px] lg:min-h-[180px] max-h-[150px] lg:max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+                            {tour.emiRemarks && tour.emiRemarks.length > 0 ? (
+                              <ul className="space-y-2 w-full">
+                                {tour.emiRemarks.map((remark, index) => (
+                                  <li key={index} className="flex items-start gap-2 w-full">
+                                    <span className="text-black whitespace-pre-wrap break-words hyphens-auto text-justify w-full text-sm lg:text-base">
+                                      {remark}
+                                    </span>
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <div className="flex items-center justify-center h-full">
+                                <span className="text-gray-500 italic text-sm lg:text-base">No EMI remarks available</span>
                               </div>
                             )}
                           </div>
                         </div>
                       </div>
                     </div>
-                  ) : (
-                    // Individual Tour Departure Descriptions
-                    <div className="bg-[#E8F0FF] rounded-lg p-1 w-full">
-                      <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
-                        Departure Dates
-                      </div>
-
-                      <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg w-full flex flex-col min-h-[280px] max-h-[280px] overflow-hidden">
-                        <div className="flex-1 overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-                          <div className="space-y-4 w-full">
-                            {tour.departures.descriptions.map((description, index) => (
-                              <div key={index} className=" border-gray-200  p-2  w-full">
-                                <div className="flex items-start w-full">
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-black break-words whitespace-pre-wrap text-justify w-full">
-                                      {description}
-                                    </p>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                )}
-
-             {/* Tour Cost Tab */}
-{activeTab === "tour-cost" && (
-  <div className="bg-[#E8F0FF] rounded-lg p-1">
-    <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg mb-1.5">
-      Tour Cost
-    </div>
-
-    <div className="border rounded-b-lg rounded-t-o overflow-hidden -mt-1.5">
-      {isGroupTour ? (
-        <div className="mb-0">
-          <div className="p-4 border-2 border-black border-t-0 rounded-b-lg">
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div>
-                <label className="block text-gray-700 font-bold mb-2">Month</label>
-                <select
-                  className="w-full border-2 border-black rounded-md px-3 py-2 bg-white"
-                  value={selectedCostMonth}
-                  onChange={(e) => {
-                    setSelectedCostMonth(e.target.value);
-                    setSelectedCostDate("");
-                  }}
-                >
-                  <option value="">Select Month</option>
-                  {availableMonths.map(month => {
-                    // Check if all departures in this month are sold out
-                    const monthDepartures = departuresByMonth[month] || [];
-                    const allSoldOut = monthDepartures.length > 0 && 
-                                      monthDepartures.every(dep => dep.status === 'Sold Out');
-                    
-                    return (
-                      <option 
-                        key={month} 
-                        value={month}
-                        disabled={allSoldOut}
-                        style={allSoldOut ? { color: '#999', fontStyle: 'italic' } : {}}
-                      >
-                        {month} {allSoldOut ? '(Sold Out)' : ''}
-                      </option>
-                    );
-                  })}
-                </select>
-              </div>
-
-              {/* DATE */}
-              <div>
-                <label className="block text-gray-700 font-bold mb-2">Date</label>
-                <select
-                  className="w-full border-2 border-black rounded-md px-3 py-2 bg-white"
-                  value={selectedCostDate}
-                  onChange={(e) => setSelectedCostDate(e.target.value)}
-                  disabled={!selectedCostMonth}
-                >
-                  <option value="">Select Date</option>
-                  {availableDates
-                    .filter(dep => dep.status !== 'Sold Out') // Only show dates that are not sold out
-                    .map(dep => (
-                      <option key={dep.id} value={dep.fromDate}>
-                        {dep.fromDate} – {dep.toDate}
-                      </option>
-                    ))
-                  }
-                </select>
-              </div>
-            </div>
-
-            {/* Tour Cost Table for Group Tours */}
-            {selectedDeparture ? (
-              <div className="border-2 border-black overflow-hidden animate-fadeIn">
-                {/* HEADER */}
-                <div className="grid grid-cols-4 bg-[#0A1D4A] text-white font-semibold text-center">
-                  <div className="p-2 border-r-2 border-white">Particulars - Tour Cost</div>
-                  <div className="p-2 border-r-2 border-white">Standard</div>
-                  <div className="p-2 border-r-2 border-white">Deluxe</div>
-                  <div className="p-2">Luxury</div>
+                  </div>
                 </div>
+              )}
 
-                {/* ROWS */}
-                {[
-                  {
-                    particular: "Per pax on Twin Basis",
-                    star3: selectedDeparture.threeStar.twin,
-                    star4: selectedDeparture.fourStar.twin,
-                    star5: selectedDeparture.fiveStar.twin
-                  },
-                  {
-                    particular: "Per pax on Triple Basis",
-                    star3: selectedDeparture.threeStar.triple,
-                    star4: selectedDeparture.fourStar.triple,
-                    star5: selectedDeparture.fiveStar.triple
-                  },
-                  {
-                    particular: "Child with Bed",
-                    star3: selectedDeparture.threeStar.childWithBed,
-                    star4: selectedDeparture.fourStar.childWithBed,
-                    star5: selectedDeparture.fiveStar.childWithBed
-                  },
-                  {
-                    particular: "Child without Bed",
-                    star3: selectedDeparture.threeStar.childWithoutBed,
-                    star4: selectedDeparture.fourStar.childWithoutBed,
-                    star5: selectedDeparture.fiveStar.childWithoutBed
-                  },
-                  {
-                    particular: "Infant",
-                    star3: selectedDeparture.threeStar.infant,
-                    star4: selectedDeparture.fourStar.infant,
-                    star5: selectedDeparture.fiveStar.infant
-                  },
-                  {
-                    particular: "Per pax Single Occupancy",
-                    star3: selectedDeparture.threeStar.single,
-                    star4: selectedDeparture.fourStar.single,
-                    star5: selectedDeparture.fiveStar.single
-                  },
-                ].map((row, i) => (
-                  <div
-                    key={i}
-                    className={`grid grid-cols-4 text-center border-b-2 border-black ${i % 2 === 0 ? "bg-[#EEF1F7]" : "bg-white"
-                      } ${i === 5 ? 'border-b-0' : ''}`}
-                  >
-                    <div className="p-2 border-r-2 border-black font-medium text-left">
-                      {row.particular}
-                    </div>
-                    <div className="p-2 border-r-2 border-black">
-                      {row.star3}
-                    </div>
-                    <div className="p-2 border-r-2 border-black font-semibold text-green-700">
-                      {row.star4}
-                    </div>
-                    <div className="p-2">
-                      {row.star5}
-                    </div>
+              {/* Cost In/Cost Ex Tab - Mobile responsive */}
+              {activeTab === "cost-inc./cost-ex." && (
+                <div className="bg-[#E8F0FF] rounded-lg p-1 w-full overflow-x-hidden">
+                  <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg mb-1 w-full">
+                    Cost Inclusive & Cost Excludes
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center p-4 border-2 border-dashed border-gray-300 rounded-lg">
-                <p className="text-gray-500">Please select a month and date to view tour cost</p>
-                <p className="text-gray-400 text-sm mt-2">Departure dates are available in the "Dep Date" tab</p>
-              </div>
-            )}
-          </div>
-        </div>
-      ) : (
-        // Individual Tour Cost Section
-        <div>
-          {/* Passenger Table */}
-          <div className="overflow-x-auto border shadow-sm">
-            <table className="w-full border-collapse table-fixed">
-              <thead>
-                <tr className="bg-[#2E4D98]">
-                  <th className="border border-white px-4 py-3 text-center font-semibold text-white text-base h-12 w-1/6">
-                    Passenger
-                  </th>
-                  <th className="border border-white px-4 py-3 text-center font-semibold text-white text-base h-12 w-1/6">
-                    Standard Hotel
-                  </th>
-                  <th className="border border-white px-4 py-3 text-center font-semibold text-white text-base h-12 w-1/6">
-                    Deluxe Hotel
-                  </th>
-                  <th className="border border-white px-4 py-3 text-center font-semibold text-white text-base h-12 w-1/6">
-                    Executive Hotel
-                  </th>
-                  <th className="border border-white px-4 py-3 text-center font-semibold text-white text-base h-12 w-1/6">
-                    Child With Bed
-                  </th>
-                  <th className="border border-white px-4 py-3 text-center font-semibold text-white text-base h-12 w-1/6">
-                    Child No Bed
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {tour.tourCost.tableData.length > 0 ? (
-                  tour.tourCost.tableData.map((row, index) => (
-                    <tr key={index} className={index % 2 === 0 ? 'bg-[#FFEBEE]' : 'bg-[#FFEBEE]/80'}>
-                      <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center font-medium text-gray-700 text-base h-12 w-1/6">
-                        {row.passenger}
-                      </td>
-                                      <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-blue-800 font-semibold text-base h-12 w-1/6">
-                        {row.standard}
-                      </td>
-                                      <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-green-800 font-semibold text-base h-12 w-1/6">
-                        {row.deluxe}
-                      </td>
-                                      <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-[#A72703] font-semibold text-base h-12 w-1/6">
-                        {row.executive}
-                      </td>
-                      <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-blue-600 font-medium text-base h-12 w-1/6">
-                        {row.childWithBed}
-                      </td>
-                      <td className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-purple-600 font-medium text-base h-12 w-1/6">
-                        {row.childNoBed}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr className="bg-[#FFEBEE]">
-                    <td colSpan={6} className="border-2 border-[#1e3a8a] px-4 py-3 text-center text-gray-500">
-                      No cost information available
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
 
-      
-           <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
-  <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
-    Tour Cost Remarks
-  </div>
-  <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-    <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-      {tour.tourCost.remarks && tour.tourCost.remarks.length > 0 ? (
-        <ul className="space-y-2 w-full">
-          {tour.tourCost.remarks.map((remark, index) => (
-            <li key={index} className="flex items-start gap-2 w-full">
-              <span className="text-black whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
-                {remark}
-              </span>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <div className="flex items-center justify-center h-full">
-          <span className="text-gray-500 italic">No tour cost remarks available</span>
-        </div>
-      )}
-    </div>
-  </div>
-</div>
-
-<div className='mt-1'>
-  <div className="flex flex-col lg:flex-row gap-1">
-    {/* Optional Tour Table (50% width) */}
-    <div className='flex-1 min-w-0 lg:w-1/2'>
-      <div className="bg-red-600 text-white text-center font-bold text-xl rounded-t-lg py-3 mb-1">
-        Optional Tour
-      </div>
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="bg-[#2E4D98]">
-              <th className="border border-white px-4 py-3 text-left font-semibold text-white w-[40%] lg:w-[50%]">
-                Tour Name
-              </th>
-              <th className="border border-white px-4 py-3 text-left font-semibold text-white w-[30%] lg:w-[25%]">
-                Adult Price
-              </th>
-              <th className="border border-white px-4 py-3 text-left font-semibold text-white w-[30%] lg:w-[25%]">
-                Child Price
-              </th>
-            </tr>
-          </thead>
-          <tbody className="border-2 border-[#1e3a8a] border-t-0">
-            {(() => {
-              // Get the maximum row count between both tables
-              const optionalTourCount = tour.optionalTours ? tour.optionalTours.length : 0;
-              const emiCount = tour.emiOptions && tour.emiOptions.options ? tour.emiOptions.options.length : 0;
-              const maxRows = Math.max(optionalTourCount, emiCount, 1); // At least show 1 row
-              
-              const rows = [];
-              for (let i = 0; i < maxRows; i++) {
-                const optTour = tour.optionalTours && tour.optionalTours[i];
-                rows.push(
-                  <tr key={i} className={i % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}>
-                    <td className="border border-black px-4 py-2 text-black">{optTour ? optTour.tourName : "N/A"}</td>
-                    <td className="border border-black px-4 py-2 border-l-0 text-black">{optTour ? optTour.adultPrice : "N/A"}</td>
-                    <td className="border border-black px-4 py-2 border-l-0 text-black">{optTour ? optTour.childPrice : "N/A"}</td>
-                  </tr>
-                );
-              }
-              return rows;
-            })()}
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    {/* EMI Options Table (50% width) */}
-    <div className='flex-1 min-w-0 lg:w-1/2'>
-      <div className="bg-red-600 text-white text-center font-bold text-xl rounded-t-lg py-3 mb-1">
-        EMI Options
-      </div>
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="bg-[#2E4D98]">
-              <th className="border border-white px-4 py-3 text-center font-semibold text-white w-[33.33%]">
-                Loan Amount
-              </th>
-              <th className="border border-white px-4 py-3 text-center font-semibold text-white w-[33.33%]">
-                Months
-              </th>
-              <th className="border border-white px-4 py-3 text-center font-semibold text-white w-[33.33%]">
-                EMI
-              </th>
-            </tr>
-          </thead>
-          <tbody className="border-2 border-[#1e3a8a] border-t-0">
-            {(() => {
-              // Get the maximum row count between both tables
-              const optionalTourCount = tour.optionalTours ? tour.optionalTours.length : 0;
-              const emiCount = tour.emiOptions && tour.emiOptions.options ? tour.emiOptions.options.length : 0;
-              const maxRows = Math.max(optionalTourCount, emiCount, 1); // At least show 1 row
-              
-              const rows = [];
-              for (let i = 0; i < maxRows; i++) {
-                const emi = tour.emiOptions && tour.emiOptions.options && tour.emiOptions.options[i];
-                rows.push(
-                  <tr key={i} className={i % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}>
-                    <td className="border border-black px-4 py-2 border-l-0 text-center text-black">
-                      {emi ? emi.loanAmount : "N/A"}
-                    </td>
-                    <td className="border border-black px-4 py-2 border-l-0 text-center text-black">
-                      {emi ? emi.months : "N/A"}
-                    </td>
-                    <td className="border border-black px-4 py-2 border-l-0 text-center text-black">
-                      {emi ? emi.emi : "N/A"}
-                    </td>
-                  </tr>
-                );
-              }
-              return rows;
-            })()}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-</div>
-  <div className="flex gap-1 mt-1 w-full">
-  <div className="bg-[#E8F0FF] rounded-lg w-1/2 overflow-x-hidden">
-    <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
-      Optional Tour Remarks
-    </div>
-    <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-      <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-        {tour.optionalTourRemarks && tour.optionalTourRemarks.length > 0 ? (
-          <ul className="space-y-2 w-full">
-            {tour.optionalTourRemarks.map((remark: string, index: number) => (
-              <li key={index} className="flex items-start gap-2 w-full">
-                <span className="text-black whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
-                  {remark}
-                </span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <div className="flex items-center justify-center h-full">
-            <span className="text-gray-500 italic">No optional tour remarks available</span>
-          </div>
-        )}
-      </div>
-    </div>
-  </div>
-
-  {/* EMI Remarks - 50% width */}
-  <div className="bg-[#E8F0FF] rounded-lg w-1/2 overflow-x-hidden">
-    <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
-      EMI Remarks
-    </div>
-    <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-      <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-        {tour.emiRemarks && tour.emiRemarks.length > 0 ? (
-          <ul className="space-y-2 w-full">
-            {tour.emiRemarks.map((remark, index) => (
-              <li key={index} className="flex items-start gap-2 w-full">
-                <span className="text-black whitespace-pre-wrap break-words hyphens-auto text-justify w-full">
-                  {remark}
-                </span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <div className="flex items-center justify-center h-full">
-            <span className="text-gray-500 italic">No EMI remarks available</span>
-          </div>
-        )}
-      </div>
-    </div>
-  </div>
-</div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Cost In/Cost Ex Tab */}
-                {activeTab === "cost-inc./cost-ex." && (
-                  <div className="bg-[#E8F0FF] rounded-lg p-1 w-full overflow-x-hidden">
-                    <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg mb-1 w-full">
-                      Cost Inclusive & Cost Excludes
-                    </div>
-
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-1 w-full">
-                      {/* Cost Includes */}
-                      <div className="flex flex-col w-full min-h-[280px] max-h-[320px]">
-                        <div className="bg-[#2E4D98] text-white text-center py-3 rounded-t-lg w-full">
-                          <h3 className="text-xl font-bold">Cost Inclusive</h3>
-                        </div>
-                        <div className="flex-1 border-2 border-[#1e3a8a] rounded-b-lg bg-[#FFEBEE] w-full overflow-hidden min-h-0">
-                          <div className="h-full overflow-y-auto p-2">
-                            <ul className="space-y-2 w-full">
-                              {tour.inclusionExclusion.inclusions.map((inclusion, index) => (
-                                <li key={index} className="w-full">
-                                  <div className="flex items-start gap-0 w-full">
-                                    <div className="text-black flex-1 min-w-0 text-justify break-words ml-2">
-                                      {inclusion}
-                                    </div>
-                                  </div>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        </div>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-1 w-full">
+                    <div className="flex flex-col w-full min-h-[250px] lg:min-h-[280px] max-h-[250px] lg:max-h-[320px]">
+                      <div className="bg-[#2E4D98] text-white text-center py-2 lg:py-3 rounded-t-lg w-full">
+                        <h3 className="text-lg lg:text-xl font-bold">Cost Inclusive</h3>
                       </div>
-
-                      {/* Cost Excludes */}
-                      <div className="flex flex-col w-full min-h-[280px] max-h-[320px]">
-                        <div className="bg-[#2E4D98] text-white text-center py-3 rounded-t-lg w-full">
-                          <h3 className="text-xl font-bold">Cost Excludes</h3>
-                        </div>
-                        <div className="flex-1 border-2 border-[#1e3a8a] rounded-b-lg bg-[#FFEBEE] w-full overflow-hidden min-h-0">
-                          <div className="h-full overflow-y-auto p-2">
-                            <ul className="space-y-2 w-full">
-                              {tour.inclusionExclusion.exclusions.map((exclusion, index) => (
-                                <li key={index} className="w-full">
-                                  <div className="flex items-start gap-0 w-full">
-                                    <div className="text-black flex-1 min-w-0 text-justify break-words ml-2">
-                                      {exclusion}
-                                    </div>
+                      <div className="flex-1 border-2 border-[#1e3a8a] rounded-b-lg bg-[#FFEBEE] w-full overflow-hidden min-h-0">
+                        <div className="h-full overflow-y-auto p-2">
+                          <ul className="space-y-2 w-full">
+                            {tour.inclusionExclusion.inclusions.map((inclusion, index) => (
+                              <li key={index} className="w-full">
+                                <div className="flex items-start gap-0 w-full">
+                                  <div className="text-black flex-1 min-w-0 text-justify break-words ml-2 text-sm lg:text-base">
+                                    {inclusion}
                                   </div>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Flights & Hotels Tab */}
-                {activeTab === "flights-&-hotels" && (
-                  <div className="bg-[#E8F0FF] rounded-lg p-0.2 w-full overflow-x-hidden">
-                    {/* Flights Section */}
-                    <div className="bg-[#FFEBEE] rounded-lg p-1 mb-1 w-full">
-                      <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg w-full">
-                        Flight Details
-                      </div>
-
-                      <div className="border-2 border-[#1e3a8a] rounded-t-none border-t-0 rounded-lg overflow-hidden w-full">
-                        <div className="min-h-[300px] max-h-[400px] overflow-y-auto p-1 bg-[#FFEBEE] w-full">
-                          {isGroupTour ? (
-                            // Group Tour - Table Structure
-                            <div className="overflow-x-auto border shadow-sm">
-   <table className="w-full border-collapse table-fixed">
-  <thead>
-    <tr className="bg-[red]">
-      <th className="border border-black px-3 py-3 text-center font-semibold text-white text-sm h-9 w-[14%]">
-        Airlines
-      </th>
-      <th className="border border-black px-4 py-3 text-center font-semibold text-white text-sm h-9 w-[11%]">
-        Flight No
-      </th>
-      <th className="border border-black px-4 py-3 text-center font-semibold text-white text-sm h-9 w-[14%]">
-        From
-      </th>
-      <th className="border border-black px-4 py-3 text-center font-semibold text-white text-sm h-9 w-[12%]">
-        Date
-      </th>
-      <th className="border border-black px-4 py-3 text-center font-semibold text-white text-sm h-9 w-[12%]">
-        Time
-      </th>
-      <th className="border border-black px-4 py-3 text-center font-semibold text-white text-sm h-9 w-[14%]">
-        To
-      </th>
-      <th className="border border-black px-4 py-3 text-center font-semibold text-white text-sm h-9 w-[12%]">
-        Date
-      </th>
-      <th className="border border-black px-4 py-3 text-center font-semibold text-white text-sm h-9 w-[12%]">
-        Time
-      </th>
-    </tr>
-  </thead>
-
-  <tbody>
-    {tour.airlines.tableData && tour.airlines.tableData.length > 0 ? (
-      tour.airlines.tableData.map((flight, index) => {
-        // Format date to Indian format (dd-mm-yyyy)
-        const formatDateToIndian = (dateString) => {
-          if (!dateString) return '';
-          try {
-            const date = new Date(dateString);
-            if (isNaN(date.getTime())) return dateString;
-            
-            const day = String(date.getDate()).padStart(2, '0');
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const year = date.getFullYear();
-            return `${day}-${month}-${year}`;
-          } catch (error) {
-            return dateString;
-          }
-        };
-
-        // Format time to AM/PM format (HH:MM AM/PM)
-        const formatTimeToAMPM = (timeString) => {
-          if (!timeString) return '';
-          try {
-            // If time is in HH:MM:SS or HH:MM format
-            if (timeString.includes(':')) {
-              const timeParts = timeString.split(':');
-              if (timeParts.length >= 2) {
-                let hours = parseInt(timeParts[0], 10);
-                const minutes = timeParts[1];
-                const ampm = hours >= 12 ? 'PM' : 'AM';
-                
-                // Convert 24-hour to 12-hour format
-                hours = hours % 12;
-                hours = hours === 0 ? 12 : hours; // 0 should be 12 for 12 AM
-                
-                return `${hours}:${minutes} ${ampm}`;
-              }
-            }
-            // If it's already in some other format, return as is
-            return timeString;
-          } catch (error) {
-            return timeString;
-          }
-        };
-
-        return (
-          <tr key={index} className={index % 2 === 0 ? 'bg-[#FFEBEE]' : 'bg-[#FFEBEE]/80'}>
-            <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[14%]">
-              {flight.airline || ''}
-            </td>
-            <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[11%]">
-              {flight.flightNo || ''}
-            </td>
-            <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[14%]">
-              {flight.from || ''}
-            </td>
-            <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[12%]">
-              {formatDateToIndian(flight.depDate) || ''}
-            </td>
-            <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[12%]">
-              {formatTimeToAMPM(flight.depTime) || ''}
-            </td>
-            <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[14%]">
-              {flight.to || ''}
-            </td>
-            <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[12%]">
-              {formatDateToIndian(flight.arrDate) || ''}
-            </td>
-            <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[12%]">
-              {formatTimeToAMPM(flight.arrTime) || ''}
-            </td>
-          </tr>
-        );
-      })
-    ) : (
-      // Show empty rows if no data
-      [1, 2, 3, 4].map((row, index) => (
-        <tr key={index} className={index % 2 === 0 ? 'bg-[#FFEBEE]' : 'bg-[#FFEBEE]/80'}>
-          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[11%]">&nbsp;</td>
-          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[11%]">&nbsp;</td>
-          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[14%]">&nbsp;</td>
-          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[10%]">&nbsp;</td>
-          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[12%]">&nbsp;</td>
-          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[14%]">&nbsp;</td>
-          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[10%]">&nbsp;</td>
-          <td className="border border-black px-4 py-3 text-center text-sm h-9 w-[12%]">&nbsp;</td>
-        </tr>
-      ))
-    )}
-  </tbody>
-</table>
-
-                              {/* Description Area for Group Tours */}
-                              {tour.airlines.tableData && tour.airlines.tableData.some((flight) => flight.description) && (
-                                <div className="mt-4 p-4 bg-[#E8F0FF]  border border-gray-200 rounded-lg">
-                                  <h4 className="font-bold text-lg mb-2 text-center text-red-600">Additional Information</h4>
-                                  <div className="space-y-4">
-                                    {tour.airlines.tableData.map((flight, index) => (
-                                      flight.description && (
-                                        <div key={index} className="border border-gray-300 rounded p-3 bg-gray-50">
-                                          <div className="flex items-start mb-2">
-                                            <span className="font-bold mr-2">Transport {index + 1}:</span>
-                                            <span>{flight.airline} - {flight.flightNo}</span>
-                                          </div>
-                                          <p className="text-gray-700 whitespace-pre-wrap">{flight.description}</p>
-                                        </div>
-                                      )
-                                    ))}
-                                  </div>
-                                  
                                 </div>
-                                
-                              )}
-                            </div>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
 
-                            
-                          ) : (
-                            // Individual Tour - List/Box Layout
-                            <div>
-                              {tour.airlines.tableData && tour.airlines.tableData.length > 0 ? (
-                                <div className="space-y-4 w-full">
+                    <div className="flex flex-col w-full min-h-[250px] lg:min-h-[280px] max-h-[250px] lg:max-h-[320px]">
+                      <div className="bg-[#2E4D98] text-white text-center py-2 lg:py-3 rounded-t-lg w-full">
+                        <h3 className="text-lg lg:text-xl font-bold">Cost Excludes</h3>
+                      </div>
+                      <div className="flex-1 border-2 border-[#1e3a8a] rounded-b-lg bg-[#FFEBEE] w-full overflow-hidden min-h-0">
+                        <div className="h-full overflow-y-auto p-2">
+                          <ul className="space-y-2 w-full">
+                            {tour.inclusionExclusion.exclusions.map((exclusion, index) => (
+                              <li key={index} className="w-full">
+                                <div className="flex items-start gap-0 w-full">
+                                  <div className="text-black flex-1 min-w-0 text-justify break-words ml-2 text-sm lg:text-base">
+                                    {exclusion}
+                                  </div>
+                                </div>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Flights & Hotels Tab - Mobile responsive */}
+              {activeTab === "flights-&-hotels" && (
+                <div className="bg-[#E8F0FF] rounded-lg p-0.2 w-full overflow-x-hidden">
+                  {/* Flights Section */}
+                  <div className="bg-[#FFEBEE] rounded-lg p-1 mb-1 w-full">
+                    <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
+                      Flight Details
+                    </div>
+
+                    <div className="border-2 border-[#1e3a8a] rounded-t-none border-t-0 rounded-lg overflow-hidden w-full">
+                      <div className="min-h-[250px] lg:min-h-[300px] max-h-[250px] lg:max-h-[400px] overflow-y-auto p-1 bg-[#FFEBEE] w-full">
+                        {isGroupTour ? (
+                          <div className="overflow-x-auto border shadow-sm">
+                            <table className="w-full border-collapse table-fixed min-w-[800px] lg:min-w-0">
+                              <thead>
+                                <tr className="bg-[red]">
+                                  <th className="border border-black px-2 lg:px-3 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm h-8 lg:h-9 w-[14%]">
+                                    Airlines
+                                  </th>
+                                  <th className="border border-black px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm h-8 lg:h-9 w-[11%]">
+                                    Flight No
+                                  </th>
+                                  <th className="border border-black px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm h-8 lg:h-9 w-[14%]">
+                                    From
+                                  </th>
+                                  <th className="border border-black px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm h-8 lg:h-9 w-[12%]">
+                                    Date
+                                  </th>
+                                  <th className="border border-black px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm h-8 lg:h-9 w-[12%]">
+                                    Time
+                                  </th>
+                                  <th className="border border-black px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm h-8 lg:h-9 w-[14%]">
+                                    To
+                                  </th>
+                                  <th className="border border-black px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm h-8 lg:h-9 w-[12%]">
+                                    Date
+                                  </th>
+                                  <th className="border border-black px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm h-8 lg:h-9 w-[12%]">
+                                    Time
+                                  </th>
+                                </tr>
+                              </thead>
+
+                              <tbody>
+                                {tour.airlines.tableData && tour.airlines.tableData.length > 0 ? (
+                                  tour.airlines.tableData.map((flight, index) => {
+                                    const formatDateToIndian = (dateString) => {
+                                      if (!dateString) return '';
+                                      try {
+                                        const date = new Date(dateString);
+                                        if (isNaN(date.getTime())) return dateString;
+                                        
+                                        const day = String(date.getDate()).padStart(2, '0');
+                                        const month = String(date.getMonth() + 1).padStart(2, '0');
+                                        const year = date.getFullYear();
+                                        return `${day}-${month}-${year}`;
+                                      } catch (error) {
+                                        return dateString;
+                                      }
+                                    };
+
+                                    const formatTimeToAMPM = (timeString) => {
+                                      if (!timeString) return '';
+                                      try {
+                                        if (timeString.includes(':')) {
+                                          const timeParts = timeString.split(':');
+                                          if (timeParts.length >= 2) {
+                                            let hours = parseInt(timeParts[0], 10);
+                                            const minutes = timeParts[1];
+                                            const ampm = hours >= 12 ? 'PM' : 'AM';
+                                            
+                                            hours = hours % 12;
+                                            hours = hours === 0 ? 12 : hours;
+                                            
+                                            return `${hours}:${minutes} ${ampm}`;
+                                          }
+                                        }
+                                        return timeString;
+                                      } catch (error) {
+                                        return timeString;
+                                      }
+                                    };
+
+                                    return (
+                                      <tr key={index} className={index % 2 === 0 ? 'bg-[#FFEBEE]' : 'bg-[#FFEBEE]/80'}>
+                                        <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm h-8 lg:h-9 w-[14%]">
+                                          {flight.airline || ''}
+                                        </td>
+                                        <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm h-8 lg:h-9 w-[11%]">
+                                          {flight.flightNo || ''}
+                                        </td>
+                                        <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm h-8 lg:h-9 w-[14%]">
+                                          {flight.from || ''}
+                                        </td>
+                                        <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm h-8 lg:h-9 w-[12%]">
+                                          {formatDateToIndian(flight.depDate) || ''}
+                                        </td>
+                                        <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm h-8 lg:h-9 w-[12%]">
+                                          {formatTimeToAMPM(flight.depTime) || ''}
+                                        </td>
+                                        <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm h-8 lg:h-9 w-[14%]">
+                                          {flight.to || ''}
+                                        </td>
+                                        <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm h-8 lg:h-9 w-[12%]">
+                                          {formatDateToIndian(flight.arrDate) || ''}
+                                        </td>
+                                        <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm h-8 lg:h-9 w-[12%]">
+                                          {formatTimeToAMPM(flight.arrTime) || ''}
+                                        </td>
+                                      </tr>
+                                    );
+                                  })
+                                ) : (
+                                  [1, 2, 3, 4].map((row, index) => (
+                                    <tr key={index} className={index % 2 === 0 ? 'bg-[#FFEBEE]' : 'bg-[#FFEBEE]/80'}>
+                                      <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm h-8 lg:h-9 w-[11%]">&nbsp;</td>
+                                      <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm h-8 lg:h-9 w-[11%]">&nbsp;</td>
+                                      <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm h-8 lg:h-9 w-[14%]">&nbsp;</td>
+                                      <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm h-8 lg:h-9 w-[10%]">&nbsp;</td>
+                                      <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm h-8 lg:h-9 w-[12%]">&nbsp;</td>
+                                      <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm h-8 lg:h-9 w-[14%]">&nbsp;</td>
+                                      <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm h-8 lg:h-9 w-[10%]">&nbsp;</td>
+                                      <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm h-8 lg:h-9 w-[12%]">&nbsp;</td>
+                                    </tr>
+                                  ))
+                                )}
+                              </tbody>
+                            </table>
+
+                            {tour.airlines.tableData && tour.airlines.tableData.some((flight) => flight.description) && (
+                              <div className="mt-3 lg:mt-4 p-3 lg:p-4 bg-[#E8F0FF] border border-gray-200 rounded-lg">
+                                <h4 className="font-bold text-sm lg:text-lg mb-2 lg:mb-3 text-center text-red-600">Additional Information</h4>
+                                <div className="space-y-3 lg:space-y-4">
                                   {tour.airlines.tableData.map((flight, index) => (
-                                    <div key={index} className="p-1 w-full overflow-hidden">
-                                      {flight.description && (
-                                        <div className="border-gray-300">
-                                          <p className="text-gray-600 p-2 rounded">
-                                            {flight.description}
-                                          </p>
+                                    flight.description && (
+                                      <div key={index} className="border border-gray-300 rounded p-2 lg:p-3 bg-gray-50">
+                                        <div className="flex items-start mb-1 lg:mb-2">
+                                          <span className="font-bold mr-2 text-xs lg:text-sm">Transport {index + 1}:</span>
+                                          <span className="text-xs lg:text-sm">{flight.airline} - {flight.flightNo}</span>
                                         </div>
-                                      )}
-                                    </div>
+                                        <p className="text-gray-700 whitespace-pre-wrap text-xs lg:text-sm">{flight.description}</p>
+                                      </div>
+                                    )
                                   ))}
                                 </div>
-                              ) : (
-                                <div className="flex items-center justify-center h-full min-h-[200px]">
-                                  <p className="text-gray-500 text-lg">No information available</p>
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-
-                        
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div>
+                            {tour.airlines.tableData && tour.airlines.tableData.length > 0 ? (
+                              <div className="space-y-3 lg:space-y-4 w-full">
+                                {tour.airlines.tableData.map((flight, index) => (
+                                  <div key={index} className="p-1 w-full overflow-hidden">
+                                    {flight.description && (
+                                      <div className="border-gray-300">
+                                        <p className="text-gray-600 p-1 lg:p-2 rounded text-sm lg:text-base">
+                                          {flight.description}
+                                        </p>
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="flex items-center justify-center h-full min-h-[150px] lg:min-h-[200px]">
+                                <p className="text-gray-500 text-sm lg:text-lg">No information available</p>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
-
-                     {tour.airlines.remarks && tour.airlines.remarks.length > 0 && (
-  <div className="bg-[#E8F0FF] rounded-lg mt-1 w-full overflow-x-hidden">
-    <div className="bg-red-600 text-white text-center font-bold text-xl py-3 rounded-t-lg w-full">
-      Flight Remarks
-    </div>
-    <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg overflow-hidden w-full">
-      <div className="min-h-[150px] max-h-[200px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-        <ul className="space-y-2 w-full">
-          {tour.airlines.remarks.map((remark, index) => (
-            <li key={index} className="flex items-start gap-1 w-full">
-              <span className="text-black break-words whitespace-pre-wrap text-justify w-full">
-                {remark}
-              </span>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
-  </div>
-)}
                     </div>
 
-                    {/* Hotels Section */}
-                    <div className='p-1 -mt-2 w-full overflow-x-hidden'>
-                      <div className="bg-red-600 text-white text-center font-bold text-xl rounded-t-lg py-3 mb-1 w-full">
-                        Hotel Details
+                    {tour.airlines.remarks && tour.airlines.remarks.length > 0 && (
+                      <div className="bg-[#E8F0FF] rounded-lg mt-1 w-full overflow-x-hidden">
+                        <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-xl py-2 lg:py-3 rounded-t-lg w-full">
+                          Flight Remarks
+                        </div>
+                        <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg overflow-hidden w-full">
+                          <div className="min-h-[120px] lg:min-h-[150px] max-h-[120px] lg:max-h-[200px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+                            <ul className="space-y-2 w-full">
+                              {tour.airlines.remarks.map((remark, index) => (
+                                <li key={index} className="flex items-start gap-1 w-full">
+                                  <span className="text-black break-words whitespace-pre-wrap text-justify w-full text-sm lg:text-base">
+                                    {remark}
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
                       </div>
+                    )}
+                  </div>
 
-                      <div className="overflow-x-auto w-full">
-                        {tour.hotels.tableData.length > 0 ? (
-                          <table className="w-full border-collapse min-w-max">
+                  {/* Hotels Section */}
+                  <div className='p-1 -mt-2 lg:-mt-3 w-full overflow-x-hidden'>
+                    <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-xl rounded-t-lg py-2 lg:py-3 mb-1 w-full">
+                      Hotel Details
+                    </div>
+
+                    <div className="overflow-x-auto w-full">
+                      {tour.hotels.tableData.length > 0 ? (
+                        <table className="w-full border-collapse min-w-[600px] lg:min-w-max">
+                          <thead>
+                            <tr className="bg-[#2E4D98]">
+                                <th className="border border-white px-2 lg:px-3 py-2 lg:py-3 text-left text-white  text-xs lg:text-sm w-[22.5%]">
+                                City
+                              </th>
+                                <th className="border border-white px-2 lg:px-3 py-2 lg:py-3 text-left text-white  text-xs lg:text-sm w-[22.5%]">
+                                Standard
+                              </th>
+                                <th className="border border-white px-2 lg:px-3 py-2 lg:py-3 text-left text-white  text-xs lg:text-sm w-[22.5%]">
+                                Deluxe
+                              </th>
+                                <th className="border border-white px-2 lg:px-3 py-2 lg:py-3 text-left text-white  text-xs lg:text-sm w-[22.5%]">
+                                Executive
+                              </th>
+                                <th className="border border-white px-2 lg:px-3 py-2 lg:py-3 text-left text-white  text-xs lg:text-sm w-[22.5%]">
+                                Nights
+                              </th>
+                            </tr>
+                          </thead>
+                        <tbody className="border-2 border-[#1e3a8a] border-t-0">
+  {tour.hotels.tableData.map((hotel, index) => (
+    <tr
+      key={index}
+      className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}
+    >
+      <td className="border border-black px-2 py-1.5 lg:px-2 lg:py-2 break-all whitespace-pre-wrap text-black text-xs lg:text-sm min-w-[130px]">
+        {hotel.city}
+      </td>
+
+      <td className="border border-black px-2 py-1.5 lg:px-2 lg:py-2 break-all whitespace-pre-wrap text-black text-xs lg:text-sm min-w-[130px]">
+        {hotel.standard || hotel.standardPrice || "N/A"}
+      </td>
+
+      <td className="border border-black px-2 py-1.5 lg:px-2 lg:py-2 break-all whitespace-pre-wrap text-black text-xs lg:text-sm min-w-[130px]">
+        {hotel.deluxe || hotel.deluxePrice || "N/A"}
+      </td>
+
+      <td className="border border-black px-2 py-1.5 lg:px-2 lg:py-2 break-all whitespace-pre-wrap text-black text-xs lg:text-sm min-w-[130px]">
+        {hotel.executive || hotel.executivePrice || "N/A"}
+      </td>
+
+      <td className="border border-black px-2 py-1.5 lg:px-2 lg:py-2 break-all whitespace-pre-wrap text-black text-xs lg:text-sm min-w-[70px]">
+        {hotel.nights}
+      </td>
+    </tr>
+  ))}
+</tbody>
+
+                        </table>
+                      ) : (
+                        <div className="border-2 border-[#1e3a8a] p-3 lg:p-4 bg-white rounded-lg">
+                          <p className="text-gray-500 text-center text-sm lg:text-base">No hotel information available</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {(tour.hotels.remarks.length > 0 || tour.airlines.remarks.length > 0) && (
+                      <div className="bg-[#E8F0FF] rounded-lg mt-1 w-full overflow-x-hidden">
+                        <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-xl py-2 lg:py-3 rounded-t-lg w-full">
+                          Hotel Remarks
+                        </div>
+
+                        <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg overflow-hidden w-full">
+                          <div className="min-h-[120px] lg:min-h-[150px] max-h-[120px] lg:max-h-[200px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+                            <ul className="space-y-2 w-full">
+                              {[...tour.hotels.remarks].map((remark, index) => (
+                                <li key={index} className="flex items-start gap-1 w-full">
+                                  <span className="text-black break-words whitespace-pre-wrap text-justify w-full text-sm lg:text-base">
+                                    {remark}
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Visa Tab - Mobile responsive */}
+              {activeTab === "visa" && (
+                <div className="bg-[#E8F0FF] rounded-lg p-1">
+                  {/* Header */}
+                  <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg mb-1">
+                    Documents Required for Visa
+                  </div>
+
+                  {/* Main Tabs */}
+                  <div className="flex bg-white border border-black rounded-t-lg overflow-hidden overflow-x-auto">
+                    {[
+                      "Tourist Visa",
+                      "Transit Visa",
+                      "Business Visa",
+                      "Visa Forms",
+                      "Photo",
+                      "Visa Fees",
+                      "Submission & Pick Up"
+                    ].map((label, idx) => {
+                      const tabMap = {
+                        "Tourist Visa": "tourist",
+                        "Transit Visa": "transit",
+                        "Business Visa": "business",
+                        "Visa Forms": "forms",
+                        "Photo": "photo",
+                        "Visa Fees": "fees",
+                        "Submission & Pick Up": "time"
+                      };
+                      const tabKey = tabMap[label];
+                      const isLastTab = idx === 6;
+                return (
+  <button
+    key={label}
+    onClick={() => setActiveVisaTab(tabKey)}
+    className={`px-2 py-2 lg:py-3 text-[10px] xs:text-xs lg:text-[15px] font-semibold text-center whitespace-nowrap border-r border-black last:border-r-0 transition flex-shrink-0
+      ${activeVisaTab === tabKey
+        ? "bg-[#A72703] text-white"
+        : "bg-[#FFE797] text-gray-800"
+      }`}
+    style={{
+      flex: isLastTab ? '1.3' : '1'
+    }}
+  >
+    {label}
+  </button>
+);
+                    })}
+                  </div>
+
+                  {/* Tab Content */}
+                  <div className="space-y-0">
+                    {/* Tourist Visa Tab */}
+                    {activeVisaTab === 'tourist' && (
+                      <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg w-full flex flex-col min-h-[250px] lg:min-h-[280px] max-h-[250px] lg:max-h-[280px] overflow-hidden">
+                        <div className="flex-1 overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+                          <div className="space-y-3 lg:space-y-4 w-full">
+                            {tour.visaDetails.tourist.length > 0 ? (
+                              tour.visaDetails.tourist.map((description, index) => (
+                                <div key={index} className="w-full">
+                                  <div className="flex items-start w-full">
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-black break-words whitespace-pre-wrap text-justify w-full text-sm lg:text-base">
+                                        {description}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))
+                            ) : (
+                              <div className="flex items-center justify-center h-full">
+                                <p className="text-gray-500 text-sm lg:text-base">No tourist visa information available</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Transit Visa Tab */}
+                    {activeVisaTab === 'transit' && (
+                      <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg w-full flex flex-col min-h-[250px] lg:min-h-[280px] max-h-[250px] lg:max-h-[280px] overflow-hidden">
+                        <div className="flex-1 overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+                          <div className="space-y-3 lg:space-y-4 w-full">
+                            {tour.visaDetails.transit.length > 0 ? (
+                              tour.visaDetails.transit.map((description, index) => (
+                                <div key={index} className="w-full">
+                                  <div className="flex items-start w-full">
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-black break-words whitespace-pre-wrap text-justify w-full text-sm lg:text-base">
+                                        {description}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))
+                            ) : (
+                              <div className="flex items-center justify-center h-full">
+                                <p className="text-gray-500 text-sm lg:text-base">No transit visa information available</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Business Visa Tab */}
+                    {activeVisaTab === 'business' && (
+                      <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg w-full flex flex-col min-h-[250px] lg:min-h-[280px] max-h-[250px] lg:max-h-[280px] overflow-hidden">
+                        <div className="flex-1 overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+                          <div className="space-y-3 lg:space-y-4 w-full">
+                            {tour.visaDetails.business.length > 0 ? (
+                              tour.visaDetails.business.map((description, index) => (
+                                <div key={index} className="w-full">
+                                  <div className="flex items-start w-full">
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-black break-words whitespace-pre-wrap text-justify w-full text-sm lg:text-base">
+                                        {description}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))
+                            ) : (
+                              <div className="flex items-center justify-center h-full">
+                                <p className="text-black text-sm lg:text-base">No business visa information available</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Visa Forms Tab */}
+                    {activeVisaTab === 'forms' && (
+                      <div className="space-y-1 mt-1">
+                        <div className="overflow-x-auto w-full">
+                          <table className="w-full border-collapse min-w-[400px] lg:min-w-max border border-gray-300">
                             <thead>
                               <tr className="bg-[#2E4D98]">
-                                <th className="border border-white px-2 py-2 text-left text-white w-[14.28%]">
-                                  City
+                                <th className="border border-white px-2 py-2 lg:py-3 text-left text-white text-xs lg:text-sm w-[70%] h-8 lg:h-12">
+                                  Visa Type
                                 </th>
-
-                                <th className="border border-white px-2 py-2 text-left text-white w-[14.28%]">
-                                  Standard
+                                <th className="border border-white px-2 py-2 lg:py-3 text-center text-white text-xs lg:text-sm w-[15%] h-8 lg:h-12">
+                                  PDF
                                 </th>
-                                <th className="border border-white px-2 py-2 text-left text-white w-[14.28%]">
-                                  Deluxe
-                                </th>
-                                <th className="border border-white px-2 py-2 text-left text-white w-[14.28%]">
-                                  Executive
-                                </th>
-
-                                <th className="border border-white px-2 py-2 text-left text-white w-[14.28%]">
-                                  Nights
+                                <th className="border border-white px-2 py-2 lg:py-3 text-center text-white text-xs lg:text-sm w-[15%] h-8 lg:h-12">
+                                  WORD
                                 </th>
                               </tr>
                             </thead>
                             <tbody className="border-2 border-[#1e3a8a] border-t-0">
-                              {tour.hotels.tableData.map((hotel, index) => (
-                                <tr
-                                  key={index}
-                                  className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}
-                                >
-                                  <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap text-black">{hotel.city}</td>
-                                  <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap text-black">
-                                    {hotel.standard || hotel.standardPrice || "N/A"}
+                              {tour.visaForms && tour.visaForms.length > 0 ? (
+                                tour.visaForms.map((form, index) => (
+                                <tr key={index} className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}>
+                                  <td className="border border-black px-2 py-1 lg:py-2 break-all whitespace-pre-wrap w-[70%] h-8 lg:h-10 text-black text-xs lg:text-sm">
+                                    {form.visaType || 'Visa Form'} 
                                   </td>
-                                  <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap text-black">
-                                    {hotel.deluxe || hotel.deluxePrice || "N/A"}
+
+                                  <td className="border border-black px-2 py-1 lg:py-2 text-center">
+                                    {form.action1FileUrl ? (
+                                      <a 
+                                        href={`${BASE_URL}${form.action1FileUrl}`} 
+                                        download 
+                                        className="block w-full h-full bg-red-600 text-white py-1 lg:py-2 rounded shadow-md hover:shadow-lg hover:bg-red-700 transition-all duration-200 active:scale-95 text-xs lg:text-sm"
+                                      >
+                                        {form.downloadAction || "Download"}
+                                      </a>
+                                    ) : (
+                                      <span className="block w-full h-full bg-red-600 text-white py-1 lg:py-2 rounded shadow-sm opacity-70 text-xs lg:text-sm">
+                                        {form.downloadAction || "Download"}
+                                      </span>
+                                    )}
                                   </td>
-                                  <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap text-black">
-                                    {hotel.executive || hotel.executivePrice || "N/A"}
+
+                                  <td className="border border-black px-2 py-1 lg:py-2 text-center">
+                                    {form.action2FileUrl ? (
+                                      <a 
+                                        href={`${BASE_URL}${form.action2FileUrl}`} 
+                                        download 
+                                        className="block w-full h-full bg-amber-800 text-white py-1 lg:py-2 rounded shadow-md hover:shadow-lg hover:bg-amber-900 transition-all duration-200 active:scale-95 text-xs lg:text-sm"
+                                      >
+                                        {form.fillAction || "Fill Manually"}
+                                      </a>
+                                    ) : (
+                                      <span className="block w-full h-full bg-amber-800 text-white py-1 lg:py-2 rounded shadow-sm opacity-70 text-xs lg:text-sm">
+                                        {form.fillAction || "Fill Manually"}
+                                      </span>
+                                    )}
                                   </td>
-                                  <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap text-black">{hotel.nights}</td>
                                 </tr>
-                              ))}
+                                ))
+                              ) : (
+                                <>
+                                  <tr className="bg-[#FFEBEE]">
+                                    <td className="border border-black px-2 py-1 lg:py-2 break-all whitespace-pre-wrap w-[70%] h-8 lg:h-10 text-xs lg:text-sm">
+                                      Tourist Visa Form Download
+                                    </td>
+                                    <td className="border border-black px-2 py-1 lg:py-2 text-center bg-red-600 text-white cursor-pointer hover:bg-red-700 text-xs lg:text-sm">
+                                      Download
+                                    </td>
+                                    <td className="border border-black px-2 py-1 lg:py-2 text-center bg-amber-800 text-white cursor-pointer hover:bg-amber-900 text-xs lg:text-sm">
+                                      Fill Manually
+                                    </td>
+                                  </tr>
+                                  <tr className="bg-[#FFEBEE]">
+                                    <td className="border border-black px-2 py-1 lg:py-2 break-all whitespace-pre-wrap w-[70%] h-8 lg:h-10 text-xs lg:text-sm">
+                                      Transit Visa Form Download
+                                    </td>
+                                    <td className="border border-black px-2 py-1 lg:py-2 text-center bg-red-600 text-white cursor-pointer hover:bg-red-700 text-xs lg:text-sm">
+                                      Download
+                                    </td>
+                                    <td className="border border-black px-2 py-1 lg:py-2 text-center bg-amber-800 text-white cursor-pointer hover:bg-amber-900 text-xs lg:text-sm">
+                                      Fill Manually
+                                    </td>
+                                  </tr>
+                                  <tr className="bg-[#FFEBEE]">
+                                    <td className="border border-black px-2 py-1 lg:py-2 break-all whitespace-pre-wrap w-[70%] h-8 lg:h-10 text-xs lg:text-sm">
+                                      Business Visa Form Download
+                                    </td>
+                                    <td className="border border-black px-2 py-1 lg:py-2 text-center bg-red-600 text-white cursor-pointer hover:bg-red-700 text-xs lg:text-sm">
+                                      Download
+                                    </td>
+                                    <td className="border border-black px-2 py-1 lg:py-2 text-center bg-amber-800 text-white cursor-pointer hover:bg-amber-900 text-xs lg:text-sm">
+                                      Fill Manually
+                                    </td>
+                                  </tr>
+                                </>
+                              )}
                             </tbody>
                           </table>
-                        ) : (
-                          <div className="border-2 border-[#1e3a8a] p-4 bg-white rounded-lg">
-                            <p className="text-gray-500 text-center">No hotel information available</p>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Combined Remarks Section */}
-                      {(tour.hotels.remarks.length > 0 || tour.airlines.remarks.length > 0) && (
-                        <div className="bg-[#E8F0FF] rounded-lg mt-1 w-full overflow-x-hidden">
-                          <div className="bg-red-600 text-white text-center font-bold text-xl py-3 rounded-t-lg w-full">
-                            Hotel Remarks
-                          </div>
-
-                          <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg overflow-hidden w-full">
-                            <div className="min-h-[150px] max-h-[200px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-                              <ul className="space-y-2 w-full">
-                                {[...tour.hotels.remarks].map((remark, index) => (
-                                  <li key={index} className="flex items-start gap-1 w-full">
-                                    <span className="text-black break-words whitespace-pre-wrap text-justify w-full">
-                                      {remark}
-                                    </span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          </div>
                         </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-{/* Visa Tab - Updated with dynamic data */}
-{activeTab === "visa" && (
-  <div className="bg-[#E8F0FF] rounded-lg p-1">
-    {/* Header */}
-    <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg mb-1">
-      Documents Required for Visa
-    </div>
-
-    {/* Main Tabs */}
-    <div className="flex bg-white border border-black rounded-t-lg overflow-hidden">
-      {[
-        "Tourist Visa",
-        "Transit Visa",
-        "Business Visa",
-        "Visa Forms",
-        "Photo",
-        "Visa Fees",
-        "Submission & Pick Up"
-      ].map((label, idx) => {
-        const tabMap = {
-          "Tourist Visa": "tourist",
-          "Transit Visa": "transit",
-          "Business Visa": "business",
-          "Visa Forms": "forms",
-          "Photo": "photo",
-          "Visa Fees": "fees",
-          "Submission & Pick Up": "time"
-        };
-        const tabKey = tabMap[label];
-        const isLastTab = idx === 6;
-        return (
-          <button
-            key={label}
-            onClick={() => setActiveVisaTab(tabKey)}
-            className={`px-2 py-3 text-sm font-semibold text-center whitespace-nowrap border-r border-black last:border-r-0 transition
-              ${activeVisaTab === tabKey
-                ? "bg-[#A72703] text-white"
-                : "bg-[#FFE797] text-gray-800"
-              }`}
-            style={{
-              flex: isLastTab ? '1.3' : '1'
-            }}
-          >
-            {label}
-          </button>
-        );
-      })}
-    </div>
-
-    {/* Tab Content */}
-    <div className="space-y-0">
-      {/* Tourist Visa Tab */}
-      {activeVisaTab === 'tourist' && (
-        <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg w-full flex flex-col min-h-[280px] max-h-[280px] overflow-hidden">
-          <div className="flex-1 overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-            <div className="space-y-4 w-full">
-              {tour.visaDetails.tourist.length > 0 ? (
-                tour.visaDetails.tourist.map((description, index) => (
-                  <div key={index} className="w-full">
-                    <div className="flex items-start w-full">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-black break-words whitespace-pre-wrap text-justify w-full">
-                          {description}
-                        </p>
                       </div>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="flex items-center justify-center h-full">
-                  <p className="text-gray-500">No tourist visa information available</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+                    )}
 
-      {/* Transit Visa Tab */}
-      {activeVisaTab === 'transit' && (
-        <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg w-full flex flex-col min-h-[280px] max-h-[280px] overflow-hidden">
-          <div className="flex-1 overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-            <div className="space-y-4 w-full">
-              {tour.visaDetails.transit.length > 0 ? (
-                tour.visaDetails.transit.map((description, index) => (
-                    <div className="flex items-start w-full">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-black break-words whitespace-pre-wrap text-justify w-full">
-                      {description}
-                    </p>
-                  </div>
-                  </div>
-                ))
-              ) : (
-                <div className="flex items-center justify-center h-full">
-                  <p className="text-gray-500">No transit visa information available</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+                    {/* Photo Tab */}
+                    {activeVisaTab === 'photo' && (
+                      <div className="overflow-x-auto w-full">
+                        <table className="w-full border-collapse min-w-[400px] lg:min-w-[600px] max-w-6xl border border-gray-300 mt-1">
+                          <thead>
+                            <tr className="bg-[#2E4D98]">
+                              <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-center text-white text-sm lg:text-base" colSpan={8}>
+                                Photo Specification
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="border-2 border-[#1e3a8a] border-t-0">
+                            {tour.visaDetails.photo.length > 0 ? (
+                              tour.visaDetails.photo.map((spec, index) => (
+                                <tr key={index} className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}>
+                                  <td className="border border-black px-2 lg:px-4 py-2 lg:py-3 break-words whitespace-normal text-justify text-black text-sm lg:text-base" colSpan={8}>
+                                    {spec}
+                                  </td>
+                                </tr>
+                              ))
+                            ) : (
+                              <tr className="bg-[#FFEBEE]">
+                                <td className="border border-black px-2 lg:px-4 py-2 lg:py-3 text-center whitespace-normal text-sm lg:text-base" colSpan={8}>
+                                  No photo specifications available
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
 
-      {/* Business Visa Tab */}
-      {activeVisaTab === 'business' && (
-        <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg w-full flex flex-col min-h-[280px] max-h-[280px] overflow-hidden">
-          <div className="flex-1 overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-            <div className="space-y-4 w-full">
-              {tour.visaDetails.business.length > 0 ? (
-                tour.visaDetails.business.map((description, index) => (
-                    <div className="flex items-start w-full">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-black break-words whitespace-pre-wrap text-justify w-full">
-                      {description}
-                    </p>
-                  </div>
-                  </div>
-                ))
-              ) : (
-                <div className="flex items-center justify-center h-full">
-                  <p className="text-black">No business visa information available</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Visa Forms Tab */}
-   {/* Visa Forms Tab */}
-{activeVisaTab === 'forms' && (
+                    {/* Visa Fees Tab */}
+               {activeVisaTab === 'fees' && (
   <div className="space-y-1 mt-1">
     <div className="overflow-x-auto w-full">
-      <table className="w-full border-collapse min-w-max border border-gray-300">
-        <thead>
-          <tr className="bg-[#2E4D98]">
-            <th className="border border-white px-2 py-3 text-left text-white w-[70%] h-12">
-              Visa Type
-            </th>
-            <th className="border border-white px-2 py-3 text-center text-white w-[15%] h-12">
-              PDF
-            </th>
-            <th className="border border-white px-2 py-3 text-center text-white w-[15%] h-12">
-              WORD
-            </th>
-          </tr>
-        </thead>
-        <tbody className="border-2 border-[#1e3a8a] border-t-0">
-          {tour.visaForms && tour.visaForms.length > 0 ? (
-            // Display dynamic visa forms from API
-            tour.visaForms.map((form, index) => (
-            <tr key={index} className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}>
-  <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap w-[70%] h-10 text-black">
-    {form.visaType || 'Visa Form'} 
-  </td>
-
-  {/* Download Button - SAME RED */}
-  <td className="border border-black px-2 py-2 text-center">
-    {form.action1FileUrl ? (
-      <a 
-        href={`${BASE_URL}${form.action1FileUrl}`} 
-        download 
-        className="block w-full h-full bg-red-600 text-white py-2 rounded shadow-md hover:shadow-lg hover:bg-red-700 transition-all duration-200 active:scale-95"
-      >
-        {form.downloadAction || "Download"}
-      </a>
-    ) : (
-      <span className="block w-full h-full bg-red-600 text-white py-2 rounded shadow-sm opacity-70">
-        {form.downloadAction || "Download"}
-      </span>
-    )}
-  </td>
-
-  {/* Fill Manually Button - SAME DARK BROWN */}
-  <td className="border border-black px-2 py-2 text-center">
-    {form.action2FileUrl ? (
-      <a 
-        href={`${BASE_URL}${form.action2FileUrl}`} 
-        download 
-        className="block w-full h-full bg-amber-800 text-white py-2 rounded shadow-md hover:shadow-lg hover:bg-amber-900 transition-all duration-200 active:scale-95"
-      >
-        {form.fillAction || "Fill Manually"}
-      </a>
-    ) : (
-      <span className="block w-full h-full bg-amber-800 text-white py-2 rounded shadow-sm opacity-70">
-        {form.fillAction || "Fill Manually"}
-      </span>
-    )}
-  </td>
-</tr>
-
-            ))
-          ) : (
-            // Only show fallback if NO visa forms data exists
-            // This should not happen since your API has visa_forms array
-            <>
-              <tr className="bg-[#FFEBEE]">
-                <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap w-[70%] h-10">
-                  Tourist Visa Form Download
-                </td>
-                <td className="border border-black px-2 py-2 text-center bg-red-600 text-white cursor-pointer hover:bg-red-700">
-                  Download
-                </td>
-                <td className="border border-black px-2 py-2 text-center bg-amber-800 text-white cursor-pointer hover:bg-amber-900">
-                  Fill Manually
-                </td>
-              </tr>
-              <tr className="bg-[#FFEBEE]">
-                <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap w-[70%] h-10">
-                  Transit Visa Form Download
-                </td>
-                <td className="border border-black px-2 py-2 text-center bg-red-600 text-white cursor-pointer hover:bg-red-700">
-                  Download
-                </td>
-                <td className="border border-black px-2 py-2 text-center bg-amber-800 text-white cursor-pointer hover:bg-amber-900">
-                  Fill Manually
-                </td>
-              </tr>
-              <tr className="bg-[#FFEBEE]">
-                <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap w-[70%] h-10">
-                  Business Visa Form Download
-                </td>
-                <td className="border border-black px-2 py-2 text-center bg-red-600 text-white cursor-pointer hover:bg-red-700">
-                  Download
-                </td>
-                <td className="border border-black px-2 py-2 text-center bg-amber-800 text-white cursor-pointer hover:bg-amber-900">
-                  Fill Manually
-                </td>
-              </tr>
-            </>
-          )}
-        </tbody>
-      </table>
-    </div>
-  </div>
-)}
-
-      {/* Photo Tab */}
-      {activeVisaTab === 'photo' && (
-        <div className="overflow-x-auto w-full">
-          <table className="w-full border-collapse min-w-[600px] max-w-6xl border border-gray-300 mt-1">
-            <thead>
-              <tr className="bg-[#2E4D98]">
-                <th className="border border-white px-4 py-3 text-center text-white" colSpan={8}>
-                  Photo Specification
-                </th>
-              </tr>
-            </thead>
-            <tbody className="border-2 border-[#1e3a8a] border-t-0">
-              {tour.visaDetails.photo.length > 0 ? (
-                tour.visaDetails.photo.map((spec, index) => (
-                  <tr key={index} className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}>
-                    <td className="border border-black px-4 py-3 break-words whitespace-normal text-justify text-black" colSpan={8}>
-                      {spec}
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr className="bg-[#FFEBEE]">
-                  <td className="border border-black px-4 py-3 text-center whitespace-normal" colSpan={8}>
-                    No photo specifications available
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-{/* Visa Fees Tab */}
-{activeVisaTab === 'fees' && (
-  <div className="space-y-1 mt-1">
-    <div className="overflow-x-auto w-full">
-      {/* Sub-tabs for fee types */}
-      <div className="flex bg-white border border-black rounded-t-lg overflow-hidden mb-0">
+      {/* Add min-w-[400px] lg:min-w-0 here */}
+      <div className="flex bg-white border border-black rounded-t-lg overflow-hidden mb-0 overflow-x-auto min-w-[400px] lg:min-w-0">
         {[
           "Tourist Visa fees",
           "Transit Visa fees",
@@ -2622,7 +2594,7 @@ useEffect(() => {
               onClick={() => {
                 if (tabKey !== 'charges') setActiveVisaFeeType(tabKey);
               }}
-              className={`px-2 py-3 text-sm font-semibold text-center whitespace-nowrap border-r border-black last:border-r-0 transition
+              className={`px-2 py-2 lg:py-3 text-[10px] xs:text-xs font-semibold text-center whitespace-nowrap border-r border-black last:border-r-0 transition flex-shrink-0
                 ${isActive ? "bg-[#A72703] text-white" : "bg-[#FFE797] text-gray-800 hover:bg-[#FFE797]/90"}
                 ${tabKey === 'charges' ? 'cursor-default' : 'cursor-pointer'}`}
               style={{ flex: isLastTab ? '1.3' : '1' }}
@@ -2633,17 +2605,17 @@ useEffect(() => {
         })}
       </div>
 
-      <table className="w-full border-collapse border border-gray-300 border-t-0">
+      <table className="w-full border-collapse border border-gray-300 border-t-0 min-w-[400px] lg:min-w-0">
         <tbody className="border-1 border-[#1e3a8a]">
           {activeVisaFeeType && tour.visaFees?.length > 0 ? (
             tour.visaFees.map((fee, index) => (
               <tr key={index} className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}>
-                <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap w-[47%] text-black">
+                <td className="border border-black px-2 lg:px-4 py-2 lg:py-3 break-all whitespace-pre-wrap w-[47%] text-black text-sm lg:text-base">
                   {activeVisaFeeType === 'tourist' && (fee.tourist || 'Free Flow Entry')}
                   {activeVisaFeeType === 'transit' && (fee.transit || 'Free Flow Entry')}
                   {activeVisaFeeType === 'business' && (fee.business || 'Free Flow Entry')}
                 </td>
-                <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap w-[20%] text-start text-black">
+                <td className="border border-black px-2 lg:px-4 py-2 lg:py-3 break-all whitespace-pre-wrap w-[20%] text-start text-black text-sm lg:text-base">
                   {activeVisaFeeType === 'tourist' && (fee.touristCharges || 'N/A')}
                   {activeVisaFeeType === 'transit' && (fee.transitCharges || 'N/A')}
                   {activeVisaFeeType === 'business' && (fee.businessCharges || 'N/A')}
@@ -2652,7 +2624,7 @@ useEffect(() => {
             ))
           ) : (
             <tr className="bg-[#FFEBEE]">
-              <td className="border border-black px-4 py-3 text-center text-black" colSpan={2}>
+              <td className="border border-black px-2 lg:px-4 py-2 lg:py-3 text-center text-black text-sm lg:text-base" colSpan={2}>
                 {activeVisaFeeType ? 'No fee data available' : 'Select a visa type to view fees'}
               </td>
             </tr>
@@ -2663,360 +2635,337 @@ useEffect(() => {
   </div>
 )}
 
-      {/* Submission & Pick Up Tab */}
-      {activeVisaTab === 'time' && (
-        <div className="space-y-1 mt-1">
-          <div className="overflow-x-auto w-full">
-            <div className="flex bg-white border border-black rounded-t-lg overflow-hidden mb-0">
-              {["Tourist Visa", "Transit Visa", "Business Visa"].map((label) => {
-                const tabMap = { "Tourist Visa": "tourist", "Transit Visa": "transit", "Business Visa": "business" };
-                const tabKey = tabMap[label];
-                const isActive = activeVisaFeeType === tabKey;
-                return (
-                  <button
-                    key={label}
-                    onClick={() => setActiveVisaFeeType(tabKey)}
-                    className={`px-2 py-3 text-sm font-semibold text-center whitespace-nowrap border-r border-black last:border-r-0 transition
-                      ${isActive ? "bg-[#A72703] text-white" : "bg-[#FFE797] text-gray-800 hover:bg-[#FFE797]/90"}`}
-                    style={{ flex: '1' }}
-                  >
-                    {label}
-                  </button>
-                );
-              })}
-            </div>
-
-            <table className="w-full border-collapse border border-gray-300 border-t-0">
-              <tbody className="border-1 border-[#1e3a8a]">
-                {activeVisaFeeType && tour.visaSubmission?.length > 0 ? (
-                  tour.visaSubmission.map((sub, index) => (
-                    <tr key={index} className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}>
-                      <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap w-[67%]">
-                        {sub.label || 'N/A'}
-                      </td>
-                      <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap w-[53%] text-center">
-                        {activeVisaFeeType === 'tourist' && (sub.tourist || 'N/A')}
-                        {activeVisaFeeType === 'transit' && (sub.transit || 'N/A')}
-                        {activeVisaFeeType === 'business' && (sub.business || 'N/A')}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr className="bg-[#FFEBEE]">
-                    <td className="border border-black px-4 py-3 text-center" colSpan={2}>
-                      {activeVisaFeeType ? 'No submission information available' : 'Select a visa type to view processing times'}
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-<div className="space-y-3">
-<div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
-    <div className="bg-red-600 text-white text-center font-bold text-xl py-3 rounded-t-lg w-full">
-      Visa Remarks
-    </div>                 
-        <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-          <div className="min-h-[180px] max-h-[180px] overflow-y-auto p-1 bg-[#FFEBEE] w-full">
-            <div className="whitespace-pre-wrap break-words hyphens-auto text-justify w-full text-black p-1">
-              {tour.visaForms?.[0]?.remarks || "No remarks available"}
-            </div>
-          </div>
-        </div>
-      </div>
-</div>
-
-    </div>
-  </div>
-)}
-{/* Book p./Canc p. Tab */}
-{activeTab === "book-p./canc-p." && (
-  <div className="bg-[#E8F0FF] rounded-lg p-1">
-    <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg mb-1">
-      Booking & Cancellation Policy
-    </div>
-
-    {/* Main 60/40 Layout */}
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-1 mt-1">
-      {/* Booking Policy */}
-      <div className="flex flex-col h-[320px]">
-        <div className="flex border-2 border-[#1e3a8a] border-b-0 rounded-t-lg overflow-hidden">
-          <div className="flex-1 bg-[#2E4D98] text-white text-center py-3">
-            <h3 className="text-xl font-bold">Booking Policy</h3>
-          </div>
-          <div className="w-[44%] bg-[#2E4D98] text-white text-center py-3 border-l-2 border-[#1e3a8a]">
-            <h4 className="text-sm font-bold">Amount</h4>
-          </div>
-        </div>
-
-        <div className="flex-1 border-2 border-[#1e3a8a] border-t-0 rounded-b-lg overflow-hidden">
-          <div className="overflow-y-auto h-full">
-            <div className="space-y-0">
-              {tour.booking.items.map((text, i) => (
-                <div
-                  key={i}
-                  className="border-b-[1px] border-black flex"
-                >
-                  {/* Text column */}
-                  <div className="w-[58%] border-r-2 border-[#1e3a8a] p-3">
-                    <span className="text-black text-sm text-justify block">
-                      {text}
-                    </span>
-                  </div>
-                  
-                  {/* Amount column */}
-                  <div className="w-[42%] p-3 text-start">
-                    <span className="text-sm font-bold text-green-600 block">
-                      {tour.booking.amountDetails[i]}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+                  {activeVisaTab === 'time' && (
+  <div className="space-y-1 mt-1">
+    <div className="overflow-x-auto w-full">
+      {/* Add min-w-[400px] lg:min-w-0 here to match the table width */}
+      <div className="flex bg-white border border-black rounded-t-lg overflow-hidden mb-0 overflow-x-auto min-w-[400px] lg:min-w-0">
+        {["Tourist Visa", "Transit Visa", "Business Visa"].map((label) => {
+          const tabMap = { "Tourist Visa": "tourist", "Transit Visa": "transit", "Business Visa": "business" };
+          const tabKey = tabMap[label];
+          const isActive = activeVisaFeeType === tabKey;
+          return (
+            <button
+              key={label}
+              onClick={() => setActiveVisaFeeType(tabKey)}
+              className={`px-2 py-2 lg:py-3 text-[10px] xs:text-xs font-semibold text-center whitespace-nowrap border-r border-black last:border-r-0 transition flex-shrink-0
+                ${isActive ? "bg-[#A72703] text-white" : "bg-[#FFE797] text-gray-800 hover:bg-[#FFE797]/90"}`}
+              style={{ flex: '1' }}
+            >
+              {label}
+            </button>
+          );
+        })}
       </div>
 
-      {/* Cancellation Policy */}
-      <div className="flex flex-col h-[320px]">
-        <div className="flex border-2 border-[#1e3a8a] border-b-0 rounded-t-lg overflow-hidden">
-          <div className="flex-1 bg-[#A72703] text-white text-center py-3">
-            <h3 className="text-xl font-bold">Cancellation Policy</h3>
-          </div>
-          <div className="w-[44%] bg-[#A72703] text-white text-center py-3 border-l-2 border-[#1e3a8a]">
-            <h4 className="text-sm font-bold">Charge</h4>
-          </div>
-        </div>
-
-        <div className="flex-1 border-2 border-[#1e3a8a] border-t-0 rounded-b-lg overflow-hidden">
-          <div className="overflow-y-auto h-full">
-            <div className="space-y-0">
-              {tour.cancellation.policies.map((text, i) => (
-                <div
-                  key={i}
-                  className="border-b-[1px] border-black flex"
-                >
-                  {/* Text column */}
-                  <div className="w-[58%] border-r-2 border-[#1e3a8a] p-3">
-                    <span className="text-black text-sm text-justify block">
-                      {text}
-                    </span>
-                  </div>
-                  
-                  {/* Charge column */}
-                  <div className="w-[42%] p-3 text-start">
-                    <span className="text-sm font-bold text-[#A72703] block">
-                      {tour.cancellation.charges[i]}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    {/* Remarks */}
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-1 mt-1">
-      <div className="bg-[#E8F0FF] rounded-lg overflow-hidden">
-        <div className="bg-[#2E4D98] text-white text-center font-bold text-xl py-2.5 rounded-t-lg">
-          Booking Policy Remarks
-        </div>
-        <div className="border-2 border-[#1e3a8a] border-t-0 rounded-b-lg overflow-hidden">
-          <div className="min-h-[160px] max-h-[160px] overflow-y-auto p-1.5 bg-[#FFEBEE] rounded-b-lg">
-            {tour.bookingRemarks && tour.bookingRemarks.length > 0 ? (
-              <ul className="space-y-0">
-                {tour.bookingRemarks.map((remark, index) => (
-                  <li key={index} className="border-b-[1px] border-black last:border-b-0">
-                    <div className="p-2">
-                      <span className="text-black whitespace-pre-wrap break-words">
-                        {remark}
-                      </span>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div className="flex items-center justify-center h-full">
-                <span className="text-gray-500 italic text-sm">
-                  No booking policy remarks available
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-[#E8F0FF] rounded-lg overflow-hidden">
-        <div className="bg-[#A72703] text-white text-center font-bold text-xl py-2.5 rounded-t-lg">
-          Cancellation Policy Remarks
-        </div>
-        <div className="border-2 border-[#1e3a8a] border-t-0 rounded-b-lg overflow-hidden">
-          <div className="min-h-[160px] max-h-[160px] overflow-y-auto p-1.5 bg-[#FFEBEE] rounded-b-lg">
-            {tour.cancellationRemarks && tour.cancellationRemarks.length > 0 ? (
-              <ul className="space-y-0">
-                {tour.cancellationRemarks.map((remark, index) => (
-                  <li key={index} className="border-b-[1px] border-black last:border-b-0">
-                    <div className="p-2">
-                      <span className="text-black whitespace-pre-wrap break-words">
-                        {remark}
-                      </span>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div className="flex items-center justify-center h-full">
-                <span className="text-gray-500 italic text-sm">
-                  No cancellation policy remarks available
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+      <table className="w-full border-collapse border border-gray-300 border-t-0 min-w-[400px] lg:min-w-0">
+        <tbody className="border-1 border-[#1e3a8a]">
+          {activeVisaFeeType && tour.visaSubmission?.length > 0 ? (
+            tour.visaSubmission.map((sub, index) => (
+              <tr key={index} className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}>
+                <td className="border border-black px-2 lg:px-4 py-2 lg:py-3 break-all whitespace-pre-wrap w-[67%] text-sm lg:text-base">
+                  {sub.label || 'N/A'}
+                </td>
+                <td className="border border-black px-2 lg:px-4 py-2 lg:py-3 break-all whitespace-pre-wrap w-[53%] text-center text-sm lg:text-base">
+                  {activeVisaFeeType === 'tourist' && (sub.tourist || 'N/A')}
+                  {activeVisaFeeType === 'transit' && (sub.transit || 'N/A')}
+                  {activeVisaFeeType === 'business' && (sub.business || 'N/A')}
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr className="bg-[#FFEBEE]">
+              <td className="border border-black px-2 lg:px-4 py-2 lg:py-3 text-center text-sm lg:text-base" colSpan={2}>
+                {activeVisaFeeType ? 'No submission information available' : 'Select a visa type to view processing times'}
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
     </div>
   </div>
 )}
 
-                {/* Instructions Tab */}
-                {activeTab === "instructions" && (
-                  <div className="bg-[#E8F0FF] rounded-lg p-1">
-                    <div className="bg-red-600 text-white text-center font-bold text-2xl py-2.5 rounded-t-lg">
-                      Instructions
+                    <div className="space-y-3">
+                      <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
+                        <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-xl py-2 lg:py-3 rounded-t-lg w-full">
+                          Visa Remarks
+                        </div>                 
+                        <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
+                          <div className="min-h-[150px] lg:min-h-[180px] max-h-[150px] lg:max-h-[180px] overflow-y-auto p-1 bg-[#FFEBEE] w-full">
+                            <div className="whitespace-pre-wrap break-words hyphens-auto text-justify w-full text-black p-1 text-sm lg:text-base">
+                              {tour.visaForms?.[0]?.remarks || "No remarks available"}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
+                  </div>
+                </div>
+              )}
 
-                    <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg">
-                      <div className="min-h-[300px] max-h-[320px] overflow-y-auto p-1 bg-[#FFEBEE]">
-                        <div className="space-y-4 p-0">
-                          <div className="p-2">
-                            <ul className="space-y-2 text-gray-700">
-                              {tour.instructions.map((instruction, index) => (
-                                <li key={index} className="text-justify whitespace-normal text-black">
-                                  {instruction}
-                                </li>
-                              ))}
-                            </ul>
+              {/* Book p./Canc p. Tab - Mobile responsive */}
+              {activeTab === "book-p./canc-p." && (
+                <div className="bg-[#E8F0FF] rounded-lg p-1">
+                  <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg mb-1">
+                    Booking & Cancellation Policy
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-1 mt-1">
+                    <div className="flex flex-col h-[280px] lg:h-[320px]">
+                      <div className="flex border-2 border-[#1e3a8a] border-b-0 rounded-t-lg overflow-hidden">
+                        <div className="flex-1 bg-[#2E4D98] text-white text-center py-2 lg:py-3">
+                          <h3 className="text-lg lg:text-xl font-bold">Booking Policy</h3>
+                        </div>
+                        <div className="w-[42%] bg-[#2E4D98] text-white text-center py-2 lg:py-3 border-l-2 border-[#1e3a8a]">
+                          <h4 className="text-xs lg:text-lg font-bold">Amount</h4>
+                        </div>
+                      </div>
+
+                      <div className="flex-1 border-2 border-[#1e3a8a] border-t-0 rounded-b-lg overflow-hidden">
+                        <div className="overflow-y-auto h-full">
+                          <div className="space-y-0">
+                            {tour.booking.items.map((text, i) => (
+                              <div
+                                key={i}
+                                className="border-b-[1px] border-black flex"
+                              >
+                                <div className="w-[58%] border-r-2 border-[#1e3a8a] p-2 lg:p-3">
+                                  <span className="text-black text-xs lg:text-sm text-justify block">
+                                    {text}
+                                  </span>
+                                </div>
+                                
+                                <div className="w-[42%] p-2 lg:p-3 text-start">
+                                  <span className="text-xs lg:text-sm font-bold text-green-600 block">
+                                    {tour.booking.amountDetails[i]}
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
                           </div>
                         </div>
                       </div>
                     </div>
 
+                    <div className="flex flex-col h-[280px] lg:h-[320px]">
+                      <div className="flex border-2 border-[#1e3a8a] border-b-0 rounded-t-lg overflow-hidden">
+                        <div className="flex-1 bg-[#A72703] text-white text-center py-2 lg:py-3">
+                          <h3 className="text-lg lg:text-xl font-bold">Cancellation Policy</h3>
+                        </div>
+                        <div className="w-[42%] bg-[#A72703] text-white text-center py-2 lg:py-3 border-l-2 border-[#1e3a8a]">
+                          <h4 className="text-xs lg:text-lg font-bold">Charge</h4>
+                        </div>
+                      </div>
 
+                      <div className="flex-1 border-2 border-[#1e3a8a] border-t-0 rounded-b-lg overflow-hidden">
+                        <div className="overflow-y-auto h-full">
+                          <div className="space-y-0">
+                            {tour.cancellation.policies.map((text, i) => (
+                              <div
+                                key={i}
+                                className="border-b-[1px] border-black flex"
+                              >
+                                <div className="w-[58%] border-r-2 border-[#1e3a8a] p-2 lg:p-3">
+                                  <span className="text-black text-xs lg:text-sm text-justify block">
+                                    {text}
+                                  </span>
+                                </div>
+                                
+                                <div className="w-[42%] p-2 lg:p-3 text-start">
+                                  <span className="text-xs lg:text-sm font-bold text-[#A72703] block">
+                                    {tour.cancellation.charges[i]}
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-1 mt-1">
+                    <div className="bg-[#E8F0FF] rounded-lg overflow-hidden">
+                      <div className="bg-[#2E4D98] text-white text-center font-bold text-lg lg:text-xl py-2 lg:py-2.5 rounded-t-lg">
+                        Booking Policy Remarks
+                      </div>
+                      <div className="border-2 border-[#1e3a8a] border-t-0 rounded-b-lg overflow-hidden">
+                        <div className="min-h-[140px] lg:min-h-[160px] max-h-[140px] lg:max-h-[160px] overflow-y-auto p-1.5 bg-[#FFEBEE] rounded-b-lg">
+                          {tour.bookingRemarks && tour.bookingRemarks.length > 0 ? (
+                            <ul className="space-y-0">
+                              {tour.bookingRemarks.map((remark, index) => (
+                                <li key={index} className="border-b-[1px] border-black last:border-b-0">
+                                  <div className="p-2">
+                                    <span className="text-black whitespace-pre-wrap break-words text-sm lg:text-base">
+                                      {remark}
+                                    </span>
+                                  </div>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <div className="flex items-center justify-center h-full">
+                              <span className="text-gray-500 italic text-xs lg:text-sm">
+                                No booking policy remarks available
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
 
-
-                )}
-
-
-
-            
-
-              </div>
-
-
-
-
-              {/* Action Buttons */}
-              <div className="flex justify-end mt-1 gap-0.5">
-       <div className="w-32 border border-green-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-  <PDFDownloadLink
-    document={
-      <TourPdfDocumentinternational
-        tour={tour || {}}
-        tourType={tourType}
-        isGroupTour={isGroupTour}
-        selectedCostMonth={selectedCostMonth}
-        selectedCostDate={selectedCostDate}
-        selectedDeparture={selectedDeparture}  
-        currentImageIndex={currentImageIndex}
-        tourImages={tour?.images || []}
-      />
-    }
-    fileName={`tour_${tour?.code || 'details'}_${new Date().toISOString().split('T')[0]}.pdf`}
-    onClick={handleDownloadPdf}
-    className="w-full"
-  >
-    {({ blob, url, loading, error }) => (
-      <button
-        className={`w-full ${loading || isGeneratingPdf ? 'bg-green-900' : 'bg-green-700 hover:bg-green-800'} text-white font-bold py-3 px-3 flex items-center justify-center gap-2 transition-colors text-sm`}
-        disabled={loading || isGeneratingPdf}
-      >
-        {loading || isGeneratingPdf ? (
-          <>
-            <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            Generating...
-          </>
-        ) : (
-          <>
-            <Download className="h-4 w-4" />
-            Download
-          </>
-        )}
-      </button>
-    )}
-  </PDFDownloadLink>
-</div>
-
-{/* Email Button */}
-<div className="w-32 border border-blue-700 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-  <button 
-    onClick={() => setShowEmailModal(true)}
-    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-3 flex items-center justify-center gap-2 transition-colors text-sm"
-  >
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-    </svg>
-    Email
-  </button>
-</div>
-
-{/* Email Modal */}
-<EmailModal
-  isOpen={showEmailModal}
-  onClose={() => setShowEmailModal(false)}
-  onSubmit={handleEmailSubmit}
-  tour={tour}
-/>
-
-                <div className="w-32 border border-red-700 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                  <button
-                    className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-3 flex items-center justify-center gap-2 transition-colors text-sm"
-                    onClick={() => navigate('/checkout', { state: { tour } })}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                    Book Now
-                  </button>
+                    <div className="bg-[#E8F0FF] rounded-lg overflow-hidden">
+                      <div className="bg-[#A72703] text-white text-center font-bold text-lg lg:text-xl py-2 lg:py-2.5 rounded-t-lg">
+                        Cancellation Policy Remarks
+                      </div>
+                      <div className="border-2 border-[#1e3a8a] border-t-0 rounded-b-lg overflow-hidden">
+                        <div className="min-h-[140px] lg:min-h-[160px] max-h-[140px] lg:max-h-[160px] overflow-y-auto p-1.5 bg-[#FFEBEE] rounded-b-lg">
+                          {tour.cancellationRemarks && tour.cancellationRemarks.length > 0 ? (
+                            <ul className="space-y-0">
+                              {tour.cancellationRemarks.map((remark, index) => (
+                                <li key={index} className="border-b-[1px] border-black last:border-b-0">
+                                  <div className="p-2">
+                                    <span className="text-black whitespace-pre-wrap break-words text-sm lg:text-base">
+                                      {remark}
+                                    </span>
+                                  </div>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <div className="flex items-center justify-center h-full">
+                              <span className="text-gray-500 italic text-xs lg:text-sm">
+                                No cancellation policy remarks available
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
+              )}
+
+              {/* Instructions Tab - Mobile responsive */}
+              {activeTab === "instructions" && (
+                <div className="bg-[#E8F0FF] rounded-lg p-1">
+                  <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg">
+                    Instructions
+                  </div>
+
+                  <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg">
+                    <div className="min-h-[250px] lg:min-h-[300px] max-h-[250px] lg:max-h-[320px] overflow-y-auto p-1 bg-[#FFEBEE]">
+                      <div className="space-y-3 lg:space-y-4 p-0">
+                        <div className="p-1 lg:p-2">
+                          <ul className="space-y-1 lg:space-y-2 text-gray-700">
+                            {tour.instructions.map((instruction, index) => (
+                              <li key={index} className="text-justify whitespace-normal text-black text-sm lg:text-base">
+                                {instruction}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Action Buttons - Mobile responsive */}
+        <div className="flex justify-between lg:justify-end mt-1 gap-1 lg:gap-0.5 flex-nowrap">
+              <div className="w-[32%] lg:w-32 border border-green-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                <PDFDownloadLink
+                  document={
+                    <TourPdfDocumentinternational
+                      tour={tour || {}}
+                      tourType={tourType}
+                      isGroupTour={isGroupTour}
+                      selectedCostMonth={selectedCostMonth}
+                      selectedCostDate={selectedCostDate}
+                      selectedDeparture={selectedDeparture}  
+                      currentImageIndex={currentImageIndex}
+                      tourImages={tour?.images || []}
+                    />
+                  }
+                  fileName={`tour_${tour?.code || 'details'}_${new Date().toISOString().split('T')[0]}.pdf`}
+                  onClick={handleDownloadPdf}
+                  className="w-full"
+                >
+                  {({ blob, url, loading, error }) => (
+                    <button
+                      className={`w-full ${loading || isGeneratingPdf ? 'bg-green-900' : 'bg-green-700 hover:bg-green-800'} text-white font-bold py-2 lg:py-3 px-2 lg:px-3 flex items-center justify-center gap-1 lg:gap-2 transition-colors text-xs lg:text-sm`}
+                      disabled={loading || isGeneratingPdf}
+                    >
+                      {loading || isGeneratingPdf ? (
+                        <>
+                          <svg className="animate-spin h-3 w-3 lg:h-4 lg:w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <Download className="h-3 w-3 lg:h-4 lg:w-4" />
+                          Download
+                        </>
+                      )}
+                    </button>
+                  )}
+                </PDFDownloadLink>
               </div>
-            </main>
-          </div>
+
+              <div className="w-[32%] lg:w-32 border border-blue-700 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                <button 
+                  onClick={() => setShowEmailModal(true)}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 lg:py-3 px-2 lg:px-3 flex items-center justify-center gap-1 lg:gap-2 transition-colors text-xs lg:text-sm"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 lg:h-4 lg:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  Email
+                </button>
+              </div>
+
+              <EmailModal
+                isOpen={showEmailModal}
+                onClose={() => setShowEmailModal(false)}
+                onSubmit={handleEmailSubmit}
+                tour={tour}
+              />
+
+              <div className="w-[32%] lg:w-32 border border-red-700 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                <button
+                  className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 lg:py-3 px-2 lg:px-3 flex items-center justify-center gap-1 lg:gap-2 transition-colors text-xs lg:text-sm"
+                  onClick={() => navigate('/checkout', { state: { tour } })}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-3 w-3 lg:h-4 lg:w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  Book Now
+                </button>
+              </div>
+            </div>
+          </main>
         </div>
       </div>
-      <Footer />
-    </>
-  );
+    </div>
+    <Footer />
+  </>
+);
 };
 
 export default International_Tourdetails;

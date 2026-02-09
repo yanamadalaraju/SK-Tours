@@ -67,7 +67,7 @@ function Flightfrontend() {
                 infants: bookingParams.infants
               }}
               bookingTokenId={bookingParams.bookingTokenId}
-               token="1-20618-SKTT-cnjks678HBJ76uhj"
+              token="1-20618-SKTT-cnjks678HBJ76uhj"
               endUserIp="192.168.1.12"
               staticParam={bookingParams.staticValue}
               onBack={handleBackFromSeats}

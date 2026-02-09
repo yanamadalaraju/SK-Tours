@@ -1,4 +1,3 @@
-// components/SeatSelection.tsx
 import React, { useState, useEffect } from "react";
 import { 
   MdFlightTakeoff, 
@@ -122,7 +121,6 @@ const SeatSelection: React.FC<SeatSelectionProps> = ({
   // Initialize passenger details with input fields
   useEffect(() => {
     if (passengerDetailsFromSearch && passengerDetailsFromSearch.length > 0) {
-      // Use provided data but make it editable
       const details = passengerDetailsFromSearch.map((passenger, index) => ({
         id: index + 1,
         type: passenger.age >= 12 ? 'adult' : passenger.age >= 2 ? 'child' : 'infant',
@@ -144,7 +142,6 @@ const SeatSelection: React.FC<SeatSelectionProps> = ({
       
       setPassengerDetails(details);
     } else {
-      // Create editable default passenger details
       const details: PassengerDetails[] = [];
       let id = 1;
       
@@ -302,22 +299,10 @@ const SeatSelection: React.FC<SeatSelectionProps> = ({
     return Math.round(basePrice);
   };
 
-  const getActivePassenger = () => {
-    return passengerDetails.find(p => p.id === activePassengerId);
-  };
-
-  const getPassengerSeat = (passengerId: number, flightType: 'onward' | 'return') => {
-    if (flightType === 'onward') {
-      return selectedOnwardSeats.find(seat => seat.passengerId === passengerId);
-    } else {
-      return selectedReturnSeats.find(seat => seat.passengerId === passengerId);
-    }
-  };
-
   const handleSeatClick = (seat: Seat) => {
     if (seat.status === 'booked' || seat.status === 'blocked') return;
 
-    const activePassenger = getActivePassenger();
+    const activePassenger = passengerDetails.find(p => p.id === activePassengerId);
     if (!activePassenger || !activePassenger.requiresSeat) return;
 
     const currentFlightSeats = seat.flightType === 'onward' ? selectedOnwardSeats : selectedReturnSeats;
@@ -410,7 +395,6 @@ const SeatSelection: React.FC<SeatSelectionProps> = ({
     setTotalPrice(newTotalPrice);
   };
 
-  // Add this function to handle direct input changes
   const handlePassengerInputChange = (passengerId: number, field: keyof PassengerDetails, value: string | number) => {
     setPassengerDetails(prev => 
       prev.map(passenger => 
@@ -418,7 +402,6 @@ const SeatSelection: React.FC<SeatSelectionProps> = ({
           ? { 
               ...passenger, 
               [field]: value,
-              // Update name if firstName or lastName changes
               ...(field === 'firstName' || field === 'lastName' 
                 ? { name: `${field === 'firstName' ? value : passenger.firstName} ${field === 'lastName' ? value : passenger.lastName}`.trim() }
                 : {})
@@ -479,12 +462,13 @@ const SeatSelection: React.FC<SeatSelectionProps> = ({
 
       console.log("Booking payload:", JSON.stringify(bookingPayload, null, 2));
 
+      // LIVE ENDPOINT
       const response = await axios.post(
         'https://api.fdking.com/v1/fbapi/book',
         bookingPayload,
         {
           headers: {
-            'x-api-key': 'YOUR_LIVE_API_KEY',
+            'x-api-key': 'YOUR_LIVE_API_KEY', // Replace with your live API key
             'Content-Type': 'application/json'
           }
         }
@@ -517,46 +501,56 @@ const SeatSelection: React.FC<SeatSelectionProps> = ({
     }
   };
 
-const fetchBookingDetails = async (referenceId: string) => {
-  try {
-    const bookingDetailsPayload = {
-      reference_id: referenceId,
-      transaction_id: referenceId,
+  const fetchBookingDetails = async (referenceId: string) => {
+    try {
+      const bookingDetailsPayload = {
+        reference_id: referenceId,
+        transaction_id: referenceId,
         end_user_ip: endUserIp || "192.168.1.12",
         token: token || "1-20618-SKTT-cnjks678HBJ76uhj"
-    };
+      };
 
-    const response = await axios.post(
-      'https://devapi.flightapi.co.in/v1/fbapi/booking_details',
-      bookingDetailsPayload,
-      {
-        headers: {
-          'x-api-key': 'YOUR_LIVE_API_KEY',
-          'Content-Type': 'application/json'
+      // LIVE ENDPOINT
+      const response = await axios.post(
+        'https://api.fdking.com/v1/fbapi/booking_details',
+        bookingDetailsPayload,
+        {
+          headers: {
+            'x-api-key': 'YOUR_LIVE_API_KEY', // Replace with your live API key
+            'Content-Type': 'application/json'
+          }
         }
-      }
-    );
+      );
 
-    if (response.data.replyCode === 0 && response.data.data) {
-      const bookingData = response.data.data;
-      
-      const passengerDetailsWithPrices = passengerDetails.map((passenger, index) => {
-        const matchingTraveller = bookingData.travellers?.[index];
+      if (response.data.replyCode === 0 && response.data.data) {
+        const bookingData = response.data.data;
         
-        return {
-          ...passenger,
-          ticket_price: matchingTraveller?.ticket_price || 0,
-          ticketPrice: matchingTraveller?.ticket_price || 0 // Add both for compatibility
-        };
-      });
+        const passengerDetailsWithPrices = passengerDetails.map((passenger, index) => {
+          const matchingTraveller = bookingData.travellers?.[index];
+          
+          return {
+            ...passenger,
+            ticket_price: matchingTraveller?.ticket_price || 0,
+            ticketPrice: matchingTraveller?.ticket_price || 0
+          };
+        });
 
-      onBookingComplete({
-        bookingData: bookingData,
-        referenceId: referenceId,
-        passengerDetails: passengerDetailsWithPrices, // Use the updated array
-        contactDetails: contactDetails
-      });
-    } else {
+        onBookingComplete({
+          bookingData: bookingData,
+          referenceId: referenceId,
+          passengerDetails: passengerDetailsWithPrices,
+          contactDetails: contactDetails
+        });
+      } else {
+        window.alert("⚠️ Booking created but unable to fetch details. Reference ID: " + referenceId);
+        onBookingComplete({
+          referenceId: referenceId,
+          passengerDetails: passengerDetails,
+          contactDetails: contactDetails
+        });
+      }
+    } catch (error: any) {
+      console.error("Error fetching booking details:", error);
       window.alert("⚠️ Booking created but unable to fetch details. Reference ID: " + referenceId);
       onBookingComplete({
         referenceId: referenceId,
@@ -564,16 +558,7 @@ const fetchBookingDetails = async (referenceId: string) => {
         contactDetails: contactDetails
       });
     }
-  } catch (error: any) {
-    console.error("Error fetching booking details:", error);
-    window.alert("⚠️ Booking created but unable to fetch details. Reference ID: " + referenceId);
-    onBookingComplete({
-      referenceId: referenceId,
-      passengerDetails: passengerDetails,
-      contactDetails: contactDetails
-    });
-  }
-};
+  };
 
   const handleContactSave = () => {
     if (!contactDetails.name.trim()) {
@@ -599,15 +584,6 @@ const fetchBookingDetails = async (referenceId: string) => {
       ...prev,
       [field]: value
     }));
-  };
-
-  const getPassengerIcon = (type: 'adult' | 'child' | 'infant') => {
-    switch (type) {
-      case 'adult': return <MdPerson />;
-      case 'child': return <MdChildCare />;
-      case 'infant': return <MdBabyChangingStation />;
-      default: return <MdPerson />;
-    }
   };
 
   const formatTime = (timeStr: string) => {

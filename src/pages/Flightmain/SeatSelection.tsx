@@ -123,7 +123,7 @@ const SeatSelection: React.FC<SeatSelectionProps> = ({
       // Use provided data but make it editable
       const details = passengerDetailsFromSearch.map((passenger, index) => ({
         id: index + 1,
-        type: passenger.age >= 12 ? 'adult' : passenger.age >= 2 ? 'child' : 'infant',
+        type: (passenger.age >= 12 ? 'adult' : passenger.age >= 2 ? 'child' : 'infant') as 'adult' | 'child' | 'infant',
         name: `${passenger.first_name} ${passenger.last_name}`,
         firstName: passenger.first_name || '',
         middleName: passenger.middle_name || '',

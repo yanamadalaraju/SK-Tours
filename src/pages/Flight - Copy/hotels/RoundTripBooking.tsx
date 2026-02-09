@@ -112,9 +112,9 @@ const RoundTripBooking: React.FC<RoundTripBookingProps> = ({
   const fetchBookingDetails = async (referenceId: string) => {
     try {
       // Replace with your actual auth token and API key
-   const authToken = 'eyJhbGciOiJIUzI1NiIsInR5c...';
+      const authToken = 'eyJhbGciOiJIUzI1NiIsInR5c...';
       const apiKey = '1FMQKB1639407126571';
-      
+
       const details = await flightApiService.getBookingDetails({
         referenceId,
         authToken,

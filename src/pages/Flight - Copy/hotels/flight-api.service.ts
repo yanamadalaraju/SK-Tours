@@ -1,6 +1,3 @@
-
-
-// services/flight-api.service.ts
 import { 
   Airport, 
   FlightSearchResult, 
@@ -14,7 +11,8 @@ import {
   ReturnDateResponse
 } from './flight-api.types';
 
-const API_BASE_URL = 'https://api.fdking.com/v1/fbapi/';
+// LIVE API CONFIGURATION
+const API_BASE_URL = 'https://api.fdking.com/v1/fbapi';
 const TOKEN = '1-20618-SKTT-cnjks678HBJ76uhj';
 const END_USER_IP = '192.168.1.12';
 
@@ -343,7 +341,7 @@ class FlightApiService {
       console.error('Error in getBookingDetails:', error);
       return { replyCode: 1, data: {} as BookingDetails };
     }
-  } 
+  }
 }
 
 export default new FlightApiService();
