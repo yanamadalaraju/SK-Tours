@@ -66,6 +66,17 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        // Add MakeMyTrip specific colors
+        'mmt': {
+          orange: '#FF6B00',
+          'orange-hover': '#E55A00',
+          blue: '#003B70',
+          green: '#00B894',
+          red: '#FF3838',
+          'light-blue': '#E8F4FF',
+          'light-orange': '#FFF5EB',
+          'light-green': '#E8F5E9',
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

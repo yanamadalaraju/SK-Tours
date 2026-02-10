@@ -63,6 +63,7 @@ import TourPdfDocumentinternational from "./pages/TourPdfDocumentinternational";
 import Login from "./pages/Loginpage/Login";
 import SignUp from "./pages/SignUp/SignUp";
 import OfflineFlightBooking from "./pages/OfflineFlightBooking/OfflineFlightBooking"
+import HotelSearchBar from "./pages/OfflineHotelBooking/HotelsMain";
 
 const queryClient = new QueryClient();
 
@@ -129,6 +130,9 @@ const App = () => (
 <Route path="/login" element={<Login />} />
 <Route path="/signup" element={<SignUp />} /> 
 <Route path="/offlineflightbooking" element={<OfflineFlightBooking />} />
+<Route path="/offlinehotelbooking" element={<HotelSearchBar />} />
+
+
 
 
         </Routes>

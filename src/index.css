@@ -129,6 +129,236 @@ All colors MUST be HSL.
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
+
+
+  /* Add this after your existing dark mode definitions but before the closing brace */
+
+/* MakeMyTrip Specific Styles */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* MakeMyTrip color variables */
+:root {
+  --mmt-orange: #FF6B00;
+  --mmt-orange-hover: #E55A00;
+  --mmt-blue: #003B70;
+  --mmt-green: #00B894;
+  --mmt-red: #FF3838;
+}
+
+.mmt-inter-font {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+}
+
+/* MakeMyTrip specific utility classes */
+.mmt-orange {
+  background-color: var(--mmt-orange);
+  color: white;
+}
+
+.mmt-orange:hover {
+  background-color: var(--mmt-orange-hover);
+}
+
+.mmt-blue {
+  color: var(--mmt-blue);
+}
+
+.mmt-shadow {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.mmt-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* MakeMyTrip hotel specific styles */
+.goa-hotel-rating {
+  display: inline-flex;
+  align-items: center;
+  background: linear-gradient(135deg, #00B894 0%, #00A884 100%);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px 0 0 4px;
+}
+
+.goa-hotel-ratings-count {
+  background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+  color: #00B894;
+  padding: 2px 8px;
+  border-radius: 0 4px 4px 0;
+}
+
+.goa-limited-sale {
+  background: linear-gradient(135deg, #FFE6E6 0%, #FFCCCC 100%);
+  color: #FF3838;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.goa-price-strike {
+  color: #666;
+  text-decoration: line-through;
+}
+
+.goa-price-current {
+  color: #222;
+  font-weight: bold;
+}
+
+.goa-taxes-fees {
+  color: #666;
+  font-size: 0.875rem;
+}
+
+/* MakeMyTrip tabs styling */
+.goa-tab-active {
+  border-bottom: 2px solid var(--mmt-orange);
+  color: var(--mmt-orange);
+  font-weight: 600;
+}
+
+.goa-tab-inactive {
+  color: #666;
+  border-bottom: 2px solid transparent;
+}
+
+.goa-tab-inactive:hover {
+  color: #222;
+}
+
+/* MakeMyTrip dropdown z-index */
+.goa-dropdown-z {
+  z-index: 100;
+}
+
+/* MakeMyTrip specific button styles */
+.mmt-button-primary {
+  background: linear-gradient(135deg, var(--mmt-orange) 0%, var(--mmt-orange-hover) 100%);
+  color: white;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  transition: all 0.3s ease;
+}
+
+.mmt-button-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 107, 0, 0.3);
+}
+
+.mmt-button-secondary {
+  background: linear-gradient(135deg, var(--mmt-blue) 0%, #002B5A 100%);
+  color: white;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  transition: all 0.3s ease;
+}
+
+.mmt-button-secondary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 59, 112, 0.3);
+}
+
+/* MakeMyTrip search input styling */
+.mmt-search-input {
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.mmt-search-input:focus {
+  outline: none;
+  border-color: var(--mmt-orange);
+  box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.1);
+}
+
+/* MakeMyTrip checkbox styling */
+.mmt-checkbox {
+  accent-color: var(--mmt-orange);
+  width: 16px;
+  height: 16px;
+}
+
+/* MakeMyTrip table styling */
+.mmt-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.mmt-table th {
+  text-align: left;
+  padding: 12px;
+  background-color: #F8FAFC;
+  color: #334155;
+  font-weight: 600;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.mmt-table td {
+  padding: 12px;
+  border-bottom: 1px solid #E2E8F0;
+  color: #475569;
+}
+
+.mmt-table tr:hover {
+  background-color: #F8FAFC;
+}
+
+/* MakeMyTrip badge styling */
+.mmt-badge-success {
+  background: linear-gradient(135deg, #00B894 0%, #00A884 100%);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.mmt-badge-warning {
+  background: linear-gradient(135deg, #FFD166 0%, #FFC043 100%);
+  color: #7C2D12;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.mmt-badge-danger {
+  background: linear-gradient(135deg, #FF6B6B 0%, #FF5252 100%);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* MakeMyTrip responsive adjustments */
+@media (max-width: 768px) {
+  .mmt-container {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  
+  .goa-main-wrapper {
+    flex-direction: column;
+  }
+  
+  .goa-sidebar-container {
+    width: 100%;
+    margin-bottom: 24px;
+  }
+  
+  .goa-content-wrapper {
+    width: 100%;
+  }
+}
+
 }
 
 @layer base {
