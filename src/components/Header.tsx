@@ -691,7 +691,9 @@ const Header = () => {
       dropdown: [
         { label: "Online Flight Blocks", href: "/flightfrontend" },
         { label: "Offline Filght Blocks", href: "/offlineflightblocks" },
-        { label: "Offline Hotel Blocks", href: "/alert" },
+       
+       
+        { label: "Offline Hotel Blocks", href: "/offlinehotelbooking" },
       ]
     },
     { icon: Ship, label: "Exhibitions", href: "/alert" },
