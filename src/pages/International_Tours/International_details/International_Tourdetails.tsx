@@ -1101,7 +1101,7 @@ return (
                               
                               navigate(`${basePath}/${encodeURIComponent(place)}`);
                             }}
-                            className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98] w-4 h-4 lg:w-4 lg:h-4"
+                            className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98] w-3 h-3 lg:w-4 lg:h-4"
                           />
               
                           <span
@@ -1201,7 +1201,7 @@ return (
                                     setSelectedWorldTours(selectedWorldTours.filter(t => t !== place));
                                   }
                                 }}
-                                className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98] w-4 h-4 lg:w-4 lg:h-4"
+                                className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98] w-3 h-3 lg:w-4 lg:h-4"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                 }}

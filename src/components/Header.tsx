@@ -690,7 +690,7 @@ const Header = () => {
       href: "#offline-flight-tickets",
       dropdown: [
         { label: "Online Flight Blocks", href: "/flightfrontend" },
-        { label: "Offline Filght Blocks", href: "/alert" },
+        { label: "Offline Filght Blocks", href: "/offlineflightblocks" },
         { label: "Offline Hotel Blocks", href: "/alert" },
       ]
     },
