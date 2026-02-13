@@ -370,3 +370,48 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+
+/* Add this to your index.css file, after the existing MakeMyTrip styles */
+
+/* MakeMyTrip Search Bar Specific Styles */
+.mmt-search-bar-item {
+  min-height: 72px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.mmt-search-bar-label {
+  font-size: 11px;
+  color: #666;
+  margin-bottom: 4px;
+  display: block;
+}
+
+.mmt-search-bar-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: #222;
+  display: block;
+  line-height: 1.2;
+}
+
+.mmt-search-bar-subvalue {
+  font-size: 11px;
+  color: #666;
+  margin-top: 2px;
+  display: block;
+}
+
+.mmt-search-button {
+  height: 44px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.mmt-book-button {
+  height: 44px;
+  font-size: 14px;
+  font-weight: 700;
+}
