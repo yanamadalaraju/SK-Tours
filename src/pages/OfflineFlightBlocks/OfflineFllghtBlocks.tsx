@@ -12,6 +12,9 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
+import Header from '@/components/Header';
+import Footer from "@/components/Footer";
 
 // Static data
 const cities = [
@@ -37,6 +40,46 @@ interface TravellerCount {
   children: number;
   infants: number;
 }
+
+// Trip Type Selector Component
+const TripTypeSelector = ({ 
+  tripType, 
+  onTripTypeChange 
+}: { 
+  tripType: "one-way" | "round-trip"; 
+  onTripTypeChange: (type: "one-way" | "round-trip") => void 
+}) => {
+  return (
+    <div className="h-full bg-white hover:bg-gray-50 transition-colors rounded-l-2xl border-r border-gray-200">
+      <div className="h-full flex flex-col justify-center px-4">
+        <div className="flex flex-col gap-1">
+          <button
+            onClick={() => onTripTypeChange("one-way")}
+            className={cn(
+              "px-3 py-2 rounded border text-xs font-medium transition-all duration-200 whitespace-nowrap",
+              tripType === "one-way" 
+                ? "border-orange-600 bg-orange-50 text-orange-800 shadow-sm" 
+                : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
+            )}
+          >
+            One Way
+          </button>
+          <button
+            onClick={() => onTripTypeChange("round-trip")}
+            className={cn(
+              "px-3 py-2 rounded border text-xs font-medium transition-all duration-200 whitespace-nowrap",
+              tripType === "round-trip" 
+                ? "border-orange-600 bg-orange-50 text-orange-800 shadow-sm" 
+                : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
+            )}
+          >
+            Round Trip
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // Traveller Selector
 const TravellerSelector = ({ 
@@ -76,24 +119,24 @@ const TravellerSelector = ({
   }, []);
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className="relative h-full" ref={dropdownRef}>
       <button
         onClick={() => setOpen(!open)}
         className="w-full h-full text-left px-4 py-3 bg-white hover:bg-gray-50 transition-colors group border-l border-gray-200"
       >
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
             <Users className="w-4 h-4 text-blue-600" />
           </div>
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <p className="text-xs text-gray-500 uppercase tracking-wide">Travellers & Class</p>
-            <p className="font-semibold text-gray-900">
+            <p className="font-semibold text-gray-900 truncate">
               {totalTravellers} Traveller{totalTravellers !== 1 ? "s" : ""}
             </p>
-            <p className="text-xs text-gray-500">Economy</p>
+            <p className="text-xs text-gray-500 truncate">Economy</p>
           </div>
           <ChevronDown className={cn(
-            "w-4 h-4 text-gray-500 group-hover:text-gray-700 transition-colors transform",
+            "w-4 h-4 text-gray-500 group-hover:text-gray-700 transition-colors transform shrink-0",
             open && "rotate-180"
           )} />
         </div>
@@ -226,7 +269,7 @@ const DateSelector = ({
   }, []);
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className="relative h-full" ref={dropdownRef}>
       <button
         onClick={() => !disabled && setOpen(!open)}
         disabled={disabled}
@@ -236,17 +279,17 @@ const DateSelector = ({
         )}
       >
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
             <CalendarIcon className="w-4 h-4 text-blue-600" />
           </div>
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <p className="text-xs text-gray-500 uppercase tracking-wide">{label}</p>
             {selectedDate ? (
               <>
-                <p className="font-semibold text-gray-900">
+                <p className="font-semibold text-gray-900 truncate">
                   {format(selectedDate, "dd MMM''yy")}
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-500 truncate">
                   {format(selectedDate, "EEEE")}
                 </p>
               </>
@@ -255,7 +298,7 @@ const DateSelector = ({
             )}
           </div>
           <ChevronDown className={cn(
-            "w-4 h-4 text-gray-500 group-hover:text-gray-700 transition-colors transform",
+            "w-4 h-4 text-gray-500 group-hover:text-gray-700 transition-colors transform shrink-0",
             open && "rotate-180"
           )} />
         </div>
@@ -302,19 +345,13 @@ const CitySelector = ({
   selectedCity, 
   onCitySelect,
   excludeCity,
-  isFrom = true,
-  showTripTypeButtons = false,
-  tripType,
-  onTripTypeChange
+  isFrom = true
 }: { 
   label: string;
   selectedCity: City | null;
   onCitySelect: (city: City) => void;
   excludeCity?: City | null;
   isFrom?: boolean;
-  showTripTypeButtons?: boolean;
-  tripType?: "one-way" | "round-trip";
-  onTripTypeChange?: (type: "one-way" | "round-trip") => void;
 }) => {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -339,7 +376,7 @@ const CitySelector = ({
   }, []);
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className="relative h-full" ref={dropdownRef}>
       <button
         onClick={() => setOpen(!open)}
         className={cn(
@@ -348,39 +385,7 @@ const CitySelector = ({
         )}
       >
         <div className="flex items-center gap-3">
-          {showTripTypeButtons && tripType && onTripTypeChange && (
-            <div className="flex flex-col gap-2 mr-3">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onTripTypeChange("one-way");
-                }}
-                className={cn(
-                  "px-3 py-1 rounded border text-xs font-medium transition-all duration-200 whitespace-nowrap",
-                  tripType === "one-way" 
-                    ? "border-orange-600 bg-orange-50 text-orange-800" 
-                    : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
-                )}
-              >
-                One Way
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onTripTypeChange("round-trip");
-                }}
-                className={cn(
-                  "px-3 py-1 rounded border text-xs font-medium transition-all duration-200 whitespace-nowrap",
-                  tripType === "round-trip" 
-                    ? "border-orange-600 bg-orange-50 text-orange-800" 
-                    : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
-                )}
-              >
-                Round Trip
-              </button>
-            </div>
-          )}
-          <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
             <MapPin className="w-4 h-4 text-blue-600" />
           </div>
           <div className="flex-1 min-w-0">
@@ -391,11 +396,11 @@ const CitySelector = ({
                 <p className="text-xs text-gray-500 truncate">{selectedCity.code} • {selectedCity.airport}</p>
               </>
             ) : (
-              <p className="text-gray-500">Select city or airport</p>
+              <p className="text-gray-500 truncate">Select city or airport</p>
             )}
           </div>
           <ChevronDown className={cn(
-            "w-4 h-4 text-gray-500 group-hover:text-gray-700 transition-colors transform",
+            "w-4 h-4 text-gray-500 group-hover:text-gray-700 transition-colors transform shrink-0",
             open && "rotate-180"
           )} />
         </div>
@@ -406,7 +411,7 @@ const CitySelector = ({
           <div className="p-3 border-b">
             <input
               type="text"
-              placeholder="From which city?"
+              placeholder={isFrom ? "From which city?" : "To which city?"}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full px-4 py-2.5 bg-gray-50 rounded-lg text-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500/30"
@@ -445,6 +450,7 @@ const CitySelector = ({
 
 // Main Component
 const FlightSearch = () => {
+  const navigate = useNavigate();
   const [tripType, setTripType] = useState<"one-way" | "round-trip">("round-trip");
   const [fromCity, setFromCity] = useState<City>(cities[0]);
   const [toCity, setToCity] = useState<City>(cities[2]);
@@ -471,111 +477,171 @@ const FlightSearch = () => {
 
   const handleSearch = () => {
     if (!fromCity || !toCity || !departureDate) return;
-    alert(`Searching:\nFrom: ${fromCity.name} (${fromCity.code})\nTo: ${toCity.name} (${toCity.code})\nDepart: ${format(departureDate, "dd MMM yyyy")}${returnDate && tripType === "round-trip" ? `\nReturn: ${format(returnDate, "dd MMM yyyy")}` : ""}\nTravellers: ${travellers.adults + travellers.children + travellers.infants}`);
+    
+    const searchData = {
+      fromCity,
+      toCity,
+      departureDate,
+      returnDate,
+      tripType,
+      travellers
+    };
+    
+    navigate('/offlineflightbooking', { 
+      state: { 
+        searchData,
+        message: "Searching for flights..."
+      } 
+    });
   };
 
   const isSearchEnabled = !!fromCity && !!toCity && !!departureDate;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50/70 to-white">
-      {/* Header */}
-      <div className="pt-8 pb-28 bg-gradient-to-r from-blue-700 to-blue-900">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center gap-3 mb-8">
-            <Plane className="w-8 h-8 text-white" />
-            <h1 className="text-2xl font-bold text-white">Flight Booking</h1>
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-blue-50/70 to-white">
+      <Header />
+      
+      <div className="flex-grow h-[800px]">
+        {/* Header Section with Background Image */}
+        <div 
+          className="pt-28 pb-28 relative bg-gradient-to-r from-blue-200/90 to-blue-300/90"
+          style={{
+            backgroundImage: `linear-gradient(to right, rgba(74, 94, 149, 0.45), rgba(30, 64, 175, 0.49)), url('https://images.fineartamerica.com/images-medium-large-5/1-commercial-jet-flying-over-clouds-buena-vista-images.jpg')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundBlendMode: 'overlay'
+          }}
+        >
+          {/* Optional: Add an overlay for better text readability */}
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 to-blue-800/80"></div>
+          
+          <div className="max-w-7xl mx-auto px-4 relative z-10">
+            <div className="flex items-center gap-3 mb-8">
+              <Plane className="w-8 h-8 text-white" />
+              <h1 className="text-2xl font-bold text-white">Flight Booking</h1>
+            </div>
+            <div className="text-center">
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">
+                Book Flights at Lowest Prices
+              </h2>
+              <p className="text-white/90 text-lg">Search & compare across 500+ airlines</p>
+            </div>
           </div>
-          <div className="text-center">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">
-              Book Flights at Lowest Prices
-            </h2>
-            <p className="text-white/90 text-lg">Search & compare across 500+ airlines</p>
+        </div>
+
+        {/* Search Form */}
+        <div className="max-w-7xl mx-auto px-4 -mt-16 relative z-10">  
+          <div className="bg-white rounded-2xl shadow-2xl border border-gray-200">
+            <div className="flex flex-col md:flex-row items-stretch">
+              <div className="w-full md:w-auto">
+                <TripTypeSelector
+                  tripType={tripType}
+                  onTripTypeChange={setTripType}
+                />
+              </div>
+              
+              <div className="flex-1 grid grid-cols-1 md:grid-cols-5">
+                <div className="border-t md:border-t-0 md:border-l border-gray-200 relative">
+                  <CitySelector
+                    label="FROM"
+                    selectedCity={fromCity}
+                    onCitySelect={setFromCity}
+                    excludeCity={toCity}
+                    isFrom={true}
+                  />
+                  <button
+                    onClick={swapCities}
+                    className="hidden md:flex absolute -right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white border-2 border-gray-300 text-gray-600 items-center justify-center hover:bg-gray-50 hover:border-orange-400 transition-all shadow-lg"
+                  >
+                    <ArrowRightLeft className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="border-t md:border-t-0 md:border-l border-gray-200">
+                  <CitySelector
+                    label="TO"
+                    selectedCity={toCity}
+                    onCitySelect={setToCity}
+                    excludeCity={fromCity}
+                    isFrom={false}
+                  />
+                </div>
+
+                <div className="border-t md:border-t-0 md:border-l border-gray-200">
+                  <DateSelector
+                    label="DEPARTURE"
+                    selectedDate={departureDate}
+                    onDateSelect={setDepartureDate}
+                    minDate={new Date()}
+                  />
+                </div>
+
+                <div className="border-t md:border-t-0 md:border-l border-gray-200">
+                  <DateSelector
+                    label="RETURN"
+                    selectedDate={returnDate}
+                    onDateSelect={setReturnDate}
+                    minDate={departureDate}
+                    disabled={tripType === "one-way"}
+                  />
+                </div>
+
+                <div className="border-t md:border-t-0 md:border-l border-gray-200">
+                  <TravellerSelector travellers={travellers} onTravellersChange={setTravellers} />
+                </div>
+              </div>
+
+              <div className="border-t md:border-t-0 md:border-l border-gray-200">
+                <button
+                  onClick={handleSearch}
+                  disabled={!isSearchEnabled}
+                  className={cn(
+                    "w-full h-full py-4 px-6 bg-orange-600 hover:bg-orange-700 text-white font-bold text-lg rounded-r-2xl transition-all shadow-lg flex items-center justify-center gap-3 disabled:opacity-60 disabled:cursor-not-allowed",
+                    isSearchEnabled && "hover:shadow-xl"
+                  )}
+                >
+                  <Search className="w-6 h-6" />
+                  <span className="hidden md:inline">Search Flights</span>
+                  <span className="md:hidden">Search</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="md:hidden p-4 border-t border-gray-200">
+              <div className="flex justify-center gap-4">
+                <button
+                  onClick={() => setTripType("one-way")}
+                  className={cn(
+                    "px-6 py-2.5 rounded-lg border text-sm font-medium transition-all duration-200",
+                    tripType === "one-way" 
+                      ? "border-orange-600 bg-orange-50 text-orange-800" 
+                      : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
+                  )}
+                >
+                  One Way
+                </button>
+                <button
+                  onClick={() => setTripType("round-trip")}
+                  className={cn(
+                    "px-6 py-2.5 rounded-lg border text-sm font-medium transition-all duration-200",
+                    tripType === "round-trip" 
+                      ? "border-orange-600 bg-orange-50 text-orange-800" 
+                      : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
+                  )}
+                >
+                  Round Trip
+                </button>
+              </div>
+            </div>
           </div>
+
+          <p className="text-center text-sm text-gray-500 mt-6">
+            Search hundreds of flights at the best prices
+          </p>
         </div>
       </div>
 
-      {/* Search Form */}
-      <div className="max-w-7xl mx-auto px-4 -mt-20 relative z-10">  
-              <div className="bg-white rounded-2xl shadow-2xl border border-gray-200">
-          {/* Main Inputs */}
-          <div className="flex flex-col md:flex-row items-stretch divide-y md:divide-y-0 md:divide-x divide-gray-200">
-            <div className="flex-1 min-w-0">
-              <CitySelector
-                label="FROM"
-                selectedCity={fromCity}
-                onCitySelect={setFromCity}
-                excludeCity={toCity}
-                isFrom={true}
-                showTripTypeButtons={true}
-                tripType={tripType}
-                onTripTypeChange={setTripType}
-              />
-            </div>
-
-            <div className="hidden md:flex items-center justify-center px-2 bg-white relative">
-              <button
-                onClick={swapCities}
-                className="absolute -left-5 z-10 w-11 h-11 rounded-full bg-white border-2 border-gray-300 text-gray-600 flex items-center justify-center hover:bg-gray-50 hover:border-orange-400 transition-all shadow-md"
-              >
-                <ArrowRightLeft className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="flex-1 min-w-0">
-              <CitySelector
-                label="TO"
-                selectedCity={toCity}
-                onCitySelect={setToCity}
-                excludeCity={fromCity}
-                isFrom={false}
-              />
-            </div>
-
-            <div className="flex-1 min-w-0">
-              <DateSelector
-                label="DEPARTURE"
-                selectedDate={departureDate}
-                onDateSelect={setDepartureDate}
-                minDate={new Date()}
-              />
-            </div>
-
-            <div className="flex-1 min-w-0">
-              <DateSelector
-                label="RETURN"
-                selectedDate={returnDate}
-                onDateSelect={setReturnDate}
-                minDate={departureDate}
-                disabled={tripType === "one-way"}
-              />
-            </div>
-
-            <div className="flex-1 min-w-0">
-              <TravellerSelector travellers={travellers} onTravellersChange={setTravellers} />
-            </div>
-               <div className="p-4 border-t border-gray-200">
-            <button
-              onClick={handleSearch}
-              disabled={!isSearchEnabled}
-              className={cn(
-                "w-full py-4 bg-orange-600 hover:bg-blue-700 text-white font-bold text-lg rounded-xl transition-all shadow-lg flex items-center justify-center gap-3 disabled:opacity-60 disabled:cursor-not-allowed",
-                isSearchEnabled && "hover:shadow-xl hover:scale-[1.01]"
-              )}
-            >
-              <Search className="w-6 h-6" />
-              Search Flights
-            </button>
-          </div>
-          </div>
-
-          {/* Search Button */}
-       
-        </div>
-
-        <p className="text-center text-sm text-gray-500 mt-6">
-          Search hundreds of flights at the best prices
-        </p>
-      </div>
+      <Footer />
     </div>
   );
 };

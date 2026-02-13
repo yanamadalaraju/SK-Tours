@@ -1,3 +1,5 @@
+import Footer from "@/components/Footer";
+import Header from "@/components/Header";
 import React from "react";
 import { useState, useRef  } from "react";
 
@@ -30,6 +32,9 @@ const OfflineFlightBooking = () => {
   const timeoutRef = useRef(null);
 
   return (
+   <>
+     <div className="min-h-screen bg-[#FFEBEE]">
+           <Header />
     <div className="bg-gray-100 min-h-screen p-4">
       <div className="max-w-7xl mx-auto flex gap-6">
         {/* LEFT FILTER PANEL */}
@@ -325,6 +330,9 @@ const OfflineFlightBooking = () => {
         </div>
       </div>
     </div>
+    </div>
+    <Footer />
+    </>
   );
 };
 

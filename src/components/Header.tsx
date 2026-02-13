@@ -696,20 +696,19 @@ const Header = () => {
         { label: "Offline Hotel Blocks", href: "/offlinehotelbooking" },
       ]
     },
-    { icon: Ship, label: "Exhibitions", href: "/alert" },
-    { icon: Compass, label: "MICE", href: "/alert" },
+    { icon: Ship, label: "Exhibitions", href: "/exhibition" },
+    { icon: Compass, label: "MICE", href: "/micpage" },
     {
       icon: Star, label: "Others",
       dropdown: [
-        { label: "Bungalow / Villa", href: "/alert", icon: HomeIcon },
-        { label: "Bus", href: "/alert", icon: Bus },
-        { label: "Car", href: "/alert", icon: Car },
+        { label: "Bungalow / Villa", href: "/bungalow", icon: HomeIcon },
+        
         { label: "Cruise", href: "/alert", icon: Ship },
         { label: "Festivals", href: "/alert", icon: Sparkles },
         { label: "Insurances", href: "/alert", icon: Umbrella },
         { label: "Passport", href: "/alert", icon: Landmark },
         { label: "Sports", href: "/alert", icon: Shield },
-        { label: "Weekend Gateways", href: "/alert", icon: CalendarDays },
+        { label: "Weekend Gateways", href: "/Weekendcard", icon: CalendarDays },
       ],
     },
     { icon: UsersRound, label: "About Us", href: "/about" },

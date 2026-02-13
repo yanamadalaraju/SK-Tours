@@ -65,6 +65,23 @@ import SignUp from "./pages/SignUp/SignUp";
 import OfflineFlightBooking from "./pages/OfflineFlightBooking/OfflineFlightBooking"
 import OfflineFllghtBlocks from "./pages/OfflineFlightBlocks/OfflineFllghtBlocks";
 import HotelSearchBar from "./pages/OfflineHotelBooking/HotelsMain";
+import MicePage from "./pages/MICS/Micepage";
+import AboutMice from "./pages/MICS/AboutMic";
+import Micpackages from "./pages/MICS/Micpackages";
+import EnquiryForm from "./pages/MICS/EnquiryForm";
+import ConferenceRequirement from "./pages/MICS/ConferenceRequirement";
+import BankGallery from "./pages/MICS/BankGallery";
+import VenuePhotos from "./pages/MICS/VenuePhotos";
+import MiceGallery from "./pages/MICS/Micegallery";
+import MiceUpcomingEvents from "./pages/MICS/Miceupcomingevents";
+import Bungalowcheckbox from "./pages/Bungalows/Bungalow_checkbox/Bungalowcheckbox";
+import Bunglowbookingcard from "./pages/Bungalows/Bunglowbookingcard/Bunglowbookingcard";
+import BookingForm from "./pages/Bungalows/Bookingform/BookingForm";
+import Bungalow from "./pages/Bungalows/Bungalows_card/Bungalows";
+import Gatewaycheckbox from "./pages/Weekend_Gateway/Gatewaycheckbox/Gatewaycheckbox";
+import Weekendcard from "./pages/Weekend_Gateway/Weekendcard/Weekendcard";
+import Weekendbookingcard from "./pages/Weekend_Gateway/Weekendbookingcard/Weekendbookingcard";
+import WeekendForm from "./pages/Weekend_Gateway/WeekendForm/WeekendForm";
 
 const queryClient = new QueryClient();
 
@@ -132,10 +149,26 @@ const App = () => (
 <Route path="/signup" element={<SignUp />} /> 
 <Route path="/offlineflightbooking" element={<OfflineFlightBooking />} />
 <Route path="/offlinehotelbooking" element={<HotelSearchBar />} />
-
-
-
+<Route path="/micpage" element={<MicePage />} />
+<Route path="/aboutmic" element={<AboutMice />} />
+<Route path="/micpackages" element={<Micpackages />} />
+<Route path="/enquiryformmic" element={<EnquiryForm />} />
+<Route path="/conferencerequirement" element={<ConferenceRequirement />} />
 <Route path="/offlineflightblocks" element={<OfflineFllghtBlocks />} />
+<Route path="bankgallery" element={<BankGallery />} />
+<Route path="/venuephotos" element={<VenuePhotos />} />
+<Route path="/micgallery" element={<MiceGallery />} />
+<Route path="/micupcomingevents" element={<MiceUpcomingEvents />}/>
+
+
+<Route path="/bungalow" element={<Bungalow />} />
+          <Route path="/bungalowcheckbox" element={<Bungalowcheckbox />} />
+          <Route path="/bunglowbookingcard" element={< Bunglowbookingcard />} />
+          <Route path="/bookingform" element={<BookingForm />} />
+          <Route path="/weekendcheckbox" element={<Gatewaycheckbox />} />
+          <Route path="/Weekendcard" element={<Weekendcard />} />
+          <Route path="/Weekendbookingcard" element={<Weekendbookingcard />} />
+          <Route path="/WeekendForm" element={<WeekendForm />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>

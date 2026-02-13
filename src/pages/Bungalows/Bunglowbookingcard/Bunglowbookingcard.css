@@ -1,0 +1,909 @@
+.bbc-bungalow-details-page {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* HEADER FIXES - FULL WIDTH */
+.bbc-details-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  margin-bottom: 30px;
+  box-sizing: border-box;
+  background: #001f54;
+}
+
+.bbc-details-page-header-text {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 12px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.bbc-bungalow-details-header {
+  width: 100%;
+  background: #001f54;
+  color: white;
+  font-weight: bold;
+  font-size: 28px;
+  padding: 20px 0;
+  text-align: center;
+  margin: 0;
+  border-radius: 0;
+  box-sizing: border-box;
+}
+
+.bbc-bungalow-details-header-text {
+  color: #001f54;
+  font-weight: bold;
+  font-size: 22px;
+  text-align: center;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 10px 0;
+}
+
+/* Horizontal Filter Section */
+.bbc-horizontal-filter-section {
+  display: none;
+  width: 100%;
+  padding: 0 20px;
+  margin-bottom: 20px;
+  box-sizing: border-box;
+}
+
+.bbc-free-flow-textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 12px;
+  color: black;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-weight: 300;
+  font-size: 20px;
+  color: #333;
+}
+
+.bbc-back-btn {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.bbc-back-btn:hover {
+  background: #5a6268;
+}
+
+.bbc-details-page-header h1 {
+  color: #333;
+  margin: 0;
+  font-size: 32px;
+}
+
+.bbc-details-content {
+  display: flex;
+  gap: 15px;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+  align-items: flex-start;
+  padding: 0 15px;
+  box-sizing: border-box;
+}
+
+/* Left Sidebar */
+.bbc-left-sidebar {
+  flex: 0 0 250px;
+  padding: 20px 10px;
+  border-radius: 8px;
+  height: fit-content;
+}
+
+/* Main Content Area */
+.bbc-main-content-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+/* Carousel Section */
+.bbc-carousel-section {
+  height: 500px;
+  flex: 1;
+  width: 100%;
+}
+
+.bbc-carousel-wrapper {
+  position: relative;
+  padding: 13px;
+  overflow: hidden;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.307);
+  margin-bottom: 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.bbc-free-flow-textarea-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 100%;
+}
+
+.bbc-book-button-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.bbc-book-btn {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100px;
+  padding: 12px 25px;
+  border-radius: 20px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.bbc-book-btn:hover {
+  background-color: #c0392b;
+}
+
+.bbc-main-carousel-image {
+  width: 100%;
+  height: 400px;
+  object-fit: cover;
+}
+
+.bbc-inclusion-exclusion-container {
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.bbc-table-wrapper {
+  flex: 1;
+  max-width: 48%;
+  border: 2px solid #002a6e;
+  border-radius: 8px;
+}
+
+.bbc-table-scroll {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.bbc-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.bbc-th {
+  background-color: #002a6e;
+  color: white;
+  padding: 8px;
+  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  border-bottom: none;
+}
+
+.bbc-td {
+  padding: 8px;
+  text-align: center;
+  border: none;
+}
+
+.bbc-related-cards {
+  height: auto;
+  padding-right: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 0px;
+}
+
+.bbc-carousel-control {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-110%);
+  background: #001f54;
+  border: 1px solid #fff;
+  border-radius: 0%;
+  width: 40px;
+  height: 45px;
+  font-size: 28px;
+  cursor: pointer;
+  display: flex;
+  color: white;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.273);
+}
+
+/* Container */
+.bbc-inner-card-container {
+  background: #ffffff;
+  padding: 0;
+  margin-top: 5px;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.17);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Tab Header Styles */
+.bbc-tab-header {
+  display: flex;
+  width: 100%;
+  position: relative;
+}
+
+.bbc-tab {
+  flex: 1;
+  height: 35px;
+  background: #e7f3ff;
+  border-right: 1px solid #d3e4f3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #001f54;
+  font-weight: 600;
+  font-size: 12px;
+  padding: 5px;
+  cursor: pointer;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Active Tab - Text Visible */
+.bbc-active-tab {
+  background: #002a6e;
+  color: white !important;
+  z-index: 2;
+}
+
+/* Inactive Tabs - Text Hidden */
+.bbc-tab:not(.bbc-active-tab) {
+  color: transparent !important;
+}
+
+/* Optional: Show text on hover for inactive tabs */
+.bbc-tab:not(.bbc-active-tab):hover {
+  color: #001f54 !important;
+  background: #d4e6ff;
+}
+
+/* Free Flow Box */
+.bbc-free-flow-container {
+  padding: 34px;
+  min-height: 280px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.bbc-free-flow-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #001f54;
+  margin-bottom: 10px;
+}
+
+.bbc-free-flow-textarea {
+  width: 100%;
+  height: 220px;
+  border: 1px solid #bfbfbf;
+  padding: 12px;
+  font-size: 18px;
+  font-weight: 500;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.bbc-free-flow-textarea-bungalow {
+  width: 100%;
+  height: 220px;
+  padding: 12px;
+  resize: none;
+  font-size: 15px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.bbc-free-flow-textarea-bungalow:focus,
+.bbc-free-flow-textarea:focus {
+  border-color: #001f54;
+  box-shadow: 0 0 6px rgba(0, 31, 84, 0.3);
+}
+
+.bbc-carousel-control.bbc-prev {
+  left: 12.5px;
+}
+
+.bbc-carousel-control.bbc-next {
+  right: 12.5px;
+}
+
+/* Thumbnail Section */
+.bbc-thumbnail-container {
+  display: flex;
+  overflow-x: auto;
+  padding: 0px 0;
+  width: 100%;
+}
+
+.bbc-thumbnail {
+  margin-top: 5px;
+  width: 107px;
+  height: 70px;
+  object-fit: cover;
+  cursor: pointer;
+  opacity: 0.4;
+  flex-shrink: 0;
+}
+
+/* Active thumbnail */
+.bbc-thumbnail.bbc-active {
+  opacity: 1;
+}
+
+/* Details Sidebar */
+.bbc-details-sidebar {
+  flex: 0 0 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.bbc-bungalow-info {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.bbc-bungalow-info h2 {
+  color: #333;
+  margin-bottom: 10px;
+  font-size: 28px;
+}
+
+.bbc-price {
+  font-size: 24px;
+  font-weight: bold;
+  color: #e74c3c;
+  margin-bottom: 20px;
+}
+
+.bbc-description {
+  margin-bottom: 25px;
+}
+
+.bbc-description p {
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 15px;
+}
+
+.bbc-description ul {
+  list-style: none;
+  padding: 0;
+}
+
+.bbc-description li {
+  color: #555;
+  margin-bottom: 8px;
+  padding-left: 10px;
+}
+
+.bbc-book-now-btn {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  width: 100%;
+}
+
+/* Related Bungalows */
+.bbc-related-bungalows {
+  width: 100%;
+  background: white;
+  padding: 15px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.252);
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+.bbc-related-bunglows-name {
+  color: #001f54;
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.bbc-related-card {
+  background: #ffffff;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  cursor: pointer;
+}
+
+.bbc-related-card-image-wrapper {
+  position: relative;
+  overflow: hidden;
+}
+
+.bbc-related-card-image-wrapper img {
+  width: 100%;
+  object-fit: cover;
+}
+
+.bbc-amount-badge {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  background: #001f54;
+  color: white;
+  font-size: 14px;
+  padding: 5px 10px;
+  font-weight: bold;
+}
+
+.bbc-related-info h4 {
+  margin: 5px 0;
+  font-size: 16px;
+  color: #333;
+  padding: 10px;
+  text-align: center;
+}
+
+/* MOBILE: 360px - 740px */
+@media (max-width: 740px) {
+  .bbc-bungalow-details-page {
+    overflow-x: hidden;
+    width: 100%;
+  }
+
+  /* Show horizontal filter and hide sidebar on mobile */
+  .bbc-horizontal-filter-section {
+    display: block;
+    width: 100%;
+    padding: 0 10px;
+    margin-bottom: 15px;
+  }
+
+  .bbc-left-sidebar {
+    display: none; /* Hide sidebar checkbox on mobile */
+  }
+
+  .bbc-tab {
+    flex: 1 1 33%;
+    height: 40px;
+    font-size: 11px;
+  }
+  
+  .bbc-tab:not(.bbc-active-tab) {
+    color: transparent !important;
+  }
+  
+  .bbc-tab:not(.bbc-active-tab):hover {
+    color: #001f54 !important;
+  }
+
+  /* FIXED HEADER FOR MOBILE */
+  .bbc-details-page-header {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    margin-bottom: 20px;
+    background: #001f54;
+  }
+
+  .bbc-details-page-header-text {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    margin-bottom: 10px;
+  }
+
+  .bbc-bungalow-details-header {
+    width: 100%;
+    background: #001f54;
+    color: white;
+    font-weight: bold;
+    font-size: 24px;
+    padding: 20px 15px;
+    text-align: center;
+    margin: 0;
+  }
+  
+  .bbc-bungalow-details-header-text {
+    font-size: 20px;
+    width: 100%;
+    text-align: center;
+    padding: 15px 10px;
+    margin: 0;
+  }
+  
+  .bbc-details-content {
+    flex-direction: column;
+    gap: 15px;
+    padding: 0 10px;
+    width: 100%;
+    margin: 0 auto;
+  }
+  
+  .bbc-left-sidebar,
+  .bbc-details-sidebar {
+    flex: 0 0 auto;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .bbc-main-content-area {
+    width: 100%;
+  }
+  
+  .bbc-carousel-section {
+    width: 100%;
+  }
+  
+  .bbc-carousel-wrapper {
+    width: 100%;
+    height: auto;
+    padding: 6px;
+    box-sizing: border-box;
+    margin: 0 auto;
+  }
+  
+  .bbc-main-carousel-image {
+    padding: 10px;
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+    box-sizing: border-box;
+  }
+  
+  .bbc-thumbnail-container {
+    display: flex;
+    overflow-x: auto;
+    padding: 0px 0;
+    width: 100%;
+  }
+
+  .bbc-carousel-control.bbc-prev {
+    left: 16px;
+  }
+  
+  .bbc-carousel-control.bbc-next {
+    right: 16px;
+  }
+
+  .bbc-thumbnail {
+    text-align: center;
+    margin-top: 5px;
+    width: 46px;
+    height: 60px;
+    object-fit: cover;
+    cursor: pointer;
+    opacity: 0.4;
+    flex-shrink: 0;
+  }
+  
+  .bbc-inner-card-container {
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0 auto;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.252);
+    margin-top: 10px;
+  }
+  
+  .bbc-tab-header {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  
+  .bbc-active-tab {
+    background: #002a6e !important;
+    padding: 5px;
+    color: white !important;
+  }
+  
+  .bbc-tab {
+    flex: 1 1 33%;
+    height: 40px;
+    background: #e7f3ff;
+    border-right: 1px solid #d3e4f3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #001f54;
+    font-weight: 600;
+    font-size: 11px;
+    padding: 5px 2px;
+    cursor: pointer;
+    text-align: center;
+    box-sizing: border-box;
+  }
+  
+  .bbc-free-flow-container {
+    padding: 20px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .bbc-inclusion-exclusion-container {
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+  }
+  
+  .bbc-table-wrapper {
+    max-width: 100%;
+    width: 100%;
+  }
+  
+  .bbc-related-cards {
+    gap: 15px;
+    width: 100%;
+  }
+  
+  .bbc-related-bungalows {
+    width: 100%;
+    background: white;
+    padding: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.252);
+    border-radius: 8px;
+    box-sizing: border-box;
+  }
+  
+  .bbc-amount-badge {
+    top: 0px;
+    left: 0px;
+    background: #001f54;
+    color: white;
+    font-size: 16px;
+    padding: 6px 10px;
+    font-weight: bold;
+  }
+  
+  .bbc-related-info h4 {
+    margin: 5px 0;
+    font-size: 18px;
+    color: #333;
+    padding: 10px;
+    text-align: center;
+  }
+
+  .bbc-related-bunglows-name {
+    margin-top: 10px;
+    color: #001f54;
+    font-size: 24px;
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+  
+  .bbc-free-flow-textarea {
+    width: 100%;
+    height: 180px;
+    font-size: 16px;
+  }
+}
+
+/* IPAD MINI: 768px - 1024px */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .bbc-bungalow-details-page {
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  /* Show horizontal filter and hide sidebar on iPad */
+  .bbc-horizontal-filter-section {
+    display: block;
+    width: 100%;
+    padding: 0 15px;
+    margin-bottom: 20px;
+  }
+
+  .bbc-left-sidebar {
+    display: none; /* Hide sidebar checkbox on iPad */
+  }
+
+  /* FIXED HEADER */
+  .bbc-details-page-header {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    margin-bottom: 20px;
+    background: #001f54;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .bbc-details-page-header-text {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .bbc-bungalow-details-header {
+    width: 100%;
+    font-size: 26px;
+    padding: 20px 0;
+    text-align: center;
+    background: #001f54;
+    color: white;
+    margin: 0;
+  }
+  
+  .bbc-bungalow-details-header-text {
+    font-size: 22px;
+    width: 100%;
+    text-align: center;
+    padding: 15px 0;
+    margin: 0;
+    color: #001f54;
+  }
+  
+  .bbc-details-content {
+    gap: 20px;
+    padding: 0 15px;
+    width: 100%;
+    margin: 0 auto;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  
+  .bbc-main-content-area {
+    flex: 1;
+    min-width: 400px;
+    order: 1;
+    width: 100%;
+  }
+  
+  .bbc-details-sidebar {
+    flex: 0 0 100%;
+    order: 2;
+    margin-top: 20px;
+  }
+  
+  .bbc-carousel-wrapper {
+    height: auto;
+    width: 100%;
+  }
+  
+  .bbc-main-carousel-image {
+    height: 350px;
+    width: 100%;
+  }
+  
+  .bbc-thumbnail {
+    width: 100px;
+    height: 70px;
+  }
+  
+  .bbc-inner-card-container {
+    width: 100%;
+  }
+  
+  .bbc-tab {
+    font-size: 11px;
+    color: #001f54;
+  }
+  
+  .bbc-free-flow-container {
+    padding: 25px;
+    width: 100%;
+  }
+  
+  /* FIX RELATED BUNGALOWS CARDS */
+  .bbc-related-bungalows {
+    width: 100%;
+    margin-top: 0;
+  }
+  
+  .bbc-related-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    padding: 0;
+  }
+  
+  .bbc-related-card {
+    margin-bottom: 0;
+    height: 100%;
+  }
+  
+  .bbc-related-card-image-wrapper img {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+  }
+  
+  .bbc-amount-badge {
+    font-size: 14px;
+    padding: 4px 8px;
+  }
+  
+  .bbc-related-info h4 {
+    font-size: 14px;
+    padding: 8px 5px;
+    text-align: center;
+  }
+  
+  .bbc-related-bunglows-name {
+    font-size: 22px;
+    text-align: center;
+    margin-bottom: 15px;
+  }
+}
+
+/* DESKTOP: 1025px and above */
+@media (min-width: 1025px) {
+  .bbc-horizontal-filter-section {
+    display: none; /* Hide horizontal filter on desktop */
+  }
+
+  .bbc-left-sidebar {
+    display: block; /* Show sidebar checkbox on desktop */
+  }
+
+  .bbc-details-content {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  
+  .bbc-left-sidebar {
+    flex: 0 0 280px;
+  }
+  
+  .bbc-details-sidebar {
+    flex: 0 0 300px;
+  }
+  
+  .bbc-inner-card-container {
+    width: 100%;
+    max-width: 770px;
+  }
+  
+  .bbc-main-content-area {
+    max-width: calc(100% - 550px);
+  }
+}
