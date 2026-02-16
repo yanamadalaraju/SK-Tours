@@ -62,7 +62,6 @@ import Flightfrontend from "./pages/Flight/hotels/Flightfrontend";
 import TourPdfDocumentinternational from "./pages/TourPdfDocumentinternational";
 import Login from "./pages/Loginpage/Login";
 import SignUp from "./pages/SignUp/SignUp";
-import OfflineFlightBooking from "./pages/OfflineFlightBooking/OfflineFlightBooking"
 import OfflineFllghtBlocks from "./pages/OfflineFlightBlocks/OfflineFllghtBlocks";
 import HotelSearchBar from "./pages/OfflineHotelBooking/HotelsMain";
 import MicePage from "./pages/MICS/Micepage";
@@ -147,7 +146,6 @@ const App = () => (
 <Route path="/tourpdfinternational" element={<TourPdfDocumentinternational tour={undefined} tourType={""} isGroupTour={false} selectedCostMonth={""} selectedCostDate={""} selectedDeparture={undefined} currentImageIndex={0} />} />
 <Route path="/login" element={<Login />} />
 <Route path="/signup" element={<SignUp />} /> 
-<Route path="/offlineflightbooking" element={<OfflineFlightBooking />} />
 <Route path="/offlinehotelbooking" element={<HotelSearchBar />} />
 <Route path="/micpage" element={<MicePage />} />
 <Route path="/aboutmic" element={<AboutMice />} />

@@ -72,20 +72,20 @@ const BookingForm: React.FC = () => {
 
         {/* Form Section */}
         <div className="flex-1 min-w-0">
-          <div className="bg-[#f5d38c] p-4 md:p-5 w-full lg:w-[1100px] mx-0 lg:mx-5 h-auto">
-            <h2 className="bg-[#b80000] text-white text-center p-2.5 mb-5 w-full text-xl md:text-2xl">
+          <div className="bg-[#f5d38c] p-4 md:p-3 w-full lg:w-[1100px] mx-0 lg:mx-5 h-auto">
+            <h2 className="bg-[#b80000] text-white text-center p-2.5 mb-1 w-full text-xl md:text-2xl">
               Booking Form
             </h2>
 
-            <form onSubmit={handleSubmit} className="space-y-2.5">
+            <form onSubmit={handleSubmit} className="space-y-1">
               {/* Name of City and Bungalow No */}
-              <div className="flex flex-col md:flex-row items-start md:items-center gap-2.5 flex-wrap">
-                <label className="bg-[#593c26] text-white px-2.5 py-1.5 min-w-[120px]">
+              <div className="flex flex-col md:flex-row items-start md:items-center gap-1 flex-wrap">
+                <label className="bg-[#593c26] text-white px-2.5 py-1.5 min-w-[180px]">
                   Name of the City
                 </label>
                 <input type="text" className="flex-1 px-2.5 py-1.5 border border-gray-400 h-[35px] box-border" />
 
-                <label className="bg-[#593c26] text-white px-2.5 py-1.5 min-w-[120px]">
+                <label className="bg-[#593c26] text-white px-2.5 py-1.5 min-w-[100px]">
                   Bungalow No
                 </label>
                 <input
@@ -97,15 +97,15 @@ const BookingForm: React.FC = () => {
               </div>
 
               {/* Contact Person */}
-              <div className="flex flex-col md:flex-row items-start md:items-center gap-2.5 flex-wrap">
-                <label className="bg-[#593c26] text-white px-2.5 py-1.5 min-w-[120px]">
+              <div className="flex flex-col md:flex-row items-start md:items-center gap-1 flex-wrap">
+                <label className="bg-[#593c26] text-white px-2.5 py-1.5 min-w-[180px]">
                   Contact Person
                 </label>
                 <input type="text" className="flex-1 px-2.5 py-1.5 border border-gray-400 h-[35px] box-border" />
               </div>
 
               {/* Cell No and Email */}
-              <div className="flex flex-col md:flex-row items-start md:items-center gap-2.5 flex-wrap">
+              <div className="flex flex-col md:flex-row items-start md:items-center gap-1 flex-wrap">
                 <label className="bg-[#593c26] text-white px-2.5 py-1.5 min-w-[120px]">
                   Cell No
                 </label>
@@ -118,7 +118,7 @@ const BookingForm: React.FC = () => {
               </div>
 
               {/* Address */}
-              <div className="flex flex-col md:flex-row items-start md:items-center gap-2.5 flex-wrap">
+              <div className="flex flex-col md:flex-row items-start md:items-center gap-1 flex-wrap">
                 <label className="bg-[#593c26] text-white px-2.5 py-1.5 min-w-[120px]">
                   Address
                 </label>
@@ -126,7 +126,7 @@ const BookingForm: React.FC = () => {
               </div>
 
               {/* City, Pin Code, State, Country */}
-              <div className="flex flex-col md:flex-row items-start md:items-center gap-2.5 flex-wrap">
+              <div className="flex flex-col md:flex-row items-start md:items-center gap-1 flex-wrap">
                 <label className="bg-[#593c26] text-white px-2.5 py-1.5 min-w-[120px] md:min-w-[80px]">
                   City
                 </label>
@@ -149,7 +149,7 @@ const BookingForm: React.FC = () => {
               </div>
 
               {/* No of People */}
-              <div className="flex flex-col md:flex-row items-start md:items-center gap-2.5 flex-wrap">
+              <div className="flex flex-col md:flex-row items-start md:items-center gap-1 flex-wrap">
                 <label className="bg-[#593c26] text-white px-2.5 py-1.5 min-w-[120px]">
                   No of People
                 </label>
@@ -168,62 +168,128 @@ const BookingForm: React.FC = () => {
               </div>
 
               {/* Desktop Table */}
-              <table className="hidden md:table w-full border-collapse mt-2.5">
-                <thead>
-                  <tr>
-                    <th className="bg-[#593c26] text-white p-2 text-left w-[30%]">Name</th>
-                    <th className="bg-[#593c26] text-white p-2 text-left w-[15%]">Age</th>
-                    <th className="bg-[#593c26] text-white p-2 text-left w-[20%]">Cell No</th>
-                    <th className="bg-[#593c26] text-white p-2 text-left w-[35%]">Email ID</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {peopleData.map((person, idx) => (
-                    <tr key={idx}>
-                      <td className="p-2 border-b border-gray-300">
-                        <input
-                          type="text"
-                          value={person.name}
-                          onChange={(e) =>
-                            handlePersonChange(idx, "name", e.target.value)
-                          }
-                          className="w-full px-3 py-2 h-[35px] border border-gray-400 rounded box-border"
-                        />
-                      </td>
-                      <td className="p-2 border-b border-gray-300">
-                        <input
-                          type="text"
-                          value={person.age}
-                          onChange={(e) =>
-                            handlePersonChange(idx, "age", e.target.value)
-                          }
-                          className="w-full px-3 py-2 h-[35px] border border-gray-400 rounded box-border"
-                        />
-                      </td>
-                      <td className="p-2 border-b border-gray-300">
-                        <input
-                          type="text"
-                          value={person.cell}
-                          onChange={(e) =>
-                            handlePersonChange(idx, "cell", e.target.value)
-                          }
-                          className="w-full px-3 py-2 h-[35px] border border-gray-400 rounded box-border"
-                        />
-                      </td>
-                      <td className="p-2 border-b border-gray-300">
-                        <input
-                          type="email"
-                          value={person.email}
-                          onChange={(e) =>
-                            handlePersonChange(idx, "email", e.target.value)
-                          }
-                          className="w-full px-3 py-2 h-[35px] border border-gray-400 rounded box-border"
-                        />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+         {/* Desktop Table */}
+<table className="hidden md:table w-full border-collapse mt-2.5">
+  <thead>
+    <tr>
+      <th className="bg-[#593c26] text-white p-2 text-left w-[30%]">Name</th>
+      <th className="bg-[#593c26] text-white p-2 text-left w-[15%]">Age</th>
+      <th className="bg-[#593c26] text-white p-2 text-left w-[25%]">Cell No</th>
+      <th className="bg-[#593c26] text-white p-2 text-left w-[30%]">Email ID</th>
+    </tr>
+  </thead>
+  <tbody>
+    {peopleData.map((person, idx) => (
+      <tr key={idx}>
+        <td className="p-2 border-b border-gray-300">
+          <input
+            type="text"
+            value={person.name}
+            onChange={(e) =>
+              handlePersonChange(idx, "name", e.target.value)
+            }
+            className="w-full px-3 py-2 h-[35px] border border-gray-400 rounded box-border"
+          />
+        </td>
+        <td className="p-2 border-b border-gray-300">
+          <input
+            type="text"
+            value={person.age}
+            onChange={(e) =>
+              handlePersonChange(idx, "age", e.target.value)
+            }
+            className="w-full px-3 py-2 h-[35px] border border-gray-400 rounded box-border"
+          />
+        </td>
+        <td className="p-2 border-b border-gray-300">
+          <input
+            type="text"
+            value={person.cell}
+            onChange={(e) =>
+              handlePersonChange(idx, "cell", e.target.value)
+            }
+            className="w-full px-3 py-2 h-[35px] border border-gray-400 rounded box-border"
+          />
+        </td>
+        <td className="p-2 border-b border-gray-300">
+          <input
+            type="email"
+            value={person.email}
+            onChange={(e) =>
+              handlePersonChange(idx, "email", e.target.value)
+            }
+            className="w-full px-3 py-2 h-[35px] border border-gray-400 rounded box-border"
+          />
+        </td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+
+{/* Mobile Card View */}
+<div className="block md:hidden w-full mt-2.5 space-y-4">
+  {peopleData.map((person, idx) => (
+    <div key={idx} className="w-full mb-4 border border-gray-300 p-3 rounded">
+      <h3 className="bg-[#593c26] text-white p-2 mb-3 font-bold">
+        Person {idx + 1}
+      </h3>
+      <div className="space-y-3">
+        <div>
+          <div className="bg-[#593c26] text-white p-2 rounded mb-1 font-bold text-sm">
+            Name
+          </div>
+          <input
+            type="text"
+            value={person.name}
+            onChange={(e) =>
+              handlePersonChange(idx, "name", e.target.value)
+            }
+            className="w-full h-[40px] px-3 py-2 border border-gray-400 rounded box-border"
+          />
+        </div>
+        <div>
+          <div className="bg-[#593c26] text-white p-2 rounded mb-1 font-bold text-sm">
+            Age
+          </div>
+          <input
+            type="text"
+            value={person.age}
+            onChange={(e) =>
+              handlePersonChange(idx, "age", e.target.value)
+            }
+            className="w-full h-[40px] px-3 py-2 border border-gray-400 rounded box-border"
+          />
+        </div>
+        <div>
+          <div className="bg-[#593c26] text-white p-2 rounded mb-1 font-bold text-sm">
+            Cell No
+          </div>
+          <input
+            type="text"
+            value={person.cell}
+            onChange={(e) =>
+              handlePersonChange(idx, "cell", e.target.value)
+            }
+            className="w-full h-[40px] px-3 py-2 border border-gray-400 rounded box-border"
+          />
+        </div>
+        <div>
+          <div className="bg-[#593c26] text-white p-2 rounded mb-1 font-bold text-sm">
+            Email ID
+          </div>
+          <input
+            type="email"
+            value={person.email}
+            onChange={(e) =>
+              handlePersonChange(idx, "email", e.target.value)
+            }
+            className="w-full h-[40px] px-3 py-2 border border-gray-400 rounded box-border"
+          />
+        </div>
+      </div>
+    </div>
+  ))}
+</div>
 
               {/* Mobile Card View */}
               <div className="block md:hidden w-full mt-2.5 space-y-4">
@@ -266,11 +332,11 @@ const BookingForm: React.FC = () => {
                           onChange={(e) =>
                             handlePersonChange(idx, "cell", e.target.value)
                           }
-                          className="w-full h-[45px] px-3 py-2 border border-gray-400 rounded box-border text-base"
+                          className="w-full h-[45px] px-3 py-2 border border-gray-400  box-border text-base"
                         />
                       </div>
                       <div>
-                        <div className="bg-[#593c26] text-white p-2.5 rounded mb-2 font-bold">
+                        <div className="bg-[#593c26] text-white p-2.5  mb-2 font-bold">
                           Email ID
                         </div>
                         <input
@@ -292,13 +358,13 @@ const BookingForm: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleReset}
-                  className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded cursor-pointer w-full md:w-auto"
+                  className="bg-green-600 hover:bg-green-700 text-white px-5 py-2  cursor-pointer w-full md:w-auto"
                 >
                   Reset
                 </button>
                 <button
                   type="submit"
-                  className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded cursor-pointer w-full md:w-auto"
+                  className="bg-red-600 hover:bg-red-700 text-white px-5 py-2  cursor-pointer w-full md:w-auto"
                 >
                   Submit
                 </button>

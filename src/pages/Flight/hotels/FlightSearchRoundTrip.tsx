@@ -46,10 +46,27 @@ const FlightSearchRoundTrip: React.FC<FlightSearchRoundTripProps> = ({
   const fetchDepartureCities = async () => {
     try {
       setLoading(true);
+      console.log('=========================================');
+      console.log('Fetching departure cities for trip type:', selectedTripType);
+      console.log('API Endpoint: getDepartureCities');
+      console.log('Request Params:', { tripType: selectedTripType });
+      
       const cities = await flightApiService.getDepartureCities(selectedTripType);
+      
+      console.log('Departure cities API Response:', cities);
+      console.log('Number of departure cities:', cities.length);
+      if (cities.length > 0) {
+        console.log('Sample departure city:', cities[0]);
+      }
+      console.log('=========================================');
+      
       setDepartureCities(cities);
     } catch (error) {
       console.error('Error fetching departure cities:', error);
+      if (error.response) {
+        console.error('Error response data:', error.response.data);
+        console.error('Error response status:', error.response.status);
+      }
     } finally {
       setLoading(false);
     }
@@ -58,10 +75,27 @@ const FlightSearchRoundTrip: React.FC<FlightSearchRoundTripProps> = ({
   const fetchSectors = async (tripType: number) => {
     try {
       setLoading(true);
+      console.log('=========================================');
+      console.log('Fetching sectors for trip type:', tripType);
+      console.log('API Endpoint: getSectors');
+      console.log('Request Params:', { tripType });
+      
       const sectorsData = await flightApiService.getSectors(tripType);
+      
+      console.log('Sectors API Response:', sectorsData);
+      console.log('Number of sectors:', sectorsData.length);
+      if (sectorsData.length > 0) {
+        console.log('Sample sector:', sectorsData[0]);
+      }
+      console.log('=========================================');
+      
       setSectors(sectorsData);
     } catch (error) {
       console.error('Error fetching sectors:', error);
+      if (error.response) {
+        console.error('Error response data:', error.response.data);
+        console.error('Error response status:', error.response.status);
+      }
     } finally {
       setLoading(false);
     }
@@ -69,12 +103,41 @@ const FlightSearchRoundTrip: React.FC<FlightSearchRoundTripProps> = ({
 
   const handleDepartureChange = async (cityCode: string) => {
     setSelectedDeparture(cityCode);
+    setSelectedArrival('');
+    setSelectedOnwardDate('');
+    setSelectedReturnDate('');
+    setOnwardDates([]);
+    setReturnDates([]);
+    
+    console.log('=========================================');
+    console.log('Departure city selected:', cityCode);
+    console.log('Trip type:', selectedTripType);
+    
     try {
       setLoading(true);
+      console.log('Fetching arrival cities for departure:', cityCode);
+      console.log('API Endpoint: getArrivalCities');
+      console.log('Request Params:', { 
+        depCityCode: cityCode, 
+        tripType: selectedTripType 
+      });
+      
       const arrivalCities = await flightApiService.getArrivalCities(cityCode, selectedTripType);
+      
+      console.log('Arrival cities API Response:', arrivalCities);
+      console.log('Number of arrival cities:', arrivalCities.length);
+      if (arrivalCities.length > 0) {
+        console.log('Sample arrival city:', arrivalCities[0]);
+      }
+      console.log('=========================================');
+      
       setArrivalCities(arrivalCities);
     } catch (error) {
       console.error('Error fetching arrival cities:', error);
+      if (error.response) {
+        console.error('Error response data:', error.response.data);
+        console.error('Error response status:', error.response.status);
+      }
     } finally {
       setLoading(false);
     }
@@ -82,13 +145,47 @@ const FlightSearchRoundTrip: React.FC<FlightSearchRoundTripProps> = ({
 
   const handleArrivalChange = async (cityCode: string) => {
     setSelectedArrival(cityCode);
+    setSelectedOnwardDate('');
+    setSelectedReturnDate('');
+    setOnwardDates([]);
+    setReturnDates([]);
+    
+    console.log('=========================================');
+    console.log('Arrival city selected:', cityCode);
+    console.log('Departure city:', selectedDeparture);
+    console.log('Trip type:', selectedTripType);
+    
     if (selectedDeparture) {
       try {
         setLoading(true);
+        console.log('Fetching onward dates for route:', {
+          departure: selectedDeparture,
+          arrival: cityCode,
+          tripType: selectedTripType
+        });
+        console.log('API Endpoint: getOnwardDates');
+        console.log('Request Params:', {
+          depCode: selectedDeparture,
+          arrCode: cityCode,
+          tripType: selectedTripType
+        });
+        
         const dates = await flightApiService.getOnwardDates(selectedDeparture, cityCode, selectedTripType);
+        
+        console.log('Onward dates API Response:', dates);
+        console.log('Number of onward dates:', dates.length);
+        if (dates.length > 0) {
+          console.log('Sample onward date:', dates[0]);
+        }
+        console.log('=========================================');
+        
         setOnwardDates(dates);
       } catch (error) {
         console.error('Error fetching onward dates:', error);
+        if (error.response) {
+          console.error('Error response data:', error.response.data);
+          console.error('Error response status:', error.response.status);
+        }
       } finally {
         setLoading(false);
       }
@@ -97,18 +194,86 @@ const FlightSearchRoundTrip: React.FC<FlightSearchRoundTripProps> = ({
 
   const handleOnwardDateChange = async (date: string) => {
     setSelectedOnwardDate(date);
+    setSelectedReturnDate('');
+    setReturnDates([]);
+    
+    console.log('=========================================');
+    console.log('Onward date selected:', date);
+    console.log('Departure city:', selectedDeparture);
+    console.log('Arrival city:', selectedArrival);
+    console.log('Trip type:', selectedTripType);
+    
     if (selectedTripType === 1 && selectedDeparture && selectedArrival) {
       try {
         setLoading(true);
-        const returnDates = await flightApiService.getReturnDates({
+        console.log('Fetching return dates with params:', {
           depCityCode: selectedDeparture,
           arrCityCode: selectedArrival,
           onwardDate: date,
           tripType: selectedTripType
         });
-        setReturnDates(returnDates);
+        console.log('API Endpoint: getReturnDates');
+        console.log('Request Body:', {
+          depCityCode: selectedDeparture,
+          arrCityCode: selectedArrival,
+          onwardDate: date,
+          tripType: selectedTripType
+        });
+        
+        const returnDatesResponse = await flightApiService.getReturnDates({
+          depCityCode: selectedDeparture,
+          arrCityCode: selectedArrival,
+          onwardDate: date,
+          tripType: selectedTripType
+        });
+        
+        console.log('Return dates API Response (raw):', returnDatesResponse);
+        console.log('Response type:', typeof returnDatesResponse);
+        console.log('Is array:', Array.isArray(returnDatesResponse));
+        
+        if (Array.isArray(returnDatesResponse)) {
+          console.log('Return dates is array with length:', returnDatesResponse.length);
+          if (returnDatesResponse.length > 0) {
+            console.log('First return date item:', returnDatesResponse[0]);
+            console.log('Return date value:', returnDatesResponse[0].return_date);
+          } else {
+            console.log('Return dates array is empty - no return dates available');
+          }
+        } else {
+          console.log('Return dates is not an array, checking structure:', returnDatesResponse);
+          
+          // Try to extract data if wrapped in a different structure
+          if (returnDatesResponse && returnDatesResponse.data) {
+            console.log('Response has data property:', returnDatesResponse.data);
+            if (Array.isArray(returnDatesResponse.data)) {
+              console.log('Data is array with length:', returnDatesResponse.data.length);
+              setReturnDates(returnDatesResponse.data);
+            }
+          } else if (returnDatesResponse && returnDatesResponse.return_dates) {
+            console.log('Response has return_dates property:', returnDatesResponse.return_dates);
+            if (Array.isArray(returnDatesResponse.return_dates)) {
+              console.log('return_dates is array with length:', returnDatesResponse.return_dates.length);
+              setReturnDates(returnDatesResponse.return_dates);
+            }
+          }
+        }
+        
+        console.log('Final returnDates state will be set to:', returnDatesResponse);
+        console.log('=========================================');
+        
+        setReturnDates(returnDatesResponse);
       } catch (error) {
         console.error('Error fetching return dates:', error);
+        if (error.response) {
+          console.error('Error response data:', error.response.data);
+          console.error('Error response status:', error.response.status);
+          console.error('Error response headers:', error.response.headers);
+        } else if (error.request) {
+          console.error('Error request:', error.request);
+        } else {
+          console.error('Error message:', error.message);
+        }
+        console.log('=========================================');
       } finally {
         setLoading(false);
       }
@@ -116,6 +281,12 @@ const FlightSearchRoundTrip: React.FC<FlightSearchRoundTripProps> = ({
   };
 
   const handleSectorSelect = (sector: Sector) => {
+    console.log('=========================================');
+    console.log('Sector selected:', sector);
+    console.log('From:', sector.dep_city_code, sector.dep_city_name);
+    console.log('To:', sector.arr_city_code, sector.arr_city_name);
+    console.log('=========================================');
+    
     setSelectedDeparture(sector.dep_city_code);
     setSelectedArrival(sector.arr_city_code);
     fetchDatesForSector(sector.dep_city_code, sector.arr_city_code);
@@ -124,10 +295,31 @@ const FlightSearchRoundTrip: React.FC<FlightSearchRoundTripProps> = ({
   const fetchDatesForSector = async (depCode: string, arrCode: string) => {
     try {
       setLoading(true);
+      console.log('=========================================');
+      console.log('Fetching dates for sector:', { depCode, arrCode });
+      console.log('API Endpoint: getOnwardDates');
+      console.log('Request Params:', {
+        depCode,
+        arrCode,
+        tripType: selectedTripType
+      });
+      
       const dates = await flightApiService.getOnwardDates(depCode, arrCode, selectedTripType);
+      
+      console.log('Sector onward dates response:', dates);
+      console.log('Number of dates:', dates.length);
+      if (dates.length > 0) {
+        console.log('Sample date:', dates[0]);
+      }
+      console.log('=========================================');
+      
       setOnwardDates(dates);
     } catch (error) {
       console.error('Error fetching dates:', error);
+      if (error.response) {
+        console.error('Error response data:', error.response.data);
+        console.error('Error response status:', error.response.status);
+      }
     } finally {
       setLoading(false);
     }
@@ -146,6 +338,31 @@ const FlightSearchRoundTrip: React.FC<FlightSearchRoundTripProps> = ({
 
     try {
       setLoading(true);
+      console.log('=========================================');
+      console.log('SEARCH FLIGHTS REQUEST');
+      console.log('Searching flights with params:', {
+        depCityCode: selectedDeparture,
+        arrCityCode: selectedArrival,
+        onwardDate: selectedOnwardDate,
+        returnDate: selectedReturnDate || 'N/A (One Way)',
+        adult: adults,
+        children: children,
+        infant: infants,
+        tripType: selectedTripType,
+        totalPassengers: adults + children + infants
+      });
+      console.log('API Endpoint: searchFlights');
+      console.log('Request Body:', {
+        depCityCode: selectedDeparture,
+        arrCityCode: selectedArrival,
+        onwardDate: selectedOnwardDate,
+        returnDate: selectedReturnDate,
+        adult: adults,
+        children: children,
+        infant: infants,
+        tripType: selectedTripType
+      });
+      
       const searchResponse = await flightApiService.searchFlights({
         depCityCode: selectedDeparture,
         arrCityCode: selectedArrival,
@@ -157,12 +374,33 @@ const FlightSearchRoundTrip: React.FC<FlightSearchRoundTripProps> = ({
         tripType: selectedTripType
       });
       
+      console.log('SEARCH FLIGHTS RESPONSE');
+      console.log('Full search response:', searchResponse);
+      console.log('Error code:', searchResponse.errorCode);
+      console.log('Error message:', searchResponse.errorMessage);
+      console.log('Booking token ID:', searchResponse.booking_token_id);
+      
       if (searchResponse.errorCode === 0) {
+        console.log('Search results data:', searchResponse.data);
+        console.log('Number of flights found:', searchResponse.data.length);
+        if (searchResponse.data.length > 0) {
+          console.log('Sample flight:', searchResponse.data[0]);
+          console.log('Is round trip flight:', selectedTripType === 1);
+        }
+        
         setSearchResults(searchResponse.data);
         setBookingTokenId(searchResponse.booking_token_id);
+      } else {
+        console.error('Search returned error code:', searchResponse.errorCode);
+        console.error('Error message:', searchResponse.errorMessage);
       }
+      console.log('=========================================');
     } catch (error) {
       console.error('Error searching flights:', error);
+      if (error.response) {
+        console.error('Error response data:', error.response.data);
+        console.error('Error response status:', error.response.status);
+      }
     } finally {
       setLoading(false);
     }
@@ -180,6 +418,28 @@ const FlightSearchRoundTrip: React.FC<FlightSearchRoundTripProps> = ({
     try {
       setLoading(true);
       
+      console.log('=========================================');
+      console.log('FARE QUOTE REQUEST');
+      console.log('Fetching fare quote for flight:', {
+        id: flight.id,
+        airline: flight.airline_name,
+        flightNumber: flight.flight_number,
+        onwardDate: flight.onward_date,
+        returnDate: isRoundTripFlight(flight) ? selectedReturnDate : undefined,
+        staticValue: flight.static,
+        adultChildren: adults + children,
+        infant: infants
+      });
+      console.log('API Endpoint: getFareQuote');
+      console.log('Request Body:', {
+        id: flight.id,
+        onwardDate: flight.onward_date,
+        returnDate: isRoundTripFlight(flight) ? selectedReturnDate : undefined,
+        staticValue: flight.static,
+        adultChildren: adults + children,
+        infant: infants
+      });
+      
       const fareQuoteResponse = await flightApiService.getFareQuote({
         id: flight.id,
         onwardDate: flight.onward_date,
@@ -189,7 +449,14 @@ const FlightSearchRoundTrip: React.FC<FlightSearchRoundTripProps> = ({
         infant: infants
       });
 
+      console.log('FARE QUOTE RESPONSE');
+      console.log('Full fare quote response:', fareQuoteResponse);
+      console.log('Error code:', fareQuoteResponse.errorCode);
+      
       if (fareQuoteResponse.errorCode === 0) {
+        console.log('Fare quote data:', fareQuoteResponse.data);
+        console.log('Total payable price:', fareQuoteResponse.data.total_payable_price);
+        
         const bookingParams = {
           flight: flight,
           onwardDate: flight.onward_date,
@@ -202,8 +469,11 @@ const FlightSearchRoundTrip: React.FC<FlightSearchRoundTripProps> = ({
           infants: infants,
           depCityCode: flight.dep_city_code,
           arrCityCode: flight.arr_city_code,
-          availableSeats: flight.available_seats // Add this line
+          availableSeats: flight.available_seats
         };
+
+        console.log('Booking params prepared:', bookingParams);
+        console.log('=========================================');
 
         if (onBookFlight) {
           onBookFlight(flight, bookingParams);
@@ -213,6 +483,10 @@ const FlightSearchRoundTrip: React.FC<FlightSearchRoundTripProps> = ({
       }
     } catch (error) {
       console.error('Error fetching fare quote:', error);
+      if (error.response) {
+        console.error('Error response data:', error.response.data);
+        console.error('Error response status:', error.response.status);
+      }
       alert('Error preparing booking. Please try again.');
     } finally {
       setLoading(false);
@@ -336,32 +610,31 @@ const FlightSearchRoundTrip: React.FC<FlightSearchRoundTripProps> = ({
           </div>
         </div>
         
-   <div className="ffc-price-section">
-  <div className="ffc-price-details">
-    <div className="ffc-total-price">
-      <strong>₹{flight.total_payable_price}</strong>
-      <small>Total for {adults + children + infants} passengers</small>
-    </div>
-    {/* ADD THIS SECTION HERE: */}
-    <div className="ffc-per-person">
-      {adults > 0 && <div>Adult: ₹{flight.per_adult_child_price || 0}</div>}
-      {children > 0 && <div>Child: ₹{flight.per_adult_child_price || 0}</div>}
-      {infants > 0 && <div>Infant: ₹{flight.per_infant_price || 0}</div>}
-    </div>
-  </div>
-  
-  <div className="ffc-availability">
-    {flight.available_seats} seats available
-  </div>
-  
-  <button 
-    className="ffc-book-btn"
-    onClick={() => handleBookFlight(flight)}
-    disabled={loading}
-  >
-    {loading ? 'Preparing...' : 'Book Now'}
-  </button>
-</div>
+        <div className="ffc-price-section">
+          <div className="ffc-price-details">
+            <div className="ffc-total-price">
+              <strong>₹{flight.total_payable_price}</strong>
+              <small>Total for {adults + children + infants} passengers</small>
+            </div>
+            <div className="ffc-per-person">
+              {adults > 0 && <div>Adult: ₹{flight.per_adult_child_price || 0}</div>}
+              {children > 0 && <div>Child: ₹{flight.per_adult_child_price || 0}</div>}
+              {infants > 0 && <div>Infant: ₹{flight.per_infant_price || 0}</div>}
+            </div>
+          </div>
+          
+          <div className="ffc-availability">
+            {flight.available_seats} seats available
+          </div>
+          
+          <button 
+            className="ffc-book-btn"
+            onClick={() => handleBookFlight(flight)}
+            disabled={loading}
+          >
+            {loading ? 'Preparing...' : 'Book Now'}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -390,30 +663,6 @@ const FlightSearchRoundTrip: React.FC<FlightSearchRoundTripProps> = ({
       
       {/* Search Form */}
       <div className="ffc-search-form">
-        {/* {selectedTripType === 0 && sectors.length > 0 && (
-          <div className="ffc-sectors-section">
-            <h4>Popular Sectors</h4>
-            <div className="ffc-sectors-grid">
-              {sectors.map((sector, index) => (
-                <div 
-                  key={`${sector.dep_city_code}-${sector.arr_city_code}-${index}`}
-                  className={`ffc-sector-card ${selectedDeparture === sector.dep_city_code && selectedArrival === sector.arr_city_code ? 'ffc-selected' : ''}`}
-                  onClick={() => handleSectorSelect(sector)}
-                >
-                  <div className="ffc-sector-route">
-                    <span className="ffc-dep-city">{sector.dep_city_code}</span>
-                    <span className="ffc-arrow">→</span>
-                    <span className="ffc-arr-city">{sector.arr_city_code}</span>
-                  </div>
-                  <div className="ffc-sector-cities">
-                    {sector.dep_city_name} to {sector.arr_city_name}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )} */}
-
         <div className="ffc-form-group">
           <label>Departure City:</label>
           <select 
@@ -468,7 +717,7 @@ const FlightSearchRoundTrip: React.FC<FlightSearchRoundTripProps> = ({
             <select 
               value={selectedReturnDate} 
               onChange={(e) => setSelectedReturnDate(e.target.value)}
-              disabled={!selectedOnwardDate || loading}
+              disabled={!selectedOnwardDate || loading || returnDates.length === 0}
             >
               <option value="">Select Return Date</option>
               {returnDates.map((date, index) => (
@@ -477,6 +726,9 @@ const FlightSearchRoundTrip: React.FC<FlightSearchRoundTripProps> = ({
                 </option>
               ))}
             </select>
+            {returnDates.length === 0 && selectedOnwardDate && (
+              <small className="ffc-no-dates-message">No return dates available</small>
+            )}
           </div>
         )}
 

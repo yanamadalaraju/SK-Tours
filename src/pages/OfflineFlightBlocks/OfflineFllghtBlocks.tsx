@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { useNavigate } from "react-router-dom";
 import Header from '@/components/Header';
 import Footer from "@/components/Footer";
 
@@ -26,6 +25,30 @@ const cities = [
   { code: "CCU", name: "Kolkata", airport: "Netaji Subhas Chandra Bose International Airport" },
   { code: "GOI", name: "Goa", airport: "Dabolim Airport" },
   { code: "PNQ", name: "Pune", airport: "Pune International Airport" },
+];
+
+// Flight data
+const flights = [
+  {
+    airline: "Air India Express",
+    code: "IX 2964",
+    departTime: "14:00",
+    departCity: "Ghaziabad",
+    duration: "02h 50m",
+    arriveTime: "16:50",
+    arriveCity: "Bengaluru",
+    price: "6,848",
+  },
+  {
+    airline: "IndiGo",
+    code: "6E 6608",
+    departTime: "09:15",
+    departCity: "New Delhi",
+    duration: "03h",
+    arriveTime: "12:15",
+    arriveCity: "Bengaluru",
+    price: "7,121",
+  },
 ];
 
 // Types
@@ -84,15 +107,26 @@ const TripTypeSelector = ({
 // Traveller Selector
 const TravellerSelector = ({ 
   travellers, 
-  onTravellersChange 
+  onTravellersChange,
+  autoOpen,
+  onClose
 }: { 
   travellers: TravellerCount; 
-  onTravellersChange: (travellers: TravellerCount) => void 
+  onTravellersChange: (travellers: TravellerCount) => void;
+  autoOpen?: boolean;
+  onClose?: () => void;
 }) => {
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const totalTravellers = travellers.adults + travellers.children + travellers.infants;
+
+  // Auto-open effect
+  useEffect(() => {
+    if (autoOpen) {
+      setOpen(true);
+    }
+  }, [autoOpen]);
 
   const updateCount = (type: keyof TravellerCount, delta: number) => {
     const newValue = travellers[type] + delta;
@@ -112,11 +146,12 @@ const TravellerSelector = ({
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setOpen(false);
+        if (onClose) onClose();
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [onClose]);
 
   return (
     <div className="relative h-full" ref={dropdownRef}>
@@ -219,7 +254,10 @@ const TravellerSelector = ({
             </div>
           </div>
           <button
-            onClick={() => setOpen(false)}
+            onClick={() => {
+              setOpen(false);
+              if (onClose) onClose();
+            }}
             className="w-full mt-5 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-semibold transition-colors"
           >
             Done
@@ -236,16 +274,29 @@ const DateSelector = ({
   selectedDate, 
   onDateSelect,
   minDate,
-  disabled 
+  disabled,
+  autoOpen,
+  onClose,
+  onSelect
 }: { 
   label: string;
   selectedDate: Date | undefined;
   onDateSelect: (date: Date | undefined) => void;
   minDate?: Date;
   disabled?: boolean;
+  autoOpen?: boolean;
+  onClose?: () => void;
+  onSelect?: () => void;
 }) => {
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Auto-open effect
+  useEffect(() => {
+    if (autoOpen && !disabled) {
+      setOpen(true);
+    }
+  }, [autoOpen, disabled]);
 
   const getCalendarDays = () => {
     const days = [];
@@ -262,11 +313,12 @@ const DateSelector = ({
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setOpen(false);
+        if (onClose) onClose();
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [onClose]);
 
   return (
     <div className="relative h-full" ref={dropdownRef}>
@@ -319,6 +371,8 @@ const DateSelector = ({
                   onClick={() => {
                     onDateSelect(date);
                     setOpen(false);
+                    if (onSelect) onSelect();
+                    if (onClose) onClose();
                   }}
                   disabled={isPast || (minDate && date < minDate)}
                   className={cn(
@@ -345,17 +399,30 @@ const CitySelector = ({
   selectedCity, 
   onCitySelect,
   excludeCity,
-  isFrom = true
+  isFrom = true,
+  autoOpen,
+  onClose,
+  onSelect
 }: { 
   label: string;
   selectedCity: City | null;
   onCitySelect: (city: City) => void;
   excludeCity?: City | null;
   isFrom?: boolean;
+  autoOpen?: boolean;
+  onClose?: () => void;
+  onSelect?: () => void;
 }) => {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Auto-open effect
+  useEffect(() => {
+    if (autoOpen) {
+      setOpen(true);
+    }
+  }, [autoOpen]);
 
   const filteredCities = cities.filter(
     (city) =>
@@ -369,11 +436,12 @@ const CitySelector = ({
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setOpen(false);
+        if (onClose) onClose();
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [onClose]);
 
   return (
     <div className="relative h-full" ref={dropdownRef}>
@@ -426,6 +494,8 @@ const CitySelector = ({
                   onCitySelect(city);
                   setOpen(false);
                   setSearchQuery("");
+                  if (onSelect) onSelect();
+                  if (onClose) onClose();
                 }}
                 className={cn(
                   "w-full text-left px-5 py-3.5 hover:bg-orange-50 transition-colors flex items-center gap-4 border-b border-gray-100 last:border-b-0",
@@ -448,9 +518,337 @@ const CitySelector = ({
   );
 };
 
+// Flight Results Component
+const FlightResults = ({ searchData, onBack }: { searchData: any; onBack: () => void }) => {
+  const [activeTab, setActiveTab] = useState<string | null>(null);
+
+  return (
+    <div className="min-h-screen bg-[#FFEBEE]">
+      <div className="bg-gray-100 min-h-screen p-4">
+        <div className="max-w-7xl mx-auto">
+         
+          {/* Search Summary */}
+          {searchData && (
+            <div className="bg-white rounded-xl shadow p-4 mb-6">
+              <div className="flex items-center gap-4 text-sm flex-wrap">
+                <span className="font-semibold">{searchData.fromCity?.code} → {searchData.toCity?.code}</span>
+                <span>|</span>
+                <span>{format(searchData.departureDate, "dd MMM yyyy")}</span>
+                {searchData.returnDate && (
+                  <>
+                    <span>-</span>
+                    <span>{format(searchData.returnDate, "dd MMM yyyy")}</span>
+                  </>
+                )}
+                <span>|</span>
+                <span>{searchData.travellers?.adults + searchData.travellers?.children + searchData.travellers?.infants} Traveller(s)</span>
+                <span>|</span>
+                <span className="capitalize">{searchData.tripType}</span>
+              </div>
+            </div>
+          )}
+
+          <div className="flex gap-6">
+            {/* LEFT FILTER PANEL */}
+            <div className="w-1/4 bg-white rounded-xl shadow p-4 space-y-6 h-fit">
+              {/* Popular Filters */}
+              <div>
+                <h2 className="text-lg font-semibold mb-3">Popular Filters</h2>
+                <div className="space-y-2 text-sm">
+                  {['Non Stop', 'Hide Nearby Airports', 'Refundable Fares', '1 Stop'].map((filter, idx) => (
+                    <label key={idx} className="flex justify-between items-center cursor-pointer">
+                      <span className="flex items-center">
+                        <input type="checkbox" className="mr-2" defaultChecked={filter === 'Non Stop'} />
+                        {filter}
+                      </span>
+                      <span>₹ {filter === 'Hide Nearby Airports' ? '7,121' : filter === '1 Stop' ? '7,173' : '6,848'}</span>
+                    </label>
+                  ))}
+                </div>
+                <p className="text-blue-600 text-sm mt-2 cursor-pointer">+4 more</p>
+              </div>
+
+              <hr className="my-2" />
+
+              {/* Departure Airports */}
+              <div>
+                <h3 className="font-semibold mb-2">Departure Airports</h3>
+                <div className="space-y-2 text-sm">
+                  <label className="flex justify-between items-center cursor-pointer">
+                    <span className="flex items-center">
+                      <input type="checkbox" className="mr-2" />
+                      Indira Gandhi International Airport
+                    </span>
+                    <span>₹ 7,121</span>
+                  </label>
+                  <label className="flex justify-between items-center cursor-pointer">
+                    <span className="flex items-center">
+                      <input type="checkbox" className="mr-2" />
+                      Hindon Airport (32Km)
+                    </span>
+                    <span>₹ 6,848</span>
+                  </label>
+                </div>
+              </div>
+
+              <hr className="my-2" />
+
+              {/* One Way Price */}
+              <div>
+                <h3 className="font-semibold mb-2">One Way Price</h3>
+                <input type="range" min="6848" max="28800" className="w-full" />
+                <div className="flex justify-between text-sm mt-1">
+                  <span>₹ 6,848</span>
+                  <span>₹ 28,800</span>
+                </div>
+              </div>
+
+              <hr className="my-2" />
+
+              {/* Stops From New Delhi */}
+              <div>
+                <h3 className="font-semibold mb-2">Stops From New Delhi</h3>
+                <div className="space-y-2 text-sm">
+                  <label className="flex justify-between items-center cursor-pointer">
+                    <span className="flex items-center">
+                      <input type="checkbox" className="mr-2" defaultChecked />
+                      Non Stop
+                    </span>
+                    <span>₹ 6,848</span>
+                  </label>
+                  <label className="flex justify-between items-center cursor-pointer">
+                    <span className="flex items-center">
+                      <input type="checkbox" className="mr-2" />
+                      1 Stop
+                    </span>
+                    <span>₹ 7,173</span>
+                  </label>
+                </div>
+              </div>
+
+              <hr className="my-2" />
+
+              {/* Departure From New Delhi */}
+              <div>
+                <h3 className="font-semibold mb-2">Departure From New Delhi</h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 rounded-full border border-blue-600 mr-2 flex items-center justify-center">
+                      <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                    </div>
+                    <span>Before 6 AM to 12 PM</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 rounded-full border border-gray-300 mr-2"></div>
+                    <span>After 6 PM to 12 PM</span>
+                  </div>
+                </div>
+              </div>
+
+              <hr className="my-2" />
+
+              {/* Arrival at Bengaluru */}
+              <div>
+                <h3 className="font-semibold mb-2">Arrival at Bengaluru</h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 rounded-full border border-blue-600 mr-2 flex items-center justify-center">
+                      <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                    </div>
+                    <span>Before 6 AM to 12 PM</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 rounded-full border border-gray-300 mr-2"></div>
+                    <span>After 6 PM to 12 PM</span>
+                  </div>
+                </div>
+              </div>
+
+              <hr className="my-2" />
+
+              {/* Airlines */}
+              <div>
+                <h3 className="font-semibold mb-2">Airlines</h3>
+                <div className="space-y-2 text-sm">
+                  {[
+                    { name: 'Air India', price: '7,171', checked: true },
+                    { name: 'Air India Express', price: '6,848', checked: false },
+                    { name: 'Akasa Air', price: '8,338', checked: false },
+                    { name: 'IndiGo', price: '7,121', checked: false },
+                    { name: 'SpiceJet', price: '7,237', checked: false }
+                  ].map((airline, idx) => (
+                    <label key={idx} className="flex justify-between items-center cursor-pointer">
+                      <span className="flex items-center">
+                        <input 
+                          type="checkbox" 
+                          className="mr-2" 
+                          defaultChecked={airline.checked}
+                        />
+                        {airline.name}
+                      </span>
+                      <span>₹ {airline.price}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <hr className="my-2" />
+
+              {/* Aircraft Size */}
+              <div>
+                <h3 className="font-semibold mb-2">Aircraft Size</h3>
+                <div className="space-y-2 text-sm">
+                  <label className="flex justify-between items-center cursor-pointer">
+                    <span className="flex items-center">
+                      <input type="checkbox" className="mr-2" defaultChecked />
+                      Small / Mid - size aircraft
+                    </span>
+                    <span>₹ 6,848</span>
+                  </label>
+                  <label className="flex justify-between items-center cursor-pointer">
+                    <span className="flex items-center">
+                      <input type="checkbox" className="mr-2" />
+                      Large Aircraft
+                    </span>
+                    <span>₹ 7,173</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+  <div className="w-3/4 space-y-4">
+  {/* FLIGHT CARDS */}
+  {flights.map((flight, index) => (
+    <div
+      key={index}
+      className="bg-white rounded-xl shadow p-4"
+    >
+      {/* Main Flight Info Row */}
+      <div className="flex justify-between items-center">
+        {/* Left Side: Airline */}
+        <div className="w-1/5">
+          <h4 className="font-semibold">{flight.airline}</h4>
+          <p className="text-sm text-gray-500">{flight.code}</p>
+        </div>
+
+        {/* Middle: Flight Timeline with 3 buttons BELOW */}
+        <div className="flex-1 flex flex-col items-center">
+          {/* Time Row */}
+          <div className="flex items-center justify-center w-full mb-3">
+            {/* Departure */}
+            <div className="text-center mr-8">
+              <p className="text-xl font-bold">{flight.departTime}</p>
+              <p className="text-sm text-gray-500">{flight.departCity}</p>
+            </div>
+
+            {/* Duration */}
+            <div className="text-center mx-8">
+              <p className="text-sm text-gray-500">{flight.duration}</p>
+              <p className="text-xs text-green-600">Non Stop</p>
+            </div>
+
+            {/* Arrival */}
+            <div className="text-center ml-8">
+              <p className="text-xl font-bold">{flight.arriveTime}</p>
+              <p className="text-sm text-gray-500">{flight.arriveCity}</p>
+            </div>
+          </div>
+<div className="w-full">
+  {/* Button Grid - Tabs */}
+  <div className="grid grid-cols-3 w-full max-w-md border border-black overflow-hidden">
+    {[
+      "Baggage Allowances",
+      "Meals / Seats", 
+      "Refundable Status"
+    ].map((label, idx) => {
+      const tabId = label.toLowerCase().replace(/\s+/g, '-').replace(/\//g, '');
+      return (
+        <button
+          key={label}
+          onClick={() => {
+            // Toggle: if clicking the same active tab, close it; otherwise open the new one
+            if (activeTab === tabId) {
+              setActiveTab(null);
+            } else {
+              setActiveTab(tabId);
+            }
+          }}
+          className={`px-2 py-2 text-[10px] xs:text-xs sm:text-sm font-semibold text-center whitespace-nowrap
+            ${idx < 2 ? "border-r border-black" : ""} transition cursor-pointer
+            ${
+              activeTab === tabId
+                ? "bg-[#A72703] text-white"
+                : "bg-[#FFE797] text-gray-800 hover:bg-[#FFD700]"
+            }`}
+        >
+          {label}
+        </button>
+      );
+    })}
+  </div>
+
+  {/* Full Width Content Row - Appears on click and matches header width */}
+  {activeTab && (
+    <div className="w-full max-w-md border border-black bg-[#FFEBEE]">
+      <div className="px-2 lg:px-4 py-2 lg:py-3 text-black text-sm lg:text-base">
+        {/* Content based on activeTab */}
+        {activeTab === "baggage-allowances" && (
+          <div>
+            <h4 className="font-semibold mb-2">Baggage Allowance</h4>
+            <p>Cabin: 7 kg</p>
+            <p>Check-in: 15 kg</p>
+          </div>
+        )}
+        {activeTab === "meals-seats" && (
+          <div>
+            <h4 className="font-semibold mb-2">Meals & Seats</h4>
+            <p>Meals available for purchase</p>
+            <p>Seat selection available</p>
+          </div>
+        )}
+        {activeTab === "refundable-status" && (
+          <div>
+            <h4 className="font-semibold mb-2">Refundable Status</h4>
+            <p>Partially refundable</p>
+            <p>Cancellation fee: ₹ 500</p>
+          </div>
+        )}
+      </div>
+    </div>
+  )}
+</div>
+        </div>
+
+        {/* Right Side: Price + Buttons */}
+        <div className="w-1/4 flex flex-col items-end">
+          <div className="text-right mb-3">
+            <p className="text-xl font-bold text-gray-800">₹ {flight.price}</p>
+            <p className="text-xs text-gray-500">/adult</p>
+          </div>
+          <div className="flex flex-col gap-2 w-full max-w-[120px]">
+            <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold w-full">
+              VIEW PRICE
+            </button>
+            <button className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-semibold w-full">
+              BOOK
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  ))}
+</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 // Main Component
 const FlightSearch = () => {
-  const navigate = useNavigate();
+  const [showResults, setShowResults] = useState(false);
+  const [searchData, setSearchData] = useState<any>(null);
+  
   const [tripType, setTripType] = useState<"one-way" | "round-trip">("round-trip");
   const [fromCity, setFromCity] = useState<City>(cities[0]);
   const [toCity, setToCity] = useState<City>(cities[2]);
@@ -470,6 +868,12 @@ const FlightSearch = () => {
     infants: 0,
   });
 
+  // Auto-focus states
+  const [autoOpenTo, setAutoOpenTo] = useState(false);
+  const [autoOpenDeparture, setAutoOpenDeparture] = useState(false);
+  const [autoOpenReturn, setAutoOpenReturn] = useState(false);
+  const [autoOpenTravellers, setAutoOpenTravellers] = useState(false);
+
   const swapCities = () => {
     setFromCity(toCity);
     setToCity(fromCity);
@@ -478,7 +882,7 @@ const FlightSearch = () => {
   const handleSearch = () => {
     if (!fromCity || !toCity || !departureDate) return;
     
-    const searchData = {
+    const newSearchData = {
       fromCity,
       toCity,
       departureDate,
@@ -487,12 +891,67 @@ const FlightSearch = () => {
       travellers
     };
     
-    navigate('/offlineflightbooking', { 
-      state: { 
-        searchData,
-        message: "Searching for flights..."
-      } 
+    setSearchData(newSearchData);
+    setShowResults(true);
+    
+    // Scroll to results smoothly
+    setTimeout(() => {
+      window.scrollTo({
+        top: document.getElementById('flight-results')?.offsetTop || 0,
+        behavior: 'smooth'
+      });
+    }, 100);
+  };
+
+  const handleBackToSearch = () => {
+    setShowResults(false);
+    // Scroll back to top
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
     });
+  };
+
+  // Handlers for auto-focus sequence
+  const handleFromSelect = () => {
+    // After selecting From city, automatically open To dropdown
+    setAutoOpenTo(true);
+  };
+
+  const handleToSelect = () => {
+    // After selecting To city, automatically open Departure date dropdown
+    setAutoOpenDeparture(true);
+  };
+
+  const handleDepartureSelect = () => {
+    // After selecting Departure date, handle based on trip type
+    if (tripType === "round-trip") {
+      setAutoOpenReturn(true);
+    } else {
+      setAutoOpenTravellers(true);
+    }
+  };
+
+  const handleReturnSelect = () => {
+    // After selecting Return date, open Travellers dropdown
+    setAutoOpenTravellers(true);
+  };
+
+  // Reset auto-open flags when dropdowns are closed
+  const handleToClose = () => {
+    setAutoOpenTo(false);
+  };
+
+  const handleDepartureClose = () => {
+    setAutoOpenDeparture(false);
+  };
+
+  const handleReturnClose = () => {
+    setAutoOpenReturn(false);
+  };
+
+  const handleTravellersClose = () => {
+    setAutoOpenTravellers(false);
   };
 
   const isSearchEnabled = !!fromCity && !!toCity && !!departureDate;
@@ -501,7 +960,7 @@ const FlightSearch = () => {
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-blue-50/70 to-white">
       <Header />
       
-      <div className="flex-grow h-[800px]">
+      <div className="flex-grow">
         {/* Header Section with Background Image */}
         <div 
           className="pt-28 pb-28 relative bg-gradient-to-r from-blue-200/90 to-blue-300/90"
@@ -512,7 +971,6 @@ const FlightSearch = () => {
             backgroundBlendMode: 'overlay'
           }}
         >
-          {/* Optional: Add an overlay for better text readability */}
           <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 to-blue-800/80"></div>
           
           <div className="max-w-7xl mx-auto px-4 relative z-10">
@@ -520,17 +978,12 @@ const FlightSearch = () => {
               <Plane className="w-8 h-8 text-white" />
               <h1 className="text-2xl font-bold text-white">Flight Booking</h1>
             </div>
-            <div className="text-center">
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">
-                Book Flights at Lowest Prices
-              </h2>
-              <p className="text-white/90 text-lg">Search & compare across 500+ airlines</p>
-            </div>
+          
           </div>
         </div>
 
         {/* Search Form */}
-        <div className="max-w-7xl mx-auto px-4 -mt-16 relative z-10">  
+        <div className="max-w-7xl mx-auto px-4 -mt-16 relative z-10 mb-20">  
           <div className="bg-white rounded-2xl shadow-2xl border border-gray-200">
             <div className="flex flex-col md:flex-row items-stretch">
               <div className="w-full md:w-auto">
@@ -548,6 +1001,7 @@ const FlightSearch = () => {
                     onCitySelect={setFromCity}
                     excludeCity={toCity}
                     isFrom={true}
+                    onSelect={handleFromSelect}
                   />
                   <button
                     onClick={swapCities}
@@ -564,6 +1018,9 @@ const FlightSearch = () => {
                     onCitySelect={setToCity}
                     excludeCity={fromCity}
                     isFrom={false}
+                    autoOpen={autoOpenTo}
+                    onClose={handleToClose}
+                    onSelect={handleToSelect}
                   />
                 </div>
 
@@ -573,6 +1030,9 @@ const FlightSearch = () => {
                     selectedDate={departureDate}
                     onDateSelect={setDepartureDate}
                     minDate={new Date()}
+                    autoOpen={autoOpenDeparture}
+                    onClose={handleDepartureClose}
+                    onSelect={handleDepartureSelect}
                   />
                 </div>
 
@@ -583,11 +1043,19 @@ const FlightSearch = () => {
                     onDateSelect={setReturnDate}
                     minDate={departureDate}
                     disabled={tripType === "one-way"}
+                    autoOpen={autoOpenReturn}
+                    onClose={handleReturnClose}
+                    onSelect={handleReturnSelect}
                   />
                 </div>
 
                 <div className="border-t md:border-t-0 md:border-l border-gray-200">
-                  <TravellerSelector travellers={travellers} onTravellersChange={setTravellers} />
+                  <TravellerSelector 
+                    travellers={travellers} 
+                    onTravellersChange={setTravellers}
+                    autoOpen={autoOpenTravellers}
+                    onClose={handleTravellersClose}
+                  />
                 </div>
               </div>
 
@@ -639,6 +1107,13 @@ const FlightSearch = () => {
             Search hundreds of flights at the best prices
           </p>
         </div>
+
+        {/* Flight Results Section */}
+        {showResults && searchData && (
+          <div id="flight-results" className="mt-8">
+            <FlightResults searchData={searchData} onBack={handleBackToSearch} />
+          </div>
+        )}
       </div>
 
       <Footer />

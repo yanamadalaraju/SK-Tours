@@ -2784,66 +2784,65 @@ return (
                       </div>
                     </div>
                   </div>
+<div className="grid grid-cols-1 lg:grid-cols-2 gap-1 mt-1">
+  <div className="bg-[#E8F0FF] rounded-lg overflow-hidden">
+    <div className="bg-[#2E4D98] text-white text-center font-bold text-lg lg:text-xl py-2 lg:py-2.5 rounded-t-lg">
+      Booking Policy Remarks
+    </div>
+    <div className="border-2 border-[#1e3a8a] border-t-0 rounded-b-lg overflow-hidden">
+      <div className="min-h-[140px] lg:min-h-[160px] max-h-[140px] lg:max-h-[160px] overflow-y-auto p-1.5 bg-[#FFEBEE] rounded-b-lg">
+        {tour.bookingRemarks && tour.bookingRemarks.length > 0 ? (
+          <ul className="space-y-0">
+            {tour.bookingRemarks.map((remark, index) => (
+              <li key={index} className="border-b-[1px] border-black last:border-b-0">
+                <div className="p-1">
+                  <span className="text-black whitespace-pre-wrap break-words text-sm lg:text-base text-justify">
+                    {remark}
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="flex items-center justify-center h-full">
+            <span className="text-gray-500 italic text-xs lg:text-sm">
+              No booking policy remarks available
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
 
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-1 mt-1">
-                    <div className="bg-[#E8F0FF] rounded-lg overflow-hidden">
-                      <div className="bg-[#2E4D98] text-white text-center font-bold text-lg lg:text-xl py-2 lg:py-2.5 rounded-t-lg">
-                        Booking Policy Remarks
-                      </div>
-                      <div className="border-2 border-[#1e3a8a] border-t-0 rounded-b-lg overflow-hidden">
-                        <div className="min-h-[140px] lg:min-h-[160px] max-h-[140px] lg:max-h-[160px] overflow-y-auto p-1.5 bg-[#FFEBEE] rounded-b-lg">
-                          {tour.bookingRemarks && tour.bookingRemarks.length > 0 ? (
-                            <ul className="space-y-0">
-                              {tour.bookingRemarks.map((remark, index) => (
-                                <li key={index} className="border-b-[1px] border-black last:border-b-0">
-                                  <div className="p-2">
-                                    <span className="text-black whitespace-pre-wrap break-words text-sm lg:text-base">
-                                      {remark}
-                                    </span>
-                                  </div>
-                                </li>
-                              ))}
-                            </ul>
-                          ) : (
-                            <div className="flex items-center justify-center h-full">
-                              <span className="text-gray-500 italic text-xs lg:text-sm">
-                                No booking policy remarks available
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="bg-[#E8F0FF] rounded-lg overflow-hidden">
-                      <div className="bg-[#A72703] text-white text-center font-bold text-lg lg:text-xl py-2 lg:py-2.5 rounded-t-lg">
-                        Cancellation Policy Remarks
-                      </div>
-                      <div className="border-2 border-[#1e3a8a] border-t-0 rounded-b-lg overflow-hidden">
-                        <div className="min-h-[140px] lg:min-h-[160px] max-h-[140px] lg:max-h-[160px] overflow-y-auto p-1.5 bg-[#FFEBEE] rounded-b-lg">
-                          {tour.cancellationRemarks && tour.cancellationRemarks.length > 0 ? (
-                            <ul className="space-y-0">
-                              {tour.cancellationRemarks.map((remark, index) => (
-                                <li key={index} className="border-b-[1px] border-black last:border-b-0">
-                                  <div className="p-2">
-                                    <span className="text-black whitespace-pre-wrap break-words text-sm lg:text-base">
-                                      {remark}
-                                    </span>
-                                  </div>
-                                </li>
-                              ))}
-                            </ul>
-                          ) : (
-                            <div className="flex items-center justify-center h-full">
-                              <span className="text-gray-500 italic text-xs lg:text-sm">
-                                No cancellation policy remarks available
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+  <div className="bg-[#E8F0FF] rounded-lg overflow-hidden">
+    <div className="bg-[#A72703] text-white text-center font-bold text-lg lg:text-xl py-2 lg:py-2.5 rounded-t-lg">
+      Cancellation Policy Remarks
+    </div>
+    <div className="border-2 border-[#1e3a8a] border-t-0 rounded-b-lg overflow-hidden">
+      <div className="min-h-[140px] lg:min-h-[160px] max-h-[140px] lg:max-h-[160px] overflow-y-auto p-1.5 bg-[#FFEBEE] rounded-b-lg">
+        {tour.cancellationRemarks && tour.cancellationRemarks.length > 0 ? (
+          <ul className="space-y-0">
+            {tour.cancellationRemarks.map((remark, index) => (
+              <li key={index} className="border-b-[1px] border-black last:border-b-0">
+                <div className="p-2">
+                  <span className="text-black whitespace-pre-wrap break-words text-sm lg:text-base text-justify">
+                    {remark}
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="flex items-center justify-center h-full">
+            <span className="text-gray-500 italic text-xs lg:text-sm">
+              No cancellation policy remarks available
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+</div>
                 </div>
               )}
 

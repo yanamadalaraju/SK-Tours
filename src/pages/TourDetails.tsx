@@ -2440,202 +2440,200 @@ const TourDetails = () => {
                   </div>
                 )}
 
-                {/* Bookings POI Tab */}
-                {activeTab === "bookings-poi" && (
-                  <div className="bg-[#E8F0FF] rounded-lg p-1">
-                    <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg mb-1">
-                      Booking Policy
-                    </div>
+        {/* Bookings POI Tab */}
+{activeTab === "bookings-poi" && (
+  <div className="bg-[#E8F0FF] rounded-lg p-1">
+    <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg mb-1">
+      Booking Policy
+    </div>
 
-                    <div className="flex flex-col lg:flex-row gap-1 mt-1 lg:h-[320px]">
+    <div className="flex flex-col lg:flex-row gap-1 mt-1 lg:h-[320px]">
 
-                      {/* Left Card - Booking Policy - 68% width */}
-                      <div className="h-full w-full lg:w-[65%] flex flex-col">
-                        <div className="bg-[#2E4D98] text-white text-center py-2 lg:py-3 rounded-t-lg">
-                          <h3 className="text-lg lg:text-xl font-bold">Booking Policy</h3>
-                        </div>
-                        <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-white overflow-hidden">
-                          <div className="h-full overflow-y-auto bg-[#FFEBEE]">
-                            <div className="p-1">
-                              {tour.booking.items.map((item: string, index: number) => (
-                                <React.Fragment key={index}>
-                                  <div className="flex items-start gap-3 p-2">
-                                    <span className="text-black text-xs lg:text-[15px] whitespace-normal text-justify w-full">
-                                      {item}
-                                    </span>
-                                  </div>
-                                  {index < tour.booking.items.length && (
-                                    <div className="border-b-[1px] border-black"></div>
-                                  )}
-                                </React.Fragment>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+      {/* Left Card - Booking Policy - 68% width */}
+      <div className="h-full w-full lg:w-[65%] flex flex-col">
+        <div className="bg-[#2E4D98] text-white text-center py-2 lg:py-3 rounded-t-lg">
+          <h3 className="text-lg lg:text-xl font-bold">Booking Policy</h3>
+        </div>
+        <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-white overflow-hidden">
+          <div className="h-full overflow-y-auto bg-[#FFEBEE]">
+            <div className="p-0">
+              {tour.booking.items.map((item: string, index: number) => (
+                <React.Fragment key={index}>
+                  <div className="flex items-start gap-3 p-3">
+                    <span className="text-black text-xs lg:text-[15px] text-justify leading-relaxed break-words w-full">
+                      {item}
+                    </span>
+                  </div>
+                  {/* Horizontal line after EVERY item - including last one */}
+                  <div className="border-b-[1px] border-black"></div>
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
 
-                      <div className="h-full w-full lg:w-[35%] flex flex-col">
-                        <div className="bg-[#2E4D98] text-white text-center py-2 lg:py-3 rounded-t-lg">
-                          <h3 className="text-lg lg:text-xl font-bold">Amount Details</h3>
-                        </div>
-                        <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-white overflow-hidden">
-                          <div className="h-full overflow-y-auto bg-[#FFEBEE]">
-                            <div className="p-1">
-                              {tour.booking.amountDetails.map((amount: string, index: number) => (
-                                <React.Fragment key={index}>
-                                  <div className="flex items-center p-1 pl-1">
-                                    <div className="text-left w-full">
-                                      <span className="text-xs lg:text-sm font-bold text-green-600">
-                                        {amount}
-                                      </span>
-                                    </div>
-                                  </div>
-                                  {index < tour.booking.amountDetails.length && (
-                                    <div className="border-b-[1px] border-black"></div>
-                                  )}
-                                </React.Fragment>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
-                      <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
-                        Booking Policy Remarks
-                      </div>
-                      <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-                        <div className="min-h-[150px] lg:min-h-[180px] max-h-[150px] lg:max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-                          {tour.bookingRemarks && tour.bookingRemarks.length > 0 ? (
-                            <ul className="space-y-2 w-full">
-                              {tour.bookingRemarks.map((remark: string, index: number) => (
-                                <li key={index} className="w-full">
-                                  <div className="flex items-start gap-2 w-full p-2">
-                                    <span className="text-black whitespace-pre-wrap break-words hyphens-auto text-justify w-full text-sm lg:text-base">
-                                      {remark}
-                                    </span>
-                                  </div>
-                                </li>
-                              ))}
-                            </ul>
-                          ) : (
-                            <div className="flex items-center justify-center h-full">
-                              <span className="text-gray-500 italic text-sm lg:text-base">No booking policy remarks available</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      <div className="mt-1">
-                        <button
-                          onClick={() => navigate("/alert")}
-                          className="w-full font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90 text-sm lg:text-base"
-                        >
-                          Customize your tour on chargeable basis
-                        </button>
-                      </div>
+      <div className="h-full w-full lg:w-[35%] flex flex-col">
+        <div className="bg-[#2E4D98] text-white text-center py-2 lg:py-3 rounded-t-lg">
+          <h3 className="text-lg lg:text-xl font-bold">Amount Details</h3>
+        </div>
+        <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-white overflow-hidden">
+          <div className="h-full overflow-y-auto bg-[#FFEBEE]">
+            <div className="p-0">
+              {tour.booking.amountDetails.map((amount: string, index: number) => (
+                <React.Fragment key={index}>
+                  <div className="flex items-center p-3">
+                    <div className="text-left w-full">
+                      <span className="text-xs lg:text-sm font-bold text-green-600 break-words">
+                        {amount}
+                      </span>
                     </div>
                   </div>
-                )}
+                  {/* Horizontal line after EVERY item - including last one */}
+                  <div className="border-b-[1px] border-black"></div>
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-                {/* Cancellation Tab */}
-                {activeTab === "cancellation" && (
-                  <div className="bg-[#E8F0FF] rounded-lg p-1">
-                    <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg mb-1">
-                      Cancellation Policy
-                    </div>
+    <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
+      <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
+        Booking Policy Remarks
+      </div>
+      <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
+        <div className="min-h-[150px] lg:min-h-[180px] max-h-[150px] lg:max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+          {tour.bookingRemarks && tour.bookingRemarks.length > 0 ? (
+            <ul className="space-y-3 w-full">
+              {tour.bookingRemarks.map((remark: string, index: number) => (
+                <li key={index} className="w-full">
+                  <div className="flex items-start gap-2 w-full p-0">
+                    <span className="text-black text-justify leading-relaxed break-words hyphens-auto w-full text-sm lg:text-base">
+                      {remark}
+                    </span>
+                  </div>
+       
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <span className="text-gray-500 italic text-sm lg:text-base">No booking policy remarks available</span>
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="mt-1">
+        <button
+          onClick={() => navigate("/alert")}
+          className="w-full font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90 text-sm lg:text-base"
+        >
+          Customize your tour on chargeable basis
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
-                    <div className="flex flex-col lg:flex-row gap-1 mt-1 lg:h-[320px]">
+{/* Cancellation Tab */}
+{activeTab === "cancellation" && (
+  <div className="bg-[#E8F0FF] rounded-lg p-1">
+    <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg mb-1">
+      Cancellation Policy
+    </div>
 
-                      {/* Left Card - Cancellation Policy - 68% width */}
-                      <div className="h-full w-full lg:w-[65%] flex flex-col">
-                        <div className="bg-[#A72703] text-white text-center py-2 lg:py-3 rounded-t-lg">
-                          <h3 className="text-lg lg:text-xl font-bold">Cancellation Policy</h3>
-                        </div>
-                        <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-[#FFEBEE] overflow-hidden">
-                          <div className="h-full overflow-y-auto bg-[#FFEBEE]">
-                            <div className="p-1">
-                              {tour.cancellation.policies.map((item: string, index: number) => (
-                                <React.Fragment key={index}>
-                                  <div className="flex items-start gap-3 p-2">
-                                    <span className="text-black text-xs lg:text-[15px] whitespace-normal text-justify w-full">
-                                      {item}
-                                    </span>
-                                  </div>
-                                  {/* Horizontal line after EACH item - even the last one */}
-                                  {index < tour.cancellation.policies.length && (
-                                    <div className="border-b-[1px] border-black"></div>
-                                  )}
-                                </React.Fragment>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+    <div className="flex flex-col lg:flex-row gap-1 mt-1 lg:h-[320px]">
 
-                      <div className="h-full w-full lg:w-[35%] flex flex-col">
-                        <div className="bg-[#A72703] text-white text-center py-2 lg:py-3 rounded-t-lg">
-                          <h3 className="text-lg lg:text-xl font-bold">Charges</h3>
-                        </div>
-                        <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-[#FFEBEE] overflow-hidden">
-                          <div className="h-full overflow-y-auto bg-[#FFEBEE]">
-                            <div className="p-1">
-                              {tour.cancellation.charges.map((charge: string, index: number) => (
-                                <React.Fragment key={index}>
-                                  <div className="flex items-center justify-start p-1">
-                                    <div className="text-left w-full">
-                                      <span className="text-xs lg:text-sm font-bold text-[#A72703]">
-                                        {charge}
-                                      </span>
-                                    </div>
-                                  </div>
-                                  {/* Horizontal line after EACH charge - even the last one */}
-                                  {index < tour.cancellation.charges.length && (
-                                    <div className="border-b-[1px] border-black"></div>
-                                  )}
-                                </React.Fragment>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+      {/* Left Card - Cancellation Policy - 68% width */}
+      <div className="h-full w-full lg:w-[65%] flex flex-col">
+        <div className="bg-[#A72703] text-white text-center py-2 lg:py-3 rounded-t-lg">
+          <h3 className="text-lg lg:text-xl font-bold">Cancellation Policy</h3>
+        </div>
+        <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-[#FFEBEE] overflow-hidden">
+          <div className="h-full overflow-y-auto bg-[#FFEBEE]">
+            <div className="p-0">
+              {tour.cancellation.policies.map((item: string, index: number) => (
+                <React.Fragment key={index}>
+                  <div className="flex items-start gap-3 p-3">
+                    <span className="text-black text-xs lg:text-[15px] text-justify leading-relaxed break-words w-full">
+                      {item}
+                    </span>
+                  </div>
+                  <div className="border-b-[1px] border-black"></div>
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
 
-                    {/* Cancellation Policy Remarks Section */}
-                    <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
-                      <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
-                        Cancellation Policy Remarks
-                      </div>
-                      <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-                        <div className="min-h-[150px] lg:min-h-[180px] max-h-[150px] lg:max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-                          {tour.cancellationRemarks && tour.cancellationRemarks.length > 0 ? (
-                            <ul className="space-y-2 w-full">
-                              {tour.cancellationRemarks.map((remark: string, index: number) => (
-                                <li key={index} className="flex items-start gap-2 w-full">
-                                  <span className="text-black whitespace-pre-wrap break-words hyphens-auto text-justify w-full text-sm lg:text-base">
-                                    {remark}
-                                  </span>
-                                </li>
-                              ))}
-                            </ul>
-                          ) : (
-                            <div className="flex items-center justify-center h-full">
-                              <span className="text-gray-500 italic text-sm lg:text-base">No cancellation policy remarks available</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="mt-1">
-                      <button
-                        onClick={() => navigate("/alert")}
-                        className="w-full font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90 text-sm lg:text-base"
-                      >
-                        Customize your tour on chargeable basis
-                      </button>
+      <div className="h-full w-full lg:w-[35%] flex flex-col">
+        <div className="bg-[#A72703] text-white text-center py-2 lg:py-3 rounded-t-lg">
+          <h3 className="text-lg lg:text-xl font-bold">Charges</h3>
+        </div>
+        <div className="flex-1 border-x-2 border-b-2 border-[#1e3a8a] rounded-b-lg bg-[#FFEBEE] overflow-hidden">
+          <div className="h-full overflow-y-auto bg-[#FFEBEE]">
+            <div className="p-0">
+              {tour.cancellation.charges.map((charge: string, index: number) => (
+                <React.Fragment key={index}>
+                  <div className="flex items-center justify-start p-3">
+                    <div className="text-left w-full">
+                      <span className="text-xs lg:text-sm font-bold text-[#A72703] break-words">
+                        {charge}
+                      </span>
                     </div>
                   </div>
-                )}
+                  {/* Horizontal line after EVERY charge - including last one */}
+                  <div className="border-b-[1px] border-black"></div>
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* Cancellation Policy Remarks Section */}
+    <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
+      <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
+        Cancellation Policy Remarks
+      </div>
+      <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
+        <div className="min-h-[150px] lg:min-h-[180px] max-h-[150px] lg:max-h-[180px] overflow-y-auto p-1 bg-[#FFEBEE] w-full">
+          {tour.cancellationRemarks && tour.cancellationRemarks.length > 0 ? (
+            <ul className="space-y-3 w-full">
+              {tour.cancellationRemarks.map((remark: string, index: number) => (
+                <li key={index} className="flex items-start gap-2 w-full">
+                  <div className="w-full p-2">
+                    <span className="text-black text-justify leading-relaxed break-words hyphens-auto w-full text-sm lg:text-base">
+                      {remark}
+                    </span>
+                  </div>
+                  {/* Horizontal line after EVERY remark - including last one */}
+                  <div className="border-b-[1px] border-black"></div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <span className="text-gray-500 italic text-sm lg:text-base">No cancellation policy remarks available</span>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+    <div className="mt-1">
+      <button
+        onClick={() => navigate("/alert")}
+        className="w-full font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90 text-sm lg:text-base"
+      >
+        Customize your tour on chargeable basis
+      </button>
+    </div>
+  </div>
+)}
 
                 {/* Instructions Tab */}
                 {activeTab === "instructions" && (
