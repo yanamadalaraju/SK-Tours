@@ -632,6 +632,12 @@ const FlightSearchRoundTrip: React.FC<FlightSearchRoundTripProps> = ({
             onClick={() => handleBookFlight(flight)}
             disabled={loading}
           >
+               {/* <button 
+            className="ffc-book-btn"
+            onClick={() => handleBookFlight(flight)}
+            disabled={loading}
+          > */}
+            
             {loading ? 'Preparing...' : 'Book Now'}
           </button>
         </div>
