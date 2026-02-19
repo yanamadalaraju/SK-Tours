@@ -38,7 +38,7 @@ import IntlSenior_tour from "./pages/Senior_tour/InternationalSeniors_tour";
 
 import Terms_conditions from "./pages/Terms_Conditions/Terms_conditions";
 import Privacy_policy from "./pages/Privacy_policy/Privacy_policy";
-import CheckOutPage from "./pages/CheckOutPage"
+import CheckoutPageFlights from "./pages/CheckOutPageFlights"
 import CheckoutPage from "./pages/CheckOutPage";
 import PaymentResult from "./pages/PaymentResult";
 import Alert from "./pages/Alertfolder/Alert";
@@ -81,6 +81,10 @@ import Gatewaycheckbox from "./pages/Weekend_Gateway/Gatewaycheckbox/Gatewaychec
 import Weekendcard from "./pages/Weekend_Gateway/Weekendcard/Weekendcard";
 import Weekendbookingcard from "./pages/Weekend_Gateway/Weekendbookingcard/Weekendbookingcard";
 import WeekendForm from "./pages/Weekend_Gateway/WeekendForm/WeekendForm";
+// In your App.js or routing file, add the route:
+
+import FlightPaymentResult from './pages/FlightsPaymentStatus';
+
 
 const queryClient = new QueryClient();
 
@@ -97,6 +101,7 @@ const App = () => (
 <Route path="/intl-tours-packages/:state" element={<IntlTourPackages />} />
 
 <Route path="/checkout" element={<CheckoutPage />} />
+<Route path="/checkoutflights" element={<CheckoutPageFlights />} />
 <Route path="/payment-result" element={<PaymentResult />} />
           <Route path="/about" element={<AboutPage />} />
 <Route path="/tour/:tourId" element={<TourDetails />} />
@@ -157,6 +162,10 @@ const App = () => (
 <Route path="/venuephotos" element={<VenuePhotos />} />
 <Route path="/micgallery" element={<MiceGallery />} />
 <Route path="/micupcomingevents" element={<MiceUpcomingEvents />}/>
+
+
+// Add this route
+<Route path="/flight-payment-result" element={<FlightPaymentResult />} />
 
 
 <Route path="/bungalow" element={<Bungalow />} />

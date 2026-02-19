@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import flightApiService from './flight-api.service';
 import { 
   Airport, 
@@ -7,8 +6,6 @@ import {
   RoundTripFlightSearchResult,
   Sector 
 } from './flight-api.types';
-import { BASE_URL } from '@/ApiUrls';
-import axios from 'axios';
 
 interface FlightSearchRoundTripProps {
   tripType?: number;
@@ -19,7 +16,6 @@ const FlightSearchRoundTrip: React.FC<FlightSearchRoundTripProps> = ({
   tripType = 1,
   onBookFlight 
 }) => {
-  const navigate = useNavigate();
   const [departureCities, setDepartureCities] = useState<Airport[]>([]);
   const [arrivalCities, setArrivalCities] = useState<Airport[]>([]);
   const [sectors, setSectors] = useState<Sector[]>([]);
@@ -33,15 +29,13 @@ const FlightSearchRoundTrip: React.FC<FlightSearchRoundTripProps> = ({
   const [selectedSector, setSelectedSector] = useState<string>('');
   const [selectedOnwardDate, setSelectedOnwardDate] = useState<string>('');
   const [selectedReturnDate, setSelectedReturnDate] = useState<string>('');
-  const [adults, setAdults] = useState<number>(1);
+  const [adults, setAdults] = useState<number>(0);
   const [children, setChildren] = useState<number>(0);
   const [infants, setInfants] = useState<number>(0);
   
   const [loading, setLoading] = useState<boolean>(false);
   const [bookingTokenId, setBookingTokenId] = useState<string>('');
-  const [paymentProcessing, setPaymentProcessing] = useState<boolean>(false);
 
-  // Rest of your existing useEffect and functions remain the same...
   useEffect(() => {
     fetchDepartureCities();
     if (selectedTripType === 0) {
@@ -416,291 +410,88 @@ const FlightSearchRoundTrip: React.FC<FlightSearchRoundTripProps> = ({
     return selectedTripType === 1 && 'return_flight_data' in flight;
   };
 
-  // NEW FUNCTION: Handle PhonePe Payment for Flight Booking
-  const handlePhonePePayment = async (flight: any, fareQuoteData: any, bookingParams: any) => {
-    try {
-      setPaymentProcessing(true);
-      
-      const totalAmount = fareQuoteData.total_payable_price;
-      
-      console.log('=========================================');
-      console.log('PHONEPE PAYMENT INITIATION');
-      console.log('Flight details:', {
-        id: flight.id,
-        airline: flight.airline_name,
-        flightNumber: flight.flight_number,
-        totalAmount: totalAmount
-      });
-      console.log('=========================================');
-      
-      // Step 1: Save flight booking to database
-      const saveResponse = await fetch(`${BASE_URL}/api/online-flights/save-booking`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          flight: flight,
-          bookingParams: bookingParams,
-          tripType: selectedTripType,
-          bookingTokenId: bookingTokenId,
-          fareQuoteData: fareQuoteData,
-          totalAmount: totalAmount,
-          passengers: {
-            adults: adults,
-            children: children,
-            infants: infants
-          }
-        })
-      });
-
-      const saveResult = await saveResponse.json();
-      
-      if (!saveResult.success) {
-        throw new Error('Failed to create booking record. Please try again.');
-      }
-
-      const bookingId = saveResult.bookingId;
-      console.log('Booking saved with ID:', bookingId);
-      
-      // Step 2: Create flight booking data for checkout
-      const flightBookingData = {
-        id: bookingId,
-        type: 'flight',
-        title: `${flight.airline_name} - ${flight.flight_number}`,
-        description: `${flight.dep_city_name} to ${flight.arr_city_name}`,
-        departure: {
-          city: flight.dep_city_name,
-          airport: flight.dep_airport_code,
-          time: flight.dep_time,
-          date: flight.onward_date,
-          terminal: flight.dep_terminal_no
-        },
-        arrival: {
-          city: flight.arr_city_name,
-          airport: flight.arr_airport_code,
-          time: flight.arr_time,
-          date: flight.arr_date,
-          terminal: flight.arr_terminal_no
-        },
-        flightNumber: flight.flight_number,
-        airline: flight.airline_name,
-        duration: flight.duration,
-        total_amount: totalAmount,
-        total_amount_value: totalAmount,
-        price: `₹${totalAmount.toLocaleString()}`,
-        priceValue: totalAmount,
-        passengers: {
-          adults: adults,
-          children: children,
-          infants: infants
-        },
-        booking_token_id: bookingTokenId,
-        static_value: flight.static,
-        trip_type: selectedTripType,
-        return_flight: isRoundTripFlight(flight) ? flight.return_flight_data : null
-      };
-
-      // Add return flight details if round trip
-      if (isRoundTripFlight(flight) && flight.return_flight_data) {
-        flightBookingData.return_departure = {
-          city: flight.return_flight_data.return_dep_city_name,
-          airport: flight.return_flight_data.return_dep_airport_code,
-          time: flight.return_flight_data.return_dep_time,
-          date: flight.return_flight_data.return_dep_date,
-          terminal: flight.return_flight_data.return_dep_terminal_no
-        };
-        flightBookingData.return_arrival = {
-          city: flight.return_flight_data.return_arr_city_name,
-          airport: flight.return_flight_data.return_arr_airport_code,
-          time: flight.return_flight_data.return_arr_time,
-          date: flight.return_flight_data.return_arr_date,
-          terminal: flight.return_flight_data.return_arr_terminal_no
-        };
-        flightBookingData.return_duration = flight.return_flight_data.return_trip_duration;
-      }
-
-      // Step 3: Store in localStorage for checkout page
-      localStorage.setItem('flightBooking', JSON.stringify(flightBookingData));
-      sessionStorage.setItem('currentFlightBookingId', bookingId.toString());
-
-      // Step 4: Navigate to checkout page with flight data
-      navigate('/checkoutflights', { 
-        state: { 
-          tour: flightBookingData, // Using same structure as checkout expects
-          source: 'flight-booking',
-          bookingId: bookingId
-        } 
-      });
-
-    } catch (error) {
-      console.error('Error processing payment:', error);
-      alert(`Payment initialization failed: ${error.message || 'Please try again'}`);
-    } finally {
-      setPaymentProcessing(false);
-    }
+  const handleBookFlight = (flight: FlightSearchResult | RoundTripFlightSearchResult) => {
+    fetchFareQuoteAndBook(flight);
   };
 
-  // MODIFIED: Handle Book Flight with Fare Quote and Payment
- // In FlightSearchRoundTrip.tsx - Update the handleBookFlight function
-
-// MODIFIED: Handle Book Flight - Navigate to checkout with flight data
-const handleBookFlight = async (flight: FlightSearchResult | RoundTripFlightSearchResult) => {
-  try {
-    setPaymentProcessing(true);
-    
-    console.log('=========================================');
-    console.log('FARE QUOTE REQUEST');
-    console.log('Fetching fare quote for flight:', {
-      id: flight.id,
-      airline: flight.airline_name,
-      flightNumber: flight.flight_number,
-      onwardDate: flight.onward_date,
-      returnDate: isRoundTripFlight(flight) ? selectedReturnDate : undefined,
-      staticValue: flight.static,
-      adultChildren: adults + children,
-      infant: infants
-    });
-    
-    const fareQuoteResponse = await flightApiService.getFareQuote({
-      id: flight.id,
-      onwardDate: flight.onward_date,
-      returnDate: isRoundTripFlight(flight) ? selectedReturnDate : undefined,
-      staticValue: flight.static,
-      adultChildren: adults + children,
-      infant: infants
-    });
-
-    if (fareQuoteResponse.errorCode === 0) {
-      console.log('Fare quote data:', fareQuoteResponse.data);
-      console.log('Total payable price:', fareQuoteResponse.data.total_payable_price);
+  const fetchFareQuoteAndBook = async (flight: FlightSearchResult | RoundTripFlightSearchResult) => {
+    try {
+      setLoading(true);
       
-      // Prepare flight booking data for checkout
-      const flightBookingData = {
+      console.log('=========================================');
+      console.log('FARE QUOTE REQUEST');
+      console.log('Fetching fare quote for flight:', {
         id: flight.id,
-        type: 'flight',
-        title: `${flight.airline_name} - ${flight.flight_number}`,
-        description: `${flight.dep_city_name} to ${flight.arr_city_name}`,
-        code: `FL${Date.now()}`,
-        duration: flight.duration,
-        locations: `${flight.dep_city_name} → ${flight.arr_city_name}`,
-        
-        // Onward Flight Details
-        departure: {
-          city: flight.dep_city_name,
-          airport: flight.dep_airport_code,
-          time: flight.dep_time,
-          date: flight.onward_date,
-          terminal: flight.dep_terminal_no || 'N/A',
-          city_code: flight.dep_city_code
-        },
-        arrival: {
-          city: flight.arr_city_name,
-          airport: flight.arr_airport_code,
-          time: flight.arr_time,
-          date: flight.arr_date,
-          terminal: flight.arr_terminal_no || 'N/A',
-          city_code: flight.arr_city_code
-        },
-        flightNumber: flight.flight_number,
         airline: flight.airline_name,
-        airline_code: flight.airline_code,
-        
-        // Price details
-        total_amount: fareQuoteResponse.data.total_payable_price,
-        total_amount_value: fareQuoteResponse.data.total_payable_price,
-        price: `₹${fareQuoteResponse.data.total_payable_price.toLocaleString()}`,
-        priceValue: fareQuoteResponse.data.total_payable_price,
-        per_adult_child_price: flight.per_adult_child_price,
-        per_infant_price: flight.per_infant_price,
-        
-        // Passenger counts
-        passengers: {
-          adults: adults,
-          children: children,
-          infants: infants
-        },
-        total_passengers: adults + children + infants,
-        adults: adults,
-        children: children,
-        infants: infants,
-        
-        // Baggage
-        check_in_baggage_adult: flight.check_in_baggage_adult,
-        check_in_baggage_children: flight.check_in_baggage_children,
-        check_in_baggage_infant: flight.check_in_baggage_infant,
-        cabin_baggage_adult: flight.cabin_baggage_adult,
-        cabin_baggage_children: flight.cabin_baggage_children,
-        cabin_baggage_infant: flight.cabin_baggage_infant,
-        
-        // Booking token
-        booking_token_id: bookingTokenId,
-        static_value: flight.static,
-        trip_type: selectedTripType,
-        available_seats: flight.available_seats,
-        
-        // Stop details
-        stop_data: flight.stop_data || [],
-        number_of_stops: flight.no_of_stop || 0,
-        
-        // International flight
-        international_flight_status: flight.international_flight_staus || 0
-      };
-
-      // Add return flight details if round trip
-      if (isRoundTripFlight(flight) && flight.return_flight_data) {
-        flightBookingData.return_flight = {
-          airline_name: flight.return_flight_data.return_airline_name,
-          flight_number: flight.return_flight_data.return_flight_number,
-          airline_code: flight.return_flight_data.return_airline_code,
-          departure: {
-            city: flight.return_flight_data.return_dep_city_name,
-            airport: flight.return_flight_data.return_dep_airport_code,
-            time: flight.return_flight_data.return_dep_time,
-            date: flight.return_flight_data.return_dep_date,
-            terminal: flight.return_flight_data.return_dep_terminal_no,
-            city_code: flight.return_flight_data.return_dep_city_code
-          },
-          arrival: {
-            city: flight.return_flight_data.return_arr_city_name,
-            airport: flight.return_flight_data.return_arr_airport_code,
-            time: flight.return_flight_data.return_arr_time,
-            date: flight.return_flight_data.return_arr_date,
-            terminal: flight.return_flight_data.return_arr_terminal_no,
-            city_code: flight.return_flight_data.return_arr_city_code
-          },
-          duration: flight.return_flight_data.return_trip_duration,
-          number_of_stops: flight.return_no_of_stop || 0,
-          stop_data: flight.return_stop_data || []
-        };
-        
-        flightBookingData.return_departure = flightBookingData.return_flight.departure;
-        flightBookingData.return_arrival = flightBookingData.return_flight.arrival;
-        flightBookingData.return_duration = flightBookingData.return_flight.duration;
-      }
-
-      // Store in localStorage for checkout page
-      localStorage.setItem('flightBooking', JSON.stringify(flightBookingData));
+        flightNumber: flight.flight_number,
+        onwardDate: flight.onward_date,
+        returnDate: isRoundTripFlight(flight) ? selectedReturnDate : undefined,
+        staticValue: flight.static,
+        adultChildren: adults + children,
+        infant: infants
+      });
+      console.log('API Endpoint: getFareQuote');
+      console.log('Request Body:', {
+        id: flight.id,
+        onwardDate: flight.onward_date,
+        returnDate: isRoundTripFlight(flight) ? selectedReturnDate : undefined,
+        staticValue: flight.static,
+        adultChildren: adults + children,
+        infant: infants
+      });
       
-      // Navigate to checkout page with flight data
-      navigate('/checkoutflights', { 
-        state: { 
-          tour: flightBookingData,
-          source: 'flight-booking'
-        } 
+      const fareQuoteResponse = await flightApiService.getFareQuote({
+        id: flight.id,
+        onwardDate: flight.onward_date,
+        returnDate: isRoundTripFlight(flight) ? selectedReturnDate : undefined,
+        staticValue: flight.static,
+        adultChildren: adults + children,
+        infant: infants
       });
 
-    } else {
-      throw new Error(fareQuoteResponse.errorMessage || 'Error fetching fare quote');
-    }
-  } catch (error) {
-    console.error('Error fetching fare quote:', error);
-    alert('Error preparing booking. Please try again.');
-  } finally {
-    setPaymentProcessing(false);
-  }
-};
+      console.log('FARE QUOTE RESPONSE');
+      console.log('Full fare quote response:', fareQuoteResponse);
+      console.log('Error code:', fareQuoteResponse.errorCode);
+      
+      if (fareQuoteResponse.errorCode === 0) {
+        console.log('Fare quote data:', fareQuoteResponse.data);
+        console.log('Total payable price:', fareQuoteResponse.data.total_payable_price);
+        
+        const bookingParams = {
+          flight: flight,
+          onwardDate: flight.onward_date,
+          returnDate: isRoundTripFlight(flight) ? selectedReturnDate : '',
+          staticValue: flight.static,
+          bookingTokenId: bookingTokenId,
+          totalAmount: fareQuoteResponse.data.total_payable_price,
+          adults: adults,
+          children: children,
+          infants: infants,
+          depCityCode: flight.dep_city_code,
+          arrCityCode: flight.arr_city_code,
+          availableSeats: flight.available_seats
+        };
 
+        console.log('Booking params prepared:', bookingParams);
+        console.log('=========================================');
+
+        if (onBookFlight) {
+          onBookFlight(flight, bookingParams);
+        } else {
+          alert('Booking functionality not available');
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching fare quote:', error);
+      if (error.response) {
+        console.error('Error response data:', error.response.data);
+        console.error('Error response status:', error.response.status);
+      }
+      alert('Error preparing booking. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const renderFlightCard = (flight: FlightSearchResult | RoundTripFlightSearchResult, index: number) => (
     <div key={flight.id || index} className="ffc-flight-card">
@@ -839,14 +630,9 @@ const handleBookFlight = async (flight: FlightSearchResult | RoundTripFlightSear
           <button 
             className="ffc-book-btn"
             onClick={() => handleBookFlight(flight)}
-            disabled={paymentProcessing}
+            disabled={loading}
           >
-            {paymentProcessing ? (
-              <>
-                <span className="ffc-spinner"></span>
-                Processing...
-              </>
-            ) : 'Book Now'}
+            {loading ? 'Preparing...' : 'Book Now'}
           </button>
         </div>
       </div>
@@ -862,14 +648,14 @@ const handleBookFlight = async (flight: FlightSearchResult | RoundTripFlightSear
         <button
           className={selectedTripType === 0 ? 'ffc-active' : ''}
           onClick={() => setSelectedTripType(0)}
-          disabled={loading || paymentProcessing}
+          disabled={loading}
         >
           One Way
         </button>
         <button
           className={selectedTripType === 1 ? 'ffc-active' : ''}
           onClick={() => setSelectedTripType(1)}
-          disabled={loading || paymentProcessing}
+          disabled={loading}
         >
           Round Trip
         </button>
@@ -882,7 +668,7 @@ const handleBookFlight = async (flight: FlightSearchResult | RoundTripFlightSear
           <select 
             value={selectedDeparture} 
             onChange={(e) => handleDepartureChange(e.target.value)}
-            disabled={loading || paymentProcessing}
+            disabled={loading}
           >
             <option value="">Select Departure City</option>
             {departureCities.map(city => (
@@ -898,7 +684,7 @@ const handleBookFlight = async (flight: FlightSearchResult | RoundTripFlightSear
           <select 
             value={selectedArrival} 
             onChange={(e) => handleArrivalChange(e.target.value)}
-            disabled={!selectedDeparture || loading || paymentProcessing}
+            disabled={!selectedDeparture || loading}
           >
             <option value="">Select Arrival City</option>
             {arrivalCities.map(city => (
@@ -914,7 +700,7 @@ const handleBookFlight = async (flight: FlightSearchResult | RoundTripFlightSear
           <select 
             value={selectedOnwardDate} 
             onChange={(e) => handleOnwardDateChange(e.target.value)}
-            disabled={!selectedArrival || loading || paymentProcessing}
+            disabled={!selectedArrival || loading}
           >
             <option value="">Select Date</option>
             {onwardDates.map((date, index) => (
@@ -931,7 +717,7 @@ const handleBookFlight = async (flight: FlightSearchResult | RoundTripFlightSear
             <select 
               value={selectedReturnDate} 
               onChange={(e) => setSelectedReturnDate(e.target.value)}
-              disabled={!selectedOnwardDate || loading || paymentProcessing || returnDates.length === 0}
+              disabled={!selectedOnwardDate || loading || returnDates.length === 0}
             >
               <option value="">Select Return Date</option>
               {returnDates.map((date, index) => (
@@ -955,7 +741,7 @@ const handleBookFlight = async (flight: FlightSearchResult | RoundTripFlightSear
               onChange={(e) => setAdults(parseInt(e.target.value) || 1)}
               min="1"
               max="9"
-              disabled={loading || paymentProcessing}
+              disabled={loading}
             />
           </div>
 
@@ -967,7 +753,7 @@ const handleBookFlight = async (flight: FlightSearchResult | RoundTripFlightSear
               onChange={(e) => setChildren(parseInt(e.target.value) || 0)}
               min="0"
               max="9"
-              disabled={loading || paymentProcessing}
+              disabled={loading}
             />
           </div>
 
@@ -979,14 +765,14 @@ const handleBookFlight = async (flight: FlightSearchResult | RoundTripFlightSear
               onChange={(e) => setInfants(parseInt(e.target.value) || 0)}
               min="0"
               max="9"
-              disabled={loading || paymentProcessing}
+              disabled={loading}
             />
           </div>
         </div>
 
         <button 
           onClick={handleSearch} 
-          disabled={loading || paymentProcessing || !selectedDeparture || !selectedArrival || !selectedOnwardDate || (selectedTripType === 1 && !selectedReturnDate)}
+          disabled={loading || !selectedDeparture || !selectedArrival || !selectedOnwardDate || (selectedTripType === 1 && !selectedReturnDate)}
           className="ffc-search-button"
         >
           {loading ? (
@@ -999,15 +785,15 @@ const handleBookFlight = async (flight: FlightSearchResult | RoundTripFlightSear
       </div>
 
       {/* Loading Indicator */}
-      {(loading || paymentProcessing) && (
+      {loading && (
         <div className="ffc-loading-overlay">
           <div className="ffc-spinner-large"></div>
-          <p>{paymentProcessing ? 'Processing payment...' : 'Loading flight information...'}</p>
+          <p>Loading flight information...</p>
         </div>
       )}
 
       {/* Search Results */}
-      {searchResults.length > 0 && !loading && !paymentProcessing && (
+      {searchResults.length > 0 && !loading && (
         <div className="ffc-search-results">
           <h3>Available Flights ({searchResults.length})</h3>
           <div className="ffc-flights-list">
@@ -1017,7 +803,7 @@ const handleBookFlight = async (flight: FlightSearchResult | RoundTripFlightSear
       )}
 
       {/* No Results Message */}
-      {searchResults.length === 0 && !loading && !paymentProcessing && selectedDeparture && selectedArrival && selectedOnwardDate && (
+      {searchResults.length === 0 && !loading && selectedDeparture && selectedArrival && selectedOnwardDate && (
         <div className="ffc-no-results">
           <p>No flights found for the selected criteria. Please try different dates or cities.</p>
         </div>
