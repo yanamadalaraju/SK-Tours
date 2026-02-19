@@ -38,7 +38,7 @@ import IntlSenior_tour from "./pages/Senior_tour/InternationalSeniors_tour";
 
 import Terms_conditions from "./pages/Terms_Conditions/Terms_conditions";
 import Privacy_policy from "./pages/Privacy_policy/Privacy_policy";
-import CheckOutPage from "./pages/CheckOutPage"
+import CheckoutPageFlights from "./pages/CheckOutPageFlights"
 import CheckoutPage from "./pages/CheckOutPage";
 import PaymentResult from "./pages/PaymentResult";
 import Alert from "./pages/Alertfolder/Alert";
@@ -97,6 +97,7 @@ const App = () => (
 <Route path="/intl-tours-packages/:state" element={<IntlTourPackages />} />
 
 <Route path="/checkout" element={<CheckoutPage />} />
+<Route path="/checkoutflights" element={<CheckoutPageFlights />} />
 <Route path="/payment-result" element={<PaymentResult />} />
           <Route path="/about" element={<AboutPage />} />
 <Route path="/tour/:tourId" element={<TourDetails />} />
