@@ -81,6 +81,10 @@ import Gatewaycheckbox from "./pages/Weekend_Gateway/Gatewaycheckbox/Gatewaychec
 import Weekendcard from "./pages/Weekend_Gateway/Weekendcard/Weekendcard";
 import Weekendbookingcard from "./pages/Weekend_Gateway/Weekendbookingcard/Weekendbookingcard";
 import WeekendForm from "./pages/Weekend_Gateway/WeekendForm/WeekendForm";
+// In your App.js or routing file, add the route:
+
+import FlightPaymentResult from './pages/FlightsPaymentStatus';
+
 
 const queryClient = new QueryClient();
 
@@ -158,6 +162,10 @@ const App = () => (
 <Route path="/venuephotos" element={<VenuePhotos />} />
 <Route path="/micgallery" element={<MiceGallery />} />
 <Route path="/micupcomingevents" element={<MiceUpcomingEvents />}/>
+
+
+// Add this route
+<Route path="/flight-payment-result" element={<FlightPaymentResult />} />
 
 
 <Route path="/bungalow" element={<Bungalow />} />

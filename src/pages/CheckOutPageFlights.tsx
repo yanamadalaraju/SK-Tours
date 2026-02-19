@@ -35,22 +35,22 @@ interface PassengerDetails {
 const CheckoutPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   // Get tour data from navigation state or localStorage
   const [tourData, setTourData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  
+
   // State for payment amount
   const [showCustomAmountModal, setShowCustomAmountModal] = useState(false);
   const [customPaymentAmount, setCustomPaymentAmount] = useState('');
   const [paymentType, setPaymentType] = useState('full'); // 'full', 'custom', or 'partial'
   const [isPartialPayment, setIsPartialPayment] = useState(false);
-  
+
   // Passenger details state (from SeatSelection)
   const [passengerDetails, setPassengerDetails] = useState<PassengerDetails[]>([]);
   const [showPassengerDetails, setShowPassengerDetails] = useState(true);
-  
+
   // Form state
   const [formData, setFormData] = useState({
     firstName: '',
@@ -71,26 +71,26 @@ const CheckoutPage = () => {
     if (location.state?.tour) {
       const tour = location.state.tour;
       setTourData(tour);
-      
+
       // Initialize with full amount by default
       const totalTourCost = tour.total_price_value || tour.priceValue || parsePrice(tour.price);
       setCustomPaymentAmount(totalTourCost.toString());
       setPaymentType('full');
-      
+
       // Initialize passenger details based on tour passenger count
       initializePassengerDetails(tour);
-      
+
       setLoading(false);
     } else {
       const savedTour = localStorage.getItem('selectedTour');
       if (savedTour) {
         const parsedTour = JSON.parse(savedTour);
         setTourData(parsedTour);
-        
+
         const totalTourCost = parsedTour.total_price_value || parsedTour.priceValue || parsePrice(parsedTour.price);
         setCustomPaymentAmount(totalTourCost.toString());
         setPaymentType('full');
-        
+
         // Initialize passenger details based on parsed tour
         initializePassengerDetails(parsedTour);
       }
@@ -104,10 +104,10 @@ const CheckoutPage = () => {
     const adults = tour.adults || 1;
     const children = tour.children || 0;
     const infants = tour.infants || 0;
-    
+
     const details: PassengerDetails[] = [];
     let id = 1;
-    
+
     // Add adults
     for (let i = 0; i < adults; i++) {
       details.push({
@@ -125,7 +125,7 @@ const CheckoutPage = () => {
         passportExpireDate: ''
       });
     }
-    
+
     // Add children
     for (let i = 0; i < children; i++) {
       details.push({
@@ -143,7 +143,7 @@ const CheckoutPage = () => {
         passportExpireDate: ''
       });
     }
-    
+
     // Add infants
     for (let i = 0; i < infants; i++) {
       details.push({
@@ -163,23 +163,23 @@ const CheckoutPage = () => {
         passportExpireDate: ''
       });
     }
-    
+
     setPassengerDetails(details);
   };
 
   // Handle passenger input change
   const handlePassengerInputChange = (passengerId: number, field: keyof PassengerDetails, value: string | number) => {
-    setPassengerDetails(prev => 
-      prev.map(passenger => 
-        passenger.id === passengerId 
-          ? { 
-              ...passenger, 
-              [field]: value,
-              // Update name if firstName or lastName changes
-              ...(field === 'firstName' || field === 'lastName' 
-                ? { name: `${field === 'firstName' ? value : passenger.firstName} ${field === 'lastName' ? value : passenger.lastName}`.trim() }
-                : {})
-            }
+    setPassengerDetails(prev =>
+      prev.map(passenger =>
+        passenger.id === passengerId
+          ? {
+            ...passenger,
+            [field]: value,
+            // Update name if firstName or lastName changes
+            ...(field === 'firstName' || field === 'lastName'
+              ? { name: `${field === 'firstName' ? value : passenger.firstName} ${field === 'lastName' ? value : passenger.lastName}`.trim() }
+              : {})
+          }
           : passenger
       )
     );
@@ -219,11 +219,11 @@ const CheckoutPage = () => {
   // Handle custom amount input
   const handleCustomAmountChange = (value) => {
     setCustomPaymentAmount(value);
-    
+
     if (tourData) {
       const totalTourCost = getTotalTourCost();
       const enteredAmount = parseFloat(value) || 0;
-      
+
       // Determine payment type based on amount
       if (enteredAmount >= totalTourCost) {
         setPaymentType('full');
@@ -244,38 +244,38 @@ const CheckoutPage = () => {
   // Get current payment amount
   const getCurrentPaymentAmount = () => {
     if (!tourData) return 0;
-    
+
     if (paymentType === 'custom' || paymentType === 'partial') {
       return Math.round(parseFloat(customPaymentAmount) || 0);
     }
-    
+
     return getTotalTourCost();
   };
 
   // Validate custom amount
   const validateCustomAmount = () => {
     if (!tourData) return false;
-    
+
     const totalTourCost = getTotalTourCost();
     const minAmount = 1; // Minimum ₹1
     const maxAmount = totalTourCost;
     const enteredAmount = parseFloat(customPaymentAmount);
-    
+
     if (isNaN(enteredAmount)) {
       alert('Please enter a valid amount');
       return false;
     }
-    
+
     if (enteredAmount < minAmount) {
       alert(`Minimum payment amount is ${formatPrice(minAmount)}`);
       return false;
     }
-    
+
     if (enteredAmount > maxAmount) {
       alert(`Amount cannot exceed total tour cost of ${formatPrice(maxAmount)}`);
       return false;
     }
-    
+
     return true;
   };
 
@@ -284,7 +284,7 @@ const CheckoutPage = () => {
     if (validateCustomAmount()) {
       const totalTourCost = getTotalTourCost();
       const enteredAmount = parseFloat(customPaymentAmount);
-      
+
       if (enteredAmount >= totalTourCost) {
         setPaymentType('full');
         setIsPartialPayment(false);
@@ -292,7 +292,7 @@ const CheckoutPage = () => {
         setPaymentType('partial');
         setIsPartialPayment(true);
       }
-      
+
       setShowCustomAmountModal(false);
     }
   };
@@ -315,14 +315,14 @@ const CheckoutPage = () => {
   // Parse price from string to number
   const parsePrice = (priceString) => {
     if (!priceString) return 0;
-    
+
     // Remove currency symbols, commas, and spaces
     const numericString = priceString
       .toString()
       .replace(/[₹$,]/g, '')
       .replace(/\s+/g, '')
       .trim();
-    
+
     return parseFloat(numericString) || 0;
   };
 
@@ -338,282 +338,341 @@ const CheckoutPage = () => {
   };
 
   // Handle payment
- // src/pages/CheckoutPage.jsx - Updated handlePhonePePayment function
+  // src/pages/CheckoutPage.jsx - Updated handlePhonePePayment function
 
-const handlePhonePePayment = async (e) => {
-  e.preventDefault();
-  setSubmitting(true);
-  
-  // Validate required fields
-  const requiredFields = ['firstName', 'lastName', 'email', 'phone', 'address', 'city', 'state', 'pincode'];
-  const missingFields = requiredFields.filter(field => !formData[field]);
-  
-  if (missingFields.length > 0) {
-    alert(`Please fill in all required fields: ${missingFields.join(', ')}`);
-    setSubmitting(false);
-    return;
-  }
+  // src/pages/CheckoutPage.jsx - Updated handlePhonePePayment function with transaction saving
 
-  if (!formData.termsAccepted) {
-    alert('Please accept the terms and conditions');
-    setSubmitting(false);
-    return;
-  }
+  // src/pages/CheckoutPage.jsx - Updated handlePhonePePayment function with correct redirect
 
-  // Validate passenger details
-  if (!validatePassengerDetails()) {
-    setSubmitting(false);
-    return;
-  }
+  const handlePhonePePayment = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
 
-  // Validate phone number
-  const phoneRegex = /^[6-9]\d{9}$/;
-  if (!phoneRegex.test(formData.phone.replace(/\D/g, ''))) {
-    alert('Please enter a valid 10-digit Indian phone number');
-    setSubmitting(false);
-    return;
-  }
+    // Validate required fields
+    const requiredFields = ['firstName', 'lastName', 'email', 'phone', 'address', 'city', 'state', 'pincode'];
+    const missingFields = requiredFields.filter(field => !formData[field]);
 
-  // Validate email
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(formData.email)) {
-    alert('Please enter a valid email address');
-    setSubmitting(false);
-    return;
-  }
-
-  // Get current payment amount
-  const totalTourCost = getTotalTourCost();
-  let paymentAmount = getCurrentPaymentAmount();
-  const paymentPercentage = calculatePercentage(paymentAmount);
-  const isFullPayment = paymentAmount >= totalTourCost;
-
-  if (paymentAmount <= 0) {
-    alert('Please enter a valid payment amount');
-    setSubmitting(false);
-    return;
-  }
-
-  try {
-    const paymentDescription = isFullPayment 
-      ? `Full Payment for ${tourData.code || tourData.title}`
-      : `${paymentPercentage}% Partial Payment for ${tourData.code || tourData.title}`;
-    
-    console.log('Payment processing:', {
-      amount: paymentAmount,
-      totalTourCost: totalTourCost,
-      paymentPercentage: paymentPercentage,
-      isFullPayment: isFullPayment,
-      description: paymentDescription,
-      paymentType: paymentType,
-      passengerDetails: passengerDetails
-    });
-
-    // Prepare passenger details for API
-    const passengerDetailsForAPI = passengerDetails.map(p => ({
-      id: p.id,
-      type: p.type,
-      gender: p.gender,
-      first_name: p.firstName,
-      middle_name: p.middleName || '',
-      last_name: p.lastName,
-      age: p.age,
-      dob: p.dob,
-      passport_no: p.passportNo,
-      passport_expire_date: p.passportExpireDate,
-      requires_seat: p.requiresSeat,
-      is_infant_on_lap: p.isInfantOnLap || false,
-      lap_of_passenger_id: p.lapOfPassengerId || null
-    }));
-
-    // Prepare contact details
-    const contactDetails = {
-      name: `${formData.firstName} ${formData.lastName}`.trim(),
-      email: formData.email.trim(),
-      phone: formData.phone.trim(),
-      address: formData.address.trim(),
-      city: formData.city.trim(),
-      state: formData.state.trim(),
-      pincode: formData.pincode.trim(),
-      country: formData.country.trim()
-    };
-
-    // Prepare flight data for saving
-    const flightData = {
-      flight: {
-        id: tourData.id,
-        airline_name: tourData.airline,
-        flight_number: tourData.flightNumber,
-        airline_code: tourData.airline_code,
-        
-        // Onward flight
-        dep_city_code: tourData.departure?.city_code,
-        dep_city_name: tourData.departure?.city,
-        dep_airport_code: tourData.departure?.airport,
-        dep_airport_name: tourData.departure?.airport,
-        dep_terminal_no: tourData.departure?.terminal,
-        dep_time: tourData.departure?.time,
-        onward_date: tourData.departure?.date,
-        
-        arr_city_code: tourData.arrival?.city_code,
-        arr_city_name: tourData.arrival?.city,
-        arr_airport_code: tourData.arrival?.airport,
-        arr_airport_name: tourData.arrival?.airport,
-        arr_terminal_no: tourData.arrival?.terminal,
-        arr_time: tourData.arrival?.time,
-        arr_date: tourData.arrival?.date,
-        
-        duration: tourData.duration,
-        no_of_stop: tourData.number_of_stops || 0,
-        stop_data: tourData.stop_data || [],
-        
-        // Return flight (if round trip)
-        return_flight_data: tourData.return_flight ? {
-          return_airline_name: tourData.return_flight.airline_name,
-          return_flight_number: tourData.return_flight.flight_number,
-          return_airline_code: tourData.return_flight.airline_code,
-          return_dep_city_code: tourData.return_flight.departure?.city_code,
-          return_dep_city_name: tourData.return_flight.departure?.city,
-          return_dep_airport_code: tourData.return_flight.departure?.airport,
-          return_dep_airport_name: tourData.return_flight.departure?.airport,
-          return_dep_terminal_no: tourData.return_flight.departure?.terminal,
-          return_dep_time: tourData.return_flight.departure?.time,
-          return_dep_date: tourData.return_flight.departure?.date,
-          return_arr_city_code: tourData.return_flight.arrival?.city_code,
-          return_arr_city_name: tourData.return_flight.arrival?.city,
-          return_arr_airport_code: tourData.return_flight.arrival?.airport,
-          return_arr_airport_name: tourData.return_flight.arrival?.airport,
-          return_arr_terminal_no: tourData.return_flight.arrival?.terminal,
-          return_arr_time: tourData.return_flight.arrival?.time,
-          return_arr_date: tourData.return_flight.arrival?.date,
-          return_trip_duration: tourData.return_flight.duration,
-          return_no_of_stop: tourData.return_flight.number_of_stops || 0,
-          return_stop_data: tourData.return_flight.stop_data || []
-        } : null,
-        
-        // International flight
-        international_flight_staus: tourData.international_flight_status || 0,
-        
-        // Baggage
-        check_in_baggage_adult: tourData.check_in_baggage_adult,
-        check_in_baggage_children: tourData.check_in_baggage_children,
-        check_in_baggage_infant: tourData.check_in_baggage_infant,
-        cabin_baggage_adult: tourData.cabin_baggage_adult,
-        cabin_baggage_children: tourData.cabin_baggage_children,
-        cabin_baggage_infant: tourData.cabin_baggage_infant,
-        
-        // Pricing
-        total_payable_price: tourData.total_amount_value,
-        per_adult_child_price: tourData.per_adult_child_price,
-        per_infant_price: tourData.per_infant_price,
-        
-        // Seats
-        available_seats: tourData.available_seats,
-        
-        // Static
-        static: tourData.static_value
-      },
-      
-      bookingParams: {
-        onwardDate: tourData.departure?.date,
-        returnDate: tourData.return_departure?.date || null,
-        adults: tourData.adults || 1,
-        children: tourData.children || 0,
-        infants: tourData.infants || 0,
-        totalAmount: paymentAmount,
-        staticValue: tourData.static_value
-      },
-      
-      tripType: tourData.trip_type || 0,
-      bookingTokenId: tourData.booking_token_id,
-      
-      passengerDetails: passengerDetailsForAPI,
-      contactDetails: contactDetails
-    };
-
-    // Step 1: Save booking to database
-    console.log('Saving booking to database...');
-    const saveResponse = await axios.post(
-      `${BASE_URL}/api/online-flights/save-booking`,
-      flightData
-    );
-
-    if (!saveResponse.data.success) {
-      throw new Error('Failed to create booking record. Please try again.');
+    if (missingFields.length > 0) {
+      alert(`Please fill in all required fields: ${missingFields.join(', ')}`);
+      setSubmitting(false);
+      return;
     }
 
-    const bookingId = saveResponse.data.bookingId;
-    console.log('Booking saved with ID:', bookingId);
+    if (!formData.termsAccepted) {
+      alert('Please accept the terms and conditions');
+      setSubmitting(false);
+      return;
+    }
 
-    // Step 2: Create PhonePe order
-    const merchantOrderId = `FLT_${bookingId}_${Date.now()}`;
-    
-    const paymentResponse = await axios.post(
-      `${BASE_URL}/api/phonepe/orders`,
-      {
-        action: 'create-order',
+    // Validate passenger details
+    if (!validatePassengerDetails()) {
+      setSubmitting(false);
+      return;
+    }
+
+    // Validate phone number
+    const phoneRegex = /^[6-9]\d{9}$/;
+    if (!phoneRegex.test(formData.phone.replace(/\D/g, ''))) {
+      alert('Please enter a valid 10-digit Indian phone number');
+      setSubmitting(false);
+      return;
+    }
+
+    // Validate email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      alert('Please enter a valid email address');
+      setSubmitting(false);
+      return;
+    }
+
+    // Get current payment amount
+    const totalTourCost = getTotalTourCost();
+    let paymentAmount = getCurrentPaymentAmount();
+    const paymentPercentage = calculatePercentage(paymentAmount);
+    const isFullPayment = paymentAmount >= totalTourCost;
+
+    if (paymentAmount <= 0) {
+      alert('Please enter a valid payment amount');
+      setSubmitting(false);
+      return;
+    }
+
+    try {
+      const paymentDescription = isFullPayment
+        ? `Full Payment for ${tourData.code || tourData.title}`
+        : `${paymentPercentage}% Partial Payment for ${tourData.code || tourData.title}`;
+
+      console.log('Payment processing:', {
         amount: paymentAmount,
-        currency: "INR",
-        environment: "test",
-        merchantOrderId: merchantOrderId,
-        customerDetails: {
-          name: contactDetails.name,
-          email: contactDetails.email,
-          phone: contactDetails.phone,
-          booking_id: bookingId,
-          flight_number: tourData.flightNumber,
-          payment_type: isFullPayment ? 'full' : 'partial',
-          payment_percentage: paymentPercentage,
-          passenger_count: passengerDetails.length
-        }
-      }
-    );
+        totalTourCost: totalTourCost,
+        paymentPercentage: paymentPercentage,
+        isFullPayment: isFullPayment,
+        description: paymentDescription,
+        paymentType: paymentType,
+        passengerDetails: passengerDetails
+      });
 
-    if (paymentResponse.data.success) {
-      // Step 3: Update booking with reference ID
-      await axios.put(
-        `${BASE_URL}/api/online-flights/update-booking/${bookingId}`,
+      // Prepare passenger details for API
+      const passengerDetailsForAPI = passengerDetails.map(p => ({
+        id: p.id,
+        type: p.type,
+        gender: p.gender,
+        first_name: p.firstName,
+        middle_name: p.middleName || '',
+        last_name: p.lastName,
+        age: p.age,
+        dob: p.dob,
+        passport_no: p.passportNo,
+        passport_expire_date: p.passportExpireDate,
+        requires_seat: p.requiresSeat,
+        is_infant_on_lap: p.isInfantOnLap || false,
+        lap_of_passenger_id: p.lapOfPassengerId || null
+      }));
+
+      // Prepare contact details
+      const contactDetails = {
+        name: `${formData.firstName} ${formData.lastName}`.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
+        address: formData.address.trim(),
+        city: formData.city.trim(),
+        state: formData.state.trim(),
+        pincode: formData.pincode.trim(),
+        country: formData.country.trim()
+      };
+
+      // Prepare flight data for saving
+      const flightData = {
+        flight: {
+          id: tourData.id,
+          airline_name: tourData.airline,
+          flight_number: tourData.flightNumber,
+          airline_code: tourData.airline_code,
+
+          // Onward flight
+          dep_city_code: tourData.departure?.city_code,
+          dep_city_name: tourData.departure?.city,
+          dep_airport_code: tourData.departure?.airport,
+          dep_airport_name: tourData.departure?.airport,
+          dep_terminal_no: tourData.departure?.terminal,
+          dep_time: tourData.departure?.time,
+          onward_date: tourData.departure?.date,
+
+          arr_city_code: tourData.arrival?.city_code,
+          arr_city_name: tourData.arrival?.city,
+          arr_airport_code: tourData.arrival?.airport,
+          arr_airport_name: tourData.arrival?.airport,
+          arr_terminal_no: tourData.arrival?.terminal,
+          arr_time: tourData.arrival?.time,
+          arr_date: tourData.arrival?.date,
+
+          duration: tourData.duration,
+          no_of_stop: tourData.number_of_stops || 0,
+          stop_data: tourData.stop_data || [],
+
+          // Return flight (if round trip)
+          return_flight_data: tourData.return_flight ? {
+            return_airline_name: tourData.return_flight.airline_name,
+            return_flight_number: tourData.return_flight.flight_number,
+            return_airline_code: tourData.return_flight.airline_code,
+            return_dep_city_code: tourData.return_flight.departure?.city_code,
+            return_dep_city_name: tourData.return_flight.departure?.city,
+            return_dep_airport_code: tourData.return_flight.departure?.airport,
+            return_dep_airport_name: tourData.return_flight.departure?.airport,
+            return_dep_terminal_no: tourData.return_flight.departure?.terminal,
+            return_dep_time: tourData.return_flight.departure?.time,
+            return_dep_date: tourData.return_flight.departure?.date,
+            return_arr_city_code: tourData.return_flight.arrival?.city_code,
+            return_arr_city_name: tourData.return_flight.arrival?.city,
+            return_arr_airport_code: tourData.return_flight.arrival?.airport,
+            return_arr_airport_name: tourData.return_flight.arrival?.airport,
+            return_arr_terminal_no: tourData.return_flight.arrival?.terminal,
+            return_arr_time: tourData.return_flight.arrival?.time,
+            return_arr_date: tourData.return_flight.arrival?.date,
+            return_trip_duration: tourData.return_flight.duration,
+            return_no_of_stop: tourData.return_flight.number_of_stops || 0,
+            return_stop_data: tourData.return_flight.stop_data || []
+          } : null,
+
+          // International flight
+          international_flight_staus: tourData.international_flight_status || 0,
+
+          // Baggage
+          check_in_baggage_adult: tourData.check_in_baggage_adult,
+          check_in_baggage_children: tourData.check_in_baggage_children,
+          check_in_baggage_infant: tourData.check_in_baggage_infant,
+          cabin_baggage_adult: tourData.cabin_baggage_adult,
+          cabin_baggage_children: tourData.cabin_baggage_children,
+          cabin_baggage_infant: tourData.cabin_baggage_infant,
+
+          // Pricing
+          total_payable_price: tourData.total_amount_value,
+          per_adult_child_price: tourData.per_adult_child_price,
+          per_infant_price: tourData.per_infant_price,
+
+          // Seats
+          available_seats: tourData.available_seats,
+
+          // Static
+          static: tourData.static_value
+        },
+
+        bookingParams: {
+          onwardDate: tourData.departure?.date,
+          returnDate: tourData.return_departure?.date || null,
+          adults: tourData.adults || 1,
+          children: tourData.children || 0,
+          infants: tourData.infants || 0,
+          totalAmount: paymentAmount,
+          staticValue: tourData.static_value
+        },
+
+        tripType: tourData.trip_type || 0,
+        bookingTokenId: tourData.booking_token_id,
+
+        passengerDetails: passengerDetailsForAPI,
+        contactDetails: contactDetails
+      };
+
+      // Step 1: Save booking to database (onlineflights table)
+      console.log('Saving booking to onlineflights table...');
+      const saveResponse = await axios.post(
+        `${BASE_URL}/api/online-flights/save-booking`,
+        flightData
+      );
+
+      if (!saveResponse.data.success) {
+        throw new Error('Failed to create booking record. Please try again.');
+      }
+
+      const bookingId = saveResponse.data.bookingId;
+      console.log('Booking saved with ID:', bookingId);
+
+      // Step 2: Create PhonePe order with return URL pointing to your flight-payment-result page
+      const merchantOrderId = `FLT_${bookingId}_${Date.now()}`;
+
+      // Get the base URL of your application
+      const baseUrl = window.location.origin;
+      const redirectUrl = `${baseUrl}/flight-payment-result`;
+
+      const paymentResponse = await axios.post(
+        `${BASE_URL}/api/phonepe/orders`,
         {
-          referenceId: paymentResponse.data.merchantOrderId,
-          bookingStatus: 'Processing',
-          paymentStatus: 'Processing',
-          apiResponse: paymentResponse.data
+          action: 'create-order',
+          amount: paymentAmount,
+          currency: "INR",
+          environment: "test",
+          merchantOrderId: merchantOrderId,
+          redirectUrl: redirectUrl, // Add redirect URL here
+          customerDetails: {
+            name: contactDetails.name,
+            email: contactDetails.email,
+            phone: contactDetails.phone,
+            booking_id: bookingId,
+            flight_number: tourData.flightNumber,
+            payment_type: isFullPayment ? 'full' : 'partial',
+            payment_percentage: paymentPercentage,
+            passenger_count: passengerDetails.length
+          }
         }
       );
-      
-      // Save booking details to localStorage
-      const bookingData = {
-        booking_id: bookingId,
-        flight: flightData.flight,
-        customer: contactDetails,
-        passenger_details: passengerDetailsForAPI,
-        timestamp: new Date().toISOString(),
-        amount: paymentAmount,
-        total_tour_cost: totalTourCost,
-        payment_percentage: paymentPercentage,
-        is_full_payment: isFullPayment,
-        merchant_order_id: paymentResponse.data.merchantOrderId,
-        payment_type: isFullPayment ? 'full' : 'partial'
-      };
-      
-      localStorage.setItem('currentFlightBooking', JSON.stringify(bookingData));
-      localStorage.setItem('phonePeOrderId', paymentResponse.data.merchantOrderId);
-      localStorage.setItem('flightBookingId', bookingId);
-      
-      console.log('Redirecting to PhonePe:', paymentResponse.data.checkoutPageUrl);
-      
-      // Redirect to PhonePe payment page
-      window.location.href = paymentResponse.data.checkoutPageUrl;
-    } else {
-      throw new Error(paymentResponse.data.message || 'Failed to initialize payment. Please try again.');
-    }
-  } catch (error) {
-    console.error("Payment processing error:", error);
-    alert(`Payment failed: ${error.response?.data?.message || error.message || 'Please try again'}`);
-    setSubmitting(false);
-  }
-};
 
+      console.log("Payment details : ", paymentResponse);
+
+      if (paymentResponse.data.success) {
+        // Step 3: Update booking with reference ID in onlineflights table
+        await axios.put(
+          `${BASE_URL}/api/online-flights/update-booking/${bookingId}`,
+          {
+            referenceId: paymentResponse.data.merchantOrderId,
+            bookingStatus: 'Processing',
+            paymentStatus: 'Processing',
+            apiResponse: paymentResponse.data
+          }
+        );
+
+        // Step 4: Save transaction to online_flightbooking_transactions table IMMEDIATELY
+        console.log('Saving transaction to online_flightbooking_transactions table...');
+
+        // Prepare transaction data for online_flightbooking_transactions table
+        const transactionData = {
+          // user_id - storing phone number as user_id (converted to number)
+          user_id: formData.phone ? parseInt(formData.phone.replace(/\D/g, '')) || null : null,
+
+          // order_id - storing the booking token ID
+          order_id: tourData.booking_token_id || merchantOrderId,
+
+          // payment_id - storing the payment ID from PhonePe (merchantOrderId for now)
+          payment_id: paymentResponse.data.merchantOrderId,
+
+          // payment_amount - the amount being paid
+          payment_amount: paymentAmount,
+
+          // payment_method - always "PhonePe"
+          payment_method: "PhonePe",
+
+          // payment_status - "Processing" initially
+          payment_status: "Processing",
+
+          // email - customer email
+          email: formData.email,
+
+          // booking_id - reference to main booking (optional, but useful)
+          booking_id: bookingId
+        };
+
+        console.log("Saving transaction data:", transactionData);
+
+        // Save to online_flightbooking_transactions table
+        const transactionResponse = await axios.post(
+          `${BASE_URL}/api/flight-bookings/save-transaction`,
+          transactionData
+        );
+
+        if (transactionResponse.data.success) {
+          console.log("Transaction saved successfully:", transactionResponse.data);
+          // Store transaction ID in localStorage
+          if (transactionResponse.data.transactionId) {
+            localStorage.setItem('flightTransactionId', transactionResponse.data.transactionId);
+          }
+        } else {
+          console.error("Failed to save transaction:", transactionResponse.data.message);
+          // Don't throw error here - we still want to proceed with payment even if transaction save fails
+        }
+
+        // Save booking details to localStorage
+        const bookingData = {
+          booking_id: bookingId,
+          flight: flightData.flight,
+          customer: contactDetails,
+          passenger_details: passengerDetailsForAPI,
+          timestamp: new Date().toISOString(),
+          amount: paymentAmount,
+          total_tour_cost: totalTourCost,
+          payment_percentage: paymentPercentage,
+          is_full_payment: isFullPayment,
+          merchant_order_id: paymentResponse.data.merchantOrderId,
+          payment_type: isFullPayment ? 'full' : 'partial'
+        };
+
+        localStorage.setItem('currentFlightBooking', JSON.stringify(bookingData));
+        localStorage.setItem('phonePeOrderId', paymentResponse.data.merchantOrderId);
+        localStorage.setItem('flightBookingId', bookingId);
+
+        console.log('Redirecting to PhonePe:', paymentResponse.data.checkoutPageUrl);
+
+        // Redirect to PhonePe payment page
+        window.location.href = paymentResponse.data.checkoutPageUrl;
+      } else {
+        throw new Error(paymentResponse.data.message || 'Failed to initialize payment. Please try again.');
+      }
+    } catch (error) {
+      console.error("Payment processing error:", error);
+      alert(`Payment failed: ${error.response?.data?.message || error.message || 'Please try again'}`);
+      setSubmitting(false);
+    }
+  };
 
   // Loading and no-tour handling
   if (loading) {
@@ -633,8 +692,8 @@ const handlePhonePePayment = async (e) => {
         <div className="bg-white p-8 rounded-2xl shadow-lg text-center max-w-md">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">No Tour Selected</h2>
           <p className="text-gray-600 mb-6">Please select a tour to proceed with booking.</p>
-          <Button 
-            onClick={() => navigate('/')} 
+          <Button
+            onClick={() => navigate('/')}
             className="bg-[#2E4D98] hover:bg-[#2E4D98]/90 px-8 py-6 text-lg"
           >
             Browse Tours
@@ -654,9 +713,9 @@ const handlePhonePePayment = async (e) => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      
+
       <div className="container mx-auto px-4 py-8">
-        <button 
+        <button
           onClick={() => navigate(-1)}
           className="mb-6 text-[#2E4D98] hover:underline flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors"
         >
@@ -665,7 +724,7 @@ const handlePhonePePayment = async (e) => {
           </svg>
           Back to Tour
         </button>
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Booking Summary, Passenger Details & Form */}
           <div className="lg:col-span-2">
@@ -679,7 +738,7 @@ const handlePhonePePayment = async (e) => {
                   <span className="text-sm font-semibold text-blue-700">Flexible Payment</span>
                 </div>
               </div>
-              
+
               {/* Tour Summary */}
               <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-5 mb-8 border border-blue-100">
                 <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
@@ -710,7 +769,7 @@ const handlePhonePePayment = async (e) => {
                   </div>
                 </div>
               </div>
-              
+
               {/* Payment Amount Selection */}
               <div className="bg-white border border-gray-200 rounded-xl p-5 mb-8">
                 <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
@@ -720,7 +779,7 @@ const handlePhonePePayment = async (e) => {
                   </svg>
                   Payment Amount
                 </h2>
-                
+
                 {/* Full Payment Option */}
                 <div className="mb-4">
                   <div className={`flex items-center justify-between p-4 border rounded-lg cursor-pointer transition-all ${paymentType === 'full' ? 'border-[#2E4D98] bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}
@@ -746,15 +805,15 @@ const handlePhonePePayment = async (e) => {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Custom Amount Option - Commented out as in original */}
               </div>
-              
+
               {/* Passenger Details Section - Copied from SeatSelection */}
               <div className="bg-white border border-gray-200 rounded-xl p-5 mb-8">
-                <div style={{ 
-                  display: 'flex', 
-                  justifyContent: 'space-between', 
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
                   alignItems: 'center',
                   marginBottom: '16px'
                 }}>
@@ -777,10 +836,10 @@ const handlePhonePePayment = async (e) => {
                     {showPassengerDetails ? 'Hide Details' : 'Show Details'}
                   </button>
                 </div>
-                
+
                 {showPassengerDetails && (
-                  <div style={{ 
-                    border: '1px solid #e5e7eb', 
+                  <div style={{
+                    border: '1px solid #e5e7eb',
                     borderRadius: '8px',
                     padding: '24px',
                     marginTop: '16px',
@@ -794,7 +853,7 @@ const handlePhonePePayment = async (e) => {
                         All fields are required for booking
                       </p>
                     </div>
-                    
+
                     {/* Table Layout */}
                     <div style={{ overflowX: 'auto' }}>
                       <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '1200px' }}>
@@ -810,10 +869,10 @@ const handlePhonePePayment = async (e) => {
                             <th style={{ padding: '16px 12px', color: '#374151', fontSize: '14px', fontWeight: '600', backgroundColor: '#f9fafb', textAlign: 'left', width: '120px' }}>Passport Expiry</th>
                           </tr>
                         </thead>
-                        
+
                         <tbody>
                           {passengerDetails.map((passenger, index) => (
-                            <tr key={passenger.id} style={{ 
+                            <tr key={passenger.id} style={{
                               borderBottom: '1px solid #f3f4f6',
                               backgroundColor: 'white'
                             }}>
@@ -823,17 +882,17 @@ const handlePhonePePayment = async (e) => {
                                   borderRadius: '12px',
                                   fontSize: '13px',
                                   fontWeight: '600',
-                                  backgroundColor: passenger.type === 'adult' ? '#dbeafe' : 
-                                                passenger.type === 'child' ? '#fef3c7' : '#dcfce7',
-                                  color: passenger.type === 'adult' ? '#1d4ed8' : 
-                                        passenger.type === 'child' ? '#d97706' : '#059669',
+                                  backgroundColor: passenger.type === 'adult' ? '#dbeafe' :
+                                    passenger.type === 'child' ? '#fef3c7' : '#dcfce7',
+                                  color: passenger.type === 'adult' ? '#1d4ed8' :
+                                    passenger.type === 'child' ? '#d97706' : '#059669',
                                   display: 'inline-block',
                                   textAlign: 'center'
                                 }}>
                                   {passenger.type.charAt(0).toUpperCase() + passenger.type.slice(1)}
                                 </span>
                               </td>
-                              
+
                               <td style={{ padding: '16px 12px', verticalAlign: 'top' }}>
                                 <input
                                   type="text"
@@ -851,7 +910,7 @@ const handlePhonePePayment = async (e) => {
                                   className="focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 />
                               </td>
-                              
+
                               <td style={{ padding: '16px 12px', verticalAlign: 'top' }}>
                                 <input
                                   type="text"
@@ -869,7 +928,7 @@ const handlePhonePePayment = async (e) => {
                                   className="focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 />
                               </td>
-                              
+
                               <td style={{ padding: '16px 12px', verticalAlign: 'top' }}>
                                 <select
                                   value={passenger.gender}
@@ -890,7 +949,7 @@ const handlePhonePePayment = async (e) => {
                                   <option value="Mstr">Mstr</option>
                                 </select>
                               </td>
-                              
+
                               <td style={{ padding: '16px 12px', verticalAlign: 'top' }}>
                                 <input
                                   type="number"
@@ -910,7 +969,7 @@ const handlePhonePePayment = async (e) => {
                                   className="focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 />
                               </td>
-                              
+
                               <td style={{ padding: '16px 12px', verticalAlign: 'top' }}>
                                 <input
                                   type="date"
@@ -927,7 +986,7 @@ const handlePhonePePayment = async (e) => {
                                   className="focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 />
                               </td>
-                              
+
                               <td style={{ padding: '16px 12px', verticalAlign: 'top' }}>
                                 <input
                                   type="text"
@@ -945,7 +1004,7 @@ const handlePhonePePayment = async (e) => {
                                   className="focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 />
                               </td>
-                              
+
                               <td style={{ padding: '16px 12px', verticalAlign: 'top' }}>
                                 <input
                                   type="date"
@@ -967,12 +1026,12 @@ const handlePhonePePayment = async (e) => {
                         </tbody>
                       </table>
                     </div>
-                    
+
                     {/* Summary of passenger counts */}
-                    <div style={{ 
-                      marginTop: '20px', 
-                      padding: '16px', 
-                      backgroundColor: '#f9fafb', 
+                    <div style={{
+                      marginTop: '20px',
+                      padding: '16px',
+                      backgroundColor: '#f9fafb',
                       borderRadius: '8px',
                       display: 'flex',
                       gap: '24px',
@@ -1000,7 +1059,7 @@ const handlePhonePePayment = async (e) => {
                   </div>
                 )}
               </div>
-              
+
               {/* Payment Information Notice */}
               {isPartialPayment && (
                 <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8">
@@ -1010,14 +1069,14 @@ const handlePhonePePayment = async (e) => {
                     </div>
                     <div className="ml-3">
                       <p className="text-sm text-yellow-700">
-                        <strong>Note:</strong> You are paying {paymentPercentage}% ({formatPrice(paymentAmount)}) now. 
+                        <strong>Note:</strong> You are paying {paymentPercentage}% ({formatPrice(paymentAmount)}) now.
                         The remaining {formatPrice(balanceAmount)} ({100 - paymentPercentage}%) will be payable before the tour departure date.
                       </p>
                     </div>
                   </div>
                 </div>
               )}
-              
+
               {/* Booking Form */}
               <form onSubmit={handlePhonePePayment} className="space-y-8">
                 {/* Personal Details */}
@@ -1084,7 +1143,7 @@ const handlePhonePePayment = async (e) => {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Address Details */}
                 <div>
                   <h2 className="text-xl font-semibold text-gray-800 mb-6 pb-3 border-b">Address Details</h2>
@@ -1162,13 +1221,13 @@ const handlePhonePePayment = async (e) => {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Terms and Conditions */}
                 <div className="flex items-start space-x-3 p-4 bg-gray-50 rounded-lg">
                   <Checkbox
                     id="terms"
                     checked={formData.termsAccepted}
-                    onCheckedChange={(checked) => 
+                    onCheckedChange={(checked) =>
                       setFormData(prev => ({ ...prev, termsAccepted: checked }))
                     }
                     className="mt-1"
@@ -1185,10 +1244,10 @@ const handlePhonePePayment = async (e) => {
                     . {isPartialPayment && `I understand that I'm paying ${paymentPercentage}% now and the remaining amount must be paid before the tour departure date.`} <span className="text-red-500">*</span>
                   </Label>
                 </div>
-                
+
                 {/* Submit Button */}
                 <div className="pt-4">
-                  <Button 
+                  <Button
                     type="submit"
                     disabled={submitting || !formData.termsAccepted}
                     className="w-full bg-[#E53C42] hover:bg-[#E53C42]/90 text-white py-7 text-lg font-semibold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
@@ -1209,12 +1268,12 @@ const handlePhonePePayment = async (e) => {
               </form>
             </div>
           </div>
-          
+
           {/* Right Column - Price Breakdown */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-24">
               <h2 className="text-xl font-semibold text-gray-800 mb-6 pb-3 border-b">Price Breakdown</h2>
-              
+
               <div className="space-y-4 mb-8">
                 <div className="flex justify-between items-center py-3 border-b">
                   <div>
@@ -1223,7 +1282,7 @@ const handlePhonePePayment = async (e) => {
                   </div>
                   <span className="text-lg font-bold text-gray-900">{formatPrice(totalTourCost)}</span>
                 </div>
-                
+
                 <div className="flex justify-between items-center py-3 border-b">
                   <div>
                     <span className="text-blue-600 font-semibold">
@@ -1233,7 +1292,7 @@ const handlePhonePePayment = async (e) => {
                   </div>
                   <span className="text-xl font-bold text-blue-600">{formatPrice(paymentAmount)}</span>
                 </div>
-                
+
                 {!isFullPayment && (
                   <div className="flex justify-between items-center py-3">
                     <div>
@@ -1243,7 +1302,7 @@ const handlePhonePePayment = async (e) => {
                     <span className="text-lg font-semibold text-gray-700">{formatPrice(balanceAmount)}</span>
                   </div>
                 )}
-                
+
                 <div className="bg-blue-50 rounded-xl p-4 mt-6 border border-blue-100">
                   <div className="flex justify-between items-center">
                     <span className="text-lg font-bold text-gray-800">Amount to Pay Now</span>
@@ -1254,7 +1313,7 @@ const handlePhonePePayment = async (e) => {
                   </p>
                 </div>
               </div>
-              
+
               {/* Passenger Summary */}
               <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 mb-6">
                 <h3 className="font-semibold text-purple-800 mb-3 flex items-center gap-2">
@@ -1282,7 +1341,7 @@ const handlePhonePePayment = async (e) => {
                   </div>
                 </div>
               </div>
-              
+
               {/* Help sections */}
               <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
                 <div className="flex items-start gap-3">
@@ -1299,7 +1358,7 @@ const handlePhonePePayment = async (e) => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
                 <div className="flex items-start gap-3">
                   <div className="bg-blue-100 p-2 rounded-lg">
@@ -1331,7 +1390,7 @@ const handlePhonePePayment = async (e) => {
               Enter the amount you want to pay (any amount from ₹1 to full amount)
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4 py-4">
             <div className="bg-blue-50 p-4 rounded-lg">
               <div className="flex justify-between mb-2">
@@ -1343,7 +1402,7 @@ const handlePhonePePayment = async (e) => {
                 <span>₹1</span>
               </div>
             </div>
-            
+
             <div>
               <Label htmlFor="customAmount" className="text-gray-700 font-medium mb-2 block">
                 Enter Payment Amount (₹)
@@ -1364,7 +1423,7 @@ const handlePhonePePayment = async (e) => {
                 <span>Max: {formatPrice(totalTourCost)}</span>
               </div>
             </div>
-            
+
             {customPaymentAmount && !isNaN(parseFloat(customPaymentAmount)) && (
               <div className="bg-gray-50 p-3 rounded-lg">
                 <div className="grid grid-cols-2 gap-4 text-center">
@@ -1397,7 +1456,7 @@ const handlePhonePePayment = async (e) => {
               </div>
             )}
           </div>
-          
+
           <DialogFooter>
             <Button
               type="button"
