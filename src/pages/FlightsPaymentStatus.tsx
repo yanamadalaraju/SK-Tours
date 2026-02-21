@@ -1,4 +1,5 @@
-// src/pages/FlightPaymentResult.jsx - Fixed version
+// src/pages/FlightPaymentResult.jsx - Updated with reference_id console and alert
+
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -17,6 +18,7 @@ const FlightPaymentResult = () => {
   const [loading, setLoading] = useState(true);
   const [bookingData, setBookingData] = useState(null);
   const [transactionSaved, setTransactionSaved] = useState(false);
+  const [referenceId, setReferenceId] = useState(""); // Add state for reference_id
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -40,162 +42,215 @@ const FlightPaymentResult = () => {
   }, [location]);
 
   // Save transaction to database
- // src/pages/FlightPaymentResult.jsx - Updated saveTransactionToDatabase function
+  const saveTransactionToDatabase = async (paymentStatus, transactionDetails) => {
+    try {
+      const savedBookingId = localStorage.getItem('flightBookingId');
+      if (!savedBookingId) {
+        console.error("No booking ID found in localStorage");
+        return false;
+      }
 
-// Save transaction to database
-// src/pages/FlightPaymentResult.jsx - Fixed saveTransactionToDatabase function
+      // Get booking details from localStorage
+      const currentBooking = JSON.parse(localStorage.getItem('currentFlightBooking') || '{}');
+      
+      // Get user details from contact details
+      const userEmail = currentBooking.customer?.email || '';
+      const userPhone = currentBooking.customer?.phone || '';
+      
+      // Get the booking token ID or order ID
+      const orderId = localStorage.getItem('phonePeOrderId') || transactionDetails?.paymentId || '';
+      
+      // Get the merchant order ID
+      const merchantOrderId = localStorage.getItem('phonePeOrderId') || orderId;
+      
+      console.log("Transaction Data for online_flightbooking_transactions:", {
+        userPhone,
+        orderId,
+        merchantOrderId,
+        paymentStatus,
+        amount: transactionDetails?.amount || currentBooking.amount,
+        userEmail
+      });
+      
+      // Create transaction record for online_flightbooking_transactions table
+      const transactionData = {
+        user_id: userPhone ? parseInt(userPhone.replace(/\D/g, '')) || null : null,
+        order_id: orderId,
+        payment_id: transactionDetails?.paymentId || merchantOrderId,
+        payment_amount: transactionDetails?.amount || currentBooking.amount || 0,
+        payment_method: "PhonePe",
+        payment_status: paymentStatus === 'SUCCESS' ? 'Success' : 'Failed',
+        email: userEmail,
+      };
 
-const saveTransactionToDatabase = async (paymentStatus, transactionDetails) => {
-  try {
-    const savedBookingId = localStorage.getItem('flightBookingId');
-    if (!savedBookingId) {
-      console.error("No booking ID found in localStorage");
+      console.log("Saving transaction to online_flightbooking_transactions:", transactionData);
+
+      // Save to online_flightbooking_transactions table
+      const response = await axios.post(
+        `${BASE_URL}/api/flight-bookings/save-transaction`,
+        transactionData
+      );
+
+      if (response.data.success) {
+        console.log("Transaction saved successfully:", response.data);
+        setTransactionSaved(true);
+        
+        // Store transaction ID in localStorage for reference
+        if (response.data.transactionId) {
+          localStorage.setItem('flightTransactionId', response.data.transactionId);
+        }
+        
+        return true;
+      } else {
+        console.error("Failed to save transaction:", response.data.message);
+        return false;
+      }
+    } catch (error) {
+      console.error("Error saving transaction:", error);
+      if (error.response) {
+        console.error("Error response:", error.response.data);
+      }
       return false;
     }
-
-    // Get booking details from localStorage
-    const currentBooking = JSON.parse(localStorage.getItem('currentFlightBooking') || '{}');
+  };
+const bookFlightWithAPI = async (bookingTokenId) => {
+  try {
+    console.log("Attempting to book flight with token:", bookingTokenId);
     
-    // Get user details from contact details
-    const userEmail = currentBooking.customer?.email || '';
-    const userPhone = currentBooking.customer?.phone || '';
-    
-    // Get the booking token ID or order ID
-    const orderId = localStorage.getItem('phonePeOrderId') || transactionDetails?.paymentId || '';
-    
-    // Get the merchant order ID
-    const merchantOrderId = localStorage.getItem('phonePeOrderId') || orderId;
-    
-    console.log("Transaction Data for online_flightbooking_transactions:", {
-      userPhone,
-      orderId,
-      merchantOrderId,
-      paymentStatus,
-      amount: transactionDetails?.amount || currentBooking.amount,
-      userEmail
-    });
-    
-    // Create transaction record for online_flightbooking_transactions table
-    // IMPORTANT: Match the table structure exactly
-    const transactionData = {
-      // user_id - storing phone number as user_id (converted to number if possible)
-      user_id: userPhone ? parseInt(userPhone.replace(/\D/g, '')) || null : null,
-      
-      // order_id - storing the booking token ID or order ID
-      order_id: orderId,
-      
-      // payment_id - storing the payment ID from PhonePe
-      payment_id: transactionDetails?.paymentId || merchantOrderId,
-      
-      // payment_amount - the amount paid
-      payment_amount: transactionDetails?.amount || currentBooking.amount || 0,
-      
-      // payment_method - always "PhonePe"
-      payment_method: "PhonePe",
-      
-      // payment_status - Success or Failed
-      payment_status: paymentStatus === 'SUCCESS' ? 'Success' : 'Failed',
-      
-      // email - customer email
-      email: userEmail,
-      
-      // created_at - will be set by database default
-    };
-
-    console.log("Saving transaction to online_flightbooking_transactions:", transactionData);
-
-    // Save to online_flightbooking_transactions table
     const response = await axios.post(
-      `${BASE_URL}/api/flight-bookings/save-transaction`,
-      transactionData
+      `${BASE_URL}/api/flight-bookings/book/${bookingTokenId}`
     );
 
+    console.log("Flight booking API response:", response.data);
+
     if (response.data.success) {
-      console.log("Transaction saved successfully:", response.data);
-      setTransactionSaved(true);
+      // Get the reference_id from the response
+      const newReferenceId = response.data.reference_id;
       
-      // Store transaction ID in localStorage for reference
-      if (response.data.transactionId) {
-        localStorage.setItem('flightTransactionId', response.data.transactionId);
+      // Set reference_id in state
+      setReferenceId(newReferenceId);
+      
+      // Log to console
+      console.log("✅ REFERENCE_ID RECEIVED:", newReferenceId);
+      console.log("✅ Booking confirmed with reference ID:", newReferenceId);
+      console.log("✅ Full API response:", response.data);
+      
+      // Store reference_id in localStorage
+      localStorage.setItem('flightReferenceId', newReferenceId);
+      
+      // Update bookingData with reference_id
+      setBookingData(prevData => ({
+        ...prevData,
+        reference_id: newReferenceId
+      }));
+      
+      // Show appropriate message if already confirmed
+      if (response.data.already_confirmed) {
+        console.log("Booking was already confirmed previously");
       }
       
       return true;
     } else {
-      console.error("Failed to save transaction:", response.data.message);
+      console.error("Flight booking failed:", response.data.message);
       return false;
     }
   } catch (error) {
-    console.error("Error saving transaction:", error);
+    console.error("Error booking flight:", error);
+    
+    let errorMessage = 'An error occurred while booking the flight.';
     if (error.response) {
       console.error("Error response:", error.response.data);
+      errorMessage = error.response.data.message || errorMessage;
     }
+    
+    // You might want to show this error to the user
+    // setErrorMessage(errorMessage);
+    
     return false;
   }
 };
 
- // Update the checkPhonePeStatus function
-const checkPhonePeStatus = async (merchantOrderId, environment) => {
-  try {
-    const res = await axios.post(`${BASE_URL}/api/phonepe/orders`, {
-      action: "check-status",
-      merchantOrderId,
-      environment,
-    });
+  const checkPhonePeStatus = async (merchantOrderId, environment) => {
+    try {
+      const res = await axios.post(`${BASE_URL}/api/phonepe/orders`, {
+        action: "check-status",
+        merchantOrderId,
+        environment,
+      });
 
-    if (res.data.success) {
-      const paymentStatus = res.data.status;
-      setStatus(paymentStatus);
-      
-      // Get booking ID from localStorage
-      const savedBookingId = localStorage.getItem('flightBookingId');
-      
-      // Set payment details
-      const details = {
-        amount: res.data.amount,
-        currency: res.data.currency,
-        timestamp: new Date().toISOString(),
-        phonepeStatus: res.data.phonepeStatus,
-        paymentId: res.data.paymentId || merchantOrderId
-      };
-      setPaymentDetails(details);
-      
-      // Save transaction to database for SUCCESS or FAILED status
-      // This should happen BEFORE fetching booking details
-      if (paymentStatus === 'SUCCESS' || paymentStatus === 'FAILED') {
-        const saved = await saveTransactionToDatabase(paymentStatus, details);
-        console.log("Transaction saved:", saved);
-      }
-      
-      // Fetch booking details for display
-      if (savedBookingId) {
-        try {
-          const bookingRes = await axios.get(`${BASE_URL}/api/flight-bookings/${savedBookingId}`);
-          if (bookingRes.data.success) {
-            setBookingData(bookingRes.data.booking);
-          }
-        } catch (fetchError) {
-          console.error("Failed to fetch booking details:", fetchError);
+      if (res.data.success) {
+        const paymentStatus = res.data.status;
+        setStatus(paymentStatus);
+        
+        // Get booking ID from localStorage
+        const savedBookingId = localStorage.getItem('flightBookingId');
+        
+        // Set payment details
+        const details = {
+          amount: res.data.amount,
+          currency: res.data.currency,
+          timestamp: new Date().toISOString(),
+          phonepeStatus: res.data.phonepeStatus,
+          paymentId: res.data.paymentId || merchantOrderId
+        };
+        setPaymentDetails(details);
+        
+        // Save transaction to database for SUCCESS or FAILED status
+        if (paymentStatus === 'SUCCESS' || paymentStatus === 'FAILED') {
+          const saved = await saveTransactionToDatabase(paymentStatus, details);
+          console.log("Transaction saved:", saved);
         }
+        
+        // Fetch booking details for display
+        if (savedBookingId) {
+          try {
+            const bookingRes = await axios.get(`${BASE_URL}/api/flight-bookings/${savedBookingId}`);
+            if (bookingRes.data.success) {
+              setBookingData(bookingRes.data.booking);
+  console.log("========== FULL BOOKING RESPONSE ==========");
+  console.log(bookingRes.data);
+  console.log("========== BOOKING OBJECT ==========");
+  console.log(bookingRes.data.booking);
+                // If payment was successful, proceed with flight booking API
+              if (paymentStatus === 'SUCCESS') {
+                console.log("✅ Payment successful, proceeding to book flight...");
+                
+                // Get booking_token_id from booking data
+                const bookingTokenId = bookingRes.data.booking.booking_token_id;
+                
+                if (bookingTokenId) {
+                  console.log("Booking token ID found:", bookingTokenId);
+                  
+                  // Call the booking API
+                  await bookFlightWithAPI(bookingTokenId);
+                } else {
+                  console.error("No booking_token_id found in booking data");
+                  window.alert("⚠️ Booking token not found. Please contact support with your order ID.");
+                }
+              }
+            }
+          } catch (fetchError) {
+            console.error("Failed to fetch booking details:", fetchError);
+          }
+        }
+        
+        // Save payment success to localStorage
+        if (paymentStatus === 'SUCCESS') {
+          const bookingData = JSON.parse(localStorage.getItem('currentFlightBooking') || '{}');
+          bookingData.payment_status = 'success';
+          localStorage.setItem('currentFlightBooking', JSON.stringify(bookingData));
+        }
+        
+      } else {
+        setStatus("FAILED");
       }
-      
-      // Save payment success to localStorage
-      if (paymentStatus === 'SUCCESS') {
-        const bookingData = JSON.parse(localStorage.getItem('currentFlightBooking') || '{}');
-        bookingData.payment_status = 'success';
-        localStorage.setItem('currentFlightBooking', JSON.stringify(bookingData));
-      }
-      
-    } else {
-      setStatus("FAILED");
+    } catch (err) {
+      console.error("Status check error:", err);
+      setStatus("ERROR");
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    console.error("Status check error:", err);
-    setStatus("ERROR");
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   const isSuccess = status === "SUCCESS";
   const isFailed = status === "FAILED" || status === "ERROR";
@@ -290,6 +345,13 @@ const checkPhonePeStatus = async (merchantOrderId, environment) => {
                       <span className="text-gray-600">Booking ID</span>
                       <span className="font-mono text-gray-800">{bookingId || 'N/A'}</span>
                     </div>
+                    {/* Display Reference ID if available */}
+                    {referenceId && (
+                      <div className="flex justify-between py-3 border-b bg-green-50 px-2 rounded">
+                        <span className="text-gray-600 font-bold">Reference ID</span>
+                        <span className="font-mono text-green-700 font-bold">{referenceId}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between py-3 border-b">
                       <span className="text-gray-600">Payment Status</span>
                       <span className={`font-semibold ${
@@ -302,12 +364,12 @@ const checkPhonePeStatus = async (merchantOrderId, environment) => {
                     </div>
                     {paymentDetails && (
                       <>
-                        <div className="flex justify-between py-3 border-b">
-                          <span className="text-gray-600">Amount Paid</span>
-                          <span className="font-bold text-gray-900">
-                            {formatPrice(paymentDetails.amount)}
-                          </span>
-                        </div>
+<div className="flex justify-between py-3 border-b">
+  <span className="text-gray-600">Amount Paid</span>
+  <span className="font-bold text-gray-900">
+    {formatPrice(bookingData?.total_price || paymentDetails?.amount)}
+  </span>
+</div>
                         <div className="flex justify-between py-3 border-b">
                           <span className="text-gray-600">Payment Time</span>
                           <span className="text-sm text-gray-700">
@@ -336,7 +398,7 @@ const checkPhonePeStatus = async (merchantOrderId, environment) => {
                   {bookingData ? (
                     <div className="space-y-3">
                       <div className="flex justify-between py-3 border-b">
-                        <span className="text-gray-600">Booking Reference</span>
+                        <span className="text-gray-600">Order Reference</span>
                         <span className="font-semibold text-gray-800">{bookingData.booking_token_id || 'N/A'}</span>
                       </div>
                       <div className="flex justify-between py-3 border-b">
@@ -429,6 +491,12 @@ const checkPhonePeStatus = async (merchantOrderId, environment) => {
                       <span className="mt-1">•</span>
                       <span>You will receive a confirmation email with e-ticket details</span>
                     </li>
+                    {referenceId && (
+                      <li className="flex items-start gap-2">
+                        <span className="mt-1">•</span>
+                        <span>Flight Reference ID: <strong className="text-green-800">{referenceId}</strong></span>
+                      </li>
+                    )}
                     <li className="flex items-start gap-2">
                       <span className="mt-1">•</span>
                       <span>Transaction has been saved with booking token ID: <strong>{bookingData?.booking_token_id || orderId}</strong></span>
@@ -438,6 +506,31 @@ const checkPhonePeStatus = async (merchantOrderId, environment) => {
                       <span>You can view your booking in <strong>My Bookings</strong> section</span>
                     </li>
                   </ul>
+                  
+                  {/* Reference ID Display Button */}
+                  {referenceId && (
+                    <div className="mt-4 p-3 bg-green-100 rounded-lg border border-green-300">
+                      <p className="text-green-800 font-medium mb-1">Your Booking Reference ID:</p>
+                      <div className="flex items-center gap-2">
+                        <code className="bg-white px-3 py-2 rounded text-lg font-bold text-green-700 flex-1 text-center">
+                          {referenceId}
+                        </code>
+                        <button 
+                          onClick={() => {
+                            navigator.clipboard.writeText(referenceId);
+                            window.alert('Reference ID copied to clipboard!');
+                          }}
+                          className="p-2 bg-white rounded hover:bg-green-50"
+                          title="Copy to clipboard"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+                            <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 

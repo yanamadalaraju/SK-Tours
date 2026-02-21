@@ -297,7 +297,8 @@ const CheckoutPage = () => {
 
       // Step 2: Create PhonePe order
       const merchantOrderId = `BOOK_${checkoutId}_${Date.now()}`;
-      
+      const baseUrl = window.location.origin;
+const redirectUrl = `${baseUrl}/payment-result`;
       const paymentResponse = await axios.post(
         `${BASE_URL}/api/phonepe/orders`,
         {
@@ -306,6 +307,7 @@ const CheckoutPage = () => {
           currency: "INR",
           environment: "test",
           merchantOrderId: merchantOrderId,
+            redirectUrl: redirectUrl,
           customerDetails: {
             name: `${formData.firstName} ${formData.lastName}`,
             email: formData.email,

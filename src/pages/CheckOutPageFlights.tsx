@@ -117,7 +117,7 @@ const CheckoutPage = () => {
         firstName: '',
         middleName: '',
         lastName: '',
-        age: 30,
+        age: 0,
         dob: '',
         gender: 'Mr',
         requiresSeat: true,
@@ -344,335 +344,286 @@ const CheckoutPage = () => {
 
   // src/pages/CheckoutPage.jsx - Updated handlePhonePePayment function with correct redirect
 
-  const handlePhonePePayment = async (e) => {
-    e.preventDefault();
-    setSubmitting(true);
+const handlePhonePePayment = async (e) => {
+  e.preventDefault();
+  setSubmitting(true);
 
-    // Validate required fields
-    const requiredFields = ['firstName', 'lastName', 'email', 'phone', 'address', 'city', 'state', 'pincode'];
-    const missingFields = requiredFields.filter(field => !formData[field]);
+  // Validate required fields
+  const requiredFields = ['firstName', 'lastName', 'email', 'phone', 'address', 'city', 'state', 'pincode'];
+  const missingFields = requiredFields.filter(field => !formData[field]);
 
-    if (missingFields.length > 0) {
-      alert(`Please fill in all required fields: ${missingFields.join(', ')}`);
-      setSubmitting(false);
-      return;
+  if (missingFields.length > 0) {
+    alert(`Please fill in all required fields: ${missingFields.join(', ')}`);
+    setSubmitting(false);
+    return;
+  }
+
+  if (!formData.termsAccepted) {
+    alert('Please accept the terms and conditions');
+    setSubmitting(false);
+    return;
+  }
+
+  // Validate passenger details
+  if (!validatePassengerDetails()) {
+    setSubmitting(false);
+    return;
+  }
+
+  // Validate phone number
+  const phoneRegex = /^[6-9]\d{9}$/;
+  if (!phoneRegex.test(formData.phone.replace(/\D/g, ''))) {
+    alert('Please enter a valid 10-digit Indian phone number');
+    setSubmitting(false);
+    return;
+  }
+
+  // Validate email
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(formData.email)) {
+    alert('Please enter a valid email address');
+    setSubmitting(false);
+    return;
+  }
+
+  // Get current payment amount
+  const totalTourCost = getTotalTourCost();
+  let paymentAmount = getCurrentPaymentAmount();
+  const paymentPercentage = calculatePercentage(paymentAmount);
+  const isFullPayment = paymentAmount >= totalTourCost;
+
+  if (paymentAmount <= 0) {
+    alert('Please enter a valid payment amount');
+    setSubmitting(false);
+    return;
+  }
+
+  try {
+    const paymentDescription = isFullPayment
+      ? `Full Payment for ${tourData.code || tourData.title}`
+      : `${paymentPercentage}% Partial Payment for ${tourData.code || tourData.title}`;
+
+    console.log('Payment processing:', {
+      amount: paymentAmount,
+      totalTourCost: totalTourCost,
+      paymentPercentage: paymentPercentage,
+      isFullPayment: isFullPayment,
+      description: paymentDescription,
+      paymentType: paymentType,
+      passengerDetails: passengerDetails
+    });
+
+    // Prepare passenger details for API
+    const passengerDetailsForAPI = passengerDetails.map(p => ({
+      id: p.id,
+      type: p.type,
+      gender: p.gender,
+      first_name: p.firstName,
+      middle_name: p.middleName || '',
+      last_name: p.lastName,
+      age: p.age,
+      dob: p.dob,
+      passport_no: p.passportNo,
+      passport_expire_date: p.passportExpireDate,
+      requires_seat: p.requiresSeat,
+      is_infant_on_lap: p.isInfantOnLap || false,
+      lap_of_passenger_id: p.lapOfPassengerId || null
+    }));
+
+    // Prepare contact details
+    const contactDetails = {
+      name: `${formData.firstName} ${formData.lastName}`.trim(),
+      email: formData.email.trim(),
+      phone: formData.phone.trim(),
+      address: formData.address.trim(),
+      city: formData.city.trim(),
+      state: formData.state.trim(),
+      pincode: formData.pincode.trim(),
+      country: formData.country.trim()
+    };
+
+    // Prepare flight data for saving
+    const flightData = {
+      flight: {
+        id: tourData.id,
+        airline_name: tourData.airline,
+        flight_number: tourData.flightNumber,
+        airline_code: tourData.airline_code,
+
+        // Onward flight
+        dep_city_code: tourData.departure?.city_code,
+        dep_city_name: tourData.departure?.city,
+        dep_airport_code: tourData.departure?.airport,
+        dep_airport_name: tourData.departure?.airport,
+        dep_terminal_no: tourData.departure?.terminal,
+        dep_time: tourData.departure?.time,
+        onward_date: tourData.departure?.date,
+
+        arr_city_code: tourData.arrival?.city_code,
+        arr_city_name: tourData.arrival?.city,
+        arr_airport_code: tourData.arrival?.airport,
+        arr_airport_name: tourData.arrival?.airport,
+        arr_terminal_no: tourData.arrival?.terminal,
+        arr_time: tourData.arrival?.time,
+        arr_date: tourData.arrival?.date,
+
+        duration: tourData.duration,
+        no_of_stop: tourData.number_of_stops || 0,
+        stop_data: tourData.stop_data || [],
+
+        // Return flight (if round trip)
+        return_flight_data: tourData.return_flight ? {
+          return_airline_name: tourData.return_flight.airline_name,
+          return_flight_number: tourData.return_flight.flight_number,
+          return_airline_code: tourData.return_flight.airline_code,
+          return_dep_city_code: tourData.return_flight.departure?.city_code,
+          return_dep_city_name: tourData.return_flight.departure?.city,
+          return_dep_airport_code: tourData.return_flight.departure?.airport,
+          return_dep_airport_name: tourData.return_flight.departure?.airport,
+          return_dep_terminal_no: tourData.return_flight.departure?.terminal,
+          return_dep_time: tourData.return_flight.departure?.time,
+          return_dep_date: tourData.return_flight.departure?.date,
+          return_arr_city_code: tourData.return_flight.arrival?.city_code,
+          return_arr_city_name: tourData.return_flight.arrival?.city,
+          return_arr_airport_code: tourData.return_flight.arrival?.airport,
+          return_arr_airport_name: tourData.return_flight.arrival?.airport,
+          return_arr_terminal_no: tourData.return_flight.arrival?.terminal,
+          return_arr_time: tourData.return_flight.arrival?.time,
+          return_arr_date: tourData.return_flight.arrival?.date,
+          return_trip_duration: tourData.return_flight.duration,
+          return_no_of_stop: tourData.return_flight.number_of_stops || 0,
+          return_stop_data: tourData.return_flight.stop_data || []
+        } : null,
+
+        // International flight
+        international_flight_staus: tourData.international_flight_status || 0,
+
+        // Baggage
+        check_in_baggage_adult: tourData.check_in_baggage_adult,
+        check_in_baggage_children: tourData.check_in_baggage_children,
+        check_in_baggage_infant: tourData.check_in_baggage_infant,
+        cabin_baggage_adult: tourData.cabin_baggage_adult,
+        cabin_baggage_children: tourData.cabin_baggage_children,
+        cabin_baggage_infant: tourData.cabin_baggage_infant,
+
+        // Pricing
+        total_payable_price: tourData.total_amount_value,
+        per_adult_child_price: tourData.per_adult_child_price,
+        per_infant_price: tourData.per_infant_price,
+
+        // Seats
+        available_seats: tourData.available_seats,
+
+        // Static
+        static: tourData.static_value
+      },
+
+      bookingParams: {
+        onwardDate: tourData.departure?.date,
+        returnDate: tourData.return_departure?.date || null,
+        adults: tourData.adults || 1,
+        children: tourData.children || 0,
+        infants: tourData.infants || 0,
+        totalAmount: paymentAmount,
+        staticValue: tourData.static_value
+      },
+
+      tripType: tourData.trip_type || 0,
+      bookingTokenId: tourData.booking_token_id,
+
+      passengerDetails: passengerDetailsForAPI,
+      contactDetails: contactDetails
+    };
+
+    // Step 1: Save booking to database (onlineflights table)
+    console.log('Saving booking to onlineflights table...');
+    const saveResponse = await axios.post(
+      `${BASE_URL}/api/online-flights/save-booking`,
+      flightData
+    );
+
+    if (!saveResponse.data.success) {
+      throw new Error('Failed to create booking record. Please try again.');
     }
 
-    if (!formData.termsAccepted) {
-      alert('Please accept the terms and conditions');
-      setSubmitting(false);
-      return;
-    }
+    const bookingId = saveResponse.data.bookingId;
+    console.log('Booking saved with ID:', bookingId);
 
-    // Validate passenger details
-    if (!validatePassengerDetails()) {
-      setSubmitting(false);
-      return;
-    }
+    // Step 2: Create PhonePe order with return URL
+    const merchantOrderId = `FLT_${bookingId}_${Date.now()}`;
+    const baseUrl = window.location.origin;
+    const redirectUrl = `${baseUrl}/flight-payment-result`;
 
-    // Validate phone number
-    const phoneRegex = /^[6-9]\d{9}$/;
-    if (!phoneRegex.test(formData.phone.replace(/\D/g, ''))) {
-      alert('Please enter a valid 10-digit Indian phone number');
-      setSubmitting(false);
-      return;
-    }
-
-    // Validate email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      alert('Please enter a valid email address');
-      setSubmitting(false);
-      return;
-    }
-
-    // Get current payment amount
-    const totalTourCost = getTotalTourCost();
-    let paymentAmount = getCurrentPaymentAmount();
-    const paymentPercentage = calculatePercentage(paymentAmount);
-    const isFullPayment = paymentAmount >= totalTourCost;
-
-    if (paymentAmount <= 0) {
-      alert('Please enter a valid payment amount');
-      setSubmitting(false);
-      return;
-    }
-
-    try {
-      const paymentDescription = isFullPayment
-        ? `Full Payment for ${tourData.code || tourData.title}`
-        : `${paymentPercentage}% Partial Payment for ${tourData.code || tourData.title}`;
-
-      console.log('Payment processing:', {
+    // Create PhonePe order - Transaction will be created in backend
+    const paymentResponse = await axios.post(
+      `${BASE_URL}/api/flight/phonepe/orders`,
+      {
+        action: 'create-order',
         amount: paymentAmount,
-        totalTourCost: totalTourCost,
-        paymentPercentage: paymentPercentage,
-        isFullPayment: isFullPayment,
-        description: paymentDescription,
-        paymentType: paymentType,
-        passengerDetails: passengerDetails
-      });
-
-      // Prepare passenger details for API
-      const passengerDetailsForAPI = passengerDetails.map(p => ({
-        id: p.id,
-        type: p.type,
-        gender: p.gender,
-        first_name: p.firstName,
-        middle_name: p.middleName || '',
-        last_name: p.lastName,
-        age: p.age,
-        dob: p.dob,
-        passport_no: p.passportNo,
-        passport_expire_date: p.passportExpireDate,
-        requires_seat: p.requiresSeat,
-        is_infant_on_lap: p.isInfantOnLap || false,
-        lap_of_passenger_id: p.lapOfPassengerId || null
-      }));
-
-      // Prepare contact details
-      const contactDetails = {
-        name: `${formData.firstName} ${formData.lastName}`.trim(),
-        email: formData.email.trim(),
-        phone: formData.phone.trim(),
-        address: formData.address.trim(),
-        city: formData.city.trim(),
-        state: formData.state.trim(),
-        pincode: formData.pincode.trim(),
-        country: formData.country.trim()
-      };
-
-      // Prepare flight data for saving
-      const flightData = {
-        flight: {
-          id: tourData.id,
-          airline_name: tourData.airline,
-          flight_number: tourData.flightNumber,
-          airline_code: tourData.airline_code,
-
-          // Onward flight
-          dep_city_code: tourData.departure?.city_code,
-          dep_city_name: tourData.departure?.city,
-          dep_airport_code: tourData.departure?.airport,
-          dep_airport_name: tourData.departure?.airport,
-          dep_terminal_no: tourData.departure?.terminal,
-          dep_time: tourData.departure?.time,
-          onward_date: tourData.departure?.date,
-
-          arr_city_code: tourData.arrival?.city_code,
-          arr_city_name: tourData.arrival?.city,
-          arr_airport_code: tourData.arrival?.airport,
-          arr_airport_name: tourData.arrival?.airport,
-          arr_terminal_no: tourData.arrival?.terminal,
-          arr_time: tourData.arrival?.time,
-          arr_date: tourData.arrival?.date,
-
-          duration: tourData.duration,
-          no_of_stop: tourData.number_of_stops || 0,
-          stop_data: tourData.stop_data || [],
-
-          // Return flight (if round trip)
-          return_flight_data: tourData.return_flight ? {
-            return_airline_name: tourData.return_flight.airline_name,
-            return_flight_number: tourData.return_flight.flight_number,
-            return_airline_code: tourData.return_flight.airline_code,
-            return_dep_city_code: tourData.return_flight.departure?.city_code,
-            return_dep_city_name: tourData.return_flight.departure?.city,
-            return_dep_airport_code: tourData.return_flight.departure?.airport,
-            return_dep_airport_name: tourData.return_flight.departure?.airport,
-            return_dep_terminal_no: tourData.return_flight.departure?.terminal,
-            return_dep_time: tourData.return_flight.departure?.time,
-            return_dep_date: tourData.return_flight.departure?.date,
-            return_arr_city_code: tourData.return_flight.arrival?.city_code,
-            return_arr_city_name: tourData.return_flight.arrival?.city,
-            return_arr_airport_code: tourData.return_flight.arrival?.airport,
-            return_arr_airport_name: tourData.return_flight.arrival?.airport,
-            return_arr_terminal_no: tourData.return_flight.arrival?.terminal,
-            return_arr_time: tourData.return_flight.arrival?.time,
-            return_arr_date: tourData.return_flight.arrival?.date,
-            return_trip_duration: tourData.return_flight.duration,
-            return_no_of_stop: tourData.return_flight.number_of_stops || 0,
-            return_stop_data: tourData.return_flight.stop_data || []
-          } : null,
-
-          // International flight
-          international_flight_staus: tourData.international_flight_status || 0,
-
-          // Baggage
-          check_in_baggage_adult: tourData.check_in_baggage_adult,
-          check_in_baggage_children: tourData.check_in_baggage_children,
-          check_in_baggage_infant: tourData.check_in_baggage_infant,
-          cabin_baggage_adult: tourData.cabin_baggage_adult,
-          cabin_baggage_children: tourData.cabin_baggage_children,
-          cabin_baggage_infant: tourData.cabin_baggage_infant,
-
-          // Pricing
-          total_payable_price: tourData.total_amount_value,
-          per_adult_child_price: tourData.per_adult_child_price,
-          per_infant_price: tourData.per_infant_price,
-
-          // Seats
-          available_seats: tourData.available_seats,
-
-          // Static
-          static: tourData.static_value
-        },
-
-        bookingParams: {
-          onwardDate: tourData.departure?.date,
-          returnDate: tourData.return_departure?.date || null,
-          adults: tourData.adults || 1,
-          children: tourData.children || 0,
-          infants: tourData.infants || 0,
-          totalAmount: paymentAmount,
-          staticValue: tourData.static_value
-        },
-
-        tripType: tourData.trip_type || 0,
-        bookingTokenId: tourData.booking_token_id,
-
-        passengerDetails: passengerDetailsForAPI,
-        contactDetails: contactDetails
-      };
-
-      // Step 1: Save booking to database (onlineflights table)
-      console.log('Saving booking to onlineflights table...');
-      const saveResponse = await axios.post(
-        `${BASE_URL}/api/online-flights/save-booking`,
-        flightData
-      );
-
-      if (!saveResponse.data.success) {
-        throw new Error('Failed to create booking record. Please try again.');
-      }
-
-      const bookingId = saveResponse.data.bookingId;
-      console.log('Booking saved with ID:', bookingId);
-
-      // Step 2: Create PhonePe order with return URL pointing to your flight-payment-result page
-      const merchantOrderId = `FLT_${bookingId}_${Date.now()}`;
-
-      // Get the base URL of your application
-      const baseUrl = window.location.origin;
-      const redirectUrl = `${baseUrl}/flight-payment-result`;
-
-      const paymentResponse = await axios.post(
-        `${BASE_URL}/api/phonepe/orders`,
-        {
-          action: 'create-order',
-          amount: paymentAmount,
-          currency: "INR",
-          environment: "test",
-          merchantOrderId: merchantOrderId,
-          redirectUrl: redirectUrl, // Add redirect URL here
-          customerDetails: {
-            name: contactDetails.name,
-            email: contactDetails.email,
-            phone: contactDetails.phone,
-            booking_id: bookingId,
-            flight_number: tourData.flightNumber,
-            payment_type: isFullPayment ? 'full' : 'partial',
-            payment_percentage: paymentPercentage,
-            passenger_count: passengerDetails.length
-          }
-        }
-      );
-
-      console.log("Payment details : ", paymentResponse);
-
-      if (paymentResponse.data.success) {
-        // Step 3: Update booking with reference ID in onlineflights table
-        await axios.put(
-          `${BASE_URL}/api/online-flights/update-booking/${bookingId}`,
-          {
-            referenceId: paymentResponse.data.merchantOrderId,
-            bookingStatus: 'Processing',
-            paymentStatus: 'Processing',
-            apiResponse: paymentResponse.data
-          }
-        );
-
-        // Step 4: Save transaction to online_flightbooking_transactions table IMMEDIATELY
-        console.log('Saving transaction to online_flightbooking_transactions table...');
-
-        // Prepare transaction data for online_flightbooking_transactions table
-        const transactionData = {
-          // user_id - storing phone number as user_id (converted to number)
-          user_id: formData.phone ? parseInt(formData.phone.replace(/\D/g, '')) || null : null,
-
-          // order_id - storing the booking token ID
-          order_id: tourData.booking_token_id || merchantOrderId,
-
-          // payment_id - storing the payment ID from PhonePe (merchantOrderId for now)
-          payment_id: paymentResponse.data.merchantOrderId,
-
-          // payment_amount - the amount being paid
-          payment_amount: paymentAmount,
-
-          // payment_method - always "PhonePe"
-          payment_method: "PhonePe",
-
-          // payment_status - "Processing" initially
-          payment_status: "Processing",
-
-          // email - customer email
-          email: formData.email,
-
-          // booking_id - reference to main booking (optional, but useful)
-          booking_id: bookingId
-        };
-
-        console.log("Saving transaction data:", transactionData);
-
-        // Save to online_flightbooking_transactions table
-        const transactionResponse = await axios.post(
-          `${BASE_URL}/api/flight-bookings/save-transaction`,
-          transactionData
-        );
-
-        if (transactionResponse.data.success) {
-          console.log("Transaction saved successfully:", transactionResponse.data);
-          // Store transaction ID in localStorage
-          if (transactionResponse.data.transactionId) {
-            localStorage.setItem('flightTransactionId', transactionResponse.data.transactionId);
-          }
-        } else {
-          console.error("Failed to save transaction:", transactionResponse.data.message);
-          // Don't throw error here - we still want to proceed with payment even if transaction save fails
-        }
-
-        // Save booking details to localStorage
-        const bookingData = {
+        currency: "INR",
+        environment: "test",
+        merchantOrderId: merchantOrderId,
+        redirectUrl: redirectUrl,
+        customerDetails: {
+          name: contactDetails.name,
+          email: contactDetails.email,
+          phone: contactDetails.phone,
           booking_id: bookingId,
-          flight: flightData.flight,
-          customer: contactDetails,
-          passenger_details: passengerDetailsForAPI,
-          timestamp: new Date().toISOString(),
-          amount: paymentAmount,
-          total_tour_cost: totalTourCost,
+          flight_number: tourData.flightNumber,
+          payment_type: isFullPayment ? 'full' : 'partial',
           payment_percentage: paymentPercentage,
-          is_full_payment: isFullPayment,
-          merchant_order_id: paymentResponse.data.merchantOrderId,
-          payment_type: isFullPayment ? 'full' : 'partial'
-        };
-
-        localStorage.setItem('currentFlightBooking', JSON.stringify(bookingData));
-        localStorage.setItem('phonePeOrderId', paymentResponse.data.merchantOrderId);
-        localStorage.setItem('flightBookingId', bookingId);
-
-        console.log('Redirecting to PhonePe:', paymentResponse.data.checkoutPageUrl);
-
-        // Redirect to PhonePe payment page
-        window.location.href = paymentResponse.data.checkoutPageUrl;
-      } else {
-        throw new Error(paymentResponse.data.message || 'Failed to initialize payment. Please try again.');
+          passenger_count: passengerDetails.length
+        }
       }
-    } catch (error) {
-      console.error("Payment processing error:", error);
-      alert(`Payment failed: ${error.response?.data?.message || error.message || 'Please try again'}`);
-      setSubmitting(false);
+    );
+
+    console.log("REFERENCE_ID:", paymentResponse.data.merchantOrderId);
+    console.log("Payment details:", paymentResponse);
+
+    if (paymentResponse.data.success) {
+      // Step 3: Update booking with reference ID in onlineflights table
+      await axios.put(
+        `${BASE_URL}/api/online-flights/update-booking/${bookingId}`,
+        {
+          referenceId: paymentResponse.data.merchantOrderId,
+          bookingStatus: 'Processing',
+          paymentStatus: 'Processing',
+          apiResponse: paymentResponse.data
+        }
+      );
+
+      // Save booking details to localStorage
+      const bookingData = {
+        booking_id: bookingId,
+        flight: flightData.flight,
+        customer: contactDetails,
+        passenger_details: passengerDetailsForAPI,
+        timestamp: new Date().toISOString(),
+        amount: paymentAmount,
+        total_tour_cost: totalTourCost,
+        payment_percentage: paymentPercentage,
+        is_full_payment: isFullPayment,
+        merchant_order_id: paymentResponse.data.merchantOrderId,
+        payment_type: isFullPayment ? 'full' : 'partial'
+      };
+
+      localStorage.setItem('currentFlightBooking', JSON.stringify(bookingData));
+      localStorage.setItem('phonePeOrderId', paymentResponse.data.merchantOrderId);
+      localStorage.setItem('flightBookingId', bookingId);
+
+      console.log('Redirecting to PhonePe:', paymentResponse.data.checkoutPageUrl);
+
+      // Redirect to PhonePe payment page
+      window.location.href = paymentResponse.data.checkoutPageUrl;
+    } else {
+      throw new Error(paymentResponse.data.message || 'Failed to initialize payment. Please try again.');
     }
-  };
+  } catch (error) {
+    console.error("Payment processing error:", error);
+    alert(`Payment failed: ${error.response?.data?.message || error.message || 'Please try again'}`);
+    setSubmitting(false);
+  }
+};
 
   // Loading and no-tour handling
   if (loading) {
@@ -1258,7 +1209,7 @@ const CheckoutPage = () => {
                         Processing Payment...
                       </div>
                     ) : (
-                      `Pay ${isFullPayment ? 'Full Amount' : `${paymentPercentage}%`} - ${formatPrice(paymentAmount)}`
+                      `Pay ${isFullPayment ? 'Amount' : `${paymentPercentage}%`} - ${formatPrice(paymentAmount)}`
                     )}
                   </Button>
                   <p className="text-center text-sm text-gray-500 mt-3">

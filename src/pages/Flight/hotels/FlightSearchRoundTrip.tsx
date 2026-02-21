@@ -541,10 +541,6 @@ const FlightSearchRoundTrip: React.FC<FlightSearchRoundTripProps> = ({
     }
   };
 
-  // MODIFIED: Handle Book Flight with Fare Quote and Payment
- // In FlightSearchRoundTrip.tsx - Update the handleBookFlight function
-
-// MODIFIED: Handle Book Flight - Navigate to checkout with flight data
 const handleBookFlight = async (flight: FlightSearchResult | RoundTripFlightSearchResult) => {
   try {
     setPaymentProcessing(true);
@@ -574,7 +570,7 @@ const handleBookFlight = async (flight: FlightSearchResult | RoundTripFlightSear
     if (fareQuoteResponse.errorCode === 0) {
       console.log('Fare quote data:', fareQuoteResponse.data);
       console.log('Total payable price:', fareQuoteResponse.data.total_payable_price);
-      
+        console.log('Booking Token ID:', bookingTokenId);
       // Prepare flight booking data for checkout
       const flightBookingData = {
         id: flight.id,
