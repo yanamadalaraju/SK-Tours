@@ -84,6 +84,12 @@ import WeekendForm from "./pages/Weekend_Gateway/WeekendForm/WeekendForm";
 // In your App.js or routing file, add the route:
 
 import FlightPaymentResult from './pages/FlightsPaymentStatus';
+import OneDayPicnic from "./pages/OnedayPicnic/Onedaypicnic";
+import PassportApplicationForm from "./pages/PassportApplicationForm";
+import FestivalCards from "./pages/Festival/Festtival";
+import OneDaySports from "./pages/Sports/Sports";
+import Insurances from "./pages/Insurance/Insurances";
+import Apidata from "./pages/Apidata";
 
 
 const queryClient = new QueryClient();
@@ -170,12 +176,21 @@ const App = () => (
 
 <Route path="/bungalow" element={<Bungalow />} />
           <Route path="/bungalowcheckbox" element={<Bungalowcheckbox />} />
-          <Route path="/bunglowbookingcard" element={< Bunglowbookingcard />} />
+          <Route path="/bunglowbookingcard/:id" element={< Bunglowbookingcard />} />
           <Route path="/bookingform" element={<BookingForm />} />
           <Route path="/weekendcheckbox" element={<Gatewaycheckbox />} />
           <Route path="/Weekendcard" element={<Weekendcard />} />
           <Route path="/Weekendbookingcard" element={<Weekendbookingcard />} />
+                    <Route path="/Weekendbookingcard/:id" element={<Weekendbookingcard />} />
           <Route path="/WeekendForm" element={<WeekendForm />} />
+          <Route path="/onedaypicnic" element={<OneDayPicnic />} />
+          <Route path="/passportform" element={<PassportApplicationForm />} />
+                    <Route path="/festivalcard" element={<FestivalCards />} />
+                    <Route path="/sportscard" element={<OneDaySports />} />
+
+                    <Route path="/insuranceform" element={<Insurances  />} />
+                    <Route path="/apidata" element={<Apidata />} />
+
         </Routes>
       </BrowserRouter>
     </TooltipProvider>

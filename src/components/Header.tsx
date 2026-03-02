@@ -1,6 +1,6 @@
 import {
   Ship, Compass, Phone, UserCircle, Home as HomeIcon, ChevronDown, Sparkles, Heart,
-  GraduationCap, Car, Bus, Landmark, Umbrella, CalendarDays, Users, Shield, Star,
+  GraduationCap, Car, Bus, Map, Landmark, Umbrella, CalendarDays, Users, Shield, Star,
   UsersRound, Globe, MapPin, ChevronRight, PlaneTakeoff, UserPlus, Menu as MenuIcon,
   X as XIcon, ChevronLeft
 } from "lucide-react";
@@ -689,7 +689,7 @@ const Header = () => {
       label: "Flight / Hotel", 
       href: "#offline-flight-tickets",
       dropdown: [
-        { label: "Online Flight Blocks", href: "/flightfrontend" },
+         { label: "Online Flight Blocks", href: "/flightfrontend" },
         { label: "Offline Filght Blocks", href: "/offlineflightblocks" },
        
        
@@ -703,11 +703,11 @@ const Header = () => {
       dropdown: [
         { label: "Bungalow / Villa", href: "/bungalow", icon: HomeIcon },
         
-        { label: "Cruise", href: "/alert", icon: Ship },
-        { label: "Festivals", href: "/alert", icon: Sparkles },
-        { label: "Insurances", href: "/alert", icon: Umbrella },
-        { label: "Passport", href: "/alert", icon: Landmark },
-        { label: "Sports", href: "/alert", icon: Shield },
+{ label: "One Day Picnic", href: "/onedaypicnic", icon: Map },
+        { label: "Festivals", href: "/festivalcard", icon: Sparkles },
+        { label: "Insurances", href: "/insuranceform", icon: Umbrella },
+        { label: "Passport", href: "/passportform", icon: Landmark },
+        { label: "Sports", href: "/sportscard", icon: Shield },
         { label: "Weekend Gateways", href: "/Weekendcard", icon: CalendarDays },
       ],
     },
@@ -1293,7 +1293,6 @@ const Header = () => {
         </li>
       ))}
       
-      {/* BUTTONS ROW - ADDED AFTER CONTACT US */}
       <li className="px-4 py-4 border-b border-blue-500">
         <div className="flex gap-3">
           {/* Mobile Sign Up with Dropdown */}
