@@ -223,7 +223,9 @@ const [loadingDestinations, setLoadingDestinations] = useState(false);
         { type: 'Honeymoon', url: `${BASE_URL}/api/tours/tour/full/honeymoon/${tourId}` },
         { type: 'Ladies Special', url: `${BASE_URL}/api/tours/tour/full/ladiesspecial/${tourId}` },
         { type: 'Senior Citizen', url: `${BASE_URL}/api/tours/tour/full/seniorcitizen/${tourId}` },
-        { type: 'Student', url: `${BASE_URL}/api/tours/tour/full/student/${tourId}` }
+        { type: 'Student', url: `${BASE_URL}/api/tours/tour/full/student/${tourId}` },
+        { type: 'Sports', url: `${BASE_URL}/api/tours/tour/full/sports/${tourId}` },
+  { type: 'Festival', url: `${BASE_URL}/api/tours/tour/full/festival/${tourId}` }
       ];
 
       let response = null;
@@ -1074,7 +1076,11 @@ return (
                               basePath = '/students_tours';
                             } else if (tourType === 'Honeymoon') {
                               basePath = '/honeymoon_tours';
-                            }
+                            }else if (tourType === 'Sports') {
+    basePath = '/sports';
+  } else if (tourType === 'Festival') {
+    basePath = '/festival';
+  }
                             
                             navigate(`${basePath}/${encodeURIComponent(place)}`);
                           }}
@@ -1097,7 +1103,11 @@ return (
                                 basePath = '/students_tours';
                               } else if (tourType === 'Honeymoon') {
                                 basePath = '/honeymoon_tours';
-                              }
+                              }else if (tourType === 'Sports') {
+    basePath = '/sports';
+  } else if (tourType === 'Festival') {
+    basePath = '/festival';
+  }
                               
                               navigate(`${basePath}/${encodeURIComponent(place)}`);
                             }}
@@ -1167,7 +1177,11 @@ return (
                                   basePath = '/intl-students_tours';
                                 } else if (currentTourType === 'Honeymoon') {
                                   basePath = '/intl-honeymoon_tours';
-                                }
+                                }else if (currentTourType === 'Sports') {
+    basePath = '/intl-sports';
+  } else if (currentTourType === 'Festival') {
+    basePath = '/intl-festival';
+  }
                                 
                                 const encodedDestination = encodeURIComponent(place);
                                 navigate(`${basePath}/${encodedDestination}`);
@@ -1193,7 +1207,11 @@ return (
                                       basePath = '/intl-students_tours';
                                     } else if (currentTourType === 'Honeymoon') {
                                       basePath = '/intl-honeymoon_tours';
-                                    }
+                                    } else if (currentTourType === 'Sports') {
+      basePath = '/intl-sports';
+    } else if (currentTourType === 'Festival') {
+      basePath = '/intl-festival';
+    }
                                     
                                     const encodedDestination = encodeURIComponent(place);
                                     navigate(`${basePath}/${encodedDestination}`);

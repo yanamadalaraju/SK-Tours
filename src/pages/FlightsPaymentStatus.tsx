@@ -51,55 +51,158 @@ const BEARER_TOKEN = import.meta.env.VITE_FLIGHT_BEARER_TOKEN;
     checkPhonePeStatus(merchantOrderId, environment);
   }, [location]);
 
-  const fetchBookingDetailsFromAPI = async (refId) => {
-    if (!refId) {
-      console.error("No reference ID provided to fetch booking details");
-      return null;
+
+
+  const printBookingPDF = async () => {
+  let refIdToUse = referenceId;
+  
+  if (!refIdToUse) {
+    refIdToUse = localStorage.getItem('flightReferenceId');
+  }
+  
+  if (!refIdToUse && bookingData && bookingData.reference_id) {
+    refIdToUse = bookingData.reference_id;
+  }
+
+  if (!refIdToUse) {
+    alert('No reference ID available to fetch booking details');
+    return;
+  }
+
+  setPdfLoading(true);
+  
+  try {
+    // Fetch booking details using the reference ID
+    const fetchedBookingData = await fetchBookingDetailsFromAPI(refIdToUse);
+    
+    if (!fetchedBookingData) {
+      alert('Failed to fetch booking details. Please try again.');
+      return;
     }
 
-    setBookingDetailsLoading(true);
-    setBookingDetailsError(null);
-
-    try {
-      console.log("Fetching booking details for reference ID:", refId);
+    console.log("Generating PDF for printing with fetched booking data:", fetchedBookingData);
+    
+    const blob = await pdf(
+      <BookingPDF bookingData={fetchedBookingData} />
+    ).toBlob();
+    
+    const url = window.URL.createObjectURL(blob);
+    
+    const newWindow = window.open(url, '_blank');
+    
+    if (!newWindow) {
+      alert('Popup blocked. Please allow popups for this site or use the download button instead.');
       
-      const response = await axios.post(
-        'https://devapi.flightapi.co.in/v1/fbapi/booking_details',
-        {
-          reference_id: refId,
-          transaction_id: '989087',
-        end_user_ip: import.meta.env.VITE_FLIGHT_END_USER_IP,
-token: import.meta.env.VITE_FLIGHT_TOKEN
-        },
-        {
-          headers: {
-            'x-api-key': API_KEY,
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${BEARER_TOKEN}`
-          }
-        }
-      );
-
-      if (response.data.replyCode === 0) {
-        console.log("Booking details fetched successfully:", response.data.data);
-        setBookingDetailsData(response.data.data);
-        return response.data.data;
-      } else {
-        const errorMsg = 'Failed to fetch booking details';
-        setBookingDetailsError(errorMsg);
-        console.error(errorMsg, response.data);
-        return null;
-      }
-    } catch (err) {
-      const errorMsg = 'Error fetching booking details. Please try again.';
-      setBookingDetailsError(errorMsg);
-      console.error('API Error:', err);
-      return null;
-    } finally {
-      setBookingDetailsLoading(false);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `booking_${refIdToUse}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
-  };
+    
+    setTimeout(() => {
+      window.URL.revokeObjectURL(url);
+    }, 1000);
+    
+    console.log('PDF opened in new tab for printing for reference ID:', refIdToUse);
+  } catch (error) {
+    console.error('Error generating PDF for printing:', error);
+    alert('Failed to generate PDF for printing. Please try again.');
+  } finally {
+    setPdfLoading(false);
+  }
+};
+const fetchBookingDetailsFromAPI = async (refId) => {
+  if (!refId) {
+    console.error("No reference ID provided to fetch booking details");
+    return null;
+  }
 
+  setBookingDetailsLoading(true);
+  setBookingDetailsError(null);
+
+  try {
+    console.log("Fetching booking details for reference ID:", refId);
+    
+    const API_KEY = import.meta.env.VITE_FLIGHT_API_KEY;
+    const BEARER_TOKEN = import.meta.env.VITE_FLIGHT_BEARER_TOKEN;
+    const TOKEN = import.meta.env.VITE_FLIGHT_TOKEN;
+    const END_USER_IP = import.meta.env.VITE_FLIGHT_END_USER_IP;
+    const API_BASE_URL = import.meta.env.VITE_FLIGHT_API_BASE_URL;
+
+    if (!API_KEY || !BEARER_TOKEN || !TOKEN || !END_USER_IP) {
+      throw new Error("Missing required API credentials. Please check your .env file.");
+    }
+
+    console.log("API Configuration:", {
+      apiKeyPresent: !!API_KEY,
+      bearerTokenPresent: !!BEARER_TOKEN,
+      tokenPresent: !!TOKEN,
+      endUserIpPresent: !!END_USER_IP,
+      baseUrl: API_BASE_URL
+    });
+
+    const response = await axios.post(
+      `${API_BASE_URL}booking_details`,
+      {
+        reference_id: refId,
+        transaction_id: '989087', 
+        end_user_ip: END_USER_IP,
+        token: TOKEN
+      },
+      {
+        headers: {
+          'x-api-key': API_KEY,
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${BEARER_TOKEN}`
+        }
+      }
+    );
+
+    console.log("API Response:", response.data);
+
+    if (response.data.replyCode === 0) {
+      console.log("Booking details fetched successfully:", response.data.data);
+      setBookingDetailsData(response.data.data);
+      return response.data.data;
+    } else {
+      const errorMsg = response.data.replyMessage || 'Failed to fetch booking details';
+      setBookingDetailsError(errorMsg);
+      console.error("API Error:", response.data);
+      return null;
+    }
+  } catch (err) {
+    let errorMessage = 'Error fetching booking details. Please try again.';
+    
+    if (err.response) {
+      console.error("API Error Response:", err.response.data);
+      console.error("API Error Status:", err.response.status);
+      
+      if (err.response.status === 401) {
+        errorMessage = 'Authentication failed. Please check your API credentials.';
+      } else if (err.response.status === 403) {
+        errorMessage = 'Access forbidden. Please check your API permissions.';
+      } else if (err.response.status === 404) {
+        errorMessage = 'Booking details not found.';
+      } else if (err.response.status === 500) {
+        errorMessage = 'Server error. Please try again later.';
+      }
+    } else if (err.request) {
+      console.error("No response received:", err.request);
+      errorMessage = 'No response from server. Please check your network connection.';
+    } else {
+      console.error("Error setting up request:", err.message);
+      errorMessage = err.message;
+    }
+    
+    setBookingDetailsError(errorMessage);
+    console.error('API Error:', err);
+    return null;
+  } finally {
+    setBookingDetailsLoading(false);
+  }
+};
   const downloadBookingPDF = async () => {
     let refIdToUse = referenceId;
     
@@ -392,74 +495,104 @@ token: import.meta.env.VITE_FLIGHT_TOKEN
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-            {/* Header with PDF Download Button */}
-            <div className={`${isSuccess ? 'bg-green-500' : isFailed ? 'bg-red-500' : 'bg-yellow-500'} p-6 text-white relative`}>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  {isSuccess && (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                  )}
-                  {isFailed && (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                    </svg>
-                  )}
-                  {isProcessing && (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 animate-pulse" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                    </svg>
-                  )}
-                  <div>
-                    <h1 className="text-3xl font-bold">
-                      {isProcessing && "Payment Processing"}
-                      {isSuccess && "Payment Successful!"}
-                      {isFailed && "Payment Failed"}
-                    </h1>
-                    <p className="opacity-90">
-                      {isProcessing && "Your payment is being processed by PhonePe"}
-                      {isSuccess && "Your flight booking payment has been confirmed"}
-                      {isFailed && "We couldn't process your payment"}
-                    </p>
-                  </div>
-                </div>
-                
-                {/* Download PDF Button - Only show when booking data is available and payment successful */}
-                {isSuccess && (
-                  <button
-                    onClick={downloadBookingPDF}
-                    disabled={pdfLoading || bookingDetailsLoading}
-                    className={`bg-white text-green-600 hover:bg-green-50 px-4 py-2 rounded-lg font-semibold flex items-center gap-2 transition-all duration-200 shadow-md ${
-                      (pdfLoading || bookingDetailsLoading) ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
-                    title="Download booking details as PDF"
-                  >
-                    {(pdfLoading || bookingDetailsLoading) ? (
-                      <>
-                        <svg className="animate-spin h-5 w-5 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        <span>Fetching Details...</span>
-                      </>
-                    ) : (
-                      <>
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z" clipRule="evenodd" />
-                        </svg>
-                        <span>Download PDF</span>
-                        {(referenceId || localStorage.getItem('flightReferenceId')) && (
-                          <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded ml-2">
-                            {referenceId || localStorage.getItem('flightReferenceId')}
-                          </span>
-                        )}
-                      </>
-                    )}
-                  </button>
-                )}
-              </div>
-            </div>
+        {/* Header with PDF Download and Print Buttons */}
+<div className={`${isSuccess ? 'bg-green-500' : isFailed ? 'bg-red-500' : 'bg-yellow-500'} p-6 text-white relative`}>
+  <div className="flex items-center justify-between">
+    <div className="flex items-center gap-4">
+      {isSuccess && (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" viewBox="0 0 20 20" fill="currentColor">
+          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+        </svg>
+      )}
+      {isFailed && (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" viewBox="0 0 20 20" fill="currentColor">
+          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+        </svg>
+      )}
+      {isProcessing && (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 animate-pulse" viewBox="0 0 20 20" fill="currentColor">
+          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+        </svg>
+      )}
+      <div>
+        <h1 className="text-3xl font-bold">
+          {isProcessing && "Payment Processing"}
+          {isSuccess && "Payment Successful!"}
+          {isFailed && "Payment Failed"}
+        </h1>
+        <p className="opacity-90">
+          {isProcessing && "Your payment is being processed by PhonePe"}
+          {isSuccess && "Your flight booking payment has been confirmed"}
+          {isFailed && "We couldn't process your payment"}
+        </p>
+      </div>
+    </div>
+    
+    {/* Action Buttons - Only show when booking data is available and payment successful */}
+    {isSuccess && (
+      <div className="flex gap-3">
+        {/* Print Button */}
+        <button
+          onClick={printBookingPDF}
+          disabled={pdfLoading || bookingDetailsLoading}
+          className={`bg-white text-green-600 hover:bg-green-50 px-4 py-2 rounded-lg font-semibold flex items-center gap-2 transition-all duration-200 shadow-md ${
+            (pdfLoading || bookingDetailsLoading) ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
+          title="Open booking details in new tab for printing"
+        >
+          {(pdfLoading || bookingDetailsLoading) ? (
+            <>
+              <svg className="animate-spin h-5 w-5 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span>Loading...</span>
+            </>
+          ) : (
+            <>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clipRule="evenodd" />
+              </svg>
+              <span>Print</span>
+            </>
+          )}
+        </button>
+
+        {/* Download PDF Button */}
+        <button
+          onClick={downloadBookingPDF}
+          disabled={pdfLoading || bookingDetailsLoading}
+          className={`bg-white text-green-600 hover:bg-green-50 px-4 py-2 rounded-lg font-semibold flex items-center gap-2 transition-all duration-200 shadow-md ${
+            (pdfLoading || bookingDetailsLoading) ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
+          title="Download booking details as PDF"
+        >
+          {(pdfLoading || bookingDetailsLoading) ? (
+            <>
+              <svg className="animate-spin h-5 w-5 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span>Fetching Details...</span>
+            </>
+          ) : (
+            <>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z" clipRule="evenodd" />
+              </svg>
+              <span>Download PDF</span>
+              {(referenceId || localStorage.getItem('flightReferenceId')) && (
+                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded ml-2">
+                  {referenceId || localStorage.getItem('flightReferenceId')}
+                </span>
+              )}
+            </>
+          )}
+        </button>
+      </div>
+    )}
+  </div>
+</div>
 
             {/* Error message for booking details fetch */}
             {bookingDetailsError && (
@@ -698,14 +831,14 @@ token: import.meta.env.VITE_FLIGHT_TOKEN
               <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
                 {isSuccess && (
                   <>
-                    <Button
+                    {/* <Button
                       onClick={() => navigate('/my-flight-bookings')}
                       className="bg-[#2E4D98] hover:bg-[#2E4D98]/90 px-8 py-6 text-lg"
                     >
                       View My Bookings
-                    </Button>
+                    </Button> */}
                     <Button
-                      onClick={() => navigate('/flights')}
+                      onClick={() => navigate('/flightfrontend')}
                       variant="outline"
                       className="border-[#2E4D98] text-[#2E4D98] hover:bg-[#2E4D98]/10 px-8 py-6 text-lg"
                     >
@@ -720,14 +853,14 @@ token: import.meta.env.VITE_FLIGHT_TOKEN
                       onClick={() => {
                         localStorage.removeItem('currentFlightBooking');
                         localStorage.removeItem('flightBookingId');
-                        navigate('/flights');
+                        navigate('/flightfrontend');
                       }}
                       className="bg-[#E53C42] hover:bg-[#E53C42]/90 px-8 py-6 text-lg"
                     >
                       Try Again
                     </Button>
                     <Button
-                      onClick={() => navigate('/flights')}
+                      onClick={() => navigate('/flightfrontend')}
                       variant="outline"
                       className="border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-6 text-lg"
                     >
@@ -759,8 +892,8 @@ token: import.meta.env.VITE_FLIGHT_TOKEN
                 <p className="text-gray-600 mb-2">
                   Need help with your flight booking?
                 </p>
-                <p className="text-lg font-bold text-blue-800">📞 1800-123-4567</p>
-                <p className="text-gray-600">support@traveltour.com</p>
+                <p className="text-lg font-bold text-blue-800">📞 98208 70771</p>
+                <p className="text-gray-600">salil@sktt.in</p>
               </div>
             </div>
           </div>

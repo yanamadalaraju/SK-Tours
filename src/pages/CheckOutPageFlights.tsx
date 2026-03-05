@@ -99,9 +99,7 @@ const CheckoutPage = () => {
     }
   }, [location]);
 
-  // Initialize passenger details function
   const initializePassengerDetails = (tour) => {
-    // Get passenger counts from tour data (default to 1 adult if not specified)
     const adults = tour.adults || 1;
     const children = tour.children || 0;
     const infants = tour.infants || 0;
@@ -350,7 +348,7 @@ const handlePhonePePayment = async (e) => {
   setSubmitting(true);
 
   // Validate required fields
-  const requiredFields = ['firstName', 'lastName', 'email', 'phone', 'address', 'city', 'state', 'pincode'];
+  const requiredFields = ['firstName', 'lastName', 'email', 'phone', ];
   const missingFields = requiredFields.filter(field => !formData[field]);
 
   if (missingFields.length > 0) {
@@ -556,27 +554,32 @@ const handlePhonePePayment = async (e) => {
     const redirectUrl = `${baseUrl}/flight-payment-result`;
 
     // Create PhonePe order - Transaction will be created in backend
-    const paymentResponse = await axios.post(
-      `${BASE_URL}/api/flight/phonepe/orders`,
-      {
-        action: 'create-order',
-        amount: paymentAmount,
-        currency: "INR",
-        environment: "test",
-        merchantOrderId: merchantOrderId,
-        redirectUrl: redirectUrl,
-        customerDetails: {
-          name: contactDetails.name,
-          email: contactDetails.email,
-          phone: contactDetails.phone,
-          booking_id: bookingId,
-          flight_number: tourData.flightNumber,
-          payment_type: isFullPayment ? 'full' : 'partial',
-          payment_percentage: paymentPercentage,
-          passenger_count: passengerDetails.length
-        }
-      }
-    );
+  const payload = {
+  action: "create-order",
+  amount: paymentAmount,
+  currency: "INR",
+  environment: "test",
+  merchantOrderId: merchantOrderId,
+  redirectUrl: redirectUrl,
+  customerDetails: {
+    name: contactDetails.name,
+    email: contactDetails.email,
+    phone: contactDetails.phone,
+    booking_id: bookingId,
+    flight_number: tourData.flightNumber,
+    payment_type: isFullPayment ? "full" : "partial",
+    payment_percentage: paymentPercentage,
+    passenger_count: passengerDetails.length
+  }
+};
+
+// 👉 Print EXACT JSON format like Postman raw body
+console.log(JSON.stringify(payload, null, 2));
+
+const paymentResponse = await axios.post(
+  `${BASE_URL}/api/flight/phonepe/orders`,
+  payload
+);
 
     console.log("REFERENCE_ID:", paymentResponse.data.merchantOrderId);
     console.log("Payment details:", paymentResponse);
@@ -1098,7 +1101,7 @@ const handlePhonePePayment = async (e) => {
                 </div>
 
                 {/* Address Details */}
-                <div>
+                {/* <div>
                   <h2 className="text-xl font-semibold text-gray-800 mb-6 pb-3 border-b">Address Details</h2>
                   <div className="space-y-6">
                     <div>
@@ -1173,7 +1176,7 @@ const handlePhonePePayment = async (e) => {
                       />
                     </div>
                   </div>
-                </div>
+                </div> */}
 
                 {/* Terms and Conditions */}
                 <div className="flex items-start space-x-3 p-4 bg-gray-50 rounded-lg">
@@ -1295,23 +1298,7 @@ const handlePhonePePayment = async (e) => {
                 </div>
               </div>
 
-              {/* Help sections */}
-              <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
-                <div className="flex items-start gap-3">
-                  <div className="bg-green-100 p-2 rounded-lg">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-green-800 mb-1">✅ Booking Protection</h3>
-                    <p className="text-sm text-green-700">
-                      Free cancellation up to 48 hours before departure. Your payment is fully refundable.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
+          
               <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
                 <div className="flex items-start gap-3">
                   <div className="bg-blue-100 p-2 rounded-lg">
@@ -1324,8 +1311,8 @@ const handlePhonePePayment = async (e) => {
                     <p className="text-sm text-blue-700 mb-2">
                       Our travel experts are available 24/7
                     </p>
-                    <p className="text-lg font-bold text-blue-800">1800-123-4567</p>
-                    <p className="text-sm text-blue-700">support@traveltour.com</p>
+                    <p className="text-lg font-bold text-blue-800">98208 70771</p>
+                    <p className="text-sm text-blue-700">salil@sktt.in</p>
                   </div>
                 </div>
               </div>
