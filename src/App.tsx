@@ -85,7 +85,6 @@ import WeekendForm from "./pages/Weekend_Gateway/WeekendForm/WeekendForm";
 
 import FlightPaymentResult from './pages/FlightsPaymentStatus';
 import OneDayPicnic from "./pages/OnedayPicnic/Onedaypicnic";
-import PassportApplicationForm from "./pages/PassportApplicationForm";
 import FestivalCards from "./pages/Festival/Festtival";
 import OneDaySports from "./pages/Sports/Sports";
 import Insurances from "./pages/Insurance/Insurances";
@@ -95,9 +94,6 @@ import Festival from "./pages/Festival";
 import InternationalSports from "./pages/InternationalSports";
 import InternationalFestival from "./pages/InternationalFestival";
 import PassportFormOneM from "./pages/Passport/Passport";
-import PassportTwo from "./pages/Passport/PassportContact";
-import PassportContact from "./pages/Passport/PassportContact";
-import PassPortLast from "./pages/Passport/PassPortLast";
 
 // Import ScrollToTop component
 import ScrollToTop from "./components/ScrollToTop";
@@ -164,6 +160,19 @@ const App = () => (
           } } bookingTokenId={""} token={""} endUserIp={""} staticParam={""} />} />
           <Route path="/bookinginformation" element={<BookingConfirmation bookingData={{}} referenceId="" passengerDetails={[]} contactDetails={{}} onBack={() => {}} />} />
           <Route path="/flightfrontend" element={<Flightfrontend />} />
+<Route path="/international-tours-packages/:state" element={<International_tours_packages />} />
+<Route path="/tourpdfdocument" element={<TourPdfDocument tour={undefined} tourType={""} isGroupTour={false} selectedCostMonth={""} selectedCostDate={""} selectedDeparture={undefined} currentImageIndex={0} />} />
+<Route path="/international-tours_groups/:state" element={<International_group />} />
+<Route path="/international-ladies_tours/:state" element={<International_ladies />} />
+<Route path="/international-senior_tours/:state" element={<International_students />} />
+<Route path="/international-honeymoon_tours/:state" element={<International_honeymoon />} />
+<Route path="/international-senior_tours/:state" element={<International_senior />} />
+<Route path="/international_tour_details/:tourId" element={<International_Tourdetails />} />
+<Route path="/exhibition" element={<Exhibition />} />
+<Route path="/flighthotels" element={<FlightHotels />} /> 
+<Route path="/FlightSeatSelection" element={<SeatSelection />} />
+<Route path="/bookinginformation" element={<BookingConfirmation bookingData={{}} referenceId="" passengerDetails={[]} contactDetails={{}} onBack={() => {}} />} />
+<Route path="/flightfrontend" element={<Flightfrontend />} />
 
           <Route path="/tour-enquiry" element={<TourEnquiry />} />    
           <Route path="/tourpdfinternational" element={<TourPdfDocumentinternational tour={undefined} tourType={""} isGroupTour={false} selectedCostMonth={""} selectedCostDate={""} selectedDeparture={undefined} currentImageIndex={0} />} />
@@ -196,7 +205,6 @@ const App = () => (
           <Route path="/Weekendbookingcard/:id" element={<Weekendbookingcard />} />
           <Route path="/WeekendForm" element={<WeekendForm />} />
           <Route path="/onedaypicnic" element={<OneDayPicnic />} />
-          <Route path="/passportform" element={<PassportApplicationForm />} />
           <Route path="/festivalcard" element={<FestivalCards />} />
           <Route path="/sportscard" element={<OneDaySports />} />
           <Route path="/sports/:state" element={<Sports />} />
@@ -204,8 +212,6 @@ const App = () => (
           <Route path="/intl-sports/:state" element={<InternationalSports />} />
           <Route path="/intl-festival/:state" element={<InternationalFestival />} />
           <Route path="/passport" element={<PassportFormOneM />} />
-          <Route path="/passportcontact" element={<PassportContact />} />
-          <Route path="/passportlast" element={<PassPortLast />} />
 
           <Route path="/insuranceform" element={<Insurances  />} />
           <Route path="/apidata" element={<Apidata />} />

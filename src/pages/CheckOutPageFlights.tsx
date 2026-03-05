@@ -1203,20 +1203,20 @@ const paymentResponse = await axios.post(
 
                 {/* Submit Button */}
                 <div className="pt-4">
-                  <Button
-                    type="submit"
-                    disabled={submitting || !formData.termsAccepted}
-                    className="w-full bg-[#E53C42] hover:bg-[#E53C42]/90 text-white py-7 text-lg font-semibold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
-                  >
-                    {submitting ? (
-                      <div className="flex items-center justify-center gap-3">
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                        Processing Payment...
-                      </div>
-                    ) : (
-                      `Pay ${isFullPayment ? 'Amount' : `${paymentPercentage}%`} - ${formatPrice(paymentAmount)}`
-                    )}
-                  </Button>
+             <Button
+  type="submit"
+  disabled={true}  
+  className="w-full bg-[#E53C42] hover:bg-[#E53C42]/90 text-white py-7 text-lg font-semibold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+>
+  {submitting ? (
+    <div className="flex items-center justify-center gap-3">
+      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+      Processing Payment...
+    </div>
+  ) : (
+    `Pay ${isFullPayment ? 'Amount' : `${paymentPercentage}%`} - ${formatPrice(paymentAmount)}`
+  )}
+</Button>
                   <p className="text-center text-sm text-gray-500 mt-3">
                     You will be redirected to PhonePe's secure payment page
                   </p>

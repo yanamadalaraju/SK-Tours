@@ -760,7 +760,7 @@ const Header = () => {
         { label: "Bungalow / Villa", href: "/bungalow", icon: HomeIcon },
         { label: "One Day Picnic", href: "/onedaypicnic", icon: Map },
         { label: "Insurances", href: "/insuranceform", icon: Umbrella },
-        { label: "Passport", href: "/passportform", icon: Landmark },
+        { label: "Passport", href: "/passport", icon: Landmark },
         { label: "Weekend Gateways", href: "/Weekendcard", icon: CalendarDays },
       ],
     },
