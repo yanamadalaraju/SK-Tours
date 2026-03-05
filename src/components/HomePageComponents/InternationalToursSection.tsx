@@ -24,7 +24,7 @@ interface Tour {
   image: string;
   travelers: number;
   emi: string;
-  tour_type: 'individual' | 'Group';
+  tour_type: 'individual' | 'Group' | 'Ladies' | 'Student';
   status: number;
   display_order: number;
   primary_destination_id?: number;
@@ -35,7 +35,7 @@ interface Tour {
 const TourCarousel: React.FC<{ 
   title: string; 
   subtitle: string;
-  tourType: 'individual' | 'Group';
+  tourType: 'individual' | 'Group' | 'Ladies' | 'Student';
 }> = ({ title, subtitle, tourType }) => {
   const navigate = useNavigate();
   const [tours, setTours] = useState<Tour[]>([]);
@@ -96,14 +96,29 @@ const TourCarousel: React.FC<{
         setLoading(true);
         setError('');
 
-        // Use the correct API endpoint based on your API structure
-        const endpoint = tourType === 'individual' 
-          ? `${BASE_URL}/api/tours/tour/full/all-individual?is_international=true `
-          : `${BASE_URL}/api/tours/tour/full/all-group?is_international=true`;
+        let endpoint = '';
+        
+        // Determine which API endpoint to use based on tour type
+        switch(tourType) {
+          case 'individual':
+            endpoint = `${BASE_URL}/api/tours/tour/full/all-individual?is_international=true`;
+            break;
+          case 'Group':
+            endpoint = `${BASE_URL}/api/tours/tour/full/all-group?is_international=true`;
+            break;
+          case 'Ladies':
+            endpoint = `${BASE_URL}/api/tours/tour/full/all-ladies?is_international=true`;
+            break;
+          case 'Student':
+            endpoint = `${BASE_URL}/api/tours/tour/full/all-student?is_international=true`;
+            break;
+          default:
+            endpoint = `${BASE_URL}/api/tours/tour/full/all-individual?is_international=true`;
+        }
 
         const res = await fetch(endpoint);
         const data = await res.json();
-        console.log("data",data);
+        console.log(`${tourType} tours data:`, data);
 
         if (!data.success) {
           throw new Error(data.error || 'Failed to fetch tours');
@@ -161,7 +176,7 @@ const TourCarousel: React.FC<{
         setShouldDuplicate(activeTours.length > 3);
         
       } catch (err: any) {
-        console.error('Error fetching tours:', err);
+        console.error(`Error fetching ${tourType} tours:`, err);
         setError(err.message || 'Failed to load tours');
         setTours([]);
         setFilteredTours([]);
@@ -180,9 +195,25 @@ const TourCarousel: React.FC<{
   const handleViewPackages = (tour: Tour) => {
     const tourState = tour.state || tour.destination_name || 'Unknown';
     
-    const route = tourType === 'individual' 
-      ? `/intl-tours-packages/${encodeURIComponent(tourState)}`
-      : `/intl-tours_groups/${encodeURIComponent(tourState)}`;
+    let route = '';
+    
+    // Determine route based on tour type
+    switch(tourType) {
+      case 'individual':
+        route = `/intl-tours-packages/${encodeURIComponent(tourState)}`;
+        break;
+      case 'Group':
+        route = `/intl-tours_groups/${encodeURIComponent(tourState)}`;
+        break;
+      case 'Ladies':
+        route = `/intl-ladies_tours/${encodeURIComponent(tourState)}`;
+        break;
+      case 'Student':
+        route = `/intl-students_tours/${encodeURIComponent(tourState)}`;
+        break;
+      default:
+        route = `/intl-tours-packages/${encodeURIComponent(tourState)}`;
+    }
     
     navigate(route, { 
       state: { 
@@ -562,7 +593,7 @@ const TourCarousel: React.FC<{
   );
 };
 
-const DomesticToursSection: React.FC = () => {
+const InternationalToursSection: React.FC = () => {
   return (
     <section className="py-0 bg-gradient-to-br from-sky-200 via-sky-200 to-sky-200">
       <div className="w-full bg-gradient-to-r from-[#0F1F5C] via-[#1F3F93] to-[#0F1F5C] py-6 md:py-8 mb-6 md:mb-10 shadow-lg">
@@ -590,14 +621,26 @@ const DomesticToursSection: React.FC = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <TourCarousel 
           title="International Individual Tours"
-          subtitle=""
+          subtitle="Solo international adventures"
           tourType="individual"
         />
 
         <TourCarousel 
           title="International Group Tours"
-          subtitle="Shared adventures with fellow travelers"
+          subtitle="Shared adventures with fellow travelers across the globe"
           tourType="Group"
+        />
+
+        <TourCarousel 
+          title="International Ladies Special Tours"
+          subtitle="Safe and empowering journeys for women worldwide"
+          tourType="Ladies"
+        />
+
+        <TourCarousel 
+          title="International Student Tours"
+          subtitle="Educational and cultural experiences for students abroad"
+          tourType="Student"
         />
 
         <div className="text-center">
@@ -612,4 +655,4 @@ const DomesticToursSection: React.FC = () => {
   );
 };
 
-export default DomesticToursSection;
+export default InternationalToursSection;

@@ -36,8 +36,8 @@ const Index = () => {
         <DomesticToursSection />
          <InternationalToursSection />
          <WeekendGetawaysSection />
-         <LadiesSpecialSection />
-         <StudentToursSection />
+         {/* <LadiesSpecialSection /> */}
+         {/* <StudentToursSection /> */}
          <CustomerReviewsSection />
         {/* <FestiveHolidaysSection />
         
