@@ -3,6 +3,8 @@ import './Flightfrontend.css';
 import FlightSearchRoundTrip from './FlightSearchRoundTrip';
 import SeatSelection from './SeatSelections';
 import BookingConfirmation from './BookingConfirmation';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 
 function Flightfrontend() {
   const [currentStep, setCurrentStep] = useState<'search' | 'seat-selection' | 'confirmation'>('search');
@@ -42,6 +44,8 @@ function Flightfrontend() {
   };
 
   return (
+    <>
+    <Header />
     <div className="ffd-App">
       <header className="ffd-App-header">
         <h1>Flight Booking System</h1>
@@ -67,8 +71,8 @@ function Flightfrontend() {
                 infants: bookingParams.infants
               }}
               bookingTokenId={bookingParams.bookingTokenId}
-               token="3-1-NEWTEST-dmjkwj78BJHk8"
-              endUserIp="183.83.43.117"
+               token={import.meta.env.VITE_TEST_FLIGHT_API_TOKEN}
+              endUserIp={import.meta.env.VITE_PROD_FLIGHT_API_END_USER_IP}
               staticParam={bookingParams.staticValue}
               onBack={handleBackFromSeats}
               onBookingComplete={handleBookingComplete}
@@ -91,6 +95,8 @@ function Flightfrontend() {
         )}
       </main>
     </div>
+    <Footer />
+    </>
   );
 }
 

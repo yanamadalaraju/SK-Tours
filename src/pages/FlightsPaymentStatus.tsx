@@ -1,4 +1,3 @@
-// src/pages/FlightPaymentResult.jsx - Updated with reference_id console and alert
 
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -6,6 +5,8 @@ import axios from "axios";
 import { BASE_URL } from '@/ApiUrls';
 import Header from '@/components/Header';
 import { Button } from "@/components/ui/button";
+import { pdf } from '@react-pdf/renderer';
+import BookingPDF from './BookingPDF';
 
 const FlightPaymentResult = () => {
   const location = useLocation();
@@ -18,7 +19,17 @@ const FlightPaymentResult = () => {
   const [loading, setLoading] = useState(true);
   const [bookingData, setBookingData] = useState(null);
   const [transactionSaved, setTransactionSaved] = useState(false);
-  const [referenceId, setReferenceId] = useState(""); // Add state for reference_id
+  const [referenceId, setReferenceId] = useState("");
+  const [pdfLoading, setPdfLoading] = useState(false);
+  
+  // New state for BookingDetails integration
+  const [bookingDetailsData, setBookingDetailsData] = useState(null);
+  const [bookingDetailsLoading, setBookingDetailsLoading] = useState(false);
+  const [bookingDetailsError, setBookingDetailsError] = useState(null);
+
+const API_KEY = import.meta.env.VITE_FLIGHT_API_KEY;
+const BEARER_TOKEN = import.meta.env.VITE_FLIGHT_BEARER_TOKEN;
+
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -32,7 +43,6 @@ const FlightPaymentResult = () => {
 
     setOrderId(merchantOrderId);
     
-    // Get booking ID from localStorage
     const savedBookingId = localStorage.getItem('flightBookingId');
     if (savedBookingId) {
       setBookingId(savedBookingId);
@@ -41,7 +51,117 @@ const FlightPaymentResult = () => {
     checkPhonePeStatus(merchantOrderId, environment);
   }, [location]);
 
-  // Save transaction to database
+  const fetchBookingDetailsFromAPI = async (refId) => {
+    if (!refId) {
+      console.error("No reference ID provided to fetch booking details");
+      return null;
+    }
+
+    setBookingDetailsLoading(true);
+    setBookingDetailsError(null);
+
+    try {
+      console.log("Fetching booking details for reference ID:", refId);
+      
+      const response = await axios.post(
+        'https://devapi.flightapi.co.in/v1/fbapi/booking_details',
+        {
+          reference_id: refId,
+          transaction_id: '989087',
+        end_user_ip: import.meta.env.VITE_FLIGHT_END_USER_IP,
+token: import.meta.env.VITE_FLIGHT_TOKEN
+        },
+        {
+          headers: {
+            'x-api-key': API_KEY,
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${BEARER_TOKEN}`
+          }
+        }
+      );
+
+      if (response.data.replyCode === 0) {
+        console.log("Booking details fetched successfully:", response.data.data);
+        setBookingDetailsData(response.data.data);
+        return response.data.data;
+      } else {
+        const errorMsg = 'Failed to fetch booking details';
+        setBookingDetailsError(errorMsg);
+        console.error(errorMsg, response.data);
+        return null;
+      }
+    } catch (err) {
+      const errorMsg = 'Error fetching booking details. Please try again.';
+      setBookingDetailsError(errorMsg);
+      console.error('API Error:', err);
+      return null;
+    } finally {
+      setBookingDetailsLoading(false);
+    }
+  };
+
+  const downloadBookingPDF = async () => {
+    let refIdToUse = referenceId;
+    
+    if (!refIdToUse) {
+      refIdToUse = localStorage.getItem('flightReferenceId');
+    }
+    
+    if (!refIdToUse && bookingData && bookingData.reference_id) {
+      refIdToUse = bookingData.reference_id;
+    }
+
+    if (!refIdToUse) {
+      alert('No reference ID available to fetch booking details');
+      return;
+    }
+
+    setPdfLoading(true);
+    
+    try {
+      // Fetch booking details using the reference ID
+      const fetchedBookingData = await fetchBookingDetailsFromAPI(refIdToUse);
+      
+      if (!fetchedBookingData) {
+        alert('Failed to fetch booking details. Please try again.');
+        return;
+      }
+
+      console.log("Generating PDF with fetched booking data:", fetchedBookingData);
+      
+      // Generate PDF blob using the fetched booking data
+      const blob = await pdf(
+        <BookingPDF bookingData={fetchedBookingData} />
+      ).toBlob();
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // Set filename with reference_id
+      const fileName = `booking_${refIdToUse}.pdf`;
+      link.download = fileName;
+      
+      // Trigger download
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up
+      window.URL.revokeObjectURL(url);
+      
+      console.log('PDF downloaded successfully for reference ID:', refIdToUse);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Failed to generate PDF. Please try again.');
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+
+
+
   const saveTransactionToDatabase = async (paymentStatus, transactionDetails) => {
     try {
       const savedBookingId = localStorage.getItem('flightBookingId');
@@ -50,17 +170,12 @@ const FlightPaymentResult = () => {
         return false;
       }
 
-      // Get booking details from localStorage
       const currentBooking = JSON.parse(localStorage.getItem('currentFlightBooking') || '{}');
       
-      // Get user details from contact details
       const userEmail = currentBooking.customer?.email || '';
       const userPhone = currentBooking.customer?.phone || '';
       
-      // Get the booking token ID or order ID
       const orderId = localStorage.getItem('phonePeOrderId') || transactionDetails?.paymentId || '';
-      
-      // Get the merchant order ID
       const merchantOrderId = localStorage.getItem('phonePeOrderId') || orderId;
       
       console.log("Transaction Data for online_flightbooking_transactions:", {
@@ -72,7 +187,6 @@ const FlightPaymentResult = () => {
         userEmail
       });
       
-      // Create transaction record for online_flightbooking_transactions table
       const transactionData = {
         user_id: userPhone ? parseInt(userPhone.replace(/\D/g, '')) || null : null,
         order_id: orderId,
@@ -85,7 +199,6 @@ const FlightPaymentResult = () => {
 
       console.log("Saving transaction to online_flightbooking_transactions:", transactionData);
 
-      // Save to online_flightbooking_transactions table
       const response = await axios.post(
         `${BASE_URL}/api/flight-bookings/save-transaction`,
         transactionData
@@ -95,7 +208,6 @@ const FlightPaymentResult = () => {
         console.log("Transaction saved successfully:", response.data);
         setTransactionSaved(true);
         
-        // Store transaction ID in localStorage for reference
         if (response.data.transactionId) {
           localStorage.setItem('flightTransactionId', response.data.transactionId);
         }
@@ -113,62 +225,54 @@ const FlightPaymentResult = () => {
       return false;
     }
   };
-const bookFlightWithAPI = async (bookingTokenId) => {
-  try {
-    console.log("Attempting to book flight with token:", bookingTokenId);
-    
-    const response = await axios.post(
-      `${BASE_URL}/api/flight-bookings/book/${bookingTokenId}`
-    );
 
-    console.log("Flight booking API response:", response.data);
+  const bookFlightWithAPI = async (bookingTokenId) => {
+    try {
+      console.log("Attempting to book flight with token:", bookingTokenId);
+      
+      const response = await axios.post(
+        `${BASE_URL}/api/flight-bookings/book/${bookingTokenId}`
+      );
 
-    if (response.data.success) {
-      // Get the reference_id from the response
-      const newReferenceId = response.data.reference_id;
+      console.log("Flight booking API response:", response.data);
+
+      if (response.data.success) {
+        const newReferenceId = response.data.reference_id;
+        
+        setReferenceId(newReferenceId);
+        
+        console.log("✅ REFERENCE_ID RECEIVED:", newReferenceId);
+        console.log("✅ Booking confirmed with reference ID:", newReferenceId);
+        console.log("✅ Full API response:", response.data);
+        
+        localStorage.setItem('flightReferenceId', newReferenceId);
+        
+        setBookingData(prevData => ({
+          ...prevData,
+          reference_id: newReferenceId
+        }));
+        
+        if (response.data.already_confirmed) {
+          console.log("Booking was already confirmed previously");
+        }
+        
+        return true;
+      } else {
+        console.error("Flight booking failed:", response.data.message);
+        return false;
+      }
+    } catch (error) {
+      console.error("Error booking flight:", error);
       
-      // Set reference_id in state
-      setReferenceId(newReferenceId);
-      
-      // Log to console
-      console.log("✅ REFERENCE_ID RECEIVED:", newReferenceId);
-      console.log("✅ Booking confirmed with reference ID:", newReferenceId);
-      console.log("✅ Full API response:", response.data);
-      
-      // Store reference_id in localStorage
-      localStorage.setItem('flightReferenceId', newReferenceId);
-      
-      // Update bookingData with reference_id
-      setBookingData(prevData => ({
-        ...prevData,
-        reference_id: newReferenceId
-      }));
-      
-      // Show appropriate message if already confirmed
-      if (response.data.already_confirmed) {
-        console.log("Booking was already confirmed previously");
+      let errorMessage = 'An error occurred while booking the flight.';
+      if (error.response) {
+        console.error("Error response:", error.response.data);
+        errorMessage = error.response.data.message || errorMessage;
       }
       
-      return true;
-    } else {
-      console.error("Flight booking failed:", response.data.message);
       return false;
     }
-  } catch (error) {
-    console.error("Error booking flight:", error);
-    
-    let errorMessage = 'An error occurred while booking the flight.';
-    if (error.response) {
-      console.error("Error response:", error.response.data);
-      errorMessage = error.response.data.message || errorMessage;
-    }
-    
-    // You might want to show this error to the user
-    // setErrorMessage(errorMessage);
-    
-    return false;
-  }
-};
+  };
 
   const checkPhonePeStatus = async (merchantOrderId, environment) => {
     try {
@@ -182,10 +286,8 @@ const bookFlightWithAPI = async (bookingTokenId) => {
         const paymentStatus = res.data.status;
         setStatus(paymentStatus);
         
-        // Get booking ID from localStorage
         const savedBookingId = localStorage.getItem('flightBookingId');
         
-        // Set payment details
         const details = {
           amount: res.data.amount,
           currency: res.data.currency,
@@ -195,33 +297,28 @@ const bookFlightWithAPI = async (bookingTokenId) => {
         };
         setPaymentDetails(details);
         
-        // Save transaction to database for SUCCESS or FAILED status
         if (paymentStatus === 'SUCCESS' || paymentStatus === 'FAILED') {
           const saved = await saveTransactionToDatabase(paymentStatus, details);
           console.log("Transaction saved:", saved);
         }
         
-        // Fetch booking details for display
         if (savedBookingId) {
           try {
             const bookingRes = await axios.get(`${BASE_URL}/api/flight-bookings/${savedBookingId}`);
             if (bookingRes.data.success) {
               setBookingData(bookingRes.data.booking);
-  console.log("========== FULL BOOKING RESPONSE ==========");
-  console.log(bookingRes.data);
-  console.log("========== BOOKING OBJECT ==========");
-  console.log(bookingRes.data.booking);
-                // If payment was successful, proceed with flight booking API
+              console.log("========== FULL BOOKING RESPONSE ==========");
+              console.log(bookingRes.data);
+              console.log("========== BOOKING OBJECT ==========");
+              console.log(bookingRes.data.booking);
+              
               if (paymentStatus === 'SUCCESS') {
                 console.log("✅ Payment successful, proceeding to book flight...");
                 
-                // Get booking_token_id from booking data
                 const bookingTokenId = bookingRes.data.booking.booking_token_id;
                 
                 if (bookingTokenId) {
                   console.log("Booking token ID found:", bookingTokenId);
-                  
-                  // Call the booking API
                   await bookFlightWithAPI(bookingTokenId);
                 } else {
                   console.error("No booking_token_id found in booking data");
@@ -234,7 +331,6 @@ const bookFlightWithAPI = async (bookingTokenId) => {
           }
         }
         
-        // Save payment success to localStorage
         if (paymentStatus === 'SUCCESS') {
           const bookingData = JSON.parse(localStorage.getItem('currentFlightBooking') || '{}');
           bookingData.payment_status = 'success';
@@ -296,39 +392,83 @@ const bookFlightWithAPI = async (bookingTokenId) => {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-            {/* Header */}
-            <div className={`${isSuccess ? 'bg-green-500' : isFailed ? 'bg-red-500' : 'bg-yellow-500'} p-6 text-white`}>
-              <div className="flex items-center justify-center gap-4">
-                {isSuccess && (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                )}
-                {isFailed && (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                  </svg>
-                )}
-                {isProcessing && (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 animate-pulse" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                  </svg>
-                )}
-                <div>
-                  <h1 className="text-3xl font-bold">
-                    {isProcessing && "Payment Processing"}
-                    {isSuccess && "Payment Successful!"}
-                    {isFailed && "Payment Failed"}
-                  </h1>
-                  <p className="opacity-90">
-                    {isProcessing && "Your payment is being processed by PhonePe"}
-                    {isSuccess && "Your flight booking payment has been confirmed"}
-                    {isFailed && "We couldn't process your payment"}
-                  </p>
+            {/* Header with PDF Download Button */}
+            <div className={`${isSuccess ? 'bg-green-500' : isFailed ? 'bg-red-500' : 'bg-yellow-500'} p-6 text-white relative`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  {isSuccess && (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                  )}
+                  {isFailed && (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    </svg>
+                  )}
+                  {isProcessing && (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 animate-pulse" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                    </svg>
+                  )}
+                  <div>
+                    <h1 className="text-3xl font-bold">
+                      {isProcessing && "Payment Processing"}
+                      {isSuccess && "Payment Successful!"}
+                      {isFailed && "Payment Failed"}
+                    </h1>
+                    <p className="opacity-90">
+                      {isProcessing && "Your payment is being processed by PhonePe"}
+                      {isSuccess && "Your flight booking payment has been confirmed"}
+                      {isFailed && "We couldn't process your payment"}
+                    </p>
+                  </div>
                 </div>
+                
+                {/* Download PDF Button - Only show when booking data is available and payment successful */}
+                {isSuccess && (
+                  <button
+                    onClick={downloadBookingPDF}
+                    disabled={pdfLoading || bookingDetailsLoading}
+                    className={`bg-white text-green-600 hover:bg-green-50 px-4 py-2 rounded-lg font-semibold flex items-center gap-2 transition-all duration-200 shadow-md ${
+                      (pdfLoading || bookingDetailsLoading) ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                    title="Download booking details as PDF"
+                  >
+                    {(pdfLoading || bookingDetailsLoading) ? (
+                      <>
+                        <svg className="animate-spin h-5 w-5 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span>Fetching Details...</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z" clipRule="evenodd" />
+                        </svg>
+                        <span>Download PDF</span>
+                        {(referenceId || localStorage.getItem('flightReferenceId')) && (
+                          <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded ml-2">
+                            {referenceId || localStorage.getItem('flightReferenceId')}
+                          </span>
+                        )}
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             </div>
 
+            {/* Error message for booking details fetch */}
+            {bookingDetailsError && (
+              <div className="bg-red-50 border-l-4 border-red-500 p-4 m-6">
+                <p className="text-red-700">{bookingDetailsError}</p>
+              </div>
+            )}
+
+            {/* Rest of your existing JSX remains exactly the same */}
             {/* Body */}
             <div className="p-8">
               {/* Transaction Details */}
@@ -346,10 +486,12 @@ const bookFlightWithAPI = async (bookingTokenId) => {
                       <span className="font-mono text-gray-800">{bookingId || 'N/A'}</span>
                     </div>
                     {/* Display Reference ID if available */}
-                    {referenceId && (
+                    {(referenceId || localStorage.getItem('flightReferenceId')) && (
                       <div className="flex justify-between py-3 border-b bg-green-50 px-2 rounded">
                         <span className="text-gray-600 font-bold">Reference ID</span>
-                        <span className="font-mono text-green-700 font-bold">{referenceId}</span>
+                        <span className="font-mono text-green-700 font-bold">
+                          {referenceId || localStorage.getItem('flightReferenceId')}
+                        </span>
                       </div>
                     )}
                     <div className="flex justify-between py-3 border-b">
@@ -364,12 +506,12 @@ const bookFlightWithAPI = async (bookingTokenId) => {
                     </div>
                     {paymentDetails && (
                       <>
-<div className="flex justify-between py-3 border-b">
-  <span className="text-gray-600">Amount Paid</span>
-  <span className="font-bold text-gray-900">
-    {formatPrice(bookingData?.total_price || paymentDetails?.amount)}
-  </span>
-</div>
+                        <div className="flex justify-between py-3 border-b">
+                          <span className="text-gray-600">Amount Paid</span>
+                          <span className="font-bold text-gray-900">
+                            {formatPrice(bookingData?.total_price || paymentDetails?.amount)}
+                          </span>
+                        </div>
                         <div className="flex justify-between py-3 border-b">
                           <span className="text-gray-600">Payment Time</span>
                           <span className="text-sm text-gray-700">
@@ -463,7 +605,7 @@ const bookFlightWithAPI = async (bookingTokenId) => {
                                 </tr>
                               ));
                             } catch (e) {
-                              return <tr><td colSpan="4" className="text-center py-2 text-gray-500">Unable to load passenger details</td></tr>;
+                              return <tr><td colSpan={4} className="text-center py-2 text-gray-500">Unable to load passenger details</td></tr>;
                             }
                           })()}
                         </tbody>
@@ -491,10 +633,12 @@ const bookFlightWithAPI = async (bookingTokenId) => {
                       <span className="mt-1">•</span>
                       <span>You will receive a confirmation email with e-ticket details</span>
                     </li>
-                    {referenceId && (
+                    {(referenceId || localStorage.getItem('flightReferenceId')) && (
                       <li className="flex items-start gap-2">
                         <span className="mt-1">•</span>
-                        <span>Flight Reference ID: <strong className="text-green-800">{referenceId}</strong></span>
+                        <span>Flight Reference ID: <strong className="text-green-800">
+                          {referenceId || localStorage.getItem('flightReferenceId')}
+                        </strong></span>
                       </li>
                     )}
                     <li className="flex items-start gap-2">
@@ -508,17 +652,18 @@ const bookFlightWithAPI = async (bookingTokenId) => {
                   </ul>
                   
                   {/* Reference ID Display Button */}
-                  {referenceId && (
+                  {(referenceId || localStorage.getItem('flightReferenceId')) && (
                     <div className="mt-4 p-3 bg-green-100 rounded-lg border border-green-300">
                       <p className="text-green-800 font-medium mb-1">Your Booking Reference ID:</p>
                       <div className="flex items-center gap-2">
                         <code className="bg-white px-3 py-2 rounded text-lg font-bold text-green-700 flex-1 text-center">
-                          {referenceId}
+                          {referenceId || localStorage.getItem('flightReferenceId')}
                         </code>
                         <button 
                           onClick={() => {
-                            navigator.clipboard.writeText(referenceId);
-                            window.alert('Reference ID copied to clipboard!');
+                            const idToCopy = referenceId || localStorage.getItem('flightReferenceId');
+                            navigator.clipboard.writeText(idToCopy);
+                            alert('Reference ID copied to clipboard!');
                           }}
                           className="p-2 bg-white rounded hover:bg-green-50"
                           title="Copy to clipboard"
@@ -573,7 +718,6 @@ const bookFlightWithAPI = async (bookingTokenId) => {
                   <>
                     <Button
                       onClick={() => {
-                        // Clear booking data and go back to flight search
                         localStorage.removeItem('currentFlightBooking');
                         localStorage.removeItem('flightBookingId');
                         navigate('/flights');

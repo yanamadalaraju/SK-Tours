@@ -11,6 +11,7 @@ import { BASE_URL } from '@/ApiUrls';
 import axios from 'axios';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { AlertCircle } from "lucide-react";
+import Footer from '@/components/Footer';
 
 // Passenger interface (matching SeatSelection component)
 interface PassengerDetails {
@@ -662,8 +663,9 @@ const handlePhonePePayment = async (e) => {
   const isFullPayment = paymentAmount >= totalTourCost;
 
   return (
+    <>
     <div className="min-h-screen bg-gray-50">
-      <Header />
+          <Header />
 
       <div className="container mx-auto px-4 py-8">
         <button
@@ -1427,6 +1429,8 @@ const handlePhonePePayment = async (e) => {
         </DialogContent>
       </Dialog>
     </div>
+    <Footer />
+    </>
   );
 };
 

@@ -17,15 +17,8 @@ const Exhibition = () => {
       imageText: "",
       qa: [],
       banner_image: ""
-    },
-    Domestic: {
-      imageText: "Domestic Exhibition Photo",
-      qa: []
-    },
-    International: {
-      imageText: "International Exhibition Photo",
-      qa: []
     }
+    // Domestic and International removed from menuData
   });
   
   const [categoryData, setCategoryData] = useState({
@@ -113,18 +106,6 @@ const Exhibition = () => {
             ...prev,
             Domestic: formattedData
           }));
-          
-          // Also update menu data for Domestic (QA section)
-          setMenuData(prev => ({
-            ...prev,
-            Domestic: {
-              ...prev.Domestic,
-              qa: data.map((item: any) => ({
-                q: item.country_name,
-                a: `Details for ${item.country_name} domestic exhibition`
-              }))
-            }
-          }));
         }
       } catch (error) {
         console.error('Error fetching domestic exhibition:', error);
@@ -164,18 +145,6 @@ const Exhibition = () => {
           setCategoryData(prev => ({
             ...prev,
             International: formattedData
-          }));
-          
-          // Also update menu data for International (QA section)
-          setMenuData(prev => ({
-            ...prev,
-            International: {
-              ...prev.International,
-              qa: data.map((item: any) => ({
-                q: item.country_name,
-                a: `Details for ${item.country_name} international exhibition`
-              }))
-            }
           }));
         }
       } catch (error) {
@@ -276,8 +245,8 @@ const Exhibition = () => {
                           className="max-w-full max-h-[320px] object-contain rounded shadow"
                           onError={(e) => {
                             console.error('Image failed to load:', menuData[activeMenu].imageText);
-                            e.target.style.display = 'none';
-                            const errorDiv = e.target.nextSibling;
+                            (e.target as HTMLElement).style.display = 'none';
+                            const errorDiv = (e.target as HTMLElement).nextSibling as HTMLElement;
                             if (errorDiv) errorDiv.style.display = 'block';
                           }}
                         />

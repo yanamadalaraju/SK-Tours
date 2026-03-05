@@ -1,6 +1,7 @@
 import { useState, ChangeEvent, FormEvent } from "react";
 import Bunglowcheckbox from "../Bungalow_checkbox/Bungalowcheckbox";
-
+import Footer from "@/components/Footer";
+import Header from "@/components/Header";
 interface PersonData {
   name: string;
   age: string;
@@ -52,6 +53,9 @@ const BookingForm: React.FC = () => {
   };
 
   return (
+        <>
+          <Header />
+    
     <div className="font-sans min-h-screen">
       {/* Header */}
       <div className="bg-[#001f54] text-white font-bold text-2xl md:text-3xl lg:text-4xl py-5 px-4 text-center mb-5 w-full">
@@ -374,6 +378,9 @@ const BookingForm: React.FC = () => {
         </div>
       </div>
     </div>
+          <Footer />
+
+    </>
   );
 };
 

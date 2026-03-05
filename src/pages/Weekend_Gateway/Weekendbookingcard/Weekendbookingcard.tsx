@@ -1,85 +1,181 @@
-import  { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import "./Weekendbookingcard.css";
-import Villaimg1 from "../Images/villa1.png";
-import Villaimg2 from "../Images/villa2.png";
-import Villaimg3 from "../Images/villa3.png";
-import Villaimg4 from "../Images/villa4.png";
-import Villaimg5 from "../Images/villa5.png";
-import Villaimg6 from "../Images/villa6.png";
-import villaimg7 from "../Images/villa7.png";
 import Gatewaycheckbox from "../Gatewaycheckbox/Gatewaycheckbox";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import { BASE_URL } from "@/ApiUrls";
 
-// Type definitions
+// Type definitions based on API response
 interface Bungalow {
-  id: string;
+  gateway_id: number;
+  gateway_code: string;
   name: string;
-  price: number;
-  img: string;
-  Number?: number;
+  price: string;
+  main_image?: string;
+  overview?: string;
+  inclusive?: string;
+  exclusive?: string;
+  places_nearby?: string;
+  booking_policy?: string;
+  per_pax_twin?: string;
+  per_pax_triple?: string;
+  child_with_bed?: string;
+  child_without_bed?: string;
+  infant?: string;
+  per_pax_single?: string;
 }
 
-interface RelatedBungalow extends Bungalow {
-  Number: number;
+interface BungalowImage {
+  image_id: number;
+  gateway_id: number;
+  image_url: string;
+  is_main: number;
+  sort_order: number;
 }
 
-type TabType = "overview" | "Tour" | "inclusive" | "nearby" | "policy" | "cancellation";
+interface RelatedBungalow {
+  relation_id: number;
+  gateway_id: number;
+  related_gateway_id: number | null;
+  related_name: string;
+  related_price: string;
+  related_image: string;
+  sort_order: number;
+  name: string | null;
+  price: string | null;
+}
+
+type TabType = "overview" | "tour" | "inclusive" | "nearby" | "policy" | "cancellation";
 
 const Weekendbookingcard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>("overview");
+  const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
+  const [bungalowData, setBungalowData] = useState<Bungalow | null>(null);
+  const [images, setImages] = useState<BungalowImage[]>([]);
+  const [relatedBungalows, setRelatedBungalows] = useState<RelatedBungalow[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  
   const location = useLocation();
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
   
+  const passedBungalow = location.state?.bungalow as Bungalow | undefined;
+
+  // Fetch data from API
+  useEffect(() => {
+    const fetchBungalowDetails = async () => {
+      try {
+        setLoading(true);
+        
+        // Get the gateway ID from either URL params or passed state
+        const gatewayId = id || passedBungalow?.gateway_id;
+        
+        if (!gatewayId) {
+          navigate("/weekend-gateway");
+          return;
+        }
+
+        // Fetch bungalow details
+        const response = await fetch(`${BASE_URL}/api/weekend-gateways/${gatewayId}`);
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch bungalow details');
+        }
+        
+        const data = await response.json();
+        
+        setBungalowData(data.gateway);
+        setImages(data.images || []);
+        setRelatedBungalows(data.related_gateways || []);
+        setError(null);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+        console.error('Error fetching bungalow details:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBungalowDetails();
+  }, [id, passedBungalow, navigate]);
+
+  // Fetch related bungalows from dedicated endpoint
+  useEffect(() => {
+    const fetchRelatedBungalows = async () => {
+      if (!id) return;
+      
+      try {
+        const response = await fetch(`${BASE_URL}/api/weekend-gateways/related/${id}`);
+        const data = await response.json();
+        
+        // Transform the data to match the expected format for the UI
+        const formattedRelated = data.map((item: RelatedBungalow) => ({
+          relation_id: item.relation_id,
+          gateway_id: item.related_gateway_id || item.gateway_id,
+          related_name: item.related_name || item.name,
+          related_price: item.related_price || item.price,
+          related_image: item.related_image,
+          sort_order: item.sort_order
+        }));
+        
+        setRelatedBungalows(formattedRelated);
+      } catch (error) {
+        console.error("Error fetching related bungalows:", error);
+        // Fallback to empty array if API fails
+        setRelatedBungalows([]);
+      }
+    };
+
+    if (id) {
+      fetchRelatedBungalows();
+    }
+  }, [id]);
+
   const handleBook = (): void => {
-    navigate("/WeekendForm");
+    navigate("/WeekendForm", { 
+      state: { bungalow: bungalowData } 
+    });
   };
 
-  const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
+  const getImageUrl = (imagePath: string) => {
+    if (!imagePath) return '';
+    return imagePath.startsWith('http') ? imagePath : `${BASE_URL}${imagePath}`;
+  };
 
-  const bungalow = location.state?.bungalow as Bungalow | undefined;
-
-  if (!bungalow) {
-    navigate("/bungalow");
-    return null;
-  }
-
-  const carouselImages: string[] = [
-    bungalow.img || Villaimg1,
-    Villaimg2,
-    Villaimg3,
-    Villaimg4,
-    Villaimg5,
-    Villaimg6,
-    villaimg7
-  ];
-
-  const relatedBungalows: RelatedBungalow[] = [
-    { id: "BUG00004", name: "Igatpuri", price: 10000, Number: 1, img: Villaimg4 },
-    { id: "BUG00002", name: "Aamby Valley", price: 16400, Number: 2, img: Villaimg2 },
-    { id: "BUG00003", name: "Goa", price: 17400, Number: 3, img: Villaimg3 },
-  ];
+  // Prepare carousel images
+  const carouselImages: string[] = images.length > 0 
+    ? images.map(img => getImageUrl(img.image_url))
+    : bungalowData?.main_image 
+      ? [getImageUrl(bungalowData.main_image)]
+      : [];
 
   const nextImage = (): void => {
-    setCurrentImageIndex(
-      (prev) => (prev === carouselImages.length - 1 ? 0 : prev + 1)
-    );
+    if (carouselImages.length > 0) {
+      setCurrentImageIndex(
+        (prev) => (prev === carouselImages.length - 1 ? 0 : prev + 1)
+      );
+    }
   };
 
   const prevImage = (): void => {
-    setCurrentImageIndex(
-      (prev) => (prev === 0 ? carouselImages.length - 1 : prev - 1)
-    );
+    if (carouselImages.length > 0) {
+      setCurrentImageIndex(
+        (prev) => (prev === 0 ? carouselImages.length - 1 : prev - 1)
+      );
+    }
   };
 
-  const handleRelatedClick = (related: RelatedBungalow): void => {
-    navigate("/bunglowbookingcard", { state: { bungalow: related } });
+  const handleRelatedClick = (related: any): void => {
+    navigate(`/weekend-booking-card/${related.gateway_id || related.related_gateway_id}`);
   };
 
   const getTabDisplayName = (tab: TabType): string => {
     switch (tab) {
       case "overview":
         return "Overview";
-      case "Tour":
+      case "tour":
         return "Tour Cost";
       case "inclusive":
         return "Inclusive & Exclusive";
@@ -94,243 +190,306 @@ const Weekendbookingcard: React.FC = () => {
     }
   };
 
-  return (
-    <div className="wkbc-container">
-      {/* Header */}
-      <div className="wkbc-header-main">
-        <div className="wkbc-title-main">Weekend Gateway</div>
-      </div>
+  const renderTabContent = (): JSX.Element => {
+    switch (activeTab) {
+      case "overview":
+        return <div className="wkbc-free-flow-textarea">{bungalowData?.overview || "No overview available"}</div>;
+      
+      case "tour":
+        return (
+          <div className="wkbc-free-flow-textarea">
+            <table className="wkbc-tour-table">
+              <thead>
+                <tr>
+                  <th>Particulars - Cost in INR</th>
+                  <th>Rate</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Per pax on Twin Basis</td>
+                  <td>{bungalowData?.per_pax_twin ? `₹ ${parseInt(bungalowData.per_pax_twin).toLocaleString()}` : '-'}</td>
+                </tr>
+                <tr>
+                  <td>Per pax on Triple Basis</td>
+                  <td>{bungalowData?.per_pax_triple ? `₹ ${parseInt(bungalowData.per_pax_triple).toLocaleString()}` : '-'}</td>
+                </tr>
+                <tr>
+                  <td>Child with Bed</td>
+                  <td>{bungalowData?.child_with_bed ? `₹ ${parseInt(bungalowData.child_with_bed).toLocaleString()}` : '-'}</td>
+                </tr>
+                <tr>
+                  <td>Child without Bed</td>
+                  <td>{bungalowData?.child_without_bed ? `₹ ${parseInt(bungalowData.child_without_bed).toLocaleString()}` : '-'}</td>
+                </tr>
+                <tr>
+                  <td>Infant</td>
+                  <td>{bungalowData?.infant ? `₹ ${parseInt(bungalowData.infant).toLocaleString()}` : '-'}</td>
+                </tr>
+                <tr>
+                  <td>Per pax Single Occupancy</td>
+                  <td>{bungalowData?.per_pax_single ? `₹ ${parseInt(bungalowData.per_pax_single).toLocaleString()}` : '-'}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        );
+      
+      case "inclusive":
+        return (
+          <div className="wkbc-free-flow-textareas">
+            <div className="wkbc-inclusion-exclusion-container">
+              <div className="wkbc-table-wrapper">
+                <table className="wkbc-table">
+                  <thead>
+                    <tr>
+                      <th className="wkbc-th">Inclusive</th>
+                    </tr>
+                  </thead>
+                </table>
+                <div className="wkbc-table-scroll">
+                  <table className="wkbc-table">
+                    <tbody>
+                      {bungalowData?.inclusive ? (
+                        bungalowData.inclusive.split('\n').map((item, idx) => (
+                          <tr key={idx}>
+                            <td className="wkbc-td">{item}</td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td className="wkbc-td">No inclusive items listed</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
 
-      <div className="wkbc-header-sub">
-        <div className="wkbc-title-sub">
-          Weekend Gateway- {bungalow.name}
+              <div className="wkbc-table-wrapper">
+                <table className="wkbc-table">
+                  <thead>
+                    <tr>
+                      <th className="wkbc-th">Exclusive</th>
+                    </tr>
+                  </thead>
+                </table>
+                <div className="wkbc-table-scroll">
+                  <table className="wkbc-table">
+                    <tbody>
+                      {bungalowData?.exclusive ? (
+                        bungalowData.exclusive.split('\n').map((item, idx) => (
+                          <tr key={idx}>
+                            <td className="wkbc-td">{item}</td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td className="wkbc-td">No exclusive items listed</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      
+      case "nearby":
+        return <div className="wkbc-free-flow-textarea">{bungalowData?.places_nearby || "No nearby places listed"}</div>;
+      
+      case "policy":
+        return (
+          <div className="wkbc-free-flow-textarea-container">
+            <div className="wkbc-free-flow-textarea">{bungalowData?.booking_policy || "No booking policy available"}</div>
+            <div className="wkbc-book-button-container">
+              <button className="wkbc-book-btn" onClick={handleBook}>
+                Book
+              </button>
+            </div>
+          </div>
+        );
+      
+      case "cancellation":
+        return (
+          <div className="wkbc-free-flow-textarea-container">
+            <div className="wkbc-free-flow-textarea">
+              {bungalowData?.booking_policy || "No cancellation policy available"}
+            </div>
+          </div>
+        );
+      
+      default:
+        return <div className="wkbc-free-flow-textarea">Free Flow Entry</div>;
+    }
+  };
+
+  // Loading state
+  if (loading || !bungalowData) {
+    return (
+      <>
+        <Header />
+        <div className="wkbc-bungalow-details-page">
+          <div className="loading-spinner">Loading...</div>
         </div>
-      </div>
+        <Footer />
+      </>
+    );
+  }
 
-      <div className="wkbc-filter-horizontal">
-        <Gatewaycheckbox />
-      </div>
+  // Error state
+  if (error) {
+    return (
+      <>
+        <Header />
+        <div className="wkbc-bungalow-details-page">
+          <div className="error-message">{error}</div>
+        </div>
+        <Footer />
+      </>
+    );
+  }
 
-      {/* Main Content */}
-      <div className="wkbc-content-main">
-        {/* Left Sidebar - for Desktop */}
-        <div className="wkbc-sidebar-left">
+  return (
+    <>
+      <Header />
+      <div className="wkbc-bungalow-details-page">
+        {/* Header */}
+        <div className="wkbc-details-page-header">
+          <div className="wkbc-bungalow-details-header">Weekend Gateway</div>
+        </div>
+
+        <div className="wkbc-details-page-header-text">
+          <div className="wkbc-bungalow-details-header-text">
+            Weekend Gateway - {bungalowData.name} ({bungalowData.gateway_code})
+          </div>
+        </div>
+
+        {/* Horizontal Filter Section for Tablet/Mobile */}
+        <div className="wkbc-horizontal-filter-section">
           <Gatewaycheckbox />
         </div>
 
         {/* Main Content */}
-        <div className="wkbc-content-primary">
-          {/* Carousel */}
-          <div className="wkbc-carousel-main">
-            <div className="wkbc-carousel-wrapper">
-              <img
-                src={carouselImages[currentImageIndex]}
-                alt={bungalow.name}
-                className="wkbc-carousel-image"
-              />
+        <div className="wkbc-details-content">
+          {/* Left Sidebar - for Desktop */}
+          <div className="wkbc-left-sidebar">
+            <Gatewaycheckbox />
+          </div>
 
-              <button className="wkbc-carousel-btn wkbc-carousel-prev" onClick={prevImage}>
-                ‹
-              </button>
-              <button className="wkbc-carousel-btn wkbc-carousel-next" onClick={nextImage}>
-                ›
-              </button>
-
-              <div className="wkbc-thumbnails">
-                <div className="wkbc-thumbnail-list">
-                  {carouselImages.map((image, index) => (
+          {/* Main Content */}
+          <div className="wkbc-main-content-area">
+            {/* Carousel */}
+            <div className="wkbc-carousel-section">
+              <div className="wkbc-carousel-wrapper">
+                {carouselImages.length > 0 ? (
+                  <>
                     <img
-                      key={index}
-                      src={image}
-                      alt={`${bungalow.name} ${index + 1}`}
-                      className={`wkbc-thumbnail-img ${
-                        index === currentImageIndex ? "wkbc-thumbnail-active" : ""
-                      }`}
-                      onClick={() => setCurrentImageIndex(index)}
+                      src={carouselImages[currentImageIndex]}
+                      alt={bungalowData.name}
+                      className="wkbc-main-carousel-image"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = 'https://via.placeholder.com/800x400?text=No+Image';
+                      }}
                     />
-                  ))}
-                </div>
+
+                    <button className="wkbc-carousel-control wkbc-prev" onClick={prevImage}>
+                      ‹
+                    </button>
+                    <button className="wkbc-carousel-control wkbc-next" onClick={nextImage}>
+                      ›
+                    </button>
+
+                    <div className="wkbc-thumbnail-section">
+                      <div className="wkbc-thumbnail-container">
+                        {carouselImages.map((image, index) => (
+                          <img
+                            key={index}
+                            src={image}
+                            alt={`${bungalowData.name} ${index + 1}`}
+                            className={`wkbc-thumbnail ${
+                              index === currentImageIndex ? "wkbc-active" : ""
+                            }`}
+                            onClick={() => setCurrentImageIndex(index)}
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.src = 'https://via.placeholder.com/100x80?text=No+Image';
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="wkbc-no-image">No images available</div>
+                )}
+              </div>
+            </div>
+
+            {/* Tabs + Free Flow */}
+            <div className="wkbc-inner-card-container">
+              <div className="wkbc-tab-header">
+                {(["overview", "tour", "inclusive", "nearby", "policy", "cancellation"] as TabType[]).map(
+                  (tab) => (
+                    <div
+                      key={tab}
+                      className={`wkbc-tab ${activeTab === tab ? "wkbc-active-tab" : ""}`}
+                      onClick={() => setActiveTab(tab)}
+                    >
+                      {getTabDisplayName(tab)}
+                    </div>
+                  )
+                )}
+              </div>
+
+              <div className="wkbc-free-flow-container">
+                {renderTabContent()}
               </div>
             </div>
           </div>
 
-          {/* Tabs + Free Flow */}
-          <div className="wkbc-tabs-container">
-            <div className="wkbc-tabs-header">
-              {(["overview", "Tour", "inclusive", "nearby", "policy", "cancellation"] as TabType[]).map(
-                (tab) => (
-                  <div
-                    key={tab}
-                    className={`wkbc-tab-item ${activeTab === tab ? "wkbc-tab-active" : ""}`}
-                    onClick={() => setActiveTab(tab)}
-                  >
-                    {getTabDisplayName(tab)}
-                  </div>
-                )
-              )}
-            </div>
-
-            <div className="wkbc-tab-content">
-              {/* Overview */}
-              <div
-                className="wkbc-content-overview"
-                style={{ display: activeTab === "overview" ? "block" : "none" }}
-              >
-                Free Flow Entry
-              </div>
-
-              {/* Tour Cost */}
-              <div
-                className="wkbc-content-tour"
-                style={{ display: activeTab === "Tour" ? "block" : "none" }}
-              >
-                <table className="wkbc-tour-table">
-                  <thead>
-                    <tr>
-                      <th>Particulars - Cost in INR</th>
-                      <th>Rate</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>Per pax on Twin Basis</td>
-                      <td></td>
-                    </tr>
-                    <tr>
-                      <td>Per pax on Triple Basis</td>
-                      <td></td>
-                    </tr>
-                    <tr>
-                      <td>Child with Bed</td>
-                      <td></td>
-                    </tr>
-                    <tr>
-                      <td>Child without Bed</td>
-                      <td></td>
-                    </tr>
-                    <tr>
-                      <td>Infant</td>
-                      <td></td>
-                    </tr>
-                    <tr>
-                      <td>Per pax Single Occupancy</td>
-                      <td></td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Inclusive & Exclusive */}
-              <div
-                className="wkbc-content-inclusive"
-                style={{ display: activeTab === "inclusive" ? "block" : "none" }}
-              >
-                <div className="wkbc-inclusion-exclusion">
-                  <div className="wkbc-table-section">
-                    <table className="wkbc-inclusion-table">
-                      <thead>
-                        <tr>
-                          <th>Inclusive</th>
-                        </tr>
-                      </thead>
-                    </table>
-                    <div className="wkbc-table-scroll">
-                      <table>
-                        <tbody>
-                          {Array(20)
-                            .fill("")
-                            .map((_, idx) => (
-                              <tr key={idx}>
-                                <td>&nbsp;</td>
-                              </tr>
-                            ))}
-                        </tbody>
-                      </table>
+          {/* Right Sidebar */}
+          <div className="wkbc-details-sidebar">
+            <div className="wkbc-related-bungalows">
+              <div className="wkbc-related-bunglows-name">Related Destination</div>
+              <div className="wkbc-related-cards">
+                {relatedBungalows.length > 0 ? (
+                  relatedBungalows.map((related, index) => (
+                    <div 
+                      key={related.relation_id || index} 
+                      className="wkbc-related-card"
+                      onClick={() => handleRelatedClick(related)}
+                    >
+                      <div className="wkbc-related-card-image-wrapper">
+                        <img 
+                          src={getImageUrl(related.related_image)} 
+                          alt={related.related_name}
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = 'https://via.placeholder.com/200x150?text=No+Image';
+                          }}
+                        />
+                        <div className="wkbc-amount-badge">
+                          INR {parseInt(related.related_price).toLocaleString()}
+                        </div>
+                      </div>
+                      <div className="wkbc-related-info">
+                        <h4>{related.related_name}</h4>
+                      </div>
                     </div>
-                  </div>
-
-                  <div className="wkbc-table-section">
-                    <table className="wkbc-exclusion-table">
-                      <thead>
-                        <tr>
-                          <th>Exclusive</th>
-                        </tr>
-                      </thead>
-                    </table>
-                    <div className="wkbc-table-scroll">
-                      <table>
-                        <tbody>
-                          {Array(20)
-                            .fill("")
-                            .map((_, idx) => (
-                              <tr key={idx}>
-                                <td>&nbsp;</td>
-                              </tr>
-                            ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
+                  ))
+                ) : (
+                  <div className="wkbc-no-related">No related destinations found</div>
+                )}
               </div>
-
-              {/* Nearby */}
-              <div
-                className="wkbc-content-nearby"
-                style={{ display: activeTab === "nearby" ? "block" : "none" }}
-              >
-                Free Flow Entry
-              </div>
-
-              {/* Booking Policy */}
-              <div
-                className="wkbc-content-policy"
-                style={{ display: activeTab === "policy" ? "flex" : "none" }}
-              >
-                <div className="wkbc-policy-text">Free Flow Entry</div>
-                <div className="wkbc-book-btn-container">
-                  <button className="wkbc-book-btn" onClick={handleBook}>Book</button>
-                </div>
-              </div>
-
-              {/* Cancellation Policy */}
-              <div
-                className="wkbc-content-cancellation"
-                style={{ display: activeTab === "cancellation" ? "flex" : "none" }}
-              >
-                <div className="wkbc-cancellation-text">
-                  {/* Empty content for now */}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Right Sidebar */}
-        <div className="wkbc-sidebar-right">
-          <div className="wkbc-related-destinations">
-            <div className="wkbc-related-title">Related Destination</div>
-            <div className="wkbc-related-cards">
-              {relatedBungalows.map((related) => (
-                <div 
-                  key={related.id} 
-                  className="wkbc-related-card"
-                  onClick={() => handleRelatedClick(related)}
-                >
-                  <div className="wkbc-related-image">
-                    <img src={related.img} alt={related.name} />
-                    <div className="wkbc-price-badge">INR {related.price}</div>
-                  </div>
-                  <div className="wkbc-related-info">
-                    <h4>{related.Number}. {related.name}</h4>
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
         </div>
       </div>
-    </div>
+      <Footer />
+    </>
   );
 };
 
