@@ -12,12 +12,14 @@ import {
   Check,
   X,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Loader
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import Header from '@/components/Header';
 import Footer from "@/components/Footer";
+import axios from 'axios';
 
 // Types
 interface TravellerCount {
@@ -32,89 +34,41 @@ interface ChildAge {
   age: number;
 }
 
-// Static hotel data
-const hotels = [
-  {
-    id: 1,
-    name: "Estrela Do Mar Beach Resort",
-    location: "North Goa",
-    address: "About a minute walk to Calangute Beach",
-    rating: 3.9,
-    ratingsCount: 8205,
-    stars: 4,
-    price: 10518,
-    originalPrice: 47999,
-    taxes: 1205,
-    features: [
-      "Free stay for both the kids",
-      "Near Calangute Beach, swimming pool and jacuzzi, live music during meals"
-    ],
-    image: "🏨",
-    imageColor: "from-blue-400 to-blue-600",
-    cancellation: "Free Cancellation Available",
-    sale: "Limited Time Sale"
-  },
-  {
-    id: 2,
-    name: "Coconut Grove Resort",
-    location: "Calangute Beach",
-    address: "Beachfront property with private access",
-    rating: 4.2,
-    ratingsCount: 3241,
-    stars: 4,
-    price: 8500,
-    originalPrice: 12999,
-    taxes: 950,
-    features: [
-      "Beachfront access",
-      "Swimming pool, spa, and restaurant"
-    ],
-    image: "🏨",
-    imageColor: "from-green-400 to-green-600",
-    cancellation: "Free Cancellation Available",
-    sale: "Limited Time Sale"
-  },
-  {
-    id: 3,
-    name: "Sunset Paradise Hotel",
-    location: "Baga",
-    address: "5 minutes walk to Baga Beach",
-    rating: 4.0,
-    ratingsCount: 2187,
-    stars: 4,
-    price: 9200,
-    originalPrice: 15999,
-    taxes: 1050,
-    features: [
-      "Rooftop infinity pool",
-      "Night club and bar"
-    ],
-    image: "🏨",
-    imageColor: "from-orange-400 to-orange-600",
-    cancellation: "Free Cancellation Available",
-    sale: "Limited Time Sale"
-  },
-  {
-    id: 4,
-    name: "Palm Beach Resort",
-    location: "North Goa",
-    address: "Near Candolim Beach",
-    rating: 4.3,
-    ratingsCount: 1562,
-    stars: 3,
-    price: 7800,
-    originalPrice: 10999,
-    taxes: 850,
-    features: [
-      "Garden view rooms",
-      "Outdoor pool and restaurant"
-    ],
-    image: "🏨",
-    imageColor: "from-blue-400 to-blue-600",
-    cancellation: "Free Cancellation Available",
-    sale: "Limited Time Sale"
-  }
-];
+interface Hotel {
+  id: number;
+  hotel_name: string;
+  hotel_location: string;
+  location?: string;
+  address?: string;
+  rating: number | string;
+  total_ratings: number;
+  star_rating: number;
+  price: string | number;
+  original_price?: string | number;
+  sale_price?: string | number;
+  taxes?: string | number;
+  amenities?: string;
+  main_image?: string;
+  additional_images?: string[];
+  overview_description?: string;
+  hotel_facilities_description?: string;
+  airport_transfers_description?: string;
+  meal_plan_description?: string;
+  taxes_description?: string;
+  free_stay_for_kids?: boolean | number;
+  limited_time_sale?: boolean | number;
+  login_to_book?: boolean | number;
+  pay_later?: boolean | number;
+  status?: string;
+  city?: string;
+  check_in_date?: string;
+  check_out_date?: string;
+  rooms?: number;
+  adults?: number;
+  children?: number;
+  pets?: boolean | number;
+  children_ages?: number[];
+}
 
 // Popular cities
 const cities = [
@@ -129,6 +83,9 @@ const cities = [
   { name: "Jaipur", country: "India", popular: true },
   { name: "Ahmedabad", country: "India", popular: true }
 ];
+
+// API base URL
+const API_BASE_URL = 'http://localhost:5000/api';
 
 // Date Picker Component
 const DatePickerDropdown = ({ 
@@ -717,8 +674,29 @@ const Sidebar = () => {
 };
 
 // Hotel Card Component
-const HotelCard = ({ hotel }: { hotel: typeof hotels[0] }) => {
+const HotelCard = ({ hotel }: { hotel: Hotel }) => {
   const [activeTab, setActiveTab] = useState<string | null>(null);
+  const [imageError, setImageError] = useState(false);
+
+  // Format price
+  const formatPrice = (price: string | number | undefined) => {
+    if (!price) return '0';
+    return Number(price).toLocaleString('en-IN');
+  };
+
+  // Get star rating display
+  const getStarRating = (rating: number) => {
+    return '★'.repeat(rating) + '☆'.repeat(5 - rating);
+  };
+
+  // Get image URL
+  const getImageUrl = (imagePath: string | undefined) => {
+    if (!imagePath || imageError) return null;
+    if (imagePath.startsWith('http')) return imagePath;
+    // Remove duplicate /api if present
+    const baseUrl = API_BASE_URL.replace('/api', '');
+    return `${baseUrl}${imagePath}`;
+  };
 
   const tabs = [
     { id: 'overview', label: 'Overview' },
@@ -736,11 +714,11 @@ const HotelCard = ({ hotel }: { hotel: typeof hotels[0] }) => {
           <tbody>
             <tr className="border-b">
               <td className="py-2 font-medium">Property Name</td>
-              <td className="py-2">{hotel.name}</td>
+              <td className="py-2">{hotel.hotel_name}</td>
             </tr>
             <tr className="border-b">
               <td className="py-2 font-medium">Location</td>
-              <td className="py-2">{hotel.location}, {hotel.address}</td>
+              <td className="py-2">{hotel.hotel_location}</td>
             </tr>
             <tr className="border-b">
               <td className="py-2 font-medium">Check-in Time</td>
@@ -757,7 +735,7 @@ const HotelCard = ({ hotel }: { hotel: typeof hotels[0] }) => {
                   {[...Array(5)].map((_, i) => (
                     <Star key={i} className={cn(
                       "w-4 h-4",
-                      i < hotel.stars ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
+                      i < hotel.star_rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
                     )} />
                   ))}
                 </div>
@@ -765,111 +743,154 @@ const HotelCard = ({ hotel }: { hotel: typeof hotels[0] }) => {
             </tr>
           </tbody>
         </table>
+        {hotel.overview_description && (
+          <div className="mt-4 text-sm text-gray-700">
+            {hotel.overview_description}
+          </div>
+        )}
       </div>
     ),
     facilities: (
       <div className="p-4">
         <h4 className="font-semibold mb-3">Hotel Facilities</h4>
-        <div className="grid grid-cols-2 gap-3">
-          {[
-            { icon: '🏊', title: 'Swimming Pool' },
-            { icon: '💆', title: 'Spa' },
-            { icon: '💪', title: 'Fitness Center' },
-            { icon: '🍽️', title: 'Restaurant' },
-            { icon: '📶', title: 'Free Wi-Fi' },
-            { icon: '🅿️', title: 'Parking' },
-          ].map((facility, idx) => (
-            <div key={idx} className="flex items-center gap-2">
-              <span className="text-lg">{facility.icon}</span>
-              <span className="text-sm">{facility.title}</span>
-            </div>
-          ))}
-        </div>
+        {hotel.hotel_facilities_description ? (
+          <div className="text-sm text-gray-700">
+            {hotel.hotel_facilities_description}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { icon: '🏊', title: 'Swimming Pool' },
+              { icon: '💆', title: 'Spa' },
+              { icon: '💪', title: 'Fitness Center' },
+              { icon: '🍽️', title: 'Restaurant' },
+              { icon: '📶', title: 'Free Wi-Fi' },
+              { icon: '🅿️', title: 'Parking' },
+            ].map((facility, idx) => (
+              <div key={idx} className="flex items-center gap-2">
+                <span className="text-lg">{facility.icon}</span>
+                <span className="text-sm">{facility.title}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     ),
     transfer: (
       <div className="p-4">
         <h4 className="font-semibold mb-3">Airport Transfer Details</h4>
-        <table className="w-full text-sm">
-          <tbody>
-            <tr className="border-b">
-              <td className="py-2 font-medium">Nearest Airport</td>
-              <td className="py-2">Goa International Airport (GOI)</td>
-            </tr>
-            <tr className="border-b">
-              <td className="py-2 font-medium">Distance</td>
-              <td className="py-2">36 km</td>
-            </tr>
-            <tr className="border-b">
-              <td className="py-2 font-medium">Transfer Service</td>
-              <td className="py-2 text-green-600">✓ Available on request</td>
-            </tr>
-            <tr>
-              <td className="py-2 font-medium">Transfer Cost</td>
-              <td className="py-2">₹2,500 - ₹3,500 per vehicle</td>
-            </tr>
-          </tbody>
-        </table>
+        {hotel.airport_transfers_description ? (
+          <div className="text-sm text-gray-700">
+            {hotel.airport_transfers_description}
+          </div>
+        ) : (
+          <table className="w-full text-sm">
+            <tbody>
+              <tr className="border-b">
+                <td className="py-2 font-medium">Nearest Airport</td>
+                <td className="py-2">Goa International Airport (GOI)</td>
+              </tr>
+              <tr className="border-b">
+                <td className="py-2 font-medium">Distance</td>
+                <td className="py-2">36 km</td>
+              </tr>
+              <tr className="border-b">
+                <td className="py-2 font-medium">Transfer Service</td>
+                <td className="py-2 text-green-600">✓ Available on request</td>
+              </tr>
+              <tr>
+                <td className="py-2 font-medium">Transfer Cost</td>
+                <td className="py-2">₹2,500 - ₹3,500 per vehicle</td>
+              </tr>
+            </tbody>
+          </table>
+        )}
       </div>
     ),
     meal: (
       <div className="p-4">
         <h4 className="font-semibold mb-3">Meal Plans</h4>
-        <div className="space-y-2">
-          {[
-            { plan: 'Room only (EP)', price: 'Included' },
-            { plan: 'Breakfast (CP)', price: '+₹800' },
-            { plan: 'Breakfast + Dinner (MAP)', price: '+₹1,500' },
-            { plan: 'All meals (AP)', price: '+₹2,200' },
-          ].map((meal, idx) => (
-            <div key={idx} className="flex justify-between text-sm border-b pb-2">
-              <span>{meal.plan}</span>
-              <span className="font-medium">{meal.price}</span>
-            </div>
-          ))}
-        </div>
+        {hotel.meal_plan_description ? (
+          <div className="text-sm text-gray-700">
+            {hotel.meal_plan_description}
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {[
+              { plan: 'Room only (EP)', price: 'Included' },
+              { plan: 'Breakfast (CP)', price: '+₹800' },
+              { plan: 'Breakfast + Dinner (MAP)', price: '+₹1,500' },
+              { plan: 'All meals (AP)', price: '+₹2,200' },
+            ].map((meal, idx) => (
+              <div key={idx} className="flex justify-between text-sm border-b pb-2">
+                <span>{meal.plan}</span>
+                <span className="font-medium">{meal.price}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     ),
     taxes: (
       <div className="p-4">
         <h4 className="font-semibold mb-3">Taxes and Fees</h4>
-        <div className="space-y-2">
-          {[
-            { label: 'Base Price', amount: `₹${hotel.price.toLocaleString()}` },
-            { label: 'SGST (9%)', amount: `₹${Math.round(hotel.price * 0.09).toLocaleString()}` },
-            { label: 'CGST (9%)', amount: `₹${Math.round(hotel.price * 0.09).toLocaleString()}` },
-            { label: 'Service Charge', amount: '₹315' },
-          ].map((item, idx) => (
-            <div key={idx} className="flex justify-between text-sm border-b pb-2">
-              <span>{item.label}</span>
-              <span className="font-medium">{item.amount}</span>
-            </div>
-          ))}
-          <div className="flex justify-between text-sm font-bold pt-2">
-            <span>Total per night</span>
-            <span>₹{(hotel.price + Math.round(hotel.price * 0.18) + 315).toLocaleString()}</span>
+        {hotel.taxes_description ? (
+          <div className="text-sm text-gray-700">
+            {hotel.taxes_description}
           </div>
-        </div>
+        ) : (
+          <div className="space-y-2">
+            {[
+              { label: 'Base Price', amount: `₹${formatPrice(hotel.price)}` },
+              { label: 'SGST (9%)', amount: `₹${Math.round(Number(hotel.price) * 0.09).toLocaleString()}` },
+              { label: 'CGST (9%)', amount: `₹${Math.round(Number(hotel.price) * 0.09).toLocaleString()}` },
+              { label: 'Service Charge', amount: hotel.taxes ? `₹${formatPrice(hotel.taxes)}` : '₹315' },
+            ].map((item, idx) => (
+              <div key={idx} className="flex justify-between text-sm border-b pb-2">
+                <span>{item.label}</span>
+                <span className="font-medium">{item.amount}</span>
+              </div>
+            ))}
+            <div className="flex justify-between text-sm font-bold pt-2">
+              <span>Total per night</span>
+              <span>₹{(Number(hotel.price) + Math.round(Number(hotel.price) * 0.18) + (Number(hotel.taxes) || 315)).toLocaleString()}</span>
+            </div>
+          </div>
+        )}
       </div>
     )
   };
+
+  const mainImageUrl = getImageUrl(hotel.main_image);
+  const baseUrlWithoutApi = API_BASE_URL.replace('/api', '');
 
   return (
     <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 mb-6">
       <div className="flex flex-col lg:flex-row">
         {/* Hotel Image */}
         <div className="lg:w-64 mr-6 flex-shrink-0 mb-4 lg:mb-0">
-          <div className={`bg-gradient-to-br ${hotel.imageColor} rounded-lg h-48 w-full mb-3 flex items-center justify-center overflow-hidden`}>
-            <div className="text-white text-center">
-              <div className="text-4xl mb-2">{hotel.image}</div>
-              <p className="font-bold text-lg">{hotel.name.split(' ').slice(0, 2).join(' ')}</p>
-              <p className="text-sm opacity-90">Beach Resort</p>
+          <div className="bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg h-48 w-full mb-3 flex items-center justify-center overflow-hidden">
+            {mainImageUrl ? (
+              <img 
+                src={mainImageUrl} 
+                alt={hotel.hotel_name}
+                className="w-full h-full object-cover"
+                onError={() => setImageError(true)}
+              />
+            ) : (
+              <div className="text-white text-center">
+                <div className="text-4xl mb-2">🏨</div>
+                <p className="font-bold text-lg">{hotel.hotel_name?.split(' ').slice(0, 2).join(' ')}</p>
+                <p className="text-sm opacity-90">Hotel</p>
+              </div>
+            )}
+          </div>
+          {hotel.free_stay_for_kids && (
+            <div className="flex items-center text-sm text-green-600 font-medium">
+              <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+              Free stay for kids
             </div>
-          </div>
-          <div className="flex items-center text-sm text-green-600 font-medium">
-            <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-            {hotel.cancellation}
-          </div>
+          )}
         </div>
 
         {/* Hotel Details */}
@@ -879,19 +900,19 @@ const HotelCard = ({ hotel }: { hotel: typeof hotels[0] }) => {
             <div className="flex items-start justify-between">
               <div>
                 <h2 className="text-xl font-bold text-gray-800 flex items-center flex-wrap gap-2">
-                  {hotel.name}
+                  {hotel.hotel_name}
                   <div className="flex">
                     {[...Array(5)].map((_, i) => (
                       <Star key={i} className={cn(
                         "w-4 h-4",
-                        i < hotel.stars ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
+                        i < (hotel.star_rating || 0) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
                       )} />
                     ))}
                   </div>
                 </h2>
                 <div className="flex items-center text-gray-600 mt-1">
                   <MapPin size={16} className="mr-1 flex-shrink-0" />
-                  <span className="text-sm">{hotel.location} | {hotel.address}</span>
+                  <span className="text-sm">{hotel.hotel_location}</span>
                 </div>
               </div>
               <button className="text-blue-600 hover:text-blue-800 text-sm font-semibold flex items-center whitespace-nowrap">
@@ -900,17 +921,19 @@ const HotelCard = ({ hotel }: { hotel: typeof hotels[0] }) => {
             </div>
           </div>
 
-          {/* Features */}
-          <div className="mb-4">
-            <ul className="space-y-2">
-              {hotel.features.map((feature, idx) => (
-                <li key={idx} className="flex items-start text-gray-700">
-                  <Check size={18} className="mr-2 flex-shrink-0 mt-0.5 text-green-600" />
-                  <span className="text-sm">{feature}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {/* Features/Amenities */}
+          {hotel.amenities && (
+            <div className="mb-4">
+              <ul className="space-y-2">
+                {hotel.amenities.split(',').slice(0, 2).map((feature, idx) => (
+                  <li key={idx} className="flex items-start text-gray-700">
+                    <Check size={18} className="mr-2 flex-shrink-0 mt-0.5 text-green-600" />
+                    <span className="text-sm">{feature.trim()}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {/* Tabs */}
           <div className="border-b border-gray-200 mb-4">
@@ -942,41 +965,51 @@ const HotelCard = ({ hotel }: { hotel: typeof hotels[0] }) => {
           {/* Rating and Price */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mt-4 pt-4 border-t">
             <div className="mb-4 sm:mb-0">
-              <div className="flex items-center mb-3">
-                <div className="bg-green-600 text-white px-3 py-1.5 rounded-l flex items-center">
-                  <span className="font-bold">{hotel.rating}</span>
-                  <span className="ml-1.5 text-sm font-medium">Very Good</span>
+              {hotel.rating && (
+                <div className="flex items-center mb-3">
+                  <div className="bg-green-600 text-white px-3 py-1.5 rounded-l flex items-center">
+                    <span className="font-bold">{Number(hotel.rating).toFixed(1)}</span>
+                    <span className="ml-1.5 text-sm font-medium">Very Good</span>
+                  </div>
+                  <div className="bg-green-50 text-green-700 px-3 py-1.5 rounded-r">
+                    <span className="text-sm">({hotel.total_ratings?.toLocaleString() || 0} Ratings)</span>
+                  </div>
                 </div>
-                <div className="bg-green-50 text-green-700 px-3 py-1.5 rounded-r">
-                  <span className="text-sm">({hotel.ratingsCount.toLocaleString()} Ratings)</span>
-                </div>
-              </div>
+              )}
               
               <div className="flex items-center">
-                <span className="bg-red-50 text-red-600 text-xs font-bold px-2 py-1 rounded mr-2">
-                  {hotel.sale}
-                </span>
-                <span className="text-sm text-gray-600">Per Night for {hotel.rooms || 1} Room</span>
+                {hotel.limited_time_sale && (
+                  <span className="bg-red-50 text-red-600 text-xs font-bold px-2 py-1 rounded mr-2">
+                    Limited Time Sale
+                  </span>
+                )}
+                <span className="text-sm text-gray-600">Per Night for 1 Room</span>
               </div>
             </div>
 
             {/* Price Section */}
             <div className="text-right w-full sm:w-auto">
-              <div className="mb-1">
-                <span className="text-gray-500 line-through text-sm">₹{hotel.originalPrice.toLocaleString()}</span>
-              </div>
+              {hotel.original_price && Number(hotel.original_price) > Number(hotel.price) && (
+                <div className="mb-1">
+                  <span className="text-gray-500 line-through text-sm">₹{formatPrice(hotel.original_price)}</span>
+                </div>
+              )}
               <div className="flex items-baseline justify-end mb-2 flex-wrap">
-                <span className="text-2xl font-bold text-gray-800">₹{hotel.price.toLocaleString()}</span>
-                <span className="text-gray-600 text-sm ml-2">+ ₹{hotel.taxes.toLocaleString()} taxes</span>
+                <span className="text-2xl font-bold text-gray-800">₹{formatPrice(hotel.price)}</span>
+                {hotel.taxes && (
+                  <span className="text-gray-600 text-sm ml-2">+ ₹{formatPrice(hotel.taxes)} taxes</span>
+                )}
               </div>
               
               <div className="space-y-2">
                 <button className="bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-8 rounded-lg transition-colors w-full sm:w-auto">
                   VIEW ALL
                 </button>
-                <p className="text-blue-600 text-sm font-semibold">
-                  Login to Book Now & Pay Later!
-                </p>
+                {hotel.login_to_book && (
+                  <p className="text-blue-600 text-sm font-semibold">
+                    Login to Book Now & Pay Later!
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -990,6 +1023,10 @@ const HotelCard = ({ hotel }: { hotel: typeof hotels[0] }) => {
 const HotelSearch = () => {
   const [showResults, setShowResults] = useState(false);
   const [searchData, setSearchData] = useState<any>(null);
+  const [hotels, setHotels] = useState<Hotel[]>([]);
+  const [filteredHotels, setFilteredHotels] = useState<Hotel[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   
   const [location, setLocation] = useState("Goa");
   const [checkIn, setCheckIn] = useState<Date>(() => {
@@ -1020,14 +1057,98 @@ const HotelSearch = () => {
   const [autoOpenCheckOut, setAutoOpenCheckOut] = useState(false);
   const [autoOpenGuests, setAutoOpenGuests] = useState(false);
 
-  const handleSearch = () => {
+  // Fetch hotels from API on component mount
+  useEffect(() => {
+    fetchHotels();
+  }, []);
+
+  // Fetch hotels from API
+  const fetchHotels = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const response = await axios.get(`${API_BASE_URL}/offline-hotels`);
+      
+      if (response.data.success) {
+        setHotels(response.data.data);
+      } else {
+        setError('Failed to fetch hotels');
+      }
+    } catch (err) {
+      console.error('Error fetching hotels:', err);
+      setError('Error fetching hotels. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Filter hotels based on search criteria
+  const filterHotels = () => {
+    if (!hotels.length) return [];
+
+    return hotels.filter(hotel => {
+      // City/Location filter - check if hotel city contains the search location (case insensitive)
+      const searchLocation = location.toLowerCase();
+      const hotelCity = (hotel.city || '').toLowerCase();
+      const hotelLocation = (hotel.hotel_location || '').toLowerCase();
+      const locationMatch = hotelCity.includes(searchLocation) || 
+                           hotelLocation.includes(searchLocation);
+
+      // Check-in date filter - compare dates (only if hotel has check_in_date)
+      let dateMatch = true;
+      if (checkIn && hotel.check_in_date) {
+        const hotelCheckIn = new Date(hotel.check_in_date);
+        const searchCheckIn = new Date(checkIn);
+        
+        // Reset time part for date comparison
+        hotelCheckIn.setHours(0, 0, 0, 0);
+        searchCheckIn.setHours(0, 0, 0, 0);
+        
+        dateMatch = hotelCheckIn.getTime() === searchCheckIn.getTime();
+      }
+
+      // Check-out date filter - compare dates (only if hotel has check_out_date)
+      if (dateMatch && checkOut && hotel.check_out_date) {
+        const hotelCheckOut = new Date(hotel.check_out_date);
+        const searchCheckOut = new Date(checkOut);
+        
+        hotelCheckOut.setHours(0, 0, 0, 0);
+        searchCheckOut.setHours(0, 0, 0, 0);
+        
+        dateMatch = hotelCheckOut.getTime() === searchCheckOut.getTime();
+      }
+
+      // Room/guest filters
+      let guestMatch = true;
+      if (travellers) {
+        if (hotel.rooms && hotel.rooms < travellers.rooms) {
+          guestMatch = false;
+        }
+        if (hotel.adults && hotel.adults < travellers.adults) {
+          guestMatch = false;
+        }
+        if (hotel.children !== undefined && hotel.children < travellers.children) {
+          guestMatch = false;
+        }
+      }
+
+      return locationMatch && dateMatch && guestMatch;
+    });
+  };
+
+  const handleSearch = async () => {
     if (!location || !checkIn) return;
+    
+    // Filter hotels based on search criteria
+    const filtered = filterHotels();
+    setFilteredHotels(filtered);
     
     const newSearchData = {
       location,
       checkIn,
       checkOut,
-      travellers
+      travellers,
+      totalHotels: filtered.length
     };
     
     setSearchData(newSearchData);
@@ -1267,15 +1388,24 @@ const HotelSearch = () => {
               <div className="border-t md:border-t-0 md:border-l border-gray-200">
                 <button
                   onClick={handleSearch}
-                  disabled={!isSearchEnabled}
+                  disabled={!isSearchEnabled || loading}
                   className={cn(
                     "w-full h-full py-4 px-6 bg-orange-600 hover:bg-orange-700 text-white font-bold text-lg rounded-b-2xl md:rounded-r-2xl md:rounded-bl-none transition-all shadow-lg flex items-center justify-center gap-3 disabled:opacity-60 disabled:cursor-not-allowed",
-                    isSearchEnabled && "hover:shadow-xl"
+                    isSearchEnabled && !loading && "hover:shadow-xl"
                   )}
                 >
-                  <Search className="w-6 h-6" />
-                  <span className="hidden md:inline">Search Hotels</span>
-                  <span className="md:hidden">Search</span>
+                  {loading ? (
+                    <>
+                      <Loader className="w-6 h-6 animate-spin" />
+                      <span>Loading...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Search className="w-6 h-6" />
+                      <span className="hidden md:inline">Search Hotels</span>
+                      <span className="md:hidden">Search</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>
@@ -1300,7 +1430,16 @@ const HotelSearch = () => {
                   <span>{searchData.checkOut ? format(searchData.checkOut, "dd MMM yyyy") : "Flexible"}</span>
                   <span>|</span>
                   <span>{guestsDisplay}</span>
+                  <span className="ml-auto text-orange-600 font-semibold">
+                    {searchData.totalHotels} Hotels Found
+                  </span>
                 </div>
+              </div>
+            )}
+
+            {error && (
+              <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6">
+                {error}
               </div>
             )}
 
@@ -1312,43 +1451,69 @@ const HotelSearch = () => {
 
               {/* Hotel Cards */}
               <div className="lg:w-3/4">
-                {hotels.map((hotel) => (
-                  <HotelCard key={hotel.id} hotel={hotel} />
-                ))}
+                {loading ? (
+                  <div className="text-center py-12">
+                    <Loader className="w-12 h-12 animate-spin text-orange-600 mx-auto mb-4" />
+                    <p className="text-gray-600">Loading hotels...</p>
+                  </div>
+                ) : filteredHotels.length > 0 ? (
+                  filteredHotels.map((hotel) => (
+                    <HotelCard key={hotel.id} hotel={hotel} />
+                  ))
+                ) : (
+                  <div className="text-center py-12 bg-white rounded-xl shadow-md">
+                    <Hotel className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-xl font-bold text-gray-800 mb-2">No Hotels Found</h3>
+                    <p className="text-gray-600 mb-4">
+                      No hotels match your search criteria. Try adjusting your filters.
+                    </p>
+                    <button 
+                      onClick={() => {
+                        setLocation("Mumbai");
+                        handleSearch();
+                      }}
+                      className="bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-6 rounded-lg"
+                    >
+                      Try Searching Mumbai
+                    </button>
+                  </div>
+                )}
                 
-                {/* Similar Hotels */}
-                <div className="mt-8">
-                  <h2 className="text-xl font-bold text-gray-800 mb-4">More Hotels in Goa</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {hotels.slice(0, 3).map((hotel, index) => (
-                      <div key={index} className="bg-white rounded-lg shadow border p-4 hover:shadow-md transition-shadow">
-                        <div className="flex">
-                          <div className={`w-20 h-20 bg-gradient-to-br ${hotel.imageColor} rounded mr-3 flex items-center justify-center flex-shrink-0`}>
-                            <div className="text-white text-center">
-                              <div className="text-2xl">{hotel.image}</div>
-                            </div>
-                          </div>
-                          <div className="flex-1">
-                            <h4 className="font-bold text-gray-800 text-sm line-clamp-1">{hotel.name}</h4>
-                            <p className="text-gray-600 text-xs mb-1">{hotel.location}</p>
-                            <div className="flex items-center mb-2">
-                              <div className="flex">
-                                {[...Array(hotel.stars)].map((_, i) => (
-                                  <Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                                ))}
+                {/* Similar Hotels - Only show if there are hotels */}
+                {filteredHotels.length > 0 && filteredHotels.length < 3 && (
+                  <div className="mt-8">
+                    <h2 className="text-xl font-bold text-gray-800 mb-4">More Hotels You Might Like</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {hotels.slice(0, 3).map((hotel, index) => (
+                        <div key={index} className="bg-white rounded-lg shadow border p-4 hover:shadow-md transition-shadow">
+                          <div className="flex">
+                            <div className="bg-gradient-to-br from-blue-400 to-blue-600 rounded w-20 h-20 mr-3 flex items-center justify-center flex-shrink-0">
+                              <div className="text-white text-center">
+                                <div className="text-2xl">🏨</div>
                               </div>
-                              <span className="text-gray-600 text-xs ml-1">({hotel.rating})</span>
                             </div>
-                            <p className="font-bold text-gray-800 text-sm">₹{hotel.price.toLocaleString()}</p>
-                            <button className="text-blue-600 hover:text-orange-600 text-xs font-medium mt-1">
-                              View Details →
-                            </button>
+                            <div className="flex-1">
+                              <h4 className="font-bold text-gray-800 text-sm line-clamp-1">{hotel.hotel_name}</h4>
+                              <p className="text-gray-600 text-xs mb-1">{hotel.city || hotel.hotel_location}</p>
+                              <div className="flex items-center mb-2">
+                                <div className="flex">
+                                  {[...Array(hotel.star_rating || 0)].map((_, i) => (
+                                    <Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                                  ))}
+                                </div>
+                                <span className="text-gray-600 text-xs ml-1">({hotel.rating || 'N/A'})</span>
+                              </div>
+                              <p className="font-bold text-gray-800 text-sm">₹{Number(hotel.price).toLocaleString()}</p>
+                              <button className="text-blue-600 hover:text-orange-600 text-xs font-medium mt-1">
+                                View Details →
+                              </button>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           </div>
