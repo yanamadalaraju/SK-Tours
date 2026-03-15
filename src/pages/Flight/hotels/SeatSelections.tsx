@@ -473,9 +473,8 @@ const SeatSelection: React.FC<SeatSelectionProps> = ({
         flight_traveller_details: flightTravellerDetails,
         booking_token_id: bookingTokenId,
         total_amount: totalPrice,
-        end_user_ip: endUserIp || "192.168.1.12",
-        token: token || "1-20618-SKTT-cnjks678HBJ76uhj"
-      };
+end_user_ip: endUserIp || import.meta.env.VITE_PROD_FLIGHT_API_END_USER_IP,
+token: token || import.meta.env.VITE_PROD_FLIGHT_API_TOKEN      };
 
       console.log("Booking payload:", JSON.stringify(bookingPayload, null, 2));
 
@@ -522,8 +521,10 @@ const fetchBookingDetails = async (referenceId: string) => {
     const bookingDetailsPayload = {
       reference_id: referenceId,
       transaction_id: referenceId,
-        end_user_ip: endUserIp || "192.168.1.12",
-        token: token || "1-20618-SKTT-cnjks678HBJ76uhj"
+      end_user_ip: endUserIp || import.meta.env.VITE_PROD_FLIGHT_API_END_USER_IP,
+token: token || import.meta.env.VITE_PROD_FLIGHT_API_TOKEN
+        // end_user_ip: endUserIp || "192.168.1.12",
+        // token: token || "1-20618-SKTT-cnjks678HBJ76uhj"
     };
 
     const response = await axios.post(

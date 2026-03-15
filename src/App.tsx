@@ -38,7 +38,7 @@ import IntlSenior_tour from "./pages/Senior_tour/InternationalSeniors_tour";
 
 import Terms_conditions from "./pages/Terms_Conditions/Terms_conditions";
 import Privacy_policy from "./pages/Privacy_policy/Privacy_policy";
-import CheckOutPage from "./pages/CheckOutPage"
+import CheckoutPageFlights from "./pages/CheckOutPageFlights"
 import CheckoutPage from "./pages/CheckOutPage";
 import PaymentResult from "./pages/PaymentResult";
 import Alert from "./pages/Alertfolder/Alert";
@@ -81,6 +81,22 @@ import Gatewaycheckbox from "./pages/Weekend_Gateway/Gatewaycheckbox/Gatewaychec
 import Weekendcard from "./pages/Weekend_Gateway/Weekendcard/Weekendcard";
 import Weekendbookingcard from "./pages/Weekend_Gateway/Weekendbookingcard/Weekendbookingcard";
 import WeekendForm from "./pages/Weekend_Gateway/WeekendForm/WeekendForm";
+// In your App.js or routing file, add the route:
+
+import FlightPaymentResult from './pages/FlightsPaymentStatus';
+import OneDayPicnic from "./pages/OnedayPicnic/Onedaypicnic";
+import FestivalCards from "./pages/Festival/Festtival";
+import OneDaySports from "./pages/Sports/Sports";
+import Insurances from "./pages/Insurance/Insurances";
+import Apidata from "./pages/Apidata";
+import Sports from "./pages/Sports";
+import Festival from "./pages/Festival";
+import InternationalSports from "./pages/InternationalSports";
+import InternationalFestival from "./pages/InternationalFestival";
+import PassportFormOneM from "./pages/Passport/Passport";
+
+// Import ScrollToTop component
+import ScrollToTop from "./components/ScrollToTop";
 
 const queryClient = new QueryClient();
 
@@ -90,25 +106,28 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        {/* Add ScrollToTop here - it will run on every route change */}
+        <ScrollToTop />
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/home" element={<Home />} />
-<Route path="/tours-packages/:state" element={<TourPackages />} />
-<Route path="/intl-tours-packages/:state" element={<IntlTourPackages />} />
+          <Route path="/tours-packages/:state" element={<TourPackages />} />
+          <Route path="/intl-tours-packages/:state" element={<IntlTourPackages />} />
 
-<Route path="/checkout" element={<CheckoutPage />} />
-<Route path="/payment-result" element={<PaymentResult />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/checkoutflights" element={<CheckoutPageFlights />} />
+          <Route path="/payment-result" element={<PaymentResult />} />
           <Route path="/about" element={<AboutPage />} />
-<Route path="/tour/:tourId" element={<TourDetails />} />
+          <Route path="/tour/:tourId" element={<TourDetails />} />
           <Route path="/ladies"  element={<Ladiesspecial_tour />} />
 
-<Route path="/students_tours/:state" element={<Students_tour />} />
-<Route path="/intl-students_tours/:state" element={<IntlStudents_tour />} />
+          <Route path="/students_tours/:state" element={<Students_tour />} />
+          <Route path="/intl-students_tours/:state" element={<IntlStudents_tour />} />
 
-<Route path="/contact" element={<ContactPage />} />
+          <Route path="/contact" element={<ContactPage />} />
 
-<Route path="/honeymoon_tours/:state" element= {<Honeymoon_tours />} />
-<Route path="/intl-honeymoon_tours/:state" element= {<IntlHoneymoon_tours />} />
+          <Route path="/honeymoon_tours/:state" element= {<Honeymoon_tours />} />
+          <Route path="/intl-honeymoon_tours/:state" element= {<IntlHoneymoon_tours />} />
 
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
@@ -117,15 +136,30 @@ const App = () => (
           <Route path="/tours_groups/:state" element={<Tourdetails_indian />} />
           <Route path="/intl-tours_groups/:state" element={<IntlTourdetails_indian />} />
           <Route path="/ladies_tours/:state" element={<Ladies_tour />} />
-           <Route path="/intl-ladies_tours/:state" element={<IntlLadies_tour />} />
+          <Route path="/intl-ladies_tours/:state" element={<IntlLadies_tour />} />
           <Route path="/senior_tours/:state" element={<Seniors_tour />} />
           <Route path="/intl-senior_tours/:state" element={<IntlSenior_tour/>} />
           <Route path="/terms_conditions" element={<Terms_conditions />} />
-<Route path="/privacy_policy" element={<Privacy_policy />} />
-<Route path="/alert" element={<Alert />} />
-<Route path="/cancellation_policy" element={<Cancellation_policy />} />
-<Route path="/cancellation_refund" element={<Cancellation_Refund />} />
+          <Route path="/privacy_policy" element={<Privacy_policy />} />
+          <Route path="/alert" element={<Alert />} />
+          <Route path="/cancellation_policy" element={<Cancellation_policy />} />
+          <Route path="/cancellation_refund" element={<Cancellation_Refund />} />
 
+          <Route path="/international-tours-packages/:state" element={<International_tours_packages />} />
+          <Route path="/tourpdfdocument" element={<TourPdfDocument tour={undefined} tourType={""} isGroupTour={false} selectedCostMonth={""} selectedCostDate={""} selectedDeparture={undefined} currentImageIndex={0} />} />
+          <Route path="/international-tours_groups/:state" element={<International_group />} />
+          <Route path="/international-ladies_tours/:state" element={<International_ladies />} />
+          <Route path="/international-senior_tours/:state" element={<International_students />} />
+          <Route path="/international-honeymoon_tours/:state" element={<International_honeymoon />} />
+          <Route path="/international-senior_tours/:state" element={<International_senior />} />
+          <Route path="/international_tour_details/:tourId" element={<International_Tourdetails />} />
+          <Route path="/exhibition" element={<Exhibition />} />
+          <Route path="/flighthotels" element={<FlightHotels />} /> 
+          <Route path="/FlightSeatSelection" element={<SeatSelection flightData={undefined} fareQuoteData={undefined} passengers={{ adults: 0, children: 0, infants: 0 }} onBack={() => { } } onBookingComplete={function (bookingResponse: any): void {
+            throw new Error("Function not implemented.");
+          } } bookingTokenId={""} token={""} endUserIp={""} staticParam={""} />} />
+          <Route path="/bookinginformation" element={<BookingConfirmation bookingData={{}} referenceId="" passengerDetails={[]} contactDetails={{}} onBack={() => {}} />} />
+          <Route path="/flightfrontend" element={<Flightfrontend />} />
 <Route path="/international-tours-packages/:state" element={<International_tours_packages />} />
 <Route path="/tourpdfdocument" element={<TourPdfDocument tour={undefined} tourType={""} isGroupTour={false} selectedCostMonth={""} selectedCostDate={""} selectedDeparture={undefined} currentImageIndex={0} />} />
 <Route path="/international-tours_groups/:state" element={<International_group />} />
@@ -136,37 +170,52 @@ const App = () => (
 <Route path="/international_tour_details/:tourId" element={<International_Tourdetails />} />
 <Route path="/exhibition" element={<Exhibition />} />
 <Route path="/flighthotels" element={<FlightHotels />} /> 
-<Route path="/FlightSeatSelection" element={<SeatSelection flightData={undefined} fareQuoteData={undefined} passengers={{ adults: 0, children: 0, infants: 0 }} onBack={() => { } } onBookingComplete={function (bookingResponse: any): void {
-            throw new Error("Function not implemented.");
-          } } bookingTokenId={""} token={""} endUserIp={""} staticParam={""} />} />
+<Route path="/FlightSeatSelection" element={<SeatSelection />} />
 <Route path="/bookinginformation" element={<BookingConfirmation bookingData={{}} referenceId="" passengerDetails={[]} contactDetails={{}} onBack={() => {}} />} />
 <Route path="/flightfrontend" element={<Flightfrontend />} />
 
-<Route path="/tour-enquiry" element={<TourEnquiry />} />    
-<Route path="/tourpdfinternational" element={<TourPdfDocumentinternational tour={undefined} tourType={""} isGroupTour={false} selectedCostMonth={""} selectedCostDate={""} selectedDeparture={undefined} currentImageIndex={0} />} />
-<Route path="/login" element={<Login />} />
-<Route path="/signup" element={<SignUp />} /> 
-<Route path="/offlinehotelbooking" element={<HotelSearchBar />} />
-<Route path="/micpage" element={<MicePage />} />
-<Route path="/aboutmic" element={<AboutMice />} />
-<Route path="/micpackages" element={<Micpackages />} />
-<Route path="/enquiryformmic" element={<EnquiryForm />} />
-<Route path="/conferencerequirement" element={<ConferenceRequirement />} />
-<Route path="/offlineflightblocks" element={<OfflineFllghtBlocks />} />
-<Route path="bankgallery" element={<BankGallery />} />
-<Route path="/venuephotos" element={<VenuePhotos />} />
-<Route path="/micgallery" element={<MiceGallery />} />
-<Route path="/micupcomingevents" element={<MiceUpcomingEvents />}/>
+          <Route path="/tour-enquiry" element={<TourEnquiry />} />    
+          <Route path="/tourpdfinternational" element={<TourPdfDocumentinternational tour={undefined} tourType={""} isGroupTour={false} selectedCostMonth={""} selectedCostDate={""} selectedDeparture={undefined} currentImageIndex={0} />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<SignUp />} /> 
+          <Route path="/offlinehotelbooking" element={<HotelSearchBar />} />
+          <Route path="/micpage" element={<MicePage />} />
+          <Route path="/aboutmic" element={<AboutMice />} />
+          <Route path="/micpackages" element={<Micpackages />} />
+          <Route path="/enquiryformmic" element={<EnquiryForm />} />
+          <Route path="/conferencerequirement" element={<ConferenceRequirement />} />
+          <Route path="/offlineflightblocks" element={<OfflineFllghtBlocks />} />
+          <Route path="bankgallery" element={<BankGallery />} />
+          <Route path="/venuephotos" element={<VenuePhotos />} />
+          <Route path="/micgallery" element={<MiceGallery />} />
+          <Route path="/micupcomingevents" element={<MiceUpcomingEvents />}/>
 
 
-<Route path="/bungalow" element={<Bungalow />} />
+          // Add this route
+          <Route path="/flight-payment-result" element={<FlightPaymentResult />} />
+
+
+          <Route path="/bungalow" element={<Bungalow />} />
           <Route path="/bungalowcheckbox" element={<Bungalowcheckbox />} />
-          <Route path="/bunglowbookingcard" element={< Bunglowbookingcard />} />
+          <Route path="/bunglowbookingcard/:id" element={< Bunglowbookingcard />} />
           <Route path="/bookingform" element={<BookingForm />} />
           <Route path="/weekendcheckbox" element={<Gatewaycheckbox />} />
           <Route path="/Weekendcard" element={<Weekendcard />} />
           <Route path="/Weekendbookingcard" element={<Weekendbookingcard />} />
+          <Route path="/Weekendbookingcard/:id" element={<Weekendbookingcard />} />
           <Route path="/WeekendForm" element={<WeekendForm />} />
+          <Route path="/onedaypicnic" element={<OneDayPicnic />} />
+          <Route path="/festivalcard" element={<FestivalCards />} />
+          <Route path="/sportscard" element={<OneDaySports />} />
+          <Route path="/sports/:state" element={<Sports />} />
+          <Route path="/festival/:state" element={<Festival />} />
+          <Route path="/intl-sports/:state" element={<InternationalSports />} />
+          <Route path="/intl-festival/:state" element={<InternationalFestival />} />
+          <Route path="/passport" element={<PassportFormOneM />} />
+
+          <Route path="/insuranceform" element={<Insurances  />} />
+          <Route path="/apidata" element={<Apidata />} />
+
         </Routes>
       </BrowserRouter>
     </TooltipProvider>

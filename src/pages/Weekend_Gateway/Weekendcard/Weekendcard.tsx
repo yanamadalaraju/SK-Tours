@@ -1,39 +1,53 @@
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Villaimg1 from "../Images/villa1.png";
-import Villaimg2 from "../Images/villa2.png";
-import Villaimg3 from "../Images/villa3.png";
-import Villaimg4 from "../Images/villa4.png";
-import Villaimg5 from "../Images/villa5.png";
 import Gatewaycheckbox from "../Gatewaycheckbox/Gatewaycheckbox";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-
-// Define TypeScript interfaces
+import { BASE_URL } from "@/ApiUrls";
+// Define TypeScript interfaces based on API response
 interface Bungalow {
-  id: string;
+  gateway_id: number;
+  gateway_code: string;
   name: string;
-  price: number;
-  img: string;
+  price: string;
+  main_image: string;
 }
 
 interface WeekendBookingCardState {
   bungalow: Bungalow;
 }
 
-const bungalowData: Bungalow[] = [
-  { id: "BUG00001", name: "Alibaug", price: 15400, img: Villaimg1 },
-  { id: "BUG00002", name: "Aamby Valley", price: 16400, img: Villaimg2 },
-  { id: "BUG00003", name: "Goa", price: 17400, img: Villaimg3 },
-  { id: "BUG00004", name: "Igatpuri", price: 10000, img: Villaimg4 },
-  { id: "BUG00005", name: "Karjat", price: 18400, img: Villaimg5 },
-  { id: "BUG00006", name: "Khopoli", price: 14400, img: Villaimg3 },
-  { id: "BUG00007", name: "Karjat", price: 18400, img: Villaimg1 },
-  { id: "BUG00008", name: "Khopoli", price: 14400, img: Villaimg2 },
-  { id: "BUG00009", name: "Khopoli", price: 13400, img: Villaimg3 },
-];
 
 const Weekendcard: React.FC = () => {
   const navigate = useNavigate();
+  const [bungalowData, setBungalowData] = useState<Bungalow[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch data from API
+  useEffect(() => {
+    const fetchBungalows = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`${BASE_URL}/api/weekend-gateways`);
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch data');
+        }
+        
+        const data = await response.json();
+        setBungalowData(data);
+        setError(null);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+        console.error('Error fetching bungalows:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBungalows();
+  }, []);
 
   const handleCardClick = (bungalow: Bungalow): void => {
     navigate('/Weekendbookingcard', { 
@@ -54,6 +68,51 @@ const Weekendcard: React.FC = () => {
       state: { bungalow } as WeekendBookingCardState 
     });
   };
+
+  // Get full image URL
+  const getImageUrl = (imagePath: string) => {
+    if (!imagePath) return '';
+    // If it's a full URL, return as is, otherwise prepend API base URL
+    return imagePath.startsWith('http') ? imagePath : `${BASE_URL}${imagePath}`;
+  };
+
+  // Loading state
+  if (loading) {
+    return (
+      <>
+        <Header />
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-[#001f54] border-r-transparent"></div>
+            <p className="mt-4 text-gray-600">Loading bungalows...</p>
+          </div>
+        </div>
+        <Footer />
+      </>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <>
+        <Header />
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center text-red-600">
+            <p className="text-xl font-semibold">Error loading data</p>
+            <p className="mt-2">{error}</p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="mt-4 bg-[#001f54] text-white px-6 py-2 rounded-lg hover:opacity-80"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+        <Footer />
+      </>
+    );
+  }
 
   return (
     <>
@@ -81,17 +140,22 @@ const Weekendcard: React.FC = () => {
             {bungalowData.map((item: Bungalow) => (
               <div 
                 className="relative border border-[#d9d9d9] bg-white rounded-[5px] transition duration-300 overflow-hidden h-[300px] flex flex-col cursor-pointer max-[767px]:h-[250px] md:max-[1024px]:h-[280px]"
-                key={item.id}
+                key={item.gateway_id}
                 onClick={() => handleCardClick(item)}
               >
                 <img 
-                  src={item.img} 
+                  src={getImageUrl(item.main_image)} 
                   alt={item.name} 
                   className="absolute top-0 left-0 w-full h-full object-cover z-[1]" 
+                  onError={(e) => {
+                    // Fallback image if the main image fails to load
+                    const target = e.target as HTMLImageElement;
+                    target.src = 'https://via.placeholder.com/300x200?text=No+Image';
+                  }}
                 />
                 <div className="relative z-[2] flex flex-col justify-between h-full p-5 max-[767px]:p-3 md:max-[1024px]:p-4">
                   <h3 className="text-white font-semibold text-lg m-0 [text-shadow:2px_2px_4px_rgba(0,0,0,0.7)] py-0.5 px-[1px] rounded-[20px] inline-block self-start max-[767px]:text-[15px] max-[767px]:py-1.5 max-[767px]:px-2.5 md:max-[1024px]:text-base md:max-[1024px]:py-2 md:max-[1024px]:px-3">
-                    {item.name} {item.id}
+                    {item.name} {item.gateway_code}
                   </h3>
                   <div className="flex justify-center gap-2.5 self-end w-full max-[767px]:gap-2 md:max-[1024px]:gap-2">
                     <button 
@@ -101,7 +165,7 @@ const Weekendcard: React.FC = () => {
                       View
                     </button>
                     <button className="bg-[#001f54] text-white border-none rounded-[20px] text-sm w-[100px] h-[35px] flex items-center justify-center text-center p-0 font-semibold transition duration-300 hover:opacity-80 max-[767px]:w-[80px] max-[767px]:h-8 max-[767px]:text-xs md:max-[1024px]:w-[90px] md:max-[1024px]:h-9 md:max-[1024px]:text-[13px]">
-                      Rs {item.price}
+                      Rs {parseInt(item.price).toLocaleString()}
                     </button>
                     <button 
                       className="bg-[#001f54] text-white border-none rounded-[20px] text-sm w-[100px] h-[35px] flex items-center justify-center text-center p-0 font-semibold transition duration-300 hover:opacity-80 max-[767px]:w-[80px] max-[767px]:h-8 max-[767px]:text-xs md:max-[1024px]:w-[90px] md:max-[1024px]:h-9 md:max-[1024px]:text-[13px]"

@@ -1,6 +1,6 @@
 import {
   Ship, Compass, Phone, UserCircle, Home as HomeIcon, ChevronDown, Sparkles, Heart,
-  GraduationCap, Car, Bus, Landmark, Umbrella, CalendarDays, Users, Shield, Star,
+  GraduationCap, Car, Bus, Map, Landmark, Umbrella, CalendarDays, Users, Shield, Star,
   UsersRound, Globe, MapPin, ChevronRight, PlaneTakeoff, UserPlus, Menu as MenuIcon,
   X as XIcon, ChevronLeft
 } from "lucide-react";
@@ -66,6 +66,8 @@ const Header = () => {
   const [showIndianSeniorStates, setShowIndianSeniorStates] = useState(false);
   const [showIndianStudentStates, setShowIndianStudentStates] = useState(false);
   const [showIndianHoneymoonStates, setShowIndianHoneymoonStates] = useState(false);
+  const [showIndianSportsStates, setShowIndianSportsStates] = useState(false);
+  const [showIndianFestivalStates, setShowIndianFestivalStates] = useState(false);
   
   const [showIntlIndividualCountries, setShowIntlIndividualCountries] = useState(false);
   const [showIntlGroupCountries, setShowIntlGroupCountries] = useState(false);
@@ -73,6 +75,8 @@ const Header = () => {
   const [showIntlSeniorCountries, setShowIntlSeniorCountries] = useState(false);
   const [showIntlStudentCountries, setShowIntlStudentCountries] = useState(false);
   const [showIntlHoneymoonCountries, setShowIntlHoneymoonCountries] = useState(false);
+  const [showIntlSportsCountries, setShowIntlSportsCountries] = useState(false);
+  const [showIntlFestivalCountries, setShowIntlFestivalCountries] = useState(false);
   
   // State for showing destinations for a specific country
   const [showIntlIndividualDestinations, setShowIntlIndividualDestinations] = useState<{countryId: number, countryName: string} | null>(null);
@@ -81,6 +85,8 @@ const Header = () => {
   const [showIntlSeniorDestinations, setShowIntlSeniorDestinations] = useState<{countryId: number, countryName: string} | null>(null);
   const [showIntlStudentDestinations, setShowIntlStudentDestinations] = useState<{countryId: number, countryName: string} | null>(null);
   const [showIntlHoneymoonDestinations, setShowIntlHoneymoonDestinations] = useState<{countryId: number, countryName: string} | null>(null);
+  const [showIntlSportsDestinations, setShowIntlSportsDestinations] = useState<{countryId: number, countryName: string} | null>(null);
+  const [showIntlFestivalDestinations, setShowIntlFestivalDestinations] = useState<{countryId: number, countryName: string} | null>(null);
   
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileSubmenuOpen, setMobileSubmenuOpen] = useState<Record<string, boolean>>({});
@@ -100,6 +106,8 @@ const Header = () => {
   const indianSeniorTimer = useRef<NodeJS.Timeout | null>(null);
   const indianStudentTimer = useRef<NodeJS.Timeout | null>(null);
   const indianHoneymoonTimer = useRef<NodeJS.Timeout | null>(null);
+  const indianSportsTimer = useRef<NodeJS.Timeout | null>(null);
+  const indianFestivalTimer = useRef<NodeJS.Timeout | null>(null);
   
   const intlIndividualTimer = useRef<NodeJS.Timeout | null>(null);
   const intlGroupTimer = useRef<NodeJS.Timeout | null>(null);
@@ -107,6 +115,8 @@ const Header = () => {
   const intlSeniorTimer = useRef<NodeJS.Timeout | null>(null);
   const intlStudentTimer = useRef<NodeJS.Timeout | null>(null);
   const intlHoneymoonTimer = useRef<NodeJS.Timeout | null>(null);
+  const intlSportsTimer = useRef<NodeJS.Timeout | null>(null);
+  const intlFestivalTimer = useRef<NodeJS.Timeout | null>(null);
   
   const intlIndividualDestTimer = useRef<NodeJS.Timeout | null>(null);
   const intlGroupDestTimer = useRef<NodeJS.Timeout | null>(null);
@@ -114,6 +124,8 @@ const Header = () => {
   const intlSeniorDestTimer = useRef<NodeJS.Timeout | null>(null);
   const intlStudentDestTimer = useRef<NodeJS.Timeout | null>(null);
   const intlHoneymoonDestTimer = useRef<NodeJS.Timeout | null>(null);
+  const intlSportsDestTimer = useRef<NodeJS.Timeout | null>(null);
+  const intlFestivalDestTimer = useRef<NodeJS.Timeout | null>(null);
 
   // Fetch tours data
   useEffect(() => {
@@ -195,7 +207,8 @@ const Header = () => {
             // Check if this destination has any active tours in any category
             const hasAnyActiveTour = [
               "Individual", "Group", "Ladies Special", 
-              "Senior Citizen", "Student", "Honeymoon"
+              "Senior Citizen", "Student", "Honeymoon",
+              "Sports", "Festival"
             ].some(category => 
               hasToursForDestination(dest.name, category, true)
             );
@@ -211,10 +224,6 @@ const Header = () => {
           );
         });
         
-        // DO NOT remove countries with no active destinations
-        // We want to show all countries, even empty ones
-        
-        // Sort destinations within each country
         Object.keys(grouped).forEach(key => {
           const countryId = parseInt(key);
           grouped[countryId].destinations.sort((a, b) => 
@@ -226,8 +235,6 @@ const Header = () => {
         
         setGroupedInternationalDestinations(grouped);
         
-        // Create a flat list of country names for the dropdown
-        // Include ALL countries from the countries API
         const countryNames = countriesData
           .map(country => country.name)
           .sort();
@@ -241,7 +248,7 @@ const Header = () => {
     fetchInternationalData();
   }, [allTours]); // Re-run when allTours changes
 
-  // Function to check if a destination has tours - IMPROVED VERSION
+  // Function to check if a destination has tours - UPDATED with Sports and Festival
   const hasToursForDestination = (destinationName: string, tourType: string, isInternational: boolean = false) => {
     if (!allTours.length) return false;
     
@@ -251,7 +258,9 @@ const Header = () => {
       "Ladies Special": ["ladiesspecial", "Ladies Special", "ladies special", "ladies"],
       "Senior Citizen": ["seniorcitizen", "Senior Citizen", "senior citizen", "senior"],
       "Student": ["student", "Student"],
-      "Honeymoon": ["honeymoon", "Honeymoon"]
+      "Honeymoon": ["honeymoon", "Honeymoon"],
+      "Sports": ["sports", "Sports", "sport"],
+      "Festival": ["festival", "Festival", "festivals"]
     };
     
     const validTourTypes = tourTypeMap[tourType] || [tourType];
@@ -282,7 +291,7 @@ const Header = () => {
     });
   };
 
-  // Function to check if a country has active tours for a specific tour type
+  // Function to check if a country has active tours for a specific tour type - UPDATED
   const countryHasActiveToursForType = (
     countryId: number,
     isIndividualTour: boolean,
@@ -290,7 +299,9 @@ const Header = () => {
     isLadiesTour: boolean,
     isSeniorTour: boolean,
     isStudentTour: boolean,
-    isHoneymoonTour: boolean
+    isHoneymoonTour: boolean,
+    isSportsTour: boolean,
+    isFestivalTour: boolean
   ) => {
     const country = groupedInternationalDestinations[countryId];
     if (!country) return false;
@@ -302,6 +313,8 @@ const Header = () => {
     else if (isSeniorTour) category = "Senior Citizen";
     else if (isStudentTour) category = "Student";
     else if (isHoneymoonTour) category = "Honeymoon";
+    else if (isSportsTour) category = "Sports";
+    else if (isFestivalTour) category = "Festival";
 
     return country.destinations.some(dest => 
       hasToursForDestination(dest.name, category, true)
@@ -333,7 +346,7 @@ const Header = () => {
     return { enter, leave };
   };
 
-  // FIXED: Use consistent URL patterns matching your first code
+  // UPDATED: Use consistent URL patterns with Sports and Festival
   const getDestinationHref = (
     isIndian: boolean,
     isIndividualTour: boolean,
@@ -342,6 +355,8 @@ const Header = () => {
     isSeniorTour: boolean,
     isStudentTour: boolean,
     isHoneymoonTour: boolean,
+    isSportsTour: boolean,
+    isFestivalTour: boolean,
     destination: string
   ) => {
     if (isIndian) {
@@ -357,9 +372,12 @@ const Header = () => {
         return `/students_tours/${encodeURIComponent(destination)}`;
       } else if (isHoneymoonTour) {
         return `/honeymoon_tours/${encodeURIComponent(destination)}`;
+      } else if (isSportsTour) {
+        return `/sports/${encodeURIComponent(destination)}`;
+      } else if (isFestivalTour) {
+        return `/festival/${encodeURIComponent(destination)}`;
       }
     } else {
-      // FIXED: Use the same URL patterns as your first working code
       if (isIndividualTour) {
         return `/intl-tours-packages/${encodeURIComponent(destination)}`;
       } else if (isGroupTour) {
@@ -372,6 +390,10 @@ const Header = () => {
         return `/intl-students_tours/${encodeURIComponent(destination)}`;
       } else if (isHoneymoonTour) {
         return `/intl-honeymoon_tours/${encodeURIComponent(destination)}`;
+      } else if (isSportsTour) {
+        return `/intl-sports/${encodeURIComponent(destination)}`;
+      } else if (isFestivalTour) {
+        return `/intl-festival/${encodeURIComponent(destination)}`;
       }
     }
     return "#";
@@ -385,14 +407,16 @@ const Header = () => {
     return entry ? parseInt(entry[0]) : null;
   };
 
-  // Function to render countries list
+  // UPDATED: Function to render countries list with Sports and Festival
   const renderCountriesList = (
     isIndividualTour: boolean,
     isGroupTour: boolean,
     isLadiesTour: boolean,
     isSeniorTour: boolean,
     isStudentTour: boolean,
-    isHoneymoonTour: boolean
+    isHoneymoonTour: boolean,
+    isSportsTour: boolean,
+    isFestivalTour: boolean
   ) => {
     if (internationalCountries.length === 0) {
       return (
@@ -424,14 +448,16 @@ const Header = () => {
                       isLadiesTour,
                       isSeniorTour,
                       isStudentTour,
-                      isHoneymoonTour
+                      isHoneymoonTour,
+                      isSportsTour,
+                      isFestivalTour
                     );
                   }
                   
                   return (
                     <td 
                       key={colIndex} 
-                      className="border border-black p-0"
+                      className="border border-black p-1"
                     >
                       <div
                         className={`block w-full p-2 text-sm text-center transition-all duration-200 min-h-[40px] flex items-center justify-center ${
@@ -454,6 +480,10 @@ const Header = () => {
                               setShowIntlStudentDestinations({countryId, countryName: country});
                             } else if (isHoneymoonTour) {
                               setShowIntlHoneymoonDestinations({countryId, countryName: country});
+                            } else if (isSportsTour) {
+                              setShowIntlSportsDestinations({countryId, countryName: country});
+                            } else if (isFestivalTour) {
+                              setShowIntlFestivalDestinations({countryId, countryName: country});
                             }
                           }
                         }}
@@ -466,7 +496,7 @@ const Header = () => {
                 {row.length < 3 && [...Array(3 - row.length)].map((_, colIndex) => (
                   <td 
                     key={colIndex} 
-                    className="border border-black p-0 bg-gray-50"
+                    className="border border-black p-1 bg-gray-50"
                   >
                     <div className="block w-full p-2 h-full min-h-[40px]"></div>
                   </td>
@@ -479,7 +509,7 @@ const Header = () => {
     );
   };
 
-  // Function to render destinations for a specific country
+  // UPDATED: Function to render destinations for a specific country with Sports and Festival
   const renderDestinationsForCountry = (
     countryId: number,
     countryName: string,
@@ -488,7 +518,9 @@ const Header = () => {
     isLadiesTour: boolean,
     isSeniorTour: boolean,
     isStudentTour: boolean,
-    isHoneymoonTour: boolean
+    isHoneymoonTour: boolean,
+    isSportsTour: boolean,
+    isFestivalTour: boolean
   ) => {
     const country = groupedInternationalDestinations[countryId];
     
@@ -504,6 +536,8 @@ const Header = () => {
                 else if (isSeniorTour) setShowIntlSeniorDestinations(null);
                 else if (isStudentTour) setShowIntlStudentDestinations(null);
                 else if (isHoneymoonTour) setShowIntlHoneymoonDestinations(null);
+                else if (isSportsTour) setShowIntlSportsDestinations(null);
+                else if (isFestivalTour) setShowIntlFestivalDestinations(null);
               }}
               className="text-blue-900 hover:text-blue-700"
             >
@@ -524,7 +558,9 @@ const Header = () => {
                      isGroupTour ? "Group" :
                      isLadiesTour ? "Ladies Special" :
                      isSeniorTour ? "Senior Citizen" :
-                     isStudentTour ? "Student" : "Honeymoon";
+                     isStudentTour ? "Student" : 
+                     isHoneymoonTour ? "Honeymoon" :
+                     isSportsTour ? "Sports" : "Festival";
       
       return hasToursForDestination(dest.name, category, true);
     });
@@ -541,6 +577,8 @@ const Header = () => {
                 else if (isSeniorTour) setShowIntlSeniorDestinations(null);
                 else if (isStudentTour) setShowIntlStudentDestinations(null);
                 else if (isHoneymoonTour) setShowIntlHoneymoonDestinations(null);
+                else if (isSportsTour) setShowIntlSportsDestinations(null);
+                else if (isFestivalTour) setShowIntlFestivalDestinations(null);
               }}
               className="text-blue-900 hover:text-blue-700"
             >
@@ -566,6 +604,8 @@ const Header = () => {
               else if (isSeniorTour) setShowIntlSeniorDestinations(null);
               else if (isStudentTour) setShowIntlStudentDestinations(null);
               else if (isHoneymoonTour) setShowIntlHoneymoonDestinations(null);
+              else if (isSportsTour) setShowIntlSportsDestinations(null);
+              else if (isFestivalTour) setShowIntlFestivalDestinations(null);
             }}
             className="text-blue-900 hover:text-blue-700"
           >
@@ -590,13 +630,15 @@ const Header = () => {
                     isSeniorTour,
                     isStudentTour,
                     isHoneymoonTour,
+                    isSportsTour,
+                    isFestivalTour,
                     dest.name
                   );
                   
                   return (
                     <td 
                       key={colIndex} 
-                      className="border border-black p-0"
+                      className="border border-black p-1"
                     >
                       <a
                         href={href}
@@ -611,7 +653,7 @@ const Header = () => {
                 {row.length < 3 && [...Array(3 - row.length)].map((_, colIndex) => (
                   <td 
                     key={colIndex} 
-                    className="border border-black p-0 bg-gray-50"
+                    className="border border-black p-1 bg-gray-50"
                   >
                     <div className="block w-full p-2 h-full min-h-[40px]"></div>
                   </td>
@@ -635,6 +677,8 @@ const Header = () => {
         { label: "Senior Citizen Tours", href: "#senior-citizens", icon: UsersRound, subDropdown: indianStates },
         { label: "Students Tours", href: "#students-tours", icon: GraduationCap, subDropdown: indianStates },
         { label: "Honeymoon Tours", href: "#honeymoon-tours", icon: Heart, subDropdown: indianStates },
+        { label: "Sports Tours", href: "#sports-tours", icon: Shield, subDropdown: indianStates },
+        { label: "Festival Tours", href: "#festival-tours", icon: Sparkles, subDropdown: indianStates },
       ],
     },
     {
@@ -682,6 +726,20 @@ const Header = () => {
           subDropdown: internationalCountries,
           isCountryList: true 
         },
+        { 
+          label: "Sports Tours", 
+          href: "#international-sports-tours", 
+          icon: Shield, 
+          subDropdown: internationalCountries,
+          isCountryList: true 
+        },
+        { 
+          label: "Festival Tours", 
+          href: "#international-festival-tours", 
+          icon: Sparkles, 
+          subDropdown: internationalCountries,
+          isCountryList: true 
+        },
       ],
     },
     { 
@@ -689,10 +747,8 @@ const Header = () => {
       label: "Flight / Hotel", 
       href: "#offline-flight-tickets",
       dropdown: [
-        { label: "Online Flight Blocks", href: "/flightfrontend" },
+         { label: "Online Flight Blocks", href: "/flightfrontend" },
         { label: "Offline Filght Blocks", href: "/offlineflightblocks" },
-       
-       
         { label: "Offline Hotel Blocks", href: "/offlinehotelbooking" },
       ]
     },
@@ -702,12 +758,9 @@ const Header = () => {
       icon: Star, label: "Others",
       dropdown: [
         { label: "Bungalow / Villa", href: "/bungalow", icon: HomeIcon },
-        
-        { label: "Cruise", href: "/alert", icon: Ship },
-        { label: "Festivals", href: "/alert", icon: Sparkles },
-        { label: "Insurances", href: "/alert", icon: Umbrella },
-        { label: "Passport", href: "/alert", icon: Landmark },
-        { label: "Sports", href: "/alert", icon: Shield },
+        { label: "One Day Picnic", href: "/onedaypicnic", icon: Map },
+        { label: "Insurances", href: "/insuranceform", icon: Umbrella },
+        { label: "Passport", href: "/passport", icon: Landmark },
         { label: "Weekend Gateways", href: "/Weekendcard", icon: CalendarDays },
       ],
     },
@@ -772,6 +825,8 @@ const Header = () => {
                         const isSenior = sub.label === "Senior Citizen Tours";
                         const isStudent = sub.label === "Students Tours";
                         const isHoneymoon = sub.label === "Honeymoon Tours";
+                        const isSports = sub.label === "Sports Tours";
+                        const isFestival = sub.label === "Festival Tours";
                         
                         let showThisStates = false;
                         let enterHandler: (() => void) | null = null;
@@ -828,6 +883,22 @@ const Header = () => {
                           enterStatesHandler = h.enter;
                           leaveStatesHandler = h.leave;
                           topOffset = "top-[-16rem]";
+                        } else if (isIndian && isSports) {
+                          showThisStates = showIndianSportsStates;
+                          const h = createHoverHandlers(setShowIndianSportsStates, indianSportsTimer);
+                          enterHandler = h.enter;
+                          leaveHandler = h.leave;
+                          enterStatesHandler = h.enter;
+                          leaveStatesHandler = h.leave;
+                          topOffset = "top-[-19rem]";
+                        } else if (isIndian && isFestival) {
+                          showThisStates = showIndianFestivalStates;
+                          const h = createHoverHandlers(setShowIndianFestivalStates, indianFestivalTimer);
+                          enterHandler = h.enter;
+                          leaveHandler = h.leave;
+                          enterStatesHandler = h.enter;
+                          leaveStatesHandler = h.leave;
+                          topOffset = "top-[-22rem]";
                         } else if (isIntl && isIndividual) {
                           showThisStates = showIntlIndividualCountries;
                           const h = createHoverHandlers(setShowIntlIndividualCountries, intlIndividualTimer);
@@ -876,6 +947,22 @@ const Header = () => {
                           enterStatesHandler = h.enter;
                           leaveStatesHandler = h.leave;
                           topOffset = "top-[-16rem]";
+                        } else if (isIntl && isSports) {
+                          showThisStates = showIntlSportsCountries;
+                          const h = createHoverHandlers(setShowIntlSportsCountries, intlSportsTimer);
+                          enterHandler = h.enter;
+                          leaveHandler = h.leave;
+                          enterStatesHandler = h.enter;
+                          leaveStatesHandler = h.leave;
+                          topOffset = "top-[-19rem]";
+                        } else if (isIntl && isFestival) {
+                          showThisStates = showIntlFestivalCountries;
+                          const h = createHoverHandlers(setShowIntlFestivalCountries, intlFestivalTimer);
+                          enterHandler = h.enter;
+                          leaveHandler = h.leave;
+                          enterStatesHandler = h.enter;
+                          leaveStatesHandler = h.leave;
+                          topOffset = "top-[-22rem]";
                         }
 
                         return (
@@ -910,7 +997,9 @@ const Header = () => {
                                         isLadies,
                                         isSenior,
                                         isStudent,
-                                        isHoneymoon
+                                        isHoneymoon,
+                                        isSports,
+                                        isFestival
                                       );
                                     } else if (isGroup && showIntlGroupDestinations) {
                                       return renderDestinationsForCountry(
@@ -921,7 +1010,9 @@ const Header = () => {
                                         isLadies,
                                         isSenior,
                                         isStudent,
-                                        isHoneymoon
+                                        isHoneymoon,
+                                        isSports,
+                                        isFestival
                                       );
                                     } else if (isLadies && showIntlLadiesDestinations) {
                                       return renderDestinationsForCountry(
@@ -932,7 +1023,9 @@ const Header = () => {
                                         isLadies,
                                         isSenior,
                                         isStudent,
-                                        isHoneymoon
+                                        isHoneymoon,
+                                        isSports,
+                                        isFestival
                                       );
                                     } else if (isSenior && showIntlSeniorDestinations) {
                                       return renderDestinationsForCountry(
@@ -943,7 +1036,9 @@ const Header = () => {
                                         isLadies,
                                         isSenior,
                                         isStudent,
-                                        isHoneymoon
+                                        isHoneymoon,
+                                        isSports,
+                                        isFestival
                                       );
                                     } else if (isStudent && showIntlStudentDestinations) {
                                       return renderDestinationsForCountry(
@@ -954,7 +1049,9 @@ const Header = () => {
                                         isLadies,
                                         isSenior,
                                         isStudent,
-                                        isHoneymoon
+                                        isHoneymoon,
+                                        isSports,
+                                        isFestival
                                       );
                                     } else if (isHoneymoon && showIntlHoneymoonDestinations) {
                                       return renderDestinationsForCountry(
@@ -965,7 +1062,35 @@ const Header = () => {
                                         isLadies,
                                         isSenior,
                                         isStudent,
-                                        isHoneymoon
+                                        isHoneymoon,
+                                        isSports,
+                                        isFestival
+                                      );
+                                    } else if (isSports && showIntlSportsDestinations) {
+                                      return renderDestinationsForCountry(
+                                        showIntlSportsDestinations.countryId,
+                                        showIntlSportsDestinations.countryName,
+                                        isIndividual,
+                                        isGroup,
+                                        isLadies,
+                                        isSenior,
+                                        isStudent,
+                                        isHoneymoon,
+                                        isSports,
+                                        isFestival
+                                      );
+                                    } else if (isFestival && showIntlFestivalDestinations) {
+                                      return renderDestinationsForCountry(
+                                        showIntlFestivalDestinations.countryId,
+                                        showIntlFestivalDestinations.countryName,
+                                        isIndividual,
+                                        isGroup,
+                                        isLadies,
+                                        isSenior,
+                                        isStudent,
+                                        isHoneymoon,
+                                        isSports,
+                                        isFestival
                                       );
                                     } else {
                                       // Show countries list
@@ -975,7 +1100,9 @@ const Header = () => {
                                         isLadies,
                                         isSenior,
                                         isStudent,
-                                        isHoneymoon
+                                        isHoneymoon,
+                                        isSports,
+                                        isFestival
                                       );
                                     }
                                   })()
@@ -1000,6 +1127,8 @@ const Header = () => {
                                                 isSenior,
                                                 isStudent,
                                                 isHoneymoon,
+                                                isSports,
+                                                isFestival,
                                                 dest
                                               );
                                               
@@ -1009,22 +1138,24 @@ const Header = () => {
                                                 isGroup ? "Group" :
                                                 isLadies ? "Ladies Special" :
                                                 isSenior ? "Senior Citizen" :
-                                                isStudent ? "Student" : "Honeymoon",
+                                                isStudent ? "Student" : 
+                                                isHoneymoon ? "Honeymoon" :
+                                                isSports ? "Sports" : "Festival",
                                                 false
                                               );
                                               
                                               return (
                                                 <td 
                                                   key={colIndex} 
-                                                  className="border border-black p-0"
+                                                  className="border border-black p-1"
                                                 >
                                                   <a
                                                     href={href}
-                                                    className={`block w-full p-2 text-sm text-center transition-all duration-200 min-h-[40px] flex items-center justify-center ${
-                                                      hasTours 
-                                                        ? "bg-[#2E3a8a] text-white font-bold hover:bg-[#1e2a6a]"
-                                                        : "text-gray-700 hover:bg-gray-100"
-                                                    }`}
+                                                 className={`block w-full p-2 text-sm text-center transition-all duration-200 min-h-[38px] flex items-center justify-center ${
+        hasTours 
+          ? "bg-[#2E3a8a] text-white font-bold hover:bg-[#1e2a6a] shadow-md" 
+          : "text-gray-700 hover:bg-gray-100"                                  
+      }`}
                                                     title={dest}
                                                   >
                                                     {isAndaman ? "Andaman (P. Blair)" : dest}
@@ -1037,7 +1168,7 @@ const Header = () => {
                                             {row.length < 3 && [...Array(3 - row.length)].map((_, colIndex) => (
                                               <td 
                                                 key={colIndex} 
-                                                className="border border-black p-0 bg-gray-50"
+                                                className="border border-black p-1 bg-gray-50"
                                               >
                                                 <div className="block w-full p-2 h-full min-h-[40px]"></div>
                                               </td>
@@ -1164,6 +1295,8 @@ const Header = () => {
                                       const isSenior = sub.label === "Senior Citizen Tours";
                                       const isStudent = sub.label === "Students Tours";
                                       const isHoneymoon = sub.label === "Honeymoon Tours";
+                                      const isSports = sub.label === "Sports Tours";
+                                      const isFestival = sub.label === "Festival Tours";
                                       
                                       return countryHasActiveToursForType(
                                         countryId,
@@ -1172,7 +1305,9 @@ const Header = () => {
                                         isLadies,
                                         isSenior,
                                         isStudent,
-                                        isHoneymoon
+                                        isHoneymoon,
+                                        isSports,
+                                        isFestival
                                       );
                                     })
                                     .map((countryName, j) => {
@@ -1191,6 +1326,8 @@ const Header = () => {
                                                 const isSeniorTour = sub.label === "Senior Citizen Tours";
                                                 const isStudentTour = sub.label === "Students Tours";
                                                 const isHoneymoonTour = sub.label === "Honeymoon Tours";
+                                                const isSportsTour = sub.label === "Sports Tours";
+                                                const isFestivalTour = sub.label === "Festival Tours";
                                                 
                                                 const hasToursForThisCategory = hasToursForDestination(
                                                   dest.name,
@@ -1198,7 +1335,9 @@ const Header = () => {
                                                   isGroupTour ? "Group" :
                                                   isLadiesTour ? "Ladies Special" :
                                                   isSeniorTour ? "Senior Citizen" :
-                                                  isStudentTour ? "Student" : "Honeymoon",
+                                                  isStudentTour ? "Student" : 
+                                                  isHoneymoonTour ? "Honeymoon" :
+                                                  isSportsTour ? "Sports" : "Festival",
                                                   true
                                                 );
                                                 
@@ -1211,6 +1350,8 @@ const Header = () => {
                                                 const isSeniorTour = sub.label === "Senior Citizen Tours";
                                                 const isStudentTour = sub.label === "Students Tours";
                                                 const isHoneymoonTour = sub.label === "Honeymoon Tours";
+                                                const isSportsTour = sub.label === "Sports Tours";
+                                                const isFestivalTour = sub.label === "Festival Tours";
                                                 
                                                 let href = "";
                                                 if (isIndividualTour) {
@@ -1225,6 +1366,10 @@ const Header = () => {
                                                   href = `/intl-students_tours/${encodeURIComponent(dest.name)}`;
                                                 } else if (isHoneymoonTour) {
                                                   href = `/intl-honeymoon_tours/${encodeURIComponent(dest.name)}`;
+                                                } else if (isSportsTour) {
+                                                  href = `/intl-sports/${encodeURIComponent(dest.name)}`;
+                                                } else if (isFestivalTour) {
+                                                  href = `/intl-festival/${encodeURIComponent(dest.name)}`;
                                                 }
                                                 
                                                 return (
@@ -1251,6 +1396,8 @@ const Header = () => {
                                     const isSeniorTour = sub.label === "Senior Citizen Tours";
                                     const isStudentTour = sub.label === "Students Tours";
                                     const isHoneymoonTour = sub.label === "Honeymoon Tours";
+                                    const isSportsTour = sub.label === "Sports Tours";
+                                    const isFestivalTour = sub.label === "Festival Tours";
                                     
                                     let href = "";
                                     if (isIndividualTour) {
@@ -1265,6 +1412,10 @@ const Header = () => {
                                       href = `/students_tours/${encodeURIComponent(dest)}`;
                                     } else if (isHoneymoonTour) {
                                       href = `/honeymoon_tours/${encodeURIComponent(dest)}`;
+                                    } else if (isSportsTour) {
+                                      href = `/sports/${encodeURIComponent(dest)}`;
+                                    } else if (isFestivalTour) {
+                                      href = `/festival/${encodeURIComponent(dest)}`;
                                     }
                                     
                                     return (
@@ -1293,7 +1444,6 @@ const Header = () => {
         </li>
       ))}
       
-      {/* BUTTONS ROW - ADDED AFTER CONTACT US */}
       <li className="px-4 py-4 border-b border-blue-500">
         <div className="flex gap-3">
           {/* Mobile Sign Up with Dropdown */}

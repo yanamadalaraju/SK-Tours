@@ -43,9 +43,9 @@ const RoundTripBooking: React.FC<RoundTripBookingProps> = ({
   }>>([]);
 
   const [contactDetails, setContactDetails] = useState({
-    name: 'Sunil kumar',
-    email: 'sunil.fareboutique@gmail.com',
-    phone: '9632587418'
+    name: 'salil',
+    email: 'salil@sktt.in',
+    phone: '9820870771'
   });
 
   // Initialize passengers based on booking details

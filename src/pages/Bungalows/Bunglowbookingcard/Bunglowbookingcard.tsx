@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import "./Bunglowbookingcard.css";
 import Villaimg1 from "../Images/villa1.png";
 import Villaimg2 from "../Images/villa2.png";
@@ -9,54 +9,130 @@ import Villaimg5 from "../Images/villa5.png";
 import Villaimg6 from "../Images/villa6.png";
 import villaimg7 from "../Images/villa7.png";
 import Bunglowcheckbox from "../Bungalow_checkbox/Bungalowcheckbox";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import { BASE_URL } from "@/ApiUrls";
 
 // Type definitions
 interface Bungalow {
-  id: string;
+  bungalow_id: number;
+  bungalow_code: string;
   name: string;
-  price: number;
-  Number: number;
-  img?: string;
+  price: string;
+  overview?: string;
+  inclusive?: string;
+  exclusive?: string;
+  places_nearby?: string;
+  booking_policy?: string;
+  cancellation_policy?: string;
+  main_image?: string;
 }
 
-interface RelatedBungalow extends Bungalow {
-  img: string;
+interface BungalowImage {
+  image_url: string;
+}
+
+interface RelatedBungalow {
+  relation_id: number;
+  bungalow_id: number;
+  related_bungalow_id: number | null;
+  related_name: string;
+  related_price: string;
+  related_image: string;
+  sort_order: number;
+  name?: string; 
+  price?: string;
 }
 
 type TabType = "overview" | "rent" | "inclusive" | "nearby" | "policy" | "cancellation";
 
 const Bunglowbookingcard: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
   const [activeTab, setActiveTab] = useState<TabType>("overview");
-  const location = useLocation();
   const navigate = useNavigate();
   const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
+  
+  // Dynamic state
+  const [bungalow, setBungalow] = useState<Bungalow | null>(null);
+  const [images, setImages] = useState<BungalowImage[]>([]);
+  const [relatedBungalows, setRelatedBungalows] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
-  const bungalow = location.state?.bungalow as Bungalow | undefined;
+  // Fetch bungalow details
+  useEffect(() => {
+    if (!id) {
+      navigate("/bungalow");
+      return;
+    }
+
+    const fetchBungalowDetails = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`${BASE_URL}/api/bungalows/${id}`);
+        const data = await response.json();
+        
+        setBungalow(data.bungalow);
+        setImages(data.images || []);
+      } catch (error) {
+        console.error("Error fetching bungalow:", error);
+        navigate("/bungalow");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBungalowDetails();
+  }, [id, navigate]);
+
+  // Fetch related bungalows from dedicated endpoint
+  useEffect(() => {
+    const fetchRelatedBungalows = async () => {
+      try {
+        const response = await fetch(`${BASE_URL}/api/bungalows/related/${id}`);
+        const data = await response.json();
+        
+        // Transform the data to match the expected format for the UI
+        const formattedRelated = data.map((item: RelatedBungalow) => ({
+          bungalow_id: item.related_bungalow_id || item.bungalow_id,
+          name: item.related_name || item.name,
+          price: item.related_price || item.price,
+          bungalow_code: item.related_name || item.name, 
+          main_image: item.related_image
+        }));
+        
+        setRelatedBungalows(formattedRelated);
+      } catch (error) {
+        console.error("Error fetching related bungalows:", error);
+        // Fallback to empty array if API fails
+        setRelatedBungalows([]);
+      }
+    };
+
+    if (id) {
+      fetchRelatedBungalows();
+    }
+  }, [id]);
 
   const handleBook = (): void => {
     navigate("/bookingform");
   };
 
-  if (!bungalow) {
-    navigate("/bungalow");
-    return null;
+  if (loading || !bungalow) {
+    return (
+      <>
+        <Header />
+        <div className="bbc-bungalow-details-page">
+          <div className="loading-spinner">Loading...</div>
+        </div>
+        <Footer />
+      </>
+    );
   }
 
-  const carouselImages: string[] = [
-    bungalow.img || Villaimg1,
-    Villaimg2,
-    Villaimg3,
-    Villaimg4,
-    Villaimg5,
-    Villaimg6,
-    villaimg7
-  ];
-
-  const relatedBungalows: RelatedBungalow[] = [
-    { id: "BUG00004", name: "Igatpuri", price: 10000, Number: 1, img: Villaimg4 },
-    { id: "BUG00002", name: "Aamby Valley", price: 16400, Number: 2, img: Villaimg2 },
-    { id: "BUG00003", name: "Goa", price: 17400, Number: 3, img: Villaimg3 },
-  ];
+  // Prepare carousel images (mix of dynamic and fallback)
+  const carouselImages: string[] = images.length > 0
+    ? images.map(img => `${BASE_URL}${img.image_url}`)
+    : [bungalow.main_image ? `${BASE_URL}${bungalow.main_image}` : Villaimg1, Villaimg2, Villaimg3, Villaimg4, Villaimg5, Villaimg6, villaimg7];
 
   const nextImage = (): void => {
     setCurrentImageIndex(
@@ -70,8 +146,8 @@ const Bunglowbookingcard: React.FC = () => {
     );
   };
 
-  const handleRelatedClick = (related: RelatedBungalow): void => {
-    navigate("/bunglowbookingcard", { state: { bungalow: related } });
+  const handleRelatedClick = (related: any): void => {
+    navigate(`/bunglowbookingcard/${related.bungalow_id}`);
   };
 
   const handleTabClick = (tab: TabType): void => {
@@ -90,10 +166,10 @@ const Bunglowbookingcard: React.FC = () => {
   const renderTabContent = (): JSX.Element => {
     switch (activeTab) {
       case "overview":
-        return <div className="bbc-free-flow-textarea">Free Flow Entry</div>;
+        return <div className="bbc-free-flow-textarea">{bungalow.overview || "No overview available"}</div>;
       
       case "rent":
-        return <div className="bbc-free-flow-textarea-"></div>;
+        return <div className="bbc-free-flow-textarea-">Rent: ₹{bungalow.price} per night</div>;
       
       case "inclusive":
         return (
@@ -110,13 +186,17 @@ const Bunglowbookingcard: React.FC = () => {
                 <div className="bbc-table-scroll">
                   <table className="bbc-table">
                     <tbody>
-                      {Array(20)
-                        .fill("")
-                        .map((_, idx) => (
+                      {bungalow.inclusive ? (
+                        bungalow.inclusive.split('\n').map((item, idx) => (
                           <tr key={idx}>
-                            <td className="bbc-td">&nbsp;</td>
+                            <td className="bbc-td">{item}</td>
                           </tr>
-                        ))}
+                        ))
+                      ) : (
+                        <tr>
+                          <td className="bbc-td">No inclusive items listed</td>
+                        </tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -133,13 +213,17 @@ const Bunglowbookingcard: React.FC = () => {
                 <div className="bbc-table-scroll">
                   <table className="bbc-table">
                     <tbody>
-                      {Array(20)
-                        .fill("")
-                        .map((_, idx) => (
+                      {bungalow.exclusive ? (
+                        bungalow.exclusive.split('\n').map((item, idx) => (
                           <tr key={idx}>
-                            <td className="bbc-td">&nbsp;</td>
+                            <td className="bbc-td">{item}</td>
                           </tr>
-                        ))}
+                        ))
+                      ) : (
+                        <tr>
+                          <td className="bbc-td">No exclusive items listed</td>
+                        </tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -149,12 +233,12 @@ const Bunglowbookingcard: React.FC = () => {
         );
       
       case "nearby":
-        return <div className="bbc-free-flow-textarea">Free Flow Entry</div>;
+        return <div className="bbc-free-flow-textarea">{bungalow.places_nearby || "No nearby places listed"}</div>;
       
       case "policy":
         return (
           <div className="bbc-free-flow-textarea-container">
-            <div className="bbc-free-flow-textarea">Free Flow Entry</div>
+            <div className="bbc-free-flow-textarea">{bungalow.booking_policy || "No booking policy available"}</div>
             <div className="bbc-book-button-container">
               <button className="bbc-book-btn" onClick={handleBook}>
                 Book
@@ -167,7 +251,7 @@ const Bunglowbookingcard: React.FC = () => {
         return (
           <div className="bbc-free-flow-textarea-container">
             <div className="bbc-free-flow-textareas">
-              {/* Empty content for now */}
+              {bungalow.cancellation_policy || "No cancellation policy available"}
             </div>
           </div>
         );
@@ -178,6 +262,8 @@ const Bunglowbookingcard: React.FC = () => {
   };
 
   return (
+    <>
+    <Header />
     <div className="bbc-bungalow-details-page">
       {/* Header */}
       <div className="bbc-details-page-header">
@@ -186,7 +272,7 @@ const Bunglowbookingcard: React.FC = () => {
 
       <div className="bbc-details-page-header-text">
         <div className="bbc-bungalow-details-header-text">
-          Bungalow Booking - {bungalow.name}
+          Bungalow Booking - {bungalow.name} ({bungalow.bungalow_code})
         </div>
       </div>
 
@@ -263,26 +349,37 @@ const Bunglowbookingcard: React.FC = () => {
           <div className="bbc-related-bungalows">
             <div className="bbc-related-bunglows-name">Related Bungalows</div>
             <div className="bbc-related-cards">
-              {relatedBungalows.map((related) => (
-                <div 
-                  key={related.id} 
-                  className="bbc-related-card"
-                  onClick={() => handleRelatedClick(related)}
-                >
-                  <div className="bbc-related-card-image-wrapper">
-                    <img src={related.img} alt={related.name} />
-                    <div className="bbc-amount-badge">INR {related.price}</div>
+              {relatedBungalows.length > 0 ? (
+                relatedBungalows.map((related, index) => (
+                  <div 
+                    key={related.bungalow_id || index} 
+                    className="bbc-related-card"
+                    onClick={() => handleRelatedClick(related)}
+                  >
+                    <div className="bbc-related-card-image-wrapper">
+                      <img 
+                        src={related.main_image ? `${BASE_URL}${related.main_image}` : [Villaimg4, Villaimg2, Villaimg3][index % 3]} 
+                        // alt={related.name} 
+                      />
+                      <div className="bbc-amount-badge">INR {related.price}</div>
+                    </div>
+                    <div className="bbc-related-info">
+                      <h4>{related.name}</h4>
+                      <p>{related.bungalow_code}</p>
+                    </div>
                   </div>
-                  <div className="bbc-related-info">
-                    <h4>{related.Number}. {related.name}</h4>
-                  </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                // Fallback message when no related bungalows
+                <div className="bbc-no-related">No related bungalows found</div>
+              )}
             </div>
           </div>
         </div>
       </div>
     </div>
+    <Footer />
+    </>
   );
 };
 

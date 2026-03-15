@@ -8,48 +8,82 @@ import {
   ChevronDown, 
   Minus, 
   Plus,
-  MapPin
+  MapPin,
+  Loader2
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import Header from '@/components/Header';
 import Footer from "@/components/Footer";
 
-// Static data
-const cities = [
-  { code: "DEL", name: "New Delhi", airport: "Indira Gandhi International Airport" },
-  { code: "BOM", name: "Mumbai", airport: "Chhatrapati Shivaji International Airport" },
-  { code: "BLR", name: "Bengaluru", airport: "Bengaluru International Airport" },
-  { code: "MAA", name: "Chennai", airport: "Chennai International Airport" },
-  { code: "HYD", name: "Hyderabad", airport: "Rajiv Gandhi International Airport" },
-  { code: "CCU", name: "Kolkata", airport: "Netaji Subhas Chandra Bose International Airport" },
-  { code: "GOI", name: "Goa", airport: "Dabolim Airport" },
-  { code: "PNQ", name: "Pune", airport: "Pune International Airport" },
+// API Base URL
+const API_BASE_URL = "http://localhost:5000/api";
+
+// Indian airports data (from admin panel)
+const indianAirports = [
+  { city: "Agartala", airport: "Maharaja Bir Bikram Airport", code: "IXA" },
+  { city: "Agra", airport: "Agra Airport", code: "AGR" },
+  { city: "Ahmedabad", airport: "Sardar Vallabhbhai Patel International Airport", code: "AMD" },
+  { city: "Amritsar", airport: "Sri Guru Ram Dass Jee International Airport", code: "ATQ" },
+  { city: "Aurangabad", airport: "Aurangabad Airport", code: "IXU" },
+  { city: "Bengaluru", airport: "Kempegowda International Airport", code: "BLR" },
+  { city: "Bhopal", airport: "Raja Bhoj Airport", code: "BHO" },
+  { city: "Bhubaneswar", airport: "Biju Patnaik International Airport", code: "BBI" },
+  { city: "Chandigarh", airport: "Chandigarh International Airport", code: "IXC" },
+  { city: "Chennai", airport: "Chennai International Airport", code: "MAA" },
+  { city: "Coimbatore", airport: "Coimbatore International Airport", code: "CJB" },
+  { city: "Dehradun", airport: "Jolly Grant Airport", code: "DED" },
+  { city: "Delhi", airport: "Indira Gandhi International Airport", code: "DEL" },
+  { city: "Delhi", airport: "Hindon Airport", code: "HDO" },
+  { city: "Goa", airport: "Dabolim Airport", code: "GOI" },
+  { city: "Goa", airport: "Mopa International Airport", code: "GOX" },
+  { city: "Guwahati", airport: "Lokpriya Gopinath Bordoloi International Airport", code: "GAU" },
+  { city: "Gwalior", airport: "Gwalior Airport", code: "GWL" },
+  { city: "Hyderabad", airport: "Rajiv Gandhi International Airport", code: "HYD" },
+  { city: "Imphal", airport: "Imphal International Airport", code: "IMF" },
+  { city: "Indore", airport: "Devi Ahilya Bai Holkar Airport", code: "IDR" },
+  { city: "Jaipur", airport: "Jaipur International Airport", code: "JAI" },
+  { city: "Jammu", airport: "Jammu Airport", code: "IXJ" },
+  { city: "Jodhpur", airport: "Jodhpur Airport", code: "JDH" },
+  { city: "Kannur", airport: "Kannur International Airport", code: "CNN" },
+  { city: "Kanpur", airport: "Kanpur Airport", code: "KNU" },
+  { city: "Kochi", airport: "Cochin International Airport", code: "COK" },
+  { city: "Kolkata", airport: "Netaji Subhas Chandra Bose International Airport", code: "CCU" },
+  { city: "Kozhikode", airport: "Calicut International Airport", code: "CCJ" },
+  { city: "Lucknow", airport: "Chaudhary Charan Singh International Airport", code: "LKO" },
+  { city: "Madurai", airport: "Madurai International Airport", code: "IXM" },
+  { city: "Mangaluru", airport: "Mangaluru International Airport", code: "IXE" },
+  { city: "Mumbai", airport: "Chhatrapati Shivaji Maharaj International Airport", code: "BOM" },
+  { city: "Nagpur", airport: "Dr. Babasaheb Ambedkar International Airport", code: "NAG" },
+  { city: "Nashik", airport: "Nashik Airport", code: "ISK" },
+  { city: "Patna", airport: "Jay Prakash Narayan International Airport", code: "PAT" },
+  { city: "Prayagraj", airport: "Prayagraj Airport", code: "IXD" },
+  { city: "Pune", airport: "Pune International Airport", code: "PNQ" },
+  { city: "Raipur", airport: "Swami Vivekananda Airport", code: "RPR" },
+  { city: "Rajkot", airport: "Rajkot International Airport", code: "HSR" },
+  { city: "Ranchi", airport: "Birsa Munda Airport", code: "IXR" },
+  { city: "Shillong", airport: "Shillong Airport", code: "SHL" },
+  { city: "Shimla", airport: "Shimla Airport", code: "SLV" },
+  { city: "Srinagar", airport: "Sheikh ul-Alam International Airport", code: "SXR" },
+  { city: "Surat", airport: "Surat International Airport", code: "STV" },
+  { city: "Thiruvananthapuram", airport: "Trivandrum International Airport", code: "TRV" },
+  { city: "Tiruchirappalli", airport: "Tiruchirappalli International Airport", code: "TRZ" },
+  { city: "Udaipur", airport: "Maharana Pratap Airport", code: "UDR" },
+  { city: "Vadodara", airport: "Vadodara Airport", code: "BDQ" },
+  { city: "Varanasi", airport: "Lal Bahadur Shastri International Airport", code: "VNS" },
+  { city: "Vijayawada", airport: "Vijayawada International Airport", code: "VGA" },
+  { city: "Visakhapatnam", airport: "Visakhapatnam International Airport", code: "VTZ" }
 ];
 
-// Flight data
-const flights = [
-  {
-    airline: "Air India Express",
-    code: "IX 2964",
-    departTime: "14:00",
-    departCity: "Ghaziabad",
-    duration: "02h 50m",
-    arriveTime: "16:50",
-    arriveCity: "Bengaluru",
-    price: "6,848",
-  },
-  {
-    airline: "IndiGo",
-    code: "6E 6608",
-    departTime: "09:15",
-    departCity: "New Delhi",
-    duration: "03h",
-    arriveTime: "12:15",
-    arriveCity: "Bengaluru",
-    price: "7,121",
-  },
-];
+// Transform airports to city format for dropdown
+const cities = indianAirports.map(airport => ({
+  code: airport.code,
+  name: airport.city,
+  airport: airport.airport
+}));
+
+// Remove duplicates by city code
+const uniqueCities = Array.from(new Map(cities.map(city => [city.code, city])).values());
 
 // Types
 interface City {
@@ -62,6 +96,34 @@ interface TravellerCount {
   adults: number;
   children: number;
   infants: number;
+}
+
+interface Flight {
+  id: number;
+  airline: string;
+  flight_number: string;
+  from_city: string;
+  from_airport: string;
+  from_airport_code: string;
+  to_city: string;
+  to_airport: string;
+  to_airport_code: string;
+  departure_date: string;
+  return_date: string | null;
+  flight_time: string;
+  duration: string;
+  arrival_time: string;
+  flight_type: string;
+  price_per_adult: string;
+  baggage_allowance: string;
+  meals_seat_description: string;
+  refundable_status_description: string;
+  meals_included: number;
+  booking_type: string;
+  adults: number;
+  children: number;
+  infants: number;
+  traveller_class: string;
 }
 
 // Trip Type Selector Component
@@ -121,7 +183,6 @@ const TravellerSelector = ({
 
   const totalTravellers = travellers.adults + travellers.children + travellers.infants;
 
-  // Auto-open effect
   useEffect(() => {
     if (autoOpen) {
       setOpen(true);
@@ -291,7 +352,6 @@ const DateSelector = ({
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Auto-open effect
   useEffect(() => {
     if (autoOpen && !disabled) {
       setOpen(true);
@@ -417,14 +477,13 @@ const CitySelector = ({
   const [searchQuery, setSearchQuery] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Auto-open effect
   useEffect(() => {
     if (autoOpen) {
       setOpen(true);
     }
   }, [autoOpen]);
 
-  const filteredCities = cities.filter(
+  const filteredCities = uniqueCities.filter(
     (city) =>
       city.code !== excludeCity?.code &&
       (city.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -521,6 +580,87 @@ const CitySelector = ({
 // Flight Results Component
 const FlightResults = ({ searchData, onBack }: { searchData: any; onBack: () => void }) => {
   const [activeTab, setActiveTab] = useState<string | null>(null);
+  const [flights, setFlights] = useState<Flight[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch flights from API when search data changes
+  useEffect(() => {
+    const fetchFlights = async () => {
+      if (!searchData) return;
+      
+      setLoading(true);
+      setError(null);
+      
+      try {
+        const response = await fetch(`${API_BASE_URL}/offline-flights`);
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+          // Filter flights based on search criteria
+          const filteredFlights = result.data.filter((flight: Flight) => {
+            // Check if From city matches (case insensitive)
+            const fromCityMatch = !searchData.fromCity || 
+              flight.from_city?.toLowerCase() === searchData.fromCity?.name?.toLowerCase();
+            
+            // Check if To city matches (case insensitive)
+            const toCityMatch = !searchData.toCity || 
+              flight.to_city?.toLowerCase() === searchData.toCity?.name?.toLowerCase();
+            
+            // Check if departure date matches (compare dates without time)
+            const flightDepartureDate = flight.departure_date ? new Date(flight.departure_date) : null;
+            const searchDepartureDate = searchData.departureDate;
+            
+            let dateMatch = true;
+            if (flightDepartureDate && searchDepartureDate) {
+              // Compare only year, month, day
+              const flightDateStr = format(flightDepartureDate, 'yyyy-MM-dd');
+              const searchDateStr = format(searchDepartureDate, 'yyyy-MM-dd');
+              dateMatch = flightDateStr === searchDateStr;
+            }
+
+            // Check booking type match
+            const searchTripType = searchData.tripType === 'one-way' ? 'oneWay' : 'roundTrip';
+            const bookingTypeMatch = flight.booking_type === searchTripType;
+
+            // For round trip, also check return date if needed
+            if (searchTripType === 'roundTrip' && searchData.returnDate && flight.return_date) {
+              const flightReturnDate = new Date(flight.return_date);
+              const searchReturnDate = searchData.returnDate;
+              const flightReturnDateStr = format(flightReturnDate, 'yyyy-MM-dd');
+              const searchReturnDateStr = format(searchReturnDate, 'yyyy-MM-dd');
+              return fromCityMatch && toCityMatch && dateMatch && bookingTypeMatch && flightReturnDateStr === searchReturnDateStr;
+            }
+            
+            return fromCityMatch && toCityMatch && dateMatch && bookingTypeMatch;
+          });
+          
+          setFlights(filteredFlights);
+        } else {
+          setError('No flights found');
+        }
+      } catch (err) {
+        console.error('Error fetching flights:', err);
+        setError('Failed to fetch flights. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFlights();
+  }, [searchData]);
+
+  // Format time from HH:MM:SS to HH:MM
+  const formatTime = (timeString: string) => {
+    if (!timeString) return 'N/A';
+    return timeString.substring(0, 5);
+  };
+
+  // Format price with commas
+  const formatPrice = (price: string) => {
+    if (!price) return '0';
+    return parseInt(price).toLocaleString('en-IN');
+  };
 
   return (
     <div className="min-h-screen bg-[#FFEBEE]">
@@ -543,7 +683,7 @@ const FlightResults = ({ searchData, onBack }: { searchData: any; onBack: () => 
                 <span>|</span>
                 <span>{searchData.travellers?.adults + searchData.travellers?.children + searchData.travellers?.infants} Traveller(s)</span>
                 <span>|</span>
-                <span className="capitalize">{searchData.tripType}</span>
+                <span className="capitalize">{searchData.tripType === 'one-way' ? 'One Way' : 'Round Trip'}</span>
               </div>
             </div>
           )}
@@ -607,7 +747,7 @@ const FlightResults = ({ searchData, onBack }: { searchData: any; onBack: () => 
 
               {/* Stops From New Delhi */}
               <div>
-                <h3 className="font-semibold mb-2">Stops From New Delhi</h3>
+                <h3 className="font-semibold mb-2">Stops From {searchData?.fromCity?.name || 'New Delhi'}</h3>
                 <div className="space-y-2 text-sm">
                   <label className="flex justify-between items-center cursor-pointer">
                     <span className="flex items-center">
@@ -630,7 +770,7 @@ const FlightResults = ({ searchData, onBack }: { searchData: any; onBack: () => 
 
               {/* Departure From New Delhi */}
               <div>
-                <h3 className="font-semibold mb-2">Departure From New Delhi</h3>
+                <h3 className="font-semibold mb-2">Departure From {searchData?.fromCity?.name || 'New Delhi'}</h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center">
                     <div className="w-3 h-3 rounded-full border border-blue-600 mr-2 flex items-center justify-center">
@@ -649,7 +789,7 @@ const FlightResults = ({ searchData, onBack }: { searchData: any; onBack: () => 
 
               {/* Arrival at Bengaluru */}
               <div>
-                <h3 className="font-semibold mb-2">Arrival at Bengaluru</h3>
+                <h3 className="font-semibold mb-2">Arrival at {searchData?.toCity?.name || 'Bengaluru'}</h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center">
                     <div className="w-3 h-3 rounded-full border border-blue-600 mr-2 flex items-center justify-center">
@@ -716,142 +856,173 @@ const FlightResults = ({ searchData, onBack }: { searchData: any; onBack: () => 
               </div>
             </div>
 
-  <div className="w-3/4 space-y-4">
-  {/* FLIGHT CARDS */}
-  {flights.map((flight, index) => (
-    <div
-      key={index}
-      className="bg-white rounded-xl shadow p-4"
-    >
-      {/* Main Flight Info Row */}
-      <div className="flex justify-between items-center">
-        {/* Left Side: Airline */}
-        <div className="w-1/5">
-          <h4 className="font-semibold">{flight.airline}</h4>
-          <p className="text-sm text-gray-500">{flight.code}</p>
-        </div>
+            <div className="w-3/4 space-y-4">
+              {/* Loading State */}
+              {loading && (
+                <div className="bg-white rounded-xl shadow p-8 text-center">
+                  <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
+                  <p className="text-gray-600">Searching for flights...</p>
+                </div>
+              )}
 
-        {/* Middle: Flight Timeline with 3 buttons BELOW */}
-        <div className="flex-1 flex flex-col items-center">
-          {/* Time Row */}
-          <div className="flex items-center justify-center w-full mb-3">
-            {/* Departure */}
-            <div className="text-center mr-8">
-              <p className="text-xl font-bold">{flight.departTime}</p>
-              <p className="text-sm text-gray-500">{flight.departCity}</p>
+              {/* Error State */}
+              {error && !loading && (
+                <div className="bg-white rounded-xl shadow p-8 text-center">
+                  <p className="text-red-600 mb-4">{error}</p>
+                  <button 
+                    onClick={onBack}
+                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  >
+                    Back to Search
+                  </button>
+                </div>
+              )}
+
+              {/* No Results State */}
+              {!loading && !error && flights.length === 0 && (
+                <div className="bg-white rounded-xl shadow p-8 text-center">
+                  <p className="text-gray-600 mb-4">No flights found matching your criteria.</p>
+                  <button 
+                    onClick={onBack}
+                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  >
+                    Modify Search
+                  </button>
+                </div>
+              )}
+
+              {/* FLIGHT CARDS */}
+              {!loading && !error && flights.map((flight) => (
+                <div key={flight.id} className="bg-white rounded-xl shadow p-4">
+                  {/* Main Flight Info Row */}
+                  <div className="flex justify-between items-center">
+                    {/* Left Side: Airline */}
+                    <div className="w-1/5">
+                      <h4 className="font-semibold">{flight.airline}</h4>
+                      <p className="text-sm text-gray-500">{flight.flight_number}</p>
+                    </div>
+
+                    {/* Middle: Flight Timeline */}
+                    <div className="flex-1 flex flex-col items-center">
+                      {/* Time Row */}
+                      <div className="flex items-center justify-center w-full mb-3">
+                        {/* Departure */}
+                        <div className="text-center mr-8">
+                          <p className="text-xl font-bold">{formatTime(flight.flight_time)}</p>
+                          <p className="text-sm text-gray-500">{flight.from_city}</p>
+                        </div>
+
+                        {/* Duration */}
+                        <div className="text-center mx-8">
+                          <p className="text-sm text-gray-500">{flight.duration}</p>
+                          <p className="text-xs text-green-600">{flight.flight_type}</p>
+                        </div>
+
+                        {/* Arrival */}
+                        <div className="text-center ml-8">
+                          <p className="text-xl font-bold">{formatTime(flight.arrival_time)}</p>
+                          <p className="text-sm text-gray-500">{flight.to_city}</p>
+                        </div>
+                      </div>
+
+                      {/* Button Grid - Tabs */}
+                      <div className="w-full">
+                        <div className="grid grid-cols-3 w-full max-w-md border border-black overflow-hidden">
+                          {[
+                            "Baggage Allowances",
+                            "Meals / Seats", 
+                            "Refundable Status"
+                          ].map((label, idx) => {
+                            const tabId = label.toLowerCase().replace(/\s+/g, '-').replace(/\//g, '');
+                            return (
+                              <button
+                                key={label}
+                                onClick={() => {
+                                  if (activeTab === tabId) {
+                                    setActiveTab(null);
+                                  } else {
+                                    setActiveTab(tabId);
+                                  }
+                                }}
+                                className={`px-2 py-2 text-[10px] xs:text-xs sm:text-sm font-semibold text-center whitespace-nowrap
+                                  ${idx < 2 ? "border-r border-black" : ""} transition cursor-pointer
+                                  ${
+                                    activeTab === tabId
+                                      ? "bg-[#A72703] text-white"
+                                      : "bg-[#FFE797] text-gray-800 hover:bg-[#FFD700]"
+                                  }`}
+                              >
+                                {label}
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        {/* Full Width Content Row */}
+                        {activeTab && (
+                          <div className="w-full max-w-md border border-black bg-[#FFEBEE]">
+                            <div className="px-2 lg:px-4 py-2 lg:py-3 text-black text-sm lg:text-base">
+                              {activeTab === "baggage-allowances" && (
+                                <div>
+                                  <h4 className="font-semibold mb-2">Baggage Allowance</h4>
+                                  <p>{flight.baggage_allowance || 'Standard baggage allowance applies'}</p>
+                                </div>
+                              )}
+                              {activeTab === "meals-seats" && (
+                                <div>
+                                  <h4 className="font-semibold mb-2">Meals & Seats</h4>
+                                  <p>{flight.meals_seat_description || 'Standard seating, meals available'}</p>
+                                  {flight.meals_included === 1 && (
+                                    <p className="text-green-600 mt-1">✓ Meals included in fare</p>
+                                  )}
+                                </div>
+                              )}
+                              {activeTab === "refundable-status" && (
+                                <div>
+                                  <h4 className="font-semibold mb-2">Refundable Status</h4>
+                                  <p>{flight.refundable_status_description || 'Standard cancellation policy applies'}</p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Right Side: Price + Buttons */}
+                    <div className="w-1/4 flex flex-col items-end">
+                      <div className="text-right mb-3">
+                        <p className="text-xl font-bold text-gray-800">₹ {formatPrice(flight.price_per_adult)}</p>
+                        <p className="text-xs text-gray-500">/adult</p>
+                      </div>
+                      <div className="flex flex-col gap-2 w-full max-w-[120px]">
+                        <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold w-full">
+                          VIEW PRICE
+                        </button>
+                        <button className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-semibold w-full">
+                          BOOK
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-
-            {/* Duration */}
-            <div className="text-center mx-8">
-              <p className="text-sm text-gray-500">{flight.duration}</p>
-              <p className="text-xs text-green-600">Non Stop</p>
-            </div>
-
-            {/* Arrival */}
-            <div className="text-center ml-8">
-              <p className="text-xl font-bold">{flight.arriveTime}</p>
-              <p className="text-sm text-gray-500">{flight.arriveCity}</p>
-            </div>
-          </div>
-<div className="w-full">
-  {/* Button Grid - Tabs */}
-  <div className="grid grid-cols-3 w-full max-w-md border border-black overflow-hidden">
-    {[
-      "Baggage Allowances",
-      "Meals / Seats", 
-      "Refundable Status"
-    ].map((label, idx) => {
-      const tabId = label.toLowerCase().replace(/\s+/g, '-').replace(/\//g, '');
-      return (
-        <button
-          key={label}
-          onClick={() => {
-            // Toggle: if clicking the same active tab, close it; otherwise open the new one
-            if (activeTab === tabId) {
-              setActiveTab(null);
-            } else {
-              setActiveTab(tabId);
-            }
-          }}
-          className={`px-2 py-2 text-[10px] xs:text-xs sm:text-sm font-semibold text-center whitespace-nowrap
-            ${idx < 2 ? "border-r border-black" : ""} transition cursor-pointer
-            ${
-              activeTab === tabId
-                ? "bg-[#A72703] text-white"
-                : "bg-[#FFE797] text-gray-800 hover:bg-[#FFD700]"
-            }`}
-        >
-          {label}
-        </button>
-      );
-    })}
-  </div>
-
-  {/* Full Width Content Row - Appears on click and matches header width */}
-  {activeTab && (
-    <div className="w-full max-w-md border border-black bg-[#FFEBEE]">
-      <div className="px-2 lg:px-4 py-2 lg:py-3 text-black text-sm lg:text-base">
-        {/* Content based on activeTab */}
-        {activeTab === "baggage-allowances" && (
-          <div>
-            <h4 className="font-semibold mb-2">Baggage Allowance</h4>
-            <p>Cabin: 7 kg</p>
-            <p>Check-in: 15 kg</p>
-          </div>
-        )}
-        {activeTab === "meals-seats" && (
-          <div>
-            <h4 className="font-semibold mb-2">Meals & Seats</h4>
-            <p>Meals available for purchase</p>
-            <p>Seat selection available</p>
-          </div>
-        )}
-        {activeTab === "refundable-status" && (
-          <div>
-            <h4 className="font-semibold mb-2">Refundable Status</h4>
-            <p>Partially refundable</p>
-            <p>Cancellation fee: ₹ 500</p>
-          </div>
-        )}
-      </div>
-    </div>
-  )}
-</div>
-        </div>
-
-        {/* Right Side: Price + Buttons */}
-        <div className="w-1/4 flex flex-col items-end">
-          <div className="text-right mb-3">
-            <p className="text-xl font-bold text-gray-800">₹ {flight.price}</p>
-            <p className="text-xs text-gray-500">/adult</p>
-          </div>
-          <div className="flex flex-col gap-2 w-full max-w-[120px]">
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold w-full">
-              VIEW PRICE
-            </button>
-            <button className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-semibold w-full">
-              BOOK
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  ))}
-</div>
           </div>
         </div>
       </div>
     </div>
   );
 };
+
 // Main Component
 const FlightSearch = () => {
   const [showResults, setShowResults] = useState(false);
   const [searchData, setSearchData] = useState<any>(null);
   
   const [tripType, setTripType] = useState<"one-way" | "round-trip">("round-trip");
-  const [fromCity, setFromCity] = useState<City>(cities[0]);
-  const [toCity, setToCity] = useState<City>(cities[2]);
+  const [fromCity, setFromCity] = useState<City>(uniqueCities.find(c => c.code === "DEL") || uniqueCities[0]);
+  const [toCity, setToCity] = useState<City>(uniqueCities.find(c => c.code === "BLR") || uniqueCities[1]);
   const [departureDate, setDepartureDate] = useState<Date>(() => {
     const d = new Date();
     d.setDate(d.getDate() + 1);
@@ -905,7 +1076,6 @@ const FlightSearch = () => {
 
   const handleBackToSearch = () => {
     setShowResults(false);
-    // Scroll back to top
     window.scrollTo({
       top: 0,
       behavior: 'smooth'
@@ -914,17 +1084,14 @@ const FlightSearch = () => {
 
   // Handlers for auto-focus sequence
   const handleFromSelect = () => {
-    // After selecting From city, automatically open To dropdown
     setAutoOpenTo(true);
   };
 
   const handleToSelect = () => {
-    // After selecting To city, automatically open Departure date dropdown
     setAutoOpenDeparture(true);
   };
 
   const handleDepartureSelect = () => {
-    // After selecting Departure date, handle based on trip type
     if (tripType === "round-trip") {
       setAutoOpenReturn(true);
     } else {
@@ -933,7 +1100,6 @@ const FlightSearch = () => {
   };
 
   const handleReturnSelect = () => {
-    // After selecting Return date, open Travellers dropdown
     setAutoOpenTravellers(true);
   };
 

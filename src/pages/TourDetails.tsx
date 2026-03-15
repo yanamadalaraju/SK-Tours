@@ -251,9 +251,7 @@ const TourDetails = () => {
   const [tour, setTour] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  // In the TourDetails component, update the tourType state declaration (line ~146):
-  const [tourType, setTourType] = useState<'Individual' | 'Group' | 'Ladies Special' | 'Senior Citizen' | 'Student' | 'Honeymoon'>('Individual');
-  const navigate = useNavigate();
+const [tourType, setTourType] = useState<'Individual' | 'Group' | 'Ladies Special' | 'Senior Citizen' | 'Student' | 'Honeymoon' | 'Sports' | 'Festival'>('Individual');  const navigate = useNavigate();
   const [selectedMonth, setSelectedMonth] = useState("ALL");
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
@@ -436,7 +434,6 @@ const TourDetails = () => {
         };
       }
 
-      // Check if this is a Group-like tour (Group, Ladies Special, Senior Citizen, Student)
       const isGroupType = ['Group', 'ladiesspecial', 'seniorcitizen', 'student'].includes(tourType);
 
       if (isGroupType) {
@@ -748,12 +745,14 @@ const TourDetails = () => {
         { type: 'Honeymoon', url: `${BASE_URL}/api/tours/tour/full/honeymoon/${tourId}` },
         { type: 'Ladies Special', url: `${BASE_URL}/api/tours/tour/full/ladiesspecial/${tourId}` },
         { type: 'Senior Citizen', url: `${BASE_URL}/api/tours/tour/full/seniorcitizen/${tourId}` },
-        { type: 'Student', url: `${BASE_URL}/api/tours/tour/full/student/${tourId}` }
+        { type: 'Student', url: `${BASE_URL}/api/tours/tour/full/student/${tourId}` },
+          { type: 'Sports', url: `${BASE_URL}/api/tours/tour/full/sports/${tourId}` },
+  { type: 'Festival', url: `${BASE_URL}/api/tours/tour/full/festival/${tourId}` }
       ];
 
       let response = null;
       let data = null;
-      let foundTourType: 'Individual' | 'Group' | 'Honeymoon' | 'Ladies Special' | 'Senior Citizen' | 'Student' = 'Individual';
+      let foundTourType: 'Individual' | 'Group' | 'Honeymoon' | 'Ladies Special' | 'Senior Citizen' | 'Student'| 'Sports' | 'Festival' = 'Individual';
 
       // Try each endpoint until we find the tour
       for (const endpoint of tourEndpoints) {
@@ -1124,7 +1123,12 @@ const TourDetails = () => {
                                 basePath = '/students_tours';
                               } else if (tourType === 'Honeymoon') {
                                 basePath = '/honeymoon_tours';
-                              }
+                              }else if (tourType === 'Sports') {
+    basePath = '/sports';
+  } else if (tourType === 'Festival') {
+    basePath = '/festival';
+  }
+                              
 
                               // Navigate to the correct path with place as parameter (NOT query string)
                               navigate(`${basePath}/${encodeURIComponent(place)}`);
@@ -1148,7 +1152,11 @@ const TourDetails = () => {
                                   basePath = '/students_tours';
                                 } else if (tourType === 'Honeymoon') {
                                   basePath = '/honeymoon_tours';
-                                }
+                                }else if (tourType === 'Sports') {
+    basePath = '/sports';
+  } else if (tourType === 'Festival') {
+    basePath = '/festival';
+  }
 
                                 // Navigate to the correct path with place as parameter
                                 navigate(`${basePath}/${encodeURIComponent(place)}`);
@@ -1219,7 +1227,11 @@ const TourDetails = () => {
                                     basePath = '/intl-students_tours';
                                   } else if (currentTourType === 'Honeymoon') {
                                     basePath = '/intl-honeymoon_tours';
-                                  }
+                                  } else if (currentTourType === 'Sports') {
+    basePath = '/intl-sports';
+  } else if (currentTourType === 'Festival') {
+    basePath = '/intl-festival';
+  }
 
                                   const encodedDestination = encodeURIComponent(place);
                                   navigate(`${basePath}/${encodedDestination}`);
@@ -1231,9 +1243,8 @@ const TourDetails = () => {
                                     if (checked) {
                                       setSelectedWorldTours([...selectedWorldTours, place]);
 
-                                      let basePath = '/intl-tours-packages'; // default for Individual tours
-
-                                      const currentTourType = tourType as string; // Type assertion to fix TypeScript error
+                                      let basePath = '/intl-tours-packages'; 
+                                      const currentTourType = tourType as string; 
 
                                       if (currentTourType === 'Group') {
                                         basePath = '/intl-tours_groups';
@@ -1245,7 +1256,11 @@ const TourDetails = () => {
                                         basePath = '/intl-students_tours';
                                       } else if (currentTourType === 'Honeymoon') {
                                         basePath = '/intl-honeymoon_tours';
-                                      }
+                                      }else if (currentTourType === 'Sports') {
+      basePath = '/intl-sports';
+    } else if (currentTourType === 'Festival') {
+      basePath = '/intl-festival';
+    }
 
                                       const encodedDestination = encodeURIComponent(place);
                                       navigate(`${basePath}/${encodedDestination}`);
