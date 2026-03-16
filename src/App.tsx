@@ -84,7 +84,6 @@ import WeekendForm from "./pages/Weekend_Gateway/WeekendForm/WeekendForm";
 // In your App.js or routing file, add the route:
 
 import FlightPaymentResult from './pages/FlightsPaymentStatus';
-import OneDayPicnic from "./pages/OnedayPicnic/Onedaypicnic";
 import FestivalCards from "./pages/Festival/Festtival";
 import OneDaySports from "./pages/Sports/Sports";
 import Insurances from "./pages/Insurance/Insurances";
@@ -97,6 +96,10 @@ import PassportFormOneM from "./pages/Passport/Passport";
 
 // Import ScrollToTop component
 import ScrollToTop from "./components/ScrollToTop";
+import Onedaypicnic_cardbooking from "./pages/OnedayPicnic/Onedaypicnicbookingcard/Onedaypicnic_cardbooking";
+import Onedaypicnic_checkbox from "./pages/OnedayPicnic/Onedaypicnic_checkbox/Onedaypicnic_checkbox";
+import Onedaypicnic_card from "./pages/OnedayPicnic/Onedaypicnic_card/Onedaypicnic_card";
+import Onedaypicnic from "./pages/OnedayPicnic/OnedayPicnic/Onedaypicnic";
 
 const queryClient = new QueryClient();
 
@@ -204,7 +207,6 @@ const App = () => (
           <Route path="/Weekendbookingcard" element={<Weekendbookingcard />} />
           <Route path="/Weekendbookingcard/:id" element={<Weekendbookingcard />} />
           <Route path="/WeekendForm" element={<WeekendForm />} />
-          <Route path="/onedaypicnic" element={<OneDayPicnic />} />
           <Route path="/festivalcard" element={<FestivalCards />} />
           <Route path="/sportscard" element={<OneDaySports />} />
           <Route path="/sports/:state" element={<Sports />} />
@@ -212,6 +214,13 @@ const App = () => (
           <Route path="/intl-sports/:state" element={<InternationalSports />} />
           <Route path="/intl-festival/:state" element={<InternationalFestival />} />
           <Route path="/passport" element={<PassportFormOneM />} />
+          <Route path="/onedaybooking" element={<Onedaypicnic_cardbooking />} />
+          <Route path="/onedaybooking/:id" element={<Onedaypicnic_cardbooking />} />
+
+          <Route path="/ondaycard" element={<Onedaypicnic_card />} />
+          <Route path="/ondaypicnicform" element={<Onedaypicnic />} />
+
+          <Route path="/onedaycardcheckbox" element={<Onedaypicnic_checkbox />} />
 
           <Route path="/insuranceform" element={<Insurances  />} />
           <Route path="/apidata" element={<Apidata />} />

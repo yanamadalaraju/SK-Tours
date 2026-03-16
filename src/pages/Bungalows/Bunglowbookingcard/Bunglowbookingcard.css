@@ -1,14 +1,12 @@
-.bbc-bungalow-details-page {
+.bgb-bungalow-details-page {
     width: 100%;
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-        margin-bottom: 10px;
-
+    margin-bottom: 10px;
   }
 
-  /* HEADER FIXES - FULL WIDTH */
-  .bbc-details-page-header {
+  .bgb-details-page-header {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -20,7 +18,7 @@
     background: #001f54;
   }
 
-  .bbc-details-page-header-text {
+  .bgb-details-page-header-text {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -31,7 +29,7 @@
     box-sizing: border-box;
   }
 
-  .bbc-bungalow-details-header {
+  .bgb-bungalow-details-header {
     width: 100%;
     background: #001f54;
     color: white;
@@ -44,7 +42,7 @@
     box-sizing: border-box;
   }
 
-  .bbc-bungalow-details-header-text {
+  .bgb-bungalow-details-header-text {
     color: #001f54;
     font-weight: bold;
     font-size: 22px;
@@ -55,8 +53,7 @@
     padding: 10px 0;
   }
 
-  /* Horizontal Filter Section */
-  .bbc-horizontal-filter-section {
+  .bgb-horizontal-filter-section {
     display: none;
     width: 100%;
     padding: 0 20px;
@@ -64,7 +61,7 @@
     box-sizing: border-box;
   }
 
-  .bbc-back-btn {
+  .bgb-back-btn {
     background: #6c757d;
     color: white;
     border: none;
@@ -75,17 +72,17 @@
     transition: background 0.3s;
   }
 
-  .bbc-back-btn:hover {
+  .bgb-back-btn:hover {
     background: #5a6268;
   }
 
-  .bbc-details-page-header h1 {
+  .bgb-details-page-header h1 {
     color: #333;
     margin: 0;
     font-size: 32px;
   }
 
-  .bbc-details-content {
+  .bgb-details-content {
     display: flex;
     gap: 15px;
     max-width: 1400px;
@@ -96,30 +93,28 @@
     box-sizing: border-box;
   }
 
-  /* Left Sidebar */
-  .bbc-left-sidebar {
+  .bgb-left-sidebar {
     flex: 0 0 250px;
     padding: 20px 10px;
     border-radius: 8px;
     height: fit-content;
   }
 
-  /* Main Content Area */
-  .bbc-main-content-area {
+  .bgb-main-content-area {
     flex: 1;
     display: flex;
     flex-direction: column;
     width: 100%;
+    min-width: 0;
   }
 
-  /* Carousel Section */
-  .bbc-carousel-section {
+  .bgb-carousel-section {
     height: 500px;
     flex: 1;
     width: 100%;
   }
 
-  .bbc-carousel-wrapper {
+  .bgb-carousel-wrapper {
     position: relative;
     padding: 13px;
     overflow: hidden;
@@ -129,25 +124,10 @@
     box-sizing: border-box;
   }
 
-  .bbc-free-flow-textarea {
+  .bgb-free-flow-textarea {
     width: 100%;
     height: 260px;
-    overflow-y: auto;           
-    padding: 12px 16px;
-    color: #333;
-    border: 1px solid #ccc;
-    font-weight: 400;
-    font-size: 14px;
-    line-height: 1.6;
-    word-wrap: break-word;      
-    white-space: pre-wrap;      
-    text-align: left;           
-    box-sizing: border-box;
-  }
-
-  .bbc-free-flow-textarea- {
-    width: 100%;
-    min-height: 260px;
+    overflow-y: auto;
     padding: 12px 16px;
     color: #333;
     border: 1px solid #ccc;
@@ -155,17 +135,19 @@
     font-size: 14px;
     line-height: 1.6;
     word-wrap: break-word;
+    white-space: pre-wrap;
     text-align: left;
     box-sizing: border-box;
   }
 
-  .bbc-free-flow-textareas {
+  .bgb-free-flow-textareas {
     width: 100%;
-    height: 300px; /* INCREASED from 220px to 350px */
+    height: auto;
+    min-height: 300px;
     overflow-y: auto;
     padding: 0;
     color: #333;
-    border: none;               /* NO OUTER BORDER */
+    border: none;
     border-radius: 0;
     font-weight: 400;
     font-size: 14px;
@@ -176,23 +158,20 @@
     box-sizing: border-box;
   }
 
-  /* =============================================
-    INCLUSIVE/EXCLUSIVE TABLE FIXES
-    ============================================= */
-  .bbc-free-flow-textarea-container {
+  .bgb-free-flow-textarea-container {
     display: flex;
     flex-direction: column;
     gap: 15px;
     width: 100%;
   }
 
-  .bbc-book-button-container {
+  .bgb-book-button-container {
     display: flex;
     justify-content: center;
     align-items: center;
   }
 
-  .bbc-book-btn {
+  .bgb-book-btn {
     background-color: #e74c3c;
     color: white;
     border: none;
@@ -208,83 +187,82 @@
     transition: background 0.3s;
   }
 
-  .bbc-book-btn:hover {
+  .bgb-book-btn:hover {
     background-color: #c0392b;
   }
 
-  .bbc-main-carousel-image {
+  .bgb-main-carousel-image {
     width: 100%;
-    height: 400px;
+    height: 450px;
     object-fit: cover;
   }
 
-  .bbc-inclusion-exclusion-container {
+  .bgb-inclusion-exclusion-container {
     display: flex;
-    gap:5px;
-    justify-content: space-evenly;
-    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: space-between;
+    flex-wrap: nowrap;
     width: 100%;
-    height: 300px; /* INCREASED from 220px to 350px */
-    overflow: hidden;
-    border: none;               /* NO OUTER BORDER */
+    height: auto;
+    overflow: visible;
+    border: none;
     padding: 0;
   }
 
-  .bbc-table-wrapper {
+  .bgb-table-wrapper {
     flex: 1;
-    max-width: 48%;
-    border: 2px solid #002a6e; /* OUTER BORDER VISIBLE */
+    min-width: 0;
+    max-width: 50%;
+    border: 2px solid #002a6e;
     border-radius: 8px;
-    overflow: hidden;           /* CLIP INNER TO ROUNDED BORDER */
+    overflow: hidden;
     display: flex;
     flex-direction: column;
-    height: 280px; /* INCREASED from 100% to 350px for consistency */
+    height: 280px;
   }
 
-  .bbc-table-scroll {
+  .bgb-table-scroll {
     flex: 1;
-    overflow-y: auto;           /* INNER SCROLLABLE */
+    overflow-y: auto;
     overflow-x: hidden;
   }
 
-  /* Scrollbar styling for table scroll */
-  .bbc-table-scroll::-webkit-scrollbar {
+  .bgb-table-scroll::-webkit-scrollbar {
     width: 5px;
   }
-  .bbc-table-scroll::-webkit-scrollbar-track {
+  .bgb-table-scroll::-webkit-scrollbar-track {
     background: #f1f1f1;
   }
-  .bbc-table-scroll::-webkit-scrollbar-thumb {
+  .bgb-table-scroll::-webkit-scrollbar-thumb {
     background: #002a6e;
     border-radius: 3px;
   }
 
-  /* Scrollbar styling for free-flow areas */
-  .bbc-free-flow-textarea::-webkit-scrollbar,
-  .bbc-free-flow-textareas::-webkit-scrollbar {
+  .bgb-free-flow-textarea::-webkit-scrollbar,
+  .bgb-free-flow-textareas::-webkit-scrollbar {
     width: 5px;
   }
-  .bbc-free-flow-textarea::-webkit-scrollbar-track,
-  .bbc-free-flow-textareas::-webkit-scrollbar-track {
+  .bgb-free-flow-textarea::-webkit-scrollbar-track,
+  .bgb-free-flow-textareas::-webkit-scrollbar-track {
     background: #f1f1f1;
   }
-  .bbc-free-flow-textarea::-webkit-scrollbar-thumb,
-  .bbc-free-flow-textareas::-webkit-scrollbar-thumb {
+  .bgb-free-flow-textarea::-webkit-scrollbar-thumb,
+  .bgb-free-flow-textareas::-webkit-scrollbar-thumb {
     background: #002a6e;
     border-radius: 3px;
   }
 
-  .bbc-table {
+  .bgb-table {
     width: 100%;
     border-collapse: collapse;
-    table-layout: fixed;        /* FIXED LAYOUT FOR TEXT WRAP */
+    table-layout: fixed;
   }
 
-  .bbc-th {
+  .bgb-th {
     background-color: #002a6e;
     color: white;
     padding: 8px 12px;
-    text-align: left;           /* JUSTIFY LEFT FOR HEADER */
+    text-align: left;
     font-size: 13px;
     font-weight: 600;
     position: sticky;
@@ -294,28 +272,23 @@
     letter-spacing: 0.3px;
   }
 
-  .bbc-td {
+  .bgb-td {
     padding: 6px 12px;
-    text-align: left;         
+    text-align: left;
     border: none;
-    border-bottom: 1px solid #e8eef5;  
-    font-size: 14px;           
+    border-bottom: 1px solid #e8eef5;
+    font-size: 14px;
     color: #444;
-    word-wrap: break-word;     
-    white-space: normal;        
+    word-wrap: break-word;
+    white-space: normal;
     line-height: 1.5;
   }
 
-  /* Alternate row highlight */
-  .bbc-table tbody tr:nth-child(even) .bbc-td {
+  .bgb-table tbody tr:nth-child(even) .bgb-td {
     background-color: #f5f8ff;
   }
 
-
-  /* =============================================
-    CAROUSEL CONTROLS
-    ============================================= */
-  .bbc-related-cards {
+  .bgb-related-cards {
     height: auto;
     padding-right: 5px;
     display: flex;
@@ -323,7 +296,7 @@
     gap: 0px;
   }
 
-  .bbc-carousel-control {
+  .bgb-carousel-control {
     position: absolute;
     top: 50%;
     transform: translateY(-110%);
@@ -342,10 +315,7 @@
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.273);
   }
 
-  /* =============================================
-    INNER CARD & TABS
-    ============================================= */
-  .bbc-inner-card-container {
+  .bgb-inner-card-container {
     background: #ffffff;
     padding: 0;
     margin-top: 5px;
@@ -355,13 +325,13 @@
     box-sizing: border-box;
   }
 
-  .bbc-tab-header {
+  .bgb-tab-header {
     display: flex;
     width: 100%;
     position: relative;
   }
 
-  .bbc-tab {
+  .bgb-tab {
     flex: 1;
     height: 45px;
     background: #e7f3ff;
@@ -379,31 +349,28 @@
     overflow: hidden;
   }
 
-  .bbc-active-tab {
+  .bgb-active-tab {
     background: #002a6e;
     color: white !important;
     z-index: 2;
   }
 
-
-
-
-
-  .bbc-free-flow-container {
+  .bgb-free-flow-container {
     padding: 14px;
-    min-height: 300px; /* INCREASED from 280px to 380px to accommodate taller tables */
+    min-height: 300px;
     width: 100%;
+    max-width: 100%;
     box-sizing: border-box;
   }
 
-  .bbc-free-flow-title {
+  .bgb-free-flow-title {
     font-size: 18px;
     font-weight: 600;
     color: #001f54;
     margin-bottom: 10px;
   }
 
-  .bbc-free-flow-textarea-bungalow {
+  .bgb-free-flow-textarea-bungalow {
     width: 100%;
     height: 220px;
     padding: 12px;
@@ -413,29 +380,28 @@
     box-sizing: border-box;
   }
 
-  .bbc-free-flow-textarea-bungalow:focus,
-  .bbc-free-flow-textarea:focus {
+  .bgb-free-flow-textarea-bungalow:focus,
+  .bgb-free-flow-textarea:focus {
     border-color: #001f54;
     box-shadow: 0 0 6px rgba(0, 31, 84, 0.3);
   }
 
-  .bbc-carousel-control.bbc-prev {
+  .bgb-carousel-control.bgb-prev {
     left: 12.5px;
   }
 
-  .bbc-carousel-control.bbc-next {
+  .bgb-carousel-control.bgb-next {
     right: 12.5px;
   }
 
-  /* Thumbnail Section */
-  .bbc-thumbnail-container {
+  .bgb-thumbnail-container {
     display: flex;
     overflow-x: auto;
     padding: 0px 0;
     width: 100%;
   }
 
-  .bbc-thumbnail {
+  .bgb-thumbnail {
     margin-top: 5px;
     width: 107px;
     height: 70px;
@@ -445,62 +411,59 @@
     flex-shrink: 0;
   }
 
-  .bbc-thumbnail.bbc-active {
+  .bgb-thumbnail.bgb-active {
     opacity: 1;
   }
 
-  /* =============================================
-    RIGHT SIDEBAR / RELATED BUNGALOWS
-    ============================================= */
-  .bbc-details-sidebar {
+  .bgb-details-sidebar {
     flex: 0 0 300px;
     display: flex;
     flex-direction: column;
     gap: 20px;
   }
 
-  .bbc-bungalow-info {
+  .bgb-bungalow-info {
     background: white;
     padding: 30px;
     border-radius: 12px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   }
 
-  .bbc-bungalow-info h2 {
+  .bgb-bungalow-info h2 {
     color: #333;
     margin-bottom: 10px;
     font-size: 28px;
   }
 
-  .bbc-price {
+  .bgb-price {
     font-size: 24px;
     font-weight: bold;
     color: #e74c3c;
     margin-bottom: 20px;
   }
 
-  .bbc-description {
+  .bgb-description {
     margin-bottom: 25px;
   }
 
-  .bbc-description p {
+  .bgb-description p {
     color: #666;
     line-height: 1.6;
     margin-bottom: 15px;
   }
 
-  .bbc-description ul {
+  .bgb-description ul {
     list-style: none;
     padding: 0;
   }
 
-  .bbc-description li {
+  .bgb-description li {
     color: #555;
     margin-bottom: 8px;
     padding-left: 10px;
   }
 
-  .bbc-book-now-btn {
+  .bgb-book-now-btn {
     background: #e74c3c;
     color: white;
     border: none;
@@ -512,7 +475,7 @@
     width: 100%;
   }
 
-  .bbc-related-bungalows {
+  .bgb-related-bungalows {
     width: 100%;
     background: white;
     padding: 15px;
@@ -521,31 +484,31 @@
     box-sizing: border-box;
   }
 
-  .bbc-related-bunglows-name {
+  .bgb-related-bunglows-name {
     color: #001f54;
     font-size: 20px;
     font-weight: bold;
     margin-bottom: 10px;
   }
 
-  .bbc-related-card {
+  .bgb-related-card {
     background: #ffffff;
     border-radius: 10px;
     margin-bottom: 15px;
     cursor: pointer;
   }
 
-  .bbc-related-card-image-wrapper {
+  .bgb-related-card-image-wrapper {
     position: relative;
     overflow: hidden;
   }
 
-  .bbc-related-card-image-wrapper img {
+  .bgb-related-card-image-wrapper img {
     width: 100%;
     object-fit: cover;
   }
 
-  .bbc-amount-badge {
+  .bgb-amount-badge {
     position: absolute;
     top: 0px;
     left: 0px;
@@ -556,7 +519,7 @@
     font-weight: bold;
   }
 
-  .bbc-related-info h4 {
+  .bgb-related-info h4 {
     margin: 5px 0;
     font-size: 16px;
     color: #333;
@@ -564,41 +527,39 @@
     text-align: center;
   }
 
-  /* =============================================
-    MOBILE: 360px - 740px
-    ============================================= */
+  /* MOBILE: 360px - 740px */
   @media (max-width: 740px) {
-    .bbc-bungalow-details-page {
+    .bgb-bungalow-details-page {
       overflow-x: hidden;
       width: 100%;
     }
 
-    .bbc-horizontal-filter-section {
+    .bgb-horizontal-filter-section {
       display: block;
       width: 100%;
       padding: 0 10px;
       margin-bottom: 15px;
     }
 
-    .bbc-left-sidebar {
+    .bgb-left-sidebar {
       display: none;
     }
 
-    .bbc-tab {
+    .bgb-tab {
       flex: 1 1 33%;
       height: 40px;
       font-size: 11px;
     }
 
-    .bbc-tab:not(.bbc-active-tab) {
+    .bgb-tab:not(.bgb-active-tab) {
       color: transparent !important;
     }
 
-    .bbc-tab:not(.bbc-active-tab):hover {
+    .bgb-tab:not(.bgb-active-tab):hover {
       color: #001f54 !important;
     }
 
-    .bbc-details-page-header {
+    .bgb-details-page-header {
       width: 100%;
       margin: 0;
       padding: 0;
@@ -606,14 +567,14 @@
       background: #001f54;
     }
 
-    .bbc-details-page-header-text {
+    .bgb-details-page-header-text {
       width: 100%;
       margin: 0;
       padding: 0;
       margin-bottom: 10px;
     }
 
-    .bbc-bungalow-details-header {
+    .bgb-bungalow-details-header {
       width: 100%;
       background: #001f54;
       color: white;
@@ -624,7 +585,7 @@
       margin: 0;
     }
 
-    .bbc-bungalow-details-header-text {
+    .bgb-bungalow-details-header-text {
       font-size: 20px;
       width: 100%;
       text-align: center;
@@ -632,7 +593,7 @@
       margin: 0;
     }
 
-    .bbc-details-content {
+    .bgb-details-content {
       flex-direction: column;
       gap: 15px;
       padding: 0 10px;
@@ -640,22 +601,22 @@
       margin: 0 auto;
     }
 
-    .bbc-left-sidebar,
-    .bbc-details-sidebar {
+    .bgb-left-sidebar,
+    .bgb-details-sidebar {
       flex: 0 0 auto;
       width: 100%;
       box-sizing: border-box;
     }
 
-    .bbc-main-content-area {
+    .bgb-main-content-area {
+      width: 100% !important;
+    }
+
+    .bgb-carousel-section {
       width: 100%;
     }
 
-    .bbc-carousel-section {
-      width: 100%;
-    }
-
-    .bbc-carousel-wrapper {
+    .bgb-carousel-wrapper {
       width: 100%;
       height: auto;
       padding: 6px;
@@ -663,7 +624,7 @@
       margin: 0 auto;
     }
 
-    .bbc-main-carousel-image {
+    .bgb-main-carousel-image {
       padding: 10px;
       width: 100%;
       height: 300px;
@@ -671,22 +632,22 @@
       box-sizing: border-box;
     }
 
-    .bbc-thumbnail-container {
+    .bgb-thumbnail-container {
       display: flex;
       overflow-x: auto;
       padding: 0px 0;
       width: 100%;
     }
 
-    .bbc-carousel-control.bbc-prev {
+    .bgb-carousel-control.bgb-prev {
       left: 16px;
     }
 
-    .bbc-carousel-control.bbc-next {
+    .bgb-carousel-control.bgb-next {
       right: 16px;
     }
 
-    .bbc-thumbnail {
+    .bgb-thumbnail {
       text-align: center;
       margin-top: 5px;
       width: 46px;
@@ -697,7 +658,7 @@
       flex-shrink: 0;
     }
 
-    .bbc-inner-card-container {
+    .bgb-inner-card-container {
       width: 100%;
       box-sizing: border-box;
       margin: 0 auto;
@@ -705,18 +666,18 @@
       margin-top: 10px;
     }
 
-    .bbc-tab-header {
+    .bgb-tab-header {
       flex-wrap: wrap;
       width: 100%;
     }
 
-    .bbc-active-tab {
+    .bgb-active-tab {
       background: #002a6e !important;
       padding: 5px;
       color: white !important;
     }
 
-    .bbc-tab {
+    .bgb-tab {
       flex: 1 1 33%;
       height: 40px;
       background: #e7f3ff;
@@ -733,14 +694,13 @@
       box-sizing: border-box;
     }
 
-    .bbc-free-flow-container {
+    .bgb-free-flow-container {
       padding: 20px;
       width: 100%;
       box-sizing: border-box;
     }
 
-    /* Mobile: stack inclusive/exclusive tables vertically */
-    .bbc-inclusion-exclusion-container {
+    .bgb-inclusion-exclusion-container {
       flex-direction: column;
       gap: 15px;
       width: 100%;
@@ -748,24 +708,25 @@
       overflow: visible;
     }
 
-    .bbc-table-wrapper {
+    .bgb-table-wrapper {
       max-width: 100%;
       width: 100%;
-      height: 300px; /* INCREASED from 180px to 300px for mobile */
+      min-width: 0;
+      height: 280px;
     }
 
-    .bbc-free-flow-textarea,
-    .bbc-free-flow-textareas {
-      height: 300px; /* INCREASED from 180px to 300px for mobile */
+    .bgb-free-flow-textarea,
+    .bgb-free-flow-textareas {
+      height: 280px;
       font-size: 14px;
     }
 
-    .bbc-related-cards {
+    .bgb-related-cards {
       gap: 15px;
       width: 100%;
     }
 
-    .bbc-related-bungalows {
+    .bgb-related-bungalows {
       width: 100%;
       background: white;
       padding: 15px;
@@ -774,7 +735,7 @@
       box-sizing: border-box;
     }
 
-    .bbc-amount-badge {
+    .bgb-amount-badge {
       top: 0px;
       left: 0px;
       background: #001f54;
@@ -784,7 +745,7 @@
       font-weight: bold;
     }
 
-    .bbc-related-info h4 {
+    .bgb-related-info h4 {
       margin: 5px 0;
       font-size: 18px;
       color: #333;
@@ -792,7 +753,7 @@
       text-align: center;
     }
 
-    .bbc-related-bunglows-name {
+    .bgb-related-bunglows-name {
       margin-top: 10px;
       color: #001f54;
       font-size: 24px;
@@ -802,27 +763,25 @@
     }
   }
 
-  /* =============================================
-    IPAD MINI: 768px - 1024px
-    ============================================= */
+  /* IPAD MINI: 768px - 1024px */
   @media (min-width: 768px) and (max-width: 1024px) {
-    .bbc-bungalow-details-page {
+    .bgb-bungalow-details-page {
       width: 100%;
       overflow-x: hidden;
     }
 
-    .bbc-horizontal-filter-section {
+    .bgb-horizontal-filter-section {
       display: block;
       width: 100%;
       padding: 0 15px;
       margin-bottom: 20px;
     }
 
-    .bbc-left-sidebar {
+    .bgb-left-sidebar {
       display: none;
     }
 
-    .bbc-details-page-header {
+    .bgb-details-page-header {
       width: 100%;
       margin: 0;
       padding: 0;
@@ -833,7 +792,7 @@
       align-items: center;
     }
 
-    .bbc-details-page-header-text {
+    .bgb-details-page-header-text {
       width: 100%;
       margin: 0;
       padding: 0;
@@ -843,7 +802,7 @@
       align-items: center;
     }
 
-    .bbc-bungalow-details-header {
+    .bgb-bungalow-details-header {
       width: 100%;
       font-size: 26px;
       padding: 20px 0;
@@ -853,7 +812,7 @@
       margin: 0;
     }
 
-    .bbc-bungalow-details-header-text {
+    .bgb-bungalow-details-header-text {
       font-size: 22px;
       width: 100%;
       text-align: center;
@@ -862,7 +821,7 @@
       color: #001f54;
     }
 
-    .bbc-details-content {
+    .bgb-details-content {
       gap: 20px;
       padding: 0 15px;
       width: 100%;
@@ -871,138 +830,159 @@
       flex-wrap: wrap;
     }
 
-    .bbc-main-content-area {
+    .bgb-main-content-area {
       flex: 1;
-      min-width: 400px;
+      width: 100% !important;
+      min-width: 0;
       order: 1;
-      width: 100%;
     }
 
-    .bbc-details-sidebar {
+    .bgb-details-sidebar {
       flex: 0 0 100%;
       order: 2;
       margin-top: 20px;
     }
 
-    .bbc-carousel-wrapper {
+    .bgb-carousel-wrapper {
       height: auto;
       width: 100%;
     }
 
-    .bbc-main-carousel-image {
+    .bgb-main-carousel-image {
       height: 350px;
       width: 100%;
     }
 
-    .bbc-thumbnail {
+    .bgb-thumbnail {
       width: 100px;
       height: 70px;
     }
 
-    .bbc-inner-card-container {
+    .bgb-inner-card-container {
       width: 100%;
     }
 
-    .bbc-tab {
+    .bgb-tab {
       font-size: 11px;
       color: #001f54;
     }
 
-    .bbc-free-flow-container {
+    .bgb-free-flow-container {
       padding: 25px;
       width: 100%;
     }
 
-    .bbc-related-bungalows {
+    .bgb-related-bungalows {
       width: 100%;
       margin-top: 0;
     }
 
-    .bbc-related-cards {
+    .bgb-related-cards {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 15px;
       padding: 0;
     }
 
-    .bbc-related-card {
+    .bgb-related-card {
       margin-bottom: 0;
       height: 100%;
     }
 
-    .bbc-related-card-image-wrapper img {
+    .bgb-related-card-image-wrapper img {
       width: 100%;
       height: 120px;
       object-fit: cover;
     }
 
-    .bbc-amount-badge {
+    .bgb-amount-badge {
       font-size: 14px;
       padding: 4px 8px;
     }
 
-    .bbc-related-info h4 {
+    .bgb-related-info h4 {
       font-size: 14px;
       padding: 8px 5px;
       text-align: center;
     }
 
-    .bbc-related-bunglows-name {
+    .bgb-related-bunglows-name {
       font-size: 22px;
       text-align: center;
       margin-bottom: 15px;
     }
 
-    /* iPad: stack tables vertically for better readability */
-    .bbc-inclusion-exclusion-container {
-      flex-direction: column;
-      gap: 15px;
+    .bgb-inclusion-exclusion-container {
+      flex-direction: row;
+      flex-wrap: nowrap;
+      gap: 10px;
+      height: auto;
+      overflow: visible;
+      width: 100%;
+    }
+
+    .bgb-table-wrapper {
+      max-width: 50%;
+      min-width: 0;
+      flex: 1;
+      height: 300px;
+    }
+
+    .bgb-free-flow-textarea,
+    .bgb-free-flow-textareas {
+      height: 300px;
+    }
+  }
+
+  /* DESKTOP: 1025px and above */
+  @media (min-width: 1025px) {
+    .bgb-horizontal-filter-section {
+      display: none;
+    }
+
+    .bgb-left-sidebar {
+      display: block;
+      flex: 0 0 280px;
+    }
+
+    .bgb-details-content {
+      max-width: 1300px;
+      margin: 0 auto;
+    }
+
+    .bgb-details-sidebar {
+      flex: 0 0 300px;
+    }
+
+    .bgb-inner-card-container {
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .bgb-main-content-area {
+      flex: 1;
+      width: 100% !important;
+      min-width: 0;
+    }
+
+    .bgb-inclusion-exclusion-container {
+      flex-direction: row;
+      flex-wrap: nowrap;
+      gap: 10px;
+      width: 100%;
       height: auto;
       overflow: visible;
     }
 
-    .bbc-table-wrapper {
-      max-width: 100%;
-      height: 320px; /* INCREASED from 180px to 320px for iPad */
+    .bgb-table-wrapper {
+      flex: 1;
+      min-width: 0;
+      max-width: 50%;
+      height: 280px;
     }
 
-    .bbc-free-flow-textarea,
-    .bbc-free-flow-textareas {
-      height: 320px; /* INCREASED from 200px to 320px for iPad */
+    .bgb-free-flow-textarea,
+    .bgb-free-flow-textareas {
+      height: 280px;
     }
-  }
-
-  /* =============================================
-    DESKTOP: 1025px and above
-    ============================================= */
-  @media (min-width: 1025px) {
-    .bbc-horizontal-filter-section {
-      display: none;
-    }
-
-    .bbc-left-sidebar {
-      display: block;
-    }
-
-    .bbc-details-content {
-      max-width: 1400px;
-      margin: 0 auto;
-    }
-
-    .bbc-left-sidebar {
-      flex: 0 0 280px;
-    }
-
-    .bbc-details-sidebar {
-      flex: 0 0 300px;
-    }
-
-    .bbc-inner-card-container {
-      width: 100%;
-      max-width: 770px;
-    }
-
-    .bbc-main-content-area {
-      max-width: calc(100% - 550px);
-    }
-  }
+  } 

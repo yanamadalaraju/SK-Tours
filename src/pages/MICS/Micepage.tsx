@@ -8,7 +8,6 @@ const MicePage: React.FC = () => {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [openQA, setOpenQA] = useState<number | null>(null);
   const [data, setData] = useState<any>(null);
-  const menuItems = ["Meeting", "Incentives", "Conference", "Events"];
 
   /* ===== FETCH DATA ===== */
   useEffect(() => {
@@ -37,37 +36,64 @@ return (
 
       <div className="flex-1">
 
-        {/* ===== HERO SECTION (NO GOLD OVERLAY) ===== */}
-     <div
-  className="relative w-full h-[480px] flex items-center justify-center bg-cover bg-center overflow-hidden"
-  style={{
-    backgroundImage: data?.banner_image
-      ? `url(${BASE_URL}/uploads/mice/main/${data.banner_image})`
-      : "none"
-  }}
->
-          <div className="relative z-10 text-center">
-      <h1
-  className="text-[200px] font-black text-[#00205b] leading-none mb-1"
-  style={{
-    textShadow: "4px 4px 10px rgba(0, 0, 0, 0.4)"
-  }}
+  {/* ===== HERO SECTION ===== */}
+<div className="flex w-full h-[480px] overflow-hidden">
+
+  {/* LEFT 60%: Image with MICE text overlay */}
+  <div
+    className="relative w-[60%] h-full bg-cover bg-center"
+    style={{
+      backgroundImage: data?.banner_image
+        ? `url(${BASE_URL}/uploads/mice/main/${data.banner_image})`
+        : "none"
+    }}
+  >
+    <div className="absolute inset-0 flex flex-col items-center justify-center">
+<h1
+  className="text-[180px] font-black text-[#00205b] leading-none mb-1"
+  style={{ textShadow: "0px 0px 20px rgba(255, 255, 255, 0.19)" }}
 >
   MICE
 </h1>
+   
+    </div>
+  </div>
 
-            <div className="flex gap-2 justify-center -mt-4">
-              {menuItems.map((item, index) => (
-                <div
-                  key={index}
-                  className="bg-white px-6 py-2 text-2xl font-semibold text-red-600 shadow-md"
-                >
-                  {item}
-                </div>
-              ))}
-            </div>
+<div className="w-[40%] h-full bg-[#00205b] flex flex-col items-start justify-center gap-5 px-6">
+
+  {["Meeting", "Incentives", "Conference", "Events"].map((menu) => {
+    const subItems: Record<string, string[]> = {
+      Meeting: ["Board Meeting", "Team Meeting", "Annual Meeting"],
+      Incentives: ["Staff Incentives", "Sales Incentives", "Travel Incentives"],
+      Conference: ["Tech Conference", "Business Conference", "Global Conference"],
+      Events: ["Corporate Events", "Social Events", "Exhibition Events"],
+    };
+
+    return (
+      <div key={menu} className="relative w-48">
+        <button
+          onClick={() => setActiveMenu(activeMenu === menu ? null : menu)}
+          className="bg-white text-[#00205b] px-5 py-4 font-semibold w-48 text-left flex justify-between items-center"
+        >
+          {menu}
+          <span>{activeMenu === menu ? "◀" : "▶"}</span>
+        </button>
+
+        {activeMenu === menu && (
+          <div className="absolute left-full top-0 flex flex-col bg-white shadow-lg w-48 ml-1 z-50">
+            {subItems[menu].map((sub) => (
+              <a key={sub} href="#" className="px-4 py-3 text-sm hover:bg-blue-50 border-b">
+                {sub}
+              </a>
+            ))}
           </div>
-        </div>
+        )}
+      </div>
+    );
+  })}
+
+</div>
+</div>
 
         {/* ===== BELOW SECTION ===== */}
         <div className="grid grid-cols-12 mt-8 border rounded-lg shadow bg-white">

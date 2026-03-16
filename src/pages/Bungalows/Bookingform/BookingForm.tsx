@@ -85,6 +85,7 @@ const BookingForm: React.FC = () => {
       const payload = {
         ...formData,
         no_of_people: numPeople,
+           type: "bungalow", 
         guests: peopleData.map((person) => ({
           name: person.name,
           age: person.age,
