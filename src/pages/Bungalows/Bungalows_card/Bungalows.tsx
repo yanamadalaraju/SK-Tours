@@ -38,7 +38,7 @@ const Bungalow: React.FC = () => {
 
   const handleBookClick = (e: React.MouseEvent, bungalow: BungalowItem): void => {
     e.stopPropagation(); // Prevent parent click
-    navigate(`/bunglowbookingcard/${bungalow.bungalow_id}`);
+    navigate(`/bookingform`);
   };
 
   return (

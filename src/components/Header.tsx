@@ -758,7 +758,7 @@ const Header = () => {
       icon: Star, label: "Others",
       dropdown: [
         { label: "Bungalow / Villa", href: "/bungalow", icon: HomeIcon },
-        { label: "One Day Picnic", href: "/onedaypicnic", icon: Map },
+        { label: "One Day Picnic", href: "/ondaycard", icon: Map },
         { label: "Insurances", href: "/insuranceform", icon: Umbrella },
         { label: "Passport", href: "/passport", icon: Landmark },
         { label: "Weekend Gateways", href: "/Weekendcard", icon: CalendarDays },

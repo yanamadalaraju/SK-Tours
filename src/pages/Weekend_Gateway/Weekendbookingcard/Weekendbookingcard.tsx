@@ -53,14 +53,13 @@ const Weekendbookingcard: React.FC = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
   const [bungalowData, setBungalowData] = useState<Bungalow | null>(null);
   const [images, setImages] = useState<BungalowImage[]>([]);
-  const [relatedBungalows, setRelatedBungalows] = useState<RelatedBungalow[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   const location = useLocation();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  
+
   const passedBungalow = location.state?.bungalow as Bungalow | undefined;
 
   // Fetch data from API
@@ -68,27 +67,24 @@ const Weekendbookingcard: React.FC = () => {
     const fetchBungalowDetails = async () => {
       try {
         setLoading(true);
-        
-        // Get the gateway ID from either URL params or passed state
+
         const gatewayId = id || passedBungalow?.gateway_id;
-        
+
         if (!gatewayId) {
           navigate("/weekend-gateway");
           return;
         }
 
-        // Fetch bungalow details
         const response = await fetch(`${BASE_URL}/api/weekend-gateways/${gatewayId}`);
-        
+
         if (!response.ok) {
           throw new Error('Failed to fetch bungalow details');
         }
-        
+
         const data = await response.json();
-        
+
         setBungalowData(data.gateway);
         setImages(data.images || []);
-        setRelatedBungalows(data.related_gateways || []);
         setError(null);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
@@ -101,41 +97,9 @@ const Weekendbookingcard: React.FC = () => {
     fetchBungalowDetails();
   }, [id, passedBungalow, navigate]);
 
-  // Fetch related bungalows from dedicated endpoint
-  useEffect(() => {
-    const fetchRelatedBungalows = async () => {
-      if (!id) return;
-      
-      try {
-        const response = await fetch(`${BASE_URL}/api/weekend-gateways/related/${id}`);
-        const data = await response.json();
-        
-        // Transform the data to match the expected format for the UI
-        const formattedRelated = data.map((item: RelatedBungalow) => ({
-          relation_id: item.relation_id,
-          gateway_id: item.related_gateway_id || item.gateway_id,
-          related_name: item.related_name || item.name,
-          related_price: item.related_price || item.price,
-          related_image: item.related_image,
-          sort_order: item.sort_order
-        }));
-        
-        setRelatedBungalows(formattedRelated);
-      } catch (error) {
-        console.error("Error fetching related bungalows:", error);
-        // Fallback to empty array if API fails
-        setRelatedBungalows([]);
-      }
-    };
-
-    if (id) {
-      fetchRelatedBungalows();
-    }
-  }, [id]);
-
   const handleBook = (): void => {
-    navigate("/WeekendForm", { 
-      state: { bungalow: bungalowData } 
+    navigate("/WeekendForm", {
+      state: { bungalow: bungalowData }
     });
   };
 
@@ -145,9 +109,9 @@ const Weekendbookingcard: React.FC = () => {
   };
 
   // Prepare carousel images
-  const carouselImages: string[] = images.length > 0 
+  const carouselImages: string[] = images.length > 0
     ? images.map(img => getImageUrl(img.image_url))
-    : bungalowData?.main_image 
+    : bungalowData?.main_image
       ? [getImageUrl(bungalowData.main_image)]
       : [];
 
@@ -167,26 +131,15 @@ const Weekendbookingcard: React.FC = () => {
     }
   };
 
-  const handleRelatedClick = (related: any): void => {
-    navigate(`/weekend-booking-card/${related.gateway_id || related.related_gateway_id}`);
-  };
-
   const getTabDisplayName = (tab: TabType): string => {
     switch (tab) {
-      case "overview":
-        return "Overview";
-      case "tour":
-        return "Tour Cost";
-      case "inclusive":
-        return "Inclusive & Exclusive";
-      case "nearby":
-        return "Place Near By";
-      case "policy":
-        return "Booking Policy";
-      case "cancellation":
-        return "Cancellation Policy";
-      default:
-        return tab;
+      case "overview":    return "Overview";
+      case "tour":        return "Tour Cost";
+      case "inclusive":   return "Inclusive & Exclusive";
+      case "nearby":      return "Place Near By";
+      case "policy":      return "Booking Policy";
+      case "cancellation":return "Cancellation Policy";
+      default:            return tab;
     }
   };
 
@@ -194,7 +147,7 @@ const Weekendbookingcard: React.FC = () => {
     switch (activeTab) {
       case "overview":
         return <div className="wkbc-free-flow-textarea">{bungalowData?.overview || "No overview available"}</div>;
-      
+
       case "tour":
         return (
           <div className="wkbc-free-flow-textarea">
@@ -234,7 +187,7 @@ const Weekendbookingcard: React.FC = () => {
             </table>
           </div>
         );
-      
+
       case "inclusive":
         return (
           <div className="wkbc-free-flow-textareas">
@@ -295,10 +248,10 @@ const Weekendbookingcard: React.FC = () => {
             </div>
           </div>
         );
-      
+
       case "nearby":
         return <div className="wkbc-free-flow-textarea">{bungalowData?.places_nearby || "No nearby places listed"}</div>;
-      
+
       case "policy":
         return (
           <div className="wkbc-free-flow-textarea-container">
@@ -310,7 +263,7 @@ const Weekendbookingcard: React.FC = () => {
             </div>
           </div>
         );
-      
+
       case "cancellation":
         return (
           <div className="wkbc-free-flow-textarea-container">
@@ -319,13 +272,12 @@ const Weekendbookingcard: React.FC = () => {
             </div>
           </div>
         );
-      
+
       default:
         return <div className="wkbc-free-flow-textarea">Free Flow Entry</div>;
     }
   };
 
-  // Loading state
   if (loading || !bungalowData) {
     return (
       <>
@@ -338,7 +290,6 @@ const Weekendbookingcard: React.FC = () => {
     );
   }
 
-  // Error state
   if (error) {
     return (
       <>
@@ -355,6 +306,7 @@ const Weekendbookingcard: React.FC = () => {
     <>
       <Header />
       <div className="wkbc-bungalow-details-page">
+
         {/* Header */}
         <div className="wkbc-details-page-header">
           <div className="wkbc-bungalow-details-header">Weekend Gateway</div>
@@ -373,13 +325,15 @@ const Weekendbookingcard: React.FC = () => {
 
         {/* Main Content */}
         <div className="wkbc-details-content">
-          {/* Left Sidebar - for Desktop */}
+
+          {/* Left Sidebar - Desktop only */}
           <div className="wkbc-left-sidebar">
             <Gatewaycheckbox />
           </div>
 
-          {/* Main Content */}
+          {/* Main Content Area - full width, no right sidebar */}
           <div className="wkbc-main-content-area">
+
             {/* Carousel */}
             <div className="wkbc-carousel-section">
               <div className="wkbc-carousel-wrapper">
@@ -394,14 +348,8 @@ const Weekendbookingcard: React.FC = () => {
                         target.src = 'https://via.placeholder.com/800x400?text=No+Image';
                       }}
                     />
-
-                    <button className="wkbc-carousel-control wkbc-prev" onClick={prevImage}>
-                      ‹
-                    </button>
-                    <button className="wkbc-carousel-control wkbc-next" onClick={nextImage}>
-                      ›
-                    </button>
-
+                    <button className="wkbc-carousel-control wkbc-prev" onClick={prevImage}>‹</button>
+                    <button className="wkbc-carousel-control wkbc-next" onClick={nextImage}>›</button>
                     <div className="wkbc-thumbnail-section">
                       <div className="wkbc-thumbnail-container">
                         {carouselImages.map((image, index) => (
@@ -409,9 +357,7 @@ const Weekendbookingcard: React.FC = () => {
                             key={index}
                             src={image}
                             alt={`${bungalowData.name} ${index + 1}`}
-                            className={`wkbc-thumbnail ${
-                              index === currentImageIndex ? "wkbc-active" : ""
-                            }`}
+                            className={`wkbc-thumbnail ${index === currentImageIndex ? "wkbc-active" : ""}`}
                             onClick={() => setCurrentImageIndex(index)}
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
@@ -428,64 +374,27 @@ const Weekendbookingcard: React.FC = () => {
               </div>
             </div>
 
-            {/* Tabs + Free Flow */}
+            {/* Tabs + Content */}
             <div className="wkbc-inner-card-container">
               <div className="wkbc-tab-header">
-                {(["overview", "tour", "inclusive", "nearby", "policy", "cancellation"] as TabType[]).map(
-                  (tab) => (
-                    <div
-                      key={tab}
-                      className={`wkbc-tab ${activeTab === tab ? "wkbc-active-tab" : ""}`}
-                      onClick={() => setActiveTab(tab)}
-                    >
-                      {getTabDisplayName(tab)}
-                    </div>
-                  )
-                )}
+                {(["overview", "tour", "inclusive", "nearby", "policy", "cancellation"] as TabType[]).map((tab) => (
+                  <div
+                    key={tab}
+                    className={`wkbc-tab ${activeTab === tab ? "wkbc-active-tab" : ""}`}
+                    onClick={() => setActiveTab(tab)}
+                  >
+                    {getTabDisplayName(tab)}
+                  </div>
+                ))}
               </div>
-
               <div className="wkbc-free-flow-container">
                 {renderTabContent()}
               </div>
             </div>
-          </div>
 
-          {/* Right Sidebar */}
-          <div className="wkbc-details-sidebar">
-            <div className="wkbc-related-bungalows">
-              <div className="wkbc-related-bunglows-name">Related Destination</div>
-              <div className="wkbc-related-cards">
-                {relatedBungalows.length > 0 ? (
-                  relatedBungalows.map((related, index) => (
-                    <div 
-                      key={related.relation_id || index} 
-                      className="wkbc-related-card"
-                      onClick={() => handleRelatedClick(related)}
-                    >
-                      <div className="wkbc-related-card-image-wrapper">
-                        <img 
-                          src={getImageUrl(related.related_image)} 
-                          alt={related.related_name}
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.src = 'https://via.placeholder.com/200x150?text=No+Image';
-                          }}
-                        />
-                        <div className="wkbc-amount-badge">
-                          INR {parseInt(related.related_price).toLocaleString()}
-                        </div>
-                      </div>
-                      <div className="wkbc-related-info">
-                        <h4>{related.related_name}</h4>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="wkbc-no-related">No related destinations found</div>
-                )}
-              </div>
-            </div>
           </div>
+          {/* RIGHT SIDEBAR REMOVED */}
+
         </div>
       </div>
       <Footer />
