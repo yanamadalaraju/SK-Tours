@@ -37,63 +37,68 @@ const Micpackages: React.FC = () => {
     return <div className="text-center p-10 text-xl">Loading...</div>;
   }
 
-  return (
+return (
     <>
-      <div className="min-h-screen bg-opacity-10">
+      <div className="min-h-screen bg-[#FFEBEE]">
         <Header />
 
-        <div className="main-layout flex w-full gap-10 p-5">
-          {/* Sidebar */}
-          <div className="w-64">
+        {/* 🔥 Responsive Layout */}
+        <div className="flex flex-col md:flex-row w-full gap-3 md:gap-5 p-3 md:p-5">
+
+          <div className="md:w-64 w-full">
             <Sidebar />
           </div>
+          <div className="flex-1 w-full mx-auto bg-gradient-to-br from-[#e6d29b] to-[#d8b56f] p-4 md:p-8">
 
-          {/* Page Content */}
-          <div className="w-[95%] mx-auto my-5 p-8 bg-gradient-to-br from-[#e6d29b] to-[#d8b56f]">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {packages.map((pkg) => (
-                <div
-                  key={pkg.id}
-                  className="bg-white border-[6px] border-white shadow-xl overflow-hidden"
-                >
-                  {/* Days Header */}
-                  <div className="bg-yellow-400 text-black text-2xl font-bold text-center py-2">
-                    {pkg.days} Days
-                  </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-8">
+   
+          {packages.map((pkg) => (
+ <div key={pkg.id} className="w-full md:w-80 lg:w-80 mx-auto">
+  <div className="bg-white border-2 border-gray-300 rounded-lg p-2 shadow-md mb-2">
+    <div className="grid grid-cols-2 gap-0 border border-gray-400 rounded overflow-hidden shadow-sm">
+      <div className="bg-[#593c26] border-r border-gray-400 p-2 flex items-center justify-center">
+        <div className="text-sm font-bold text-white text-center">No. Of Days</div>
+      </div>
 
-                  {/* Image Section */}
-                  <div className="relative">
-                    {pkg.images?.length > 0 && (
-                      <img
-                        src={`${BASE_URL}/uploads/mice/packages/${pkg.images[0].image_path}`}
-                        alt="tour"
-                        className="w-full h-56 object-cover"
-                      />
-                    )}
+      <div className="bg-[#593c26] p-2 flex items-center justify-center">
+        <div className="text-sm font-bold text-white text-center">{pkg.days} Days</div>
+      </div>
+    </div>
+  </div>
 
-                    {/* Overlay */}
-                    <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
-                      
-                      {/* Price Ribbon */}
-                      <div className="relative bg-red-600 text-white font-bold px-5 py-2 text-lg shadow-md">
-                        ₹ {Number(pkg.price).toLocaleString()}
-                        <span className="absolute right-[-15px] top-0 w-0 h-0 border-t-[22px] border-b-[22px] border-l-[15px] border-t-transparent border-b-transparent border-l-red-600"></span>
-                      </div>
+  <div className="bg-blue-100 rounded-lg shadow-xl hover:shadow-2xl transition-shadow duration-300 overflow-hidden">
+    <img
+      src={`${BASE_URL}/uploads/mice/packages/${pkg.images[0].image_path}`}
+      alt="tour"
+      className="w-full h-44 md:h-56 object-cover"
+    />
 
-                      {/* Buttons */}
-                      <div className="flex gap-2">
-                        <button className="bg-blue-700 text-white px-4 py-2 rounded border border-white shadow-md active:scale-95">
-                          View
-                        </button>
-                        <button className="bg-blue-700 text-white px-4 py-2 rounded border border-white shadow-md active:scale-95">
-                          Book
-                        </button>
-                      </div>
+    <div className="flex p-4 gap-4">
+      <div className="w-3/5 flex flex-col gap-1">
+        <span className="text-[#2E4D98] text-lg md:text-xl font-bold">Price</span>
+      </div>
 
-                    </div>
-                  </div>
-                </div>
-              ))}
+      {/* Right: Price */}
+      <div className="w-2/5 flex items-center justify-end">
+        <span className="text-xl md:text-xl font-bold text-red-600">
+          ₹ {Number(pkg.price).toLocaleString()}
+        </span>
+      </div>
+    </div>
+
+    {/* Buttons */}
+    <div className="flex gap-2 p-4">
+      <button className="flex-1 bg-blue-700 text-white py-2 rounded-md font-semibold hover:bg-blue-800 shadow-md hover:shadow-lg transition-shadow">
+        View Tour
+      </button>
+      <button className="flex-1 bg-red-600 text-white py-2 rounded-md font-semibold hover:bg-red-700 shadow-md hover:shadow-lg transition-shadow">
+        Book Now
+      </button>
+    </div>
+  </div>
+</div>
+))}
+
             </div>
           </div>
         </div>

@@ -68,11 +68,9 @@ import MicePage from "./pages/MICS/Micepage";
 import AboutMice from "./pages/MICS/AboutMic";
 import Micpackages from "./pages/MICS/Micpackages";
 import EnquiryForm from "./pages/MICS/EnquiryForm";
-import ConferenceRequirement from "./pages/MICS/ConferenceRequirement";
 import BankGallery from "./pages/MICS/BankGallery";
 import VenuePhotos from "./pages/MICS/VenuePhotos";
 import MiceGallery from "./pages/MICS/Micegallery";
-import MiceUpcomingEvents from "./pages/MICS/Miceupcomingevents";
 import Bungalowcheckbox from "./pages/Bungalows/Bungalow_checkbox/Bungalowcheckbox";
 import Bunglowbookingcard from "./pages/Bungalows/Bunglowbookingcard/Bunglowbookingcard";
 import BookingForm from "./pages/Bungalows/Bookingform/BookingForm";
@@ -100,6 +98,9 @@ import Onedaypicnic_cardbooking from "./pages/OnedayPicnic/Onedaypicnicbookingca
 import Onedaypicnic_checkbox from "./pages/OnedayPicnic/Onedaypicnic_checkbox/Onedaypicnic_checkbox";
 import Onedaypicnic_card from "./pages/OnedayPicnic/Onedaypicnic_card/Onedaypicnic_card";
 import Onedaypicnic from "./pages/OnedayPicnic/OnedayPicnic/Onedaypicnic";
+import ExhibitionDashboard from "./pages/Exhibition/Exhibitionend";
+import ExhibitionStatic from "./pages/Exhibition/Exhibitionview";
+import Exhibitiondetail from "./pages/Exhibition/Exhibitiondetail";
 
 const queryClient = new QueryClient();
 
@@ -186,12 +187,10 @@ const App = () => (
           <Route path="/aboutmic" element={<AboutMice />} />
           <Route path="/micpackages" element={<Micpackages />} />
           <Route path="/enquiryformmic" element={<EnquiryForm />} />
-          <Route path="/conferencerequirement" element={<ConferenceRequirement />} />
           <Route path="/offlineflightblocks" element={<OfflineFllghtBlocks />} />
           <Route path="bankgallery" element={<BankGallery />} />
           <Route path="/venuephotos" element={<VenuePhotos />} />
           <Route path="/micgallery" element={<MiceGallery />} />
-          <Route path="/micupcomingevents" element={<MiceUpcomingEvents />}/>
 
 
           // Add this route
@@ -221,9 +220,13 @@ const App = () => (
           <Route path="/ondaypicnicform" element={<Onedaypicnic />} />
 
           <Route path="/onedaycardcheckbox" element={<Onedaypicnic_checkbox />} />
-
+          <Route path="/exhibitionend" element={<ExhibitionDashboard />} />
+          <Route path="/exhibitionview" element={<ExhibitionStatic />} />
+          <Route path="/exhibitiondetail" element={<Exhibitiondetail />} />
+<Route path="/exhibitiondetail/:tourId" element={<Exhibitiondetail />} />
           <Route path="/insuranceform" element={<Insurances  />} />
           <Route path="/apidata" element={<Apidata />} />
+
 
         </Routes>
       </BrowserRouter>
