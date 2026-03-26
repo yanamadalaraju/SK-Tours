@@ -532,6 +532,8 @@
     .bgb-bungalow-details-page {
       overflow-x: hidden;
       width: 100%;
+          color: #001f54 !important; /* Make all tabs visible */
+
     }
 
     .bgb-horizontal-filter-section {

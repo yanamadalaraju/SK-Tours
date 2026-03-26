@@ -32,41 +32,39 @@ const MiceGallery: React.FC = () => {
   }
 
   return (
-    <>
-      <div className="min-h-screen bg-opacity-10">
-        <Header />
+    <div className="min-h-screen  bg-[#FFEBEE]">
+      <Header />
 
-        <div className="main-layout flex w-full gap-10 p-5">
-          {/* Sidebar */}
-          <div className="w-64">
-            <Sidebar />
-          </div>
+      <div className="flex flex-col lg:flex-row w-full gap-5 p-5">
+        {/* Sidebar */}
+        <div className="w-full lg:w-auto">
+          <Sidebar />
+        </div>
 
-          {/* Gallery */}
-          <div className="flex-1 overflow-auto">
-            <div className="w-full max-w-7xl mx-auto p-5 bg-gradient-to-br from-[#e6d29b] to-[#d8b56f]">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {galleryImages.map((image) => (
-                  <div
-                    key={image.id}
-                    className="w-full h-[230px] bg-white border-3 border-[#d4b269] flex items-center justify-center overflow-hidden"
-                  >
-                    <img
-                      src={`${BASE_URL}/uploads/mice/gallery/${image.image_path}?v=${image.id}`}
-                      alt="Gallery"
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                    />
-                  </div>
-                ))}
-              </div>
+        {/* Gallery */}
+        <div className="flex-1 overflow-auto">
+          <div className="w-full max-w-7xl mx-auto p-5 bg-gradient-to-br from-[#e6d29b] to-[#d8b56f]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+              {galleryImages.map((image) => (
+                <div
+                  key={image.id}
+                  className="w-full h-[230px] bg-white border-3 border-[#d4b269] flex items-center justify-center overflow-hidden  shadow-md"
+                >
+                  <img
+                    src={`${BASE_URL}/uploads/mice/gallery/${image.image_path}?v=${image.id}`}
+                    alt="Gallery"
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                </div>
+              ))}
             </div>
           </div>
         </div>
-
-        <Footer />
       </div>
-    </>
+
+      <Footer />
+    </div>
   );
 };
 

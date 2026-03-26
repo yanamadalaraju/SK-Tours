@@ -31,38 +31,36 @@ const VenuePhotos: React.FC = () => {
   }
 
   return (
-    <>
-      <div className="min-h-screen bg-opacity-10">
-        <Header />
+    <div className="min-h-screen  bg-[#FFEBEE]">
+      <Header />
 
-        <div className="main-layout flex w-full gap-10 p-5">
-          {/* Sidebar */}
-          <div className="w-64">
-            <Sidebar />
-          </div>
-
-          {/* Gallery */}
-          <div className="flex-1 p-5 bg-gradient-to-br from-[#e6d29b] to-[#d8b56f]">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {venues.map((venue) => (
-                <div
-                  key={venue.id}
-                  className="bg-white rounded shadow-md hover:shadow-lg transition-shadow overflow-hidden"
-                >
-                  <img
-                    src={`${BASE_URL}/uploads/mice/venues/${venue.image_path}`}
-                    alt="Venue"
-                    className="w-full h-64 object-cover"
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
+      <div className="flex flex-col lg:flex-row w-full gap-5 p-5">
+        {/* Sidebar */}
+        <div className="w-full lg:w-auto">
+          <Sidebar />
         </div>
 
-        <Footer />
+        {/* Gallery */}
+        <div className="flex-1 p-5 bg-gradient-to-br from-[#e6d29b] to-[#d8b56f]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+            {venues.map((venue) => (
+              <div
+                key={venue.id}
+                className="bg-white rounded shadow-md hover:shadow-lg transition-shadow overflow-hidden"
+              >
+                <img
+                  src={`${BASE_URL}/uploads/mice/venues/${venue.image_path}`}
+                  alt="Venue"
+                  className="w-full h-64 object-cover"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
-    </>
+
+      <Footer />
+    </div>
   );
 };
 

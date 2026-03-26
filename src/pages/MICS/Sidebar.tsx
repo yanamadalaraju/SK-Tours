@@ -1,15 +1,22 @@
 import React, { useState } from "react";
-import { FaChevronDown, FaChevronUp } from "react-icons/fa";
+import {
+  FaChevronDown,
+  FaChevronUp,
+  FaBars,
+  FaTimes,
+} from "react-icons/fa";
 import { useNavigate, useLocation } from "react-router-dom";
 
 interface MenuItemProps {
   label: string;
   path: string;
+  closeSidebar: () => void;
 }
 
 interface SubItemProps {
   label: string;
   path: string;
+  closeSidebar: () => void;
 }
 
 interface DropdownHeaderProps {
@@ -21,104 +28,141 @@ interface DropdownHeaderProps {
 }
 
 const Sidebar: React.FC = () => {
-  const navigate = useNavigate();
+  const [openPackage, setOpenPackage] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   const location = useLocation();
 
-  const [openPackage, setOpenPackage] = useState<boolean>(false);
-  const [openEvents, setOpenEvents] = useState<boolean>(false);
-
-  // Check active states for main dropdown headers
-  const isPackageActive = location.pathname === "/micpackages";
-  const isEventsActive = location.pathname === "/events";
+  const closeSidebar = () => setSidebarOpen(false);
 
   return (
-    <div className="sidebar-container w-56 bg-white py-2.5 border-r border-gray-300 font-sans">
-      <MenuItem label="Home" path="/micpage" />
-      <MenuItem label="About MICE" path="/aboutmic" />
-
-      {/* SAMPLE PACKAGE DROPDOWN */}
-      <div className="dropdown-wrapper mx-2.5 my-2.5">
-        <DropdownHeader 
-          label="Sample Package"
-          path="/micpackages"
-          isOpen={openPackage}
-          setIsOpen={setOpenPackage}
-          isActive={isPackageActive}
-        />
-
-        {openPackage && (
-          <div className="dropdown-content mt-1">
-            <SubItem label="Goa" path="/micpackages/goa" />
-            <SubItem label="Australia" path="/micpackages/australia" />
-            <SubItem label="Dubai" path="/micpackages/dubai" />
-            <SubItem label="South Africa" path="/micpackages/south-africa" />
-          </div>
-        )}
+    <>
+      {/* 🔹 Mobile Header */}
+      <div className="md:hidden flex items-center justify-between p-3 bg-[#071c54] text-white">
+        <h1 className="font-semibold">Menu</h1>
+        <FaBars size={20} onClick={() => setSidebarOpen(true)} />
       </div>
 
-      <MenuItem label="Enquiry Form" path="/enquiryformmic" />
-      <MenuItem label="Our Clients" path="/bankgallery" />
-      <MenuItem label="Venue Photos" path="/venuephotos" />
-      <MenuItem label="MICE Gallery" path="/micgallery" />
-
-      {/* MICE UPCOMING EVENTS DROPDOWN */}
-      <div className="dropdown-wrapper mx-2.5 my-2.5">
-        <DropdownHeader 
-          label="MICE Upcoming Events"
-          path="/micupcomingevents"
-          isOpen={openEvents}
-          setIsOpen={setOpenEvents}
-          isActive={isEventsActive}
+      {/* 🔹 Overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-40 md:hidden"
+          onClick={closeSidebar}
         />
+      )}
 
-        {openEvents && (
-          <div className="dropdown-content mt-1">
-            <SubItem label="India Events" path="/events/india" />
-            <SubItem label="International Events" path="/events/international" />
-          </div>
-        )}
+      {/* 🔹 Sidebar */}
+      <div
+        className={`
+          fixed top-0 left-0 h-full w-64 bg-blue-100 border-r border-gray-300 z-50
+          transform transition-transform duration-300
+          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+          md:translate-x-0 md:static md:block
+        `}
+      >
+        {/* 🔹 Mobile Close Button */}
+        <div className="md:hidden flex justify-end p-3">
+          <FaTimes size={20} onClick={closeSidebar} />
+        </div>
+
+        <div className="py-2 font-sans">
+          <MenuItem label="Home" path="/micpage" closeSidebar={closeSidebar} />
+          <MenuItem label="About MICE" path="/aboutmic" closeSidebar={closeSidebar} />
+  <MenuItem  label="Sample Package"path="/micpackages" closeSidebar={closeSidebar} />
+        
+
+          <MenuItem label="Enquiry Form" path="/enquiryformmic" closeSidebar={closeSidebar} />
+          <MenuItem label="Our Clients" path="/bankgallery" closeSidebar={closeSidebar} />
+          <MenuItem label="Venue Photos" path="/venuephotos" closeSidebar={closeSidebar} />
+          <MenuItem label="MICE Gallery" path="/micgallery" closeSidebar={closeSidebar} />
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
 //
-// 🔹 Dropdown Header with Navigation
+// 🔹 Menu Item
 //
-const DropdownHeader: React.FC<DropdownHeaderProps> = ({ 
-  label, 
-  path, 
-  isOpen, 
-  setIsOpen, 
-  isActive 
-}) => {
+const MenuItem: React.FC<MenuItemProps> = ({ label, path, closeSidebar }) => {
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const handleClick = (e: React.MouseEvent) => {
-    // Check if the click is on the chevron area
-    const target = e.target as HTMLElement;
-    if (target.closest('.chevron-area')) {
-      e.stopPropagation();
-      setIsOpen(!isOpen);
-    } else {
-      // Navigate to the main path
-      navigate(path);
-    }
+  const isActive = location.pathname === path;
+
+  const handleClick = () => {
+    navigate(path);
+    closeSidebar(); // 🔥 auto close in mobile
   };
 
   return (
     <div
       onClick={handleClick}
-      className={`px-3 py-3 rounded cursor-pointer flex justify-between items-center transition
-        ${
-          isActive
-            ? "bg-[#071c54] text-white"
-            : "bg-gray-100 text-black hover:bg-gray-200"
-        }`}
+      className={`mx-2.5 my-2.5 px-3 py-3 rounded border cursor-pointer transition
+      ${
+        isActive
+          ? "bg-[#071c54] text-white border-[#071c54]"
+          : "bg-white border-gray-300 hover:bg-gray-50"
+      }`}
     >
-      <span>{label}</span>
-      <div 
-        className="chevron-area cursor-pointer"
+      {label}
+    </div>
+  );
+};
+
+//
+// 🔹 Sub Item
+//
+const SubItem: React.FC<SubItemProps> = ({ label, path, closeSidebar }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const isActive = location.pathname === path;
+
+  const handleClick = () => {
+    navigate(path);
+    closeSidebar(); // 🔥 auto close
+  };
+
+  return (
+    <div
+      onClick={handleClick}
+      className={`mx-2.5 my-1.5 px-2.5 py-2.5 rounded cursor-pointer transition
+      ${
+        isActive
+          ? "bg-[#071c54] text-white font-semibold"
+          : "bg-blue-50 hover:bg-blue-100"
+      }`}
+    >
+      {label}
+    </div>
+  );
+};
+
+//
+// 🔹 Dropdown Header
+//
+const DropdownHeader: React.FC<DropdownHeaderProps> = ({
+  label,
+  path,
+  isOpen,
+  setIsOpen,
+  isActive,
+}) => {
+  const navigate = useNavigate();
+
+  return (
+    <div
+      className={`px-3 py-3 rounded cursor-pointer flex justify-between items-center transition
+      ${
+        isActive
+          ? "bg-[#071c54] text-white"
+          : "bg-gray-100 hover:bg-gray-200"
+      }`}
+    >
+      <span onClick={() => navigate(path)}>{label}</span>
+
+      <div
         onClick={(e) => {
           e.stopPropagation();
           setIsOpen(!isOpen);
@@ -126,54 +170,6 @@ const DropdownHeader: React.FC<DropdownHeaderProps> = ({
       >
         {isOpen ? <FaChevronUp size={14} /> : <FaChevronDown size={14} />}
       </div>
-    </div>
-  );
-};
-
-//
-// 🔹 Reusable Menu Item
-//
-const MenuItem: React.FC<MenuItemProps> = ({ label, path }) => {
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  const isActive = location.pathname === path;
-
-  return (
-    <div
-      onClick={() => navigate(path)}
-      className={`mx-2.5 my-2.5 px-3 py-3 rounded border cursor-pointer transition duration-200
-        ${
-          isActive
-            ? "bg-[#071c54] text-white border-[#071c54]"
-            : "bg-white border-gray-300 hover:bg-gray-50"
-        }`}
-    >
-      {label}
-    </div>
-  );
-};
-
-//
-// 🔹 Reusable Sub Item
-//
-const SubItem: React.FC<SubItemProps> = ({ label, path }) => {
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  const isActive = location.pathname === path;
-
-  return (
-    <div
-      onClick={() => navigate(path)}
-      className={`mx-2.5 my-1.5 px-2.5 py-2.5 rounded cursor-pointer transition duration-200
-        ${
-          isActive
-            ? "bg-[#071c54] text-white font-semibold"
-            : "bg-blue-50 hover:bg-blue-100"
-        }`}
-    >
-      {label}
     </div>
   );
 };

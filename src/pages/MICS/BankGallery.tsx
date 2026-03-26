@@ -32,18 +32,17 @@ const BankGallery: React.FC = () => {
 
   return (
     <>
-      <div className="min-h-screen bg-opacity-10">
+      <div className="min-h-screen  bg-[#FFEBEE]">
         <Header />
 
-        <div className="main-layout flex w-full gap-10 p-5">
-          {/* Sidebar */}
-          <div className="w-64">
+        <div className="flex flex-col lg:flex-row w-full gap-5 p-5">
+          <div className="w-full lg:w-auto ">
             <Sidebar />
           </div>
 
-          {/* Gallery Section */}
-          <div className="w-[90%] mx-auto p-[30px] bg-gradient-to-br from-[#e6d29b] to-[#d8b56f]">
-            <div className="grid grid-cols-3 gap-[25px]">
+          {/* Main Gallery Section */}
+          <div className="flex-1 w-full lg:w-[90%] mx-auto p-5 lg:p-[30px] bg-gradient-to-br from-[#e6d29b] to-[#d8b56f]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 lg:gap-[25px]">
               {clients.map((client) => (
                 <div
                   key={client.id}
