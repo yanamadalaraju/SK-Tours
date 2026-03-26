@@ -163,19 +163,19 @@ const App = () => (
           } } bookingTokenId={""} token={""} endUserIp={""} staticParam={""} />} />
           <Route path="/bookinginformation" element={<BookingConfirmation bookingData={{}} referenceId="" passengerDetails={[]} contactDetails={{}} onBack={() => {}} />} />
           <Route path="/flightfrontend" element={<Flightfrontend />} />
-<Route path="/international-tours-packages/:state" element={<International_tours_packages />} />
-<Route path="/tourpdfdocument" element={<TourPdfDocument tour={undefined} tourType={""} isGroupTour={false} selectedCostMonth={""} selectedCostDate={""} selectedDeparture={undefined} currentImageIndex={0} />} />
-<Route path="/international-tours_groups/:state" element={<International_group />} />
-<Route path="/international-ladies_tours/:state" element={<International_ladies />} />
-<Route path="/international-senior_tours/:state" element={<International_students />} />
-<Route path="/international-honeymoon_tours/:state" element={<International_honeymoon />} />
-<Route path="/international-senior_tours/:state" element={<International_senior />} />
-<Route path="/international_tour_details/:tourId" element={<International_Tourdetails />} />
-<Route path="/exhibition" element={<Exhibition />} />
-<Route path="/flighthotels" element={<FlightHotels />} /> 
-<Route path="/FlightSeatSelection" element={<SeatSelection />} />
-<Route path="/bookinginformation" element={<BookingConfirmation bookingData={{}} referenceId="" passengerDetails={[]} contactDetails={{}} onBack={() => {}} />} />
-<Route path="/flightfrontend" element={<Flightfrontend />} />
+          <Route path="/international-tours-packages/:state" element={<International_tours_packages />} />
+          <Route path="/tourpdfdocument" element={<TourPdfDocument tour={undefined} tourType={""} isGroupTour={false} selectedCostMonth={""} selectedCostDate={""} selectedDeparture={undefined} currentImageIndex={0} />} />
+          <Route path="/international-tours_groups/:state" element={<International_group />} />
+          <Route path="/international-ladies_tours/:state" element={<International_ladies />} />
+          <Route path="/international-senior_tours/:state" element={<International_students />} />
+          <Route path="/international-honeymoon_tours/:state" element={<International_honeymoon />} />
+          <Route path="/international-senior_tours/:state" element={<International_senior />} />
+          <Route path="/international_tour_details/:tourId" element={<International_Tourdetails />} />
+          <Route path="/exhibition" element={<Exhibition />} />
+          <Route path="/flighthotels" element={<FlightHotels />} /> 
+          <Route path="/FlightSeatSelection" element={<SeatSelection />} />
+          <Route path="/bookinginformation" element={<BookingConfirmation bookingData={{}} referenceId="" passengerDetails={[]} contactDetails={{}} onBack={() => {}} />} />
+          <Route path="/flightfrontend" element={<Flightfrontend />} />
 
           <Route path="/tour-enquiry" element={<TourEnquiry />} />    
           <Route path="/tourpdfinternational" element={<TourPdfDocumentinternational tour={undefined} tourType={""} isGroupTour={false} selectedCostMonth={""} selectedCostDate={""} selectedDeparture={undefined} currentImageIndex={0} />} />
