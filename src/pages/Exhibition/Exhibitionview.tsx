@@ -3,6 +3,10 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { BASE_URL } from "@/ApiUrls";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 
 interface AboutData {
   banner_image: string;
@@ -15,11 +19,21 @@ interface City {
   city_name: string;
   image: string;
   price: string;
+  state_name?: string;
+  country_name?: string;
 }
 
-interface ExhibitionItem {
+interface DomesticExhibition {
   id: number;
-  country_name: string;
+  domestic_category_name: string;
+  created_at: string;
+  updated_at: string;
+  cities: City[];
+}
+
+interface InternationalExhibition {
+  id: number;
+  international_category_name: string;
   created_at: string;
   updated_at: string;
   cities: City[];
@@ -33,12 +47,30 @@ const ExhibitionView: React.FC = () => {
 
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [openQA, setOpenQA] = useState<number | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
-  const [selectedCountry, setSelectedCountry] = useState<string | null>(passedCategory);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(passedCategory);
+  const [selectedType, setSelectedType] = useState<'domestic' | 'international' | null>(null);
 
   const [headerTitle, setHeaderTitle] = useState<string>(
     passedCategory ? passedCategory : "Exhibition"
   );
+
+  // Filter states
+  const [priceRange, setPriceRange] = useState([0, 500000]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSearchBtn, setShowSearchBtn] = useState(false);
+  const [isSearchActive, setIsSearchActive] = useState(false);
+  const [filteredCities, setFilteredCities] = useState<City[]>([]);
+  
+  // Show More/Less states
+  const [showMoreDomestic, setShowMoreDomestic] = useState(false);
+  const [showMoreInternational, setShowMoreInternational] = useState(false);
+  
+  // Selected filters for domestic and international categories
+  const [selectedDomesticCategories, setSelectedDomesticCategories] = useState<string[]>([]);
+  const [selectedInternationalCategories, setSelectedInternationalCategories] = useState<string[]>([]);
 
   // ── Data state ─────────────────────────────────────────────────────────────
   const [aboutData, setAboutData] = useState<AboutData>({
@@ -47,15 +79,40 @@ const ExhibitionView: React.FC = () => {
     qa: [],
   });
 
-  const [domesticList, setDomesticList] = useState<string[]>([]);
-  const [exhibitionData, setExhibitionData] = useState<ExhibitionItem[]>([]);
-  const [selectedExhibitionData, setSelectedExhibitionData] = useState<ExhibitionItem | null>(null);
+  const [domesticCategories, setDomesticCategories] = useState<string[]>([]);
+  const [domesticExhibitionData, setDomesticExhibitionData] = useState<DomesticExhibition[]>([]);
+  const [selectedDomesticData, setSelectedDomesticData] = useState<DomesticExhibition | null>(null);
+
+  // International states
+  const [internationalCategories, setInternationalCategories] = useState<string[]>([]);
+  const [internationalExhibitionData, setInternationalExhibitionData] = useState<InternationalExhibition[]>([]);
+  const [selectedInternationalData, setSelectedInternationalData] = useState<InternationalExhibition | null>(null);
 
   const [loading, setLoading] = useState({
     about: false,
     domestic: false,
+    international: false,
     exhibitions: false,
   });
+
+  // Check mobile screen
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Close mobile menu when selecting category or menu
+  useEffect(() => {
+    if (isMobile) {
+      setIsMobileMenuOpen(false);
+    }
+  }, [selectedCategory, activeMenu, selectedType, isMobile]);
 
   // ── Fetch About data ───────────────────────────────────────────────────────
   useEffect(() => {
@@ -94,13 +151,15 @@ const ExhibitionView: React.FC = () => {
   useEffect(() => {
     const cat = location.state?.category ?? null;
     if (cat) {
-      setSelectedCountry(cat);
+      setSelectedCategory(cat);
       setHeaderTitle(cat);
       setActiveMenu(null);
-      fetchExhibitionByName(cat);
+      setSelectedType(null);
+      fetchExhibitionByCategory(cat);
     }
   }, [location.state]);
 
+  // ── Fetch Domestic Data ───────────────────────────────────────────────────────
   useEffect(() => {
     const fetchDomesticData = async () => {
       setLoading((prev) => ({ ...prev, domestic: true }));
@@ -108,17 +167,19 @@ const ExhibitionView: React.FC = () => {
         const response = await fetch(`${BASE_URL}/api/exhibitions/domestic`);
         if (!response.ok) throw new Error(`Failed: ${response.status}`);
         const data = await response.json();
+        
         if (Array.isArray(data) && data.length > 0) {
-          setDomesticList(data.map((item: any) => item.country_name));
-          setExhibitionData(data);
+          const categories = data.map((item: DomesticExhibition) => item.domestic_category_name);
+          setDomesticCategories(categories);
+          setDomesticExhibitionData(data);
         } else {
-          setDomesticList([]);
-          setExhibitionData([]);
+          setDomesticCategories([]);
+          setDomesticExhibitionData([]);
         }
       } catch (error) {
         console.error("Error fetching domestic:", error);
-        setDomesticList([]);
-        setExhibitionData([]);
+        setDomesticCategories([]);
+        setDomesticExhibitionData([]);
       } finally {
         setLoading((prev) => ({ ...prev, domestic: false }));
       }
@@ -126,48 +187,245 @@ const ExhibitionView: React.FC = () => {
     fetchDomesticData();
   }, []);
 
-  const fetchExhibitionByName = async (countryName: string) => {
-    setLoading((prev) => ({ ...prev, exhibitions: true }));
-    try {
-      const exhibition = exhibitionData.find(
-        (item) => item.country_name === countryName
-      );
-      
-      if (exhibition) {
-        setSelectedExhibitionData(exhibition);
-      } else {
-        const response = await fetch(`${BASE_URL}/api/exhibitions/domestic`);
-        const allData = await response.json();
-        const found = allData.find((item: any) => item.country_name === countryName);
-        setSelectedExhibitionData(found || null);
+  // ── Fetch International Data ───────────────────────────────────────────────────────
+  useEffect(() => {
+    const fetchInternationalData = async () => {
+      setLoading((prev) => ({ ...prev, international: true }));
+      try {
+        const response = await fetch(`${BASE_URL}/api/exhibitions/international`);
+        if (!response.ok) throw new Error(`Failed: ${response.status}`);
+        const data = await response.json();
+        
+        if (Array.isArray(data) && data.length > 0) {
+          const categories = data.map((item: InternationalExhibition) => item.international_category_name);
+          setInternationalCategories(categories);
+          setInternationalExhibitionData(data);
+        } else {
+          setInternationalCategories([]);
+          setInternationalExhibitionData([]);
+        }
+      } catch (error) {
+        console.error("Error fetching international:", error);
+        setInternationalCategories([]);
+        setInternationalExhibitionData([]);
+      } finally {
+        setLoading((prev) => ({ ...prev, international: false }));
       }
-    } catch (error) {
-      console.error("Error fetching exhibition details:", error);
-      setSelectedExhibitionData(null);
-    } finally {
-      setLoading((prev) => ({ ...prev, exhibitions: false }));
+    };
+    fetchInternationalData();
+  }, []);
+
+
+  // Auto-select checkbox for passed category
+useEffect(() => {
+  if (passedCategory) {
+    // For domestic categories
+    if (domesticCategories.includes(passedCategory)) {
+      setSelectedDomesticCategories([passedCategory]);
+      setSelectedType('domestic');
     }
-  };
+    // For international categories
+    else if (internationalCategories.includes(passedCategory)) {
+      setSelectedInternationalCategories([passedCategory]);
+      setSelectedType('international');
+    }
+    
+    // Clear any active menu
+    setActiveMenu(null);
+  }
+}, [passedCategory, domesticCategories, internationalCategories]);
+
+
+  useEffect(() => {
+    let allCities: City[] = [];
+    
+    // Get cities from selected domestic categories
+    if (selectedDomesticCategories.length > 0) {
+      selectedDomesticCategories.forEach(categoryName => {
+        const domesticData = domesticExhibitionData.find(
+          item => item.domestic_category_name === categoryName
+        );
+        if (domesticData && domesticData.cities) {
+          allCities = [...allCities, ...domesticData.cities];
+        }
+      });
+    }
+    
+    // Get cities from selected international categories
+    if (selectedInternationalCategories.length > 0) {
+      selectedInternationalCategories.forEach(categoryName => {
+        const internationalData = internationalExhibitionData.find(
+          item => item.international_category_name === categoryName
+        );
+        if (internationalData && internationalData.cities) {
+          allCities = [...allCities, ...internationalData.cities];
+        }
+      });
+    }
+
+    // If no categories selected, show all cities from selected category (for backward compatibility)
+    if (selectedDomesticCategories.length === 0 && selectedInternationalCategories.length === 0) {
+      const currentData = selectedType === 'domestic' ? selectedDomesticData : selectedInternationalData;
+      if (currentData && currentData.cities) {
+        allCities = currentData.cities;
+      }
+    }
+
+    if (allCities.length === 0) {
+      setFilteredCities([]);
+      return;
+    }
+
+    let result = [...allCities];
+
+    // Price filter
+    result = result.filter(
+      (city) => parseFloat(city.price) >= priceRange[0] && parseFloat(city.price) <= priceRange[1]
+    );
+
+    // Search filter - only apply if search is active
+    if (isSearchActive && searchQuery.trim() !== "") {
+      const query = searchQuery.trim().toLowerCase();
+      result = result.filter(city => {
+        const cityName = (city.country_name || city.city_name).toLowerCase();
+        return cityName.includes(query);
+      });
+    }
+
+    setFilteredCities(result);
+  }, [selectedDomesticCategories, selectedInternationalCategories, domesticExhibitionData, internationalExhibitionData, selectedType, selectedDomesticData, selectedInternationalData, priceRange, searchQuery, isSearchActive]);
+
+const fetchExhibitionByCategory = async (categoryName: string) => {
+  setLoading((prev) => ({ ...prev, exhibitions: true }));
+  try {
+    // Check domestic
+    const domesticExhibition = domesticExhibitionData.find(
+      (item) => item.domestic_category_name === categoryName
+    );
+    
+    if (domesticExhibition) {
+      setSelectedDomesticData(domesticExhibition);
+      setSelectedInternationalData(null);
+      setSelectedType('domestic');
+      setSelectedDomesticCategories([categoryName]); // Check this box
+      setSelectedInternationalCategories([]);
+      setPriceRange([0, 500000]);
+      setSearchQuery("");
+      setIsSearchActive(false);
+      return;
+    }
+    
+    // Check international
+    const internationalExhibition = internationalExhibitionData.find(
+      (item) => item.international_category_name === categoryName
+    );
+    
+    if (internationalExhibition) {
+      setSelectedInternationalData(internationalExhibition);
+      setSelectedDomesticData(null);
+      setSelectedType('international');
+      setSelectedInternationalCategories([categoryName]); // Check this box
+      setSelectedDomesticCategories([]);
+      setPriceRange([0, 500000]);
+      setSearchQuery("");
+      setIsSearchActive(false);
+      return;
+    }
+    
+    setSelectedDomesticData(null);
+    setSelectedInternationalData(null);
+    setSelectedType(null);
+  } catch (error) {
+    console.error("Error:", error);
+  } finally {
+    setLoading((prev) => ({ ...prev, exhibitions: false }));
+  }
+};
 
   const handleAboutClick = () => {
     const next = activeMenu === "About Exhibition" ? null : "About Exhibition";
     setActiveMenu(next);
-    setSelectedCountry(null);
-    setSelectedExhibitionData(null);
+    setSelectedCategory(null);
+    setSelectedDomesticData(null);
+    setSelectedInternationalData(null);
+    setSelectedType(null);
     setOpenQA(null);
     setHeaderTitle(next ? "About Exhibition" : "Exhibition");
+    if (isMobile) setIsMobileMenuOpen(false);
+    // Reset filters
+    setPriceRange([0, 500000]);
+    setSearchQuery("");
+    setIsSearchActive(false);
+    setSelectedDomesticCategories([]);
+    setSelectedInternationalCategories([]);
   };
 
-  const handleCountryClick = (country: string) => {
-    setSelectedCountry(country);
-    setActiveMenu(null);
-    setOpenQA(null);
-    setHeaderTitle("Domestic");
-    fetchExhibitionByName(country);
-  };
+ const handleDomesticCheckboxChange = (category: string, checked: boolean) => {
+  if (checked) {
+    setSelectedDomesticCategories([category]); 
+    setSelectedInternationalCategories([]); 
+    setSelectedCategory(null);
+    setSelectedType('domestic');
+    setSelectedDomesticData(domesticExhibitionData.find(d => d.domestic_category_name === category) || null);
+    setSelectedInternationalData(null);
+  } else {
+    setSelectedDomesticCategories([]);
+    setSelectedType(null);
+    setSelectedDomesticData(null);
+  }
+};
+
+const handleInternationalCheckboxChange = (category: string, checked: boolean) => {
+  if (checked) {
+    setSelectedInternationalCategories([category]); 
+    setSelectedDomesticCategories([]); 
+    setSelectedCategory(null);
+    setSelectedType('international');
+    setSelectedInternationalData(internationalExhibitionData.find(i => i.international_category_name === category) || null);
+    setSelectedDomesticData(null);
+  } else {
+    setSelectedInternationalCategories([]);
+    setSelectedType(null);
+    setSelectedInternationalData(null);
+  }
+};
 
   const handleQAClick = (index: number) => {
     setOpenQA(openQA === index ? null : index);
+  };
+
+const clearAllFilters = () => {
+  setPriceRange([0, 500000]);
+  setSearchQuery("");
+  setShowSearchBtn(false);
+  setIsSearchActive(false);
+  setSelectedDomesticCategories([]);
+  setSelectedInternationalCategories([]);
+  setSelectedCategory(null);
+  setSelectedType(null);
+  setSelectedDomesticData(null);
+  setSelectedInternationalData(null);
+  
+  // Open About Exhibition dropdown
+  setActiveMenu("About Exhibition");
+  setHeaderTitle("About Exhibition");
+  setOpenQA(null);
+  
+  if (isMobile) setIsMobileMenuOpen(false);
+};
+  const clearSearch = () => {
+    setSearchQuery("");
+    setShowSearchBtn(false);
+    setIsSearchActive(false);
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim() !== "") {
+      setIsSearchActive(true);
+    } else {
+      setIsSearchActive(false);
+    }
   };
 
   const isImageUrl = (url: string) =>
@@ -177,6 +435,19 @@ const ExhibitionView: React.FC = () => {
     if (!imagePath) return "";
     if (imagePath.startsWith("http")) return imagePath;
     return `${BASE_URL}/uploads/exhibition/${imagePath}`;
+  };
+
+  const handleViewDetails = (exhibitionId: number, type: 'domestic' | 'international') => {
+    if (type === 'domestic') {
+      navigate(`/exhibitiondetail/${exhibitionId}`);
+    } else {
+      navigate(`/exhibitioninternationalindetail/${exhibitionId}`);
+    }
+  };
+
+  const handleBookNowClick = (city: City) => {
+    // Handle booking logic
+    console.log("Booking:", city);
   };
 
   const renderAboutContent = () => {
@@ -193,7 +464,7 @@ const ExhibitionView: React.FC = () => {
     }
     return (
       <>
-        <div className="border m-4 bg-gray-50 overflow-hidden relative">
+        <div className="border m-2 md:m-4 bg-gray-50 overflow-hidden relative">
           {aboutData.imageText && isImageUrl(aboutData.imageText) ? (
             <div className="relative w-full">
               <img
@@ -219,7 +490,7 @@ const ExhibitionView: React.FC = () => {
                 <h1
                   className="font-black text-center"
                   style={{
-                    fontSize: "clamp(1rem, 6vw, 90px)",
+                    fontSize: "clamp(1rem, 5vw, 90px)",
                     color: "#00205b",
                     textShadow: "2px 2px 8px rgba(0,0,0,0.34)",
                     lineHeight: "1.2",
@@ -239,13 +510,13 @@ const ExhibitionView: React.FC = () => {
           )}
         </div>
 
-        <div className="mx-4 mb-4 border">
+        <div className="mx-2 md:mx-4 mb-4 border">
           {aboutData.qa.length > 0 ? (
             aboutData.qa.map((item, index) => (
               <div key={index} className="border-t">
                 <div
                   onClick={() => handleQAClick(index)}
-                  className="flex justify-between items-center px-4 py-3 cursor-pointer"
+                  className="flex justify-between items-center px-3 md:px-4 py-2 md:py-3 cursor-pointer"
                   style={{ backgroundColor: "#2E3A8A", color: "#fff" }}
                 >
                   <span className="text-sm md:text-base">{item.q}</span>
@@ -255,7 +526,7 @@ const ExhibitionView: React.FC = () => {
                 </div>
                 {openQA === index && (
                   <div
-                    className="px-4 py-4 bg-[#E8F0FF] overflow-y-auto text-sm md:text-base border border-black"
+                    className="px-3 md:px-4 py-3 md:py-4 bg-[#E8F0FF] overflow-y-auto text-sm md:text-base border border-black"
                     style={{
                       minHeight: "150px",
                       maxHeight: "250px",
@@ -277,188 +548,431 @@ const ExhibitionView: React.FC = () => {
     );
   };
 
-const renderCountryCards = () => {
-  if (loading.exhibitions) {
+  const renderExhibitionCards = () => {
+    if (loading.exhibitions && (selectedDomesticCategories.length === 0 && selectedInternationalCategories.length === 0)) {
+      return (
+        <div className="flex items-center justify-center h-full py-16">
+          <div className="flex flex-col items-center gap-2">
+            <span className="animate-spin h-8 w-8 border-4 border-gray-300 border-t-blue-600 rounded-full" />
+            <span className="text-gray-500">Loading exhibition details...</span>
+          </div>
+        </div>
+      );
+    }
+    
+    if (filteredCities.length === 0 && (selectedDomesticCategories.length > 0 || selectedInternationalCategories.length > 0 || selectedCategory)) {
+      return (
+        <div className="text-center py-12">
+          <h3 className="text-xl font-semibold text-gray-600">No exhibitions found for the selected filters</h3>
+          <p className="text-gray-500 mt-2">
+            Try adjusting your filters or search criteria
+          </p>
+          <Button
+            onClick={clearAllFilters}
+            className="mt-4 bg-[#2E4D98] hover:bg-[#2E4D98] hover:opacity-90 text-white"
+          >
+            Clear All Filters
+          </Button>
+        </div>
+      );
+    }
+    
+    if (filteredCities.length === 0 && selectedDomesticCategories.length === 0 && selectedInternationalCategories.length === 0 && !selectedCategory) {
+      return (
+        <div className="flex items-center justify-center h-full text-gray-400 py-16">
+          <p className="text-sm md:text-base text-center px-4">
+            Select a category from the sidebar to view exhibitions
+          </p>
+        </div>
+      );
+    }
+    
     return (
-      <div className="flex items-center justify-center h-full py-16">
-        <div className="flex flex-col items-center gap-2">
-          <span className="animate-spin h-8 w-8 border-4 border-gray-300 border-t-blue-600 rounded-full" />
-          <span className="text-gray-500">Loading exhibition details...</span>
+<div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredCities.map((city) => {
+            // Determine if this city is from domestic or international
+            const isDomestic = city.state_name !== undefined;
+            const exhibitionId = isDomestic 
+              ? domesticExhibitionData.find(d => d.cities.some(c => c.id === city.id))?.id
+              : internationalExhibitionData.find(i => i.cities.some(c => c.id === city.id))?.id;
+            
+            return (
+              <div key={city.id} className="flex flex-col">
+                {/* Separate Top Block - Excel-like box design */}
+                <div className="bg-white border-2 border-gray-300 rounded-lg p-3 mb-3 shadow-sm">
+                  <div className="grid grid-cols-2 gap-0 border border-gray-400 rounded overflow-hidden">
+                    {/* Box 1 - Type Label */}
+                    <div className="bg-[#2E4D98] border-r border-gray-400 p-2 flex items-center justify-center">
+                      <div className="text-sm font-bold text-white text-center">
+                        {isDomestic ? 'CITY' : 'COUNTRY'}
+                      </div>
+                    </div>
+
+                    {/* Box 2 - Name Value */}
+                    <div className="bg-gradient-to-br from-blue-100 to-blue-50 border-gray-400 p-2 flex items-center justify-center">
+                      <div className="text-sm font-bold text-gray-900 text-center">
+                        {isDomestic ? city.city_name : (city.country_name || city.city_name)}
+                      </div>
+                    </div>
+
+                
+                  </div>
+                </div>
+
+                {/* Separate Card with Light Blue Background */}
+                <div className="group bg-blue-50 rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer border border-blue-100 flex flex-col flex-1 min-h-0">
+                  {/* Image Section */}
+                  <div className="relative h-56 overflow-hidden flex-shrink-0">
+                    {city.image ? (
+                      <img
+                        src={getFullImageUrl(city.image)}
+                        alt={isDomestic ? city.city_name : city.country_name || city.city_name}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                          const parent = e.currentTarget.parentElement;
+                          if (parent) {
+                            const errorDiv = document.createElement('div');
+                            errorDiv.className = "flex flex-col items-center justify-center w-full h-full text-gray-700 p-2 md:p-4 bg-blue-50";
+                            errorDiv.innerHTML = `
+                              <span class="text-center text-xs md:text-sm">${isDomestic ? city.city_name : city.country_name || city.city_name}</span>
+                              <span class="text-center text-xs text-gray-600 mt-1 md:mt-2">Image not available</span>
+                            `;
+                            parent.appendChild(errorDiv);
+                          }
+                        }}
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center justify-center w-full h-full text-gray-700 p-2 md:p-4 bg-blue-50">
+                        <span className="text-center text-xs md:text-sm">
+                          {isDomestic ? city.city_name : city.country_name || city.city_name}
+                        </span>
+                        <span className="text-center text-xs text-gray-600 mt-1 md:mt-2">No image available</span>
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                  </div>
+
+                  {/* Content Section */}
+                  <div className="p-5 flex-1 flex flex-col min-h-0">
+                 
+
+                    {/* Price Details */}
+                    <div className="mb-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-sm text-[#2E4D98] font-bold">Exhibtion Price</span>
+                        <p className="text-2xl font-bold text-gray-900">₹{parseFloat(city.price).toLocaleString('en-IN')}</p>
+                      </div>
+                    </div>
+
+                    {/* <p className="text-sm text-[#2E4D98] font-bold mb-3">
+                      {isDomestic && city.state_name ? city.state_name : 'Exhibition Package'}
+                    </p> */}
+
+                    {/* Buttons */}
+                    <div className="flex gap-2 mt-auto">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="flex-1 border-[#2E4D98] text-[#2E4D98] hover:bg-[#2E4D98] hover:text-white"
+                        onClick={() => handleViewDetails(exhibitionId!, isDomestic ? 'domestic' : 'international')}
+                      >
+                        View Details
+                      </Button>
+                      
+                      <Button
+                        size="sm"
+                        className="flex-1 bg-[#E53C42] hover:bg-[#E53C42] hover:opacity-90 text-white"
+                        onClick={() => handleBookNowClick(city)}
+                      >
+                        Book Now
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     );
-  }
-
-  if (!selectedExhibitionData || !selectedExhibitionData.cities || selectedExhibitionData.cities.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-full text-gray-400 py-16">
-        <p className="text-sm md:text-base text-center px-4">
-          No exhibition data available for {selectedCountry}
-        </p>
-      </div>
-    );
-  }
-  
-  return (
-    <div>
-      <div className="bg-blue-200 text-center border-b border-gray-400 py-3 font-semibold">
-        {selectedExhibitionData.country_name}
-      </div>
-
-<div className="px-6 py-2">
-  <div className="w-[350px] gap-6 shadow-lg rounded-xl">
-              {selectedExhibitionData.cities.map((city) => (
-          <div
-            key={city.id}
-            className="border border-black flex flex-col w-full hover:shadow-lg transition-shadow"
-          >
-            <div className="bg-blue-200 border-b border-black flex items-stretch text-sm h-12">
-              <div className="flex-1 flex items-center justify-start px-3 font-medium">
-                City
-              </div>
-              
-              <div className="w-[1px] bg-black" />
-              
-              <div className="flex-1 flex items-center justify-end px-3 font-semibold">
-                {city.city_name}
-              </div>
-            </div>
-
-            <div className="bg-blue-300 h-48 flex flex-col items-center justify-center relative overflow-hidden border-b border-black">
-              {city.image ? (
-                <img
-                  src={getFullImageUrl(city.image)}
-                  alt={city.city_name}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.currentTarget.style.display = "none";
-                    const parent = e.currentTarget.parentElement;
-                    if (parent) {
-                      parent.innerHTML = `
-                        <div class="flex flex-col items-center justify-center w-full h-full text-gray-700 p-4">
-                          <span class="text-center text-sm">${city.city_name}</span>
-                          <span class="text-center text-xs text-gray-600 mt-2">Image not available</span>
-                        </div>
-                      `;
-                    }
-                  }}
-                />
-              ) : (
-                <div className="flex flex-col items-center justify-center text-gray-700 p-4">
-                  <span className="text-center text-sm">{city.city_name}</span>
-                  <span className="text-center text-xs text-gray-600 mt-2">No image available</span>
-                </div>
-              )}
-            </div>
-
-            <div className="flex border-t border-black">
-              <button
-                onClick={() => navigate(`/exhibitiondetail/${selectedExhibitionData.id}`)}
-                className="flex-1 py-3 hover:bg-gray-100 font-medium text-sm transition-colors"
-              >
-                View Details
-              </button>
-              
-        <div className="px-4 py-3 bg-gradient-to-r   flex items-center justify-center border-l border-r border-black">
-  <div className="flex items-center gap-2 text-sm font-medium">
-    <span className="text-black">Price:</span>
-    <span className="text-black font-semibold">
-      ₹{parseFloat(city.price).toLocaleString('en-IN')}
-    </span>
-  </div>
-</div>
-              
-              <button className="flex-1 py-3 hover:bg-gray-100 font-medium text-sm transition-colors">
-                Book Now
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-      </div>
-    </div>
-  );
-};
+  };
 
   const renderContent = () => {
-    if (selectedCountry) return renderCountryCards();
+    if (selectedCategory || selectedDomesticCategories.length > 0 || selectedInternationalCategories.length > 0) return renderExhibitionCards();
     if (activeMenu === "About Exhibition") return renderAboutContent();
     return (
-      <div className="flex items-center justify-center h-full text-gray-400 py-16">
+      <div className="flex items-center justify-center h-full text-gray-400 py-8 md:py-16">
         <p className="text-sm md:text-base text-center px-4">
-          Select an item from the menu
+          Select an item from the menu or checkboxes to view exhibitions
         </p>
       </div>
     );
   };
 
+  // Get total count of selected exhibitions
+  const getTotalExhibitionCount = () => {
+    let total = 0;
+    selectedDomesticCategories.forEach(cat => {
+      const data = domesticExhibitionData.find(d => d.domestic_category_name === cat);
+      if (data) total += data.cities.length;
+    });
+    selectedInternationalCategories.forEach(cat => {
+      const data = internationalExhibitionData.find(i => i.international_category_name === cat);
+      if (data) total += data.cities.length;
+    });
+    return total;
+  };
+
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen bg-[#E53C42] bg-opacity-10">
       <Header />
 
-      <div className="bg-white border rounded-lg shadow overflow-hidden">
-        <div className="flex min-h-[600px]">
-          <div className="w-64 border-r flex-shrink-0 bg-blue-100">
-            <div className="bg-[#2E3A8A] text-white text-center font-semibold py-3 text-sm">
-              Exhibition
-            </div>
+      <div className="container mx-auto px-4 py-6">
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Filters Sidebar */}
+          <aside className="lg:w-80">
+            <div className="bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl shadow-lg p-6 border border-blue-200 sticky top-24">
+              <div className="flex justify-between items-center mb-4 bg-white p-2 rounded-lg border border-black">
+                <h2 className="text-2xl font-bold text-[#2E4D98]">Exhibition Tours</h2>
+                <button
+                  onClick={clearAllFilters}
+                  className="text-sm text-[#E53C42] hover:underline"
+                >
+                  Clear All
+                </button>
+              </div>
 
-            <div
-              onClick={handleAboutClick}
-              className={`flex justify-between items-center px-4 py-3 cursor-pointer text-sm ${
-                activeMenu === "About Exhibition"
-                  ? "bg-blue-100 font-semibold text-[#2E3A8A]"
-                  : "hover:bg-blue-50 text-gray-700"
-              }`}
-            >
-              <span>About Exhibition</span>
-              <span className="text-xs">
-                {activeMenu === "About Exhibition" ? "▼" : "▶"}
+        
+<div className="mt-3 mb-4">
+  <div
+    onClick={handleAboutClick}
+    className="flex justify-between items-center p-2 rounded-lg cursor-pointer border border-black bg-white text-[#2E4D98]"
+  >
+                  <h2 className="text-xl font-bold text-[#2E4D98]">About Exhibition</h2>
+    <span className="text-xs">
+      {activeMenu === "About Exhibition" ? "▼" : "▶"}
+    </span>
+  </div>
+</div>
+
+              {/* Price Filter */}
+              <div className="mb-6">
+                <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Price Range</h3>
+                <div className="flex justify-between text-sm text-gray-600 mb-3">
+                  <span>₹{priceRange[0].toLocaleString()}</span>
+                  <span>₹{priceRange[1].toLocaleString()}</span>
+                </div>
+                <Slider
+                  value={priceRange}
+                  onValueChange={setPriceRange}
+                  min={0}
+                  max={500000}
+                  step={1000}
+                  className="w-full"
+                />
+              </div>
+
+                    {/* Search */}
+              <div className="mb-4 mt-3">
+                <form onSubmit={handleSearch} className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Input
+                      type="text"
+                      placeholder="Search by destination"
+                      value={searchQuery}
+                      onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        setShowSearchBtn(e.target.value.trim() !== "");
+                      }}
+                      onFocus={() => setShowSearchBtn(true)}
+                      className="border-[#2E4D98] focus:border-[#2E4D98] focus:ring-[#2E4D98] pr-8 placeholder:text-sm"
+                    />
+                    {searchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          clearSearch();
+                          setShowSearchBtn(false);
+                        }}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+
+                  {showSearchBtn && (
+                    <Button
+                      type="submit"
+                      className="bg-red-600 hover:bg-red-700 text-white px-6"
+                    >
+                      Search
+                    </Button>
+                  )}
+                </form>
+              </div>
+
+              {/* Domestic Exhibition Section with Checkboxes */}
+              <div className="mb-6">
+                <div className="flex justify-between items-center mb-3 bg-white p-2 rounded-lg border border-black">
+                  <h2 className="text-xl font-bold text-[#2E4D98]">Domestic Exhibition</h2>
+                </div>
+                
+                <div className={`${showMoreDomestic ? "max-h-64 overflow-y-auto pr-1" : ""} space-y-3`}>
+                  {loading.domestic ? (
+                    <div className="flex justify-center py-4">
+                      <span className="animate-spin h-5 w-5 border-2 border-gray-300 border-t-blue-600 rounded-full" />
+                    </div>
+                  ) : domesticCategories.length > 0 ? (
+                    domesticCategories
+                      .slice(0, showMoreDomestic ? domesticCategories.length : 6)
+                      .sort((a, b) => a.localeCompare(b))
+                      .map((category) => (
+                        <div key={category} className="flex items-center gap-3 cursor-pointer">
+                          <Checkbox
+                            checked={selectedDomesticCategories.includes(category)}
+                            onCheckedChange={(checked) => handleDomesticCheckboxChange(category, checked as boolean)}
+                            className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
+                          />
+                          <span
+                            className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${
+                              selectedDomesticCategories.includes(category) ? 'font-bold text-[#2E4D98]' : ''
+                            }`}
+                            onClick={() => handleDomesticCheckboxChange(category, !selectedDomesticCategories.includes(category))}
+                          >
+                            {category}
+                          </span>
+                        </div>
+                      ))
+                  ) : (
+                    <div className="text-sm text-gray-400">No domestic exhibitions available</div>
+                  )}
+                </div>
+                
+                {domesticCategories.length > 6 && (
+                  <button
+                    onClick={() => setShowMoreDomestic(!showMoreDomestic)}
+                    className="mt-4 text-[#2E4D98] text-sm font-semibold hover:underline"
+                  >
+                    {showMoreDomestic ? "Show Less" : "Show More"}
+                  </button>
+                )}
+              </div>
+
+              {/* International Exhibition Section with Checkboxes */}
+              <div>
+                <div className="flex justify-between items-center mb-3 bg-white p-2 rounded-lg border border-black">
+                  <h2 className="text-xl font-bold text-[#2E4D98]">International Exhibition</h2>
+                </div>
+                
+                <div className={`${showMoreInternational ? "max-h-64 overflow-y-auto pr-1" : ""} space-y-3`}>
+                  {loading.international ? (
+                    <div className="flex justify-center py-4">
+                      <span className="animate-spin h-5 w-5 border-2 border-gray-300 border-t-blue-600 rounded-full" />
+                    </div>
+                  ) : internationalCategories.length > 0 ? (
+                    internationalCategories
+                      .slice(0, showMoreInternational ? internationalCategories.length : 6)
+                      .sort((a, b) => a.localeCompare(b))
+                      .map((category) => (
+                        <div key={category} className="flex items-center gap-3 cursor-pointer">
+                          <Checkbox
+                            checked={selectedInternationalCategories.includes(category)}
+                            onCheckedChange={(checked) => handleInternationalCheckboxChange(category, checked as boolean)}
+                            className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
+                          />
+                          <span
+                            className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${
+                              selectedInternationalCategories.includes(category) ? 'font-bold text-[#2E4D98]' : ''
+                            }`}
+                            onClick={() => handleInternationalCheckboxChange(category, !selectedInternationalCategories.includes(category))}
+                          >
+                            {category}
+                          </span>
+                        </div>
+                      ))
+                  ) : (
+                    <div className="text-sm text-gray-400">No international exhibitions available</div>
+                  )}
+                </div>
+                
+                {internationalCategories.length > 6 && (
+                  <button
+                    onClick={() => setShowMoreInternational(!showMoreInternational)}
+                    className="mt-4 text-[#2E4D98] text-sm font-semibold hover:underline"
+                  >
+                    {showMoreInternational ? "Show Less" : "Show More"}
+                  </button>
+                )}
+              </div>
+
+             
+            </div>
+          </aside>
+
+<main className="flex-1">
+  <div 
+    className="relative rounded-2xl overflow-hidden mb-6 bg-cover bg-center bg-no-repeat"
+    style={{
+      backgroundImage: `url('https://360biznus.com/wp-content/uploads/2025/08/360-virtual-tour-of-shiva-carpets1.jpg')`,
+    }}
+  >
+    <div className="p-8 min-h-[180px] flex items-center">
+      <div className="text-white">
+        <h1 className="text-3xl font-bold mb-2" style={{ textShadow: "2px 2px 4px rgb(0, 0, 0)" }}>
+          {(selectedDomesticCategories.length > 0 || selectedInternationalCategories.length > 0) 
+            ? "Selected Exhibition Packages"
+            : (selectedCategory 
+              ? `${selectedCategory} Exhibition Packages`
+              : (activeMenu === "About Exhibition" ? "About Exhibition" : "Exhibition Packages"))}
+        </h1>
+        <p className="text-base opacity-90 max-w-2xl" style={{ textShadow: "1px 1px 2px rgba(0, 0, 0, 0.5)" }}>
+          {(selectedDomesticCategories.length > 0 || selectedInternationalCategories.length > 0)
+            ? `Explore our selected exhibition packages from ${selectedDomesticCategories.length + selectedInternationalCategories.length} categories`
+            : (selectedCategory 
+              ? `Explore our exclusive ${selectedCategory} exhibition packages`
+              : "Explore our exclusive funtite exhibition packages")}
+        </p>
+        {(selectedDomesticCategories.length > 0 || selectedInternationalCategories.length > 0 || selectedCategory) && (
+          <p className="text-sm opacity-80 mt-2" style={{ textShadow: "1px 1px 2px rgba(0, 0, 0, 0.5)" }}>
+            Showing {filteredCities.length} exhibition packages
+            {selectedDomesticCategories.length > 0 || selectedInternationalCategories.length > 0 ? (
+              <span className="ml-2 text-xs">
+                (Total selected: {getTotalExhibitionCount()})
               </span>
-            </div>
-
-            {/* Domestic country list */}
-            <div className="bg-[#2E3A8A] text-white text-center font-semibold py-3 text-sm">
-              Domestic
-            </div>
-
-  <div className="border-b border-black">
-  {loading.domestic ? (
-    <div className="flex justify-center py-4">
-      <span className="animate-spin h-5 w-5 border-2 border-gray-300 border-t-blue-600 rounded-full" />
-    </div>
-  ) : domesticList.length > 0 ? (
-    domesticList.map((country) => (
-      <div
-        key={country}
-        onClick={() => handleCountryClick(country)}
-        className={`flex items-center px-4 py-3 cursor-pointer border-t border-black text-sm transition-colors bg-blue-100 hover:bg-blue-200 ${
-          selectedCountry === country
-            ? "font-semibold text-[#2E3A8A]"
-            : "text-gray-700"
-        }`}
-      >
-        <span className="mr-2 text-xs text-gray-400">›</span>
-        <span>{country}</span>
+            ) : (
+              <span className="ml-2 text-xs">
+                (Total available: {selectedType === 'domestic' 
+                  ? selectedDomesticData?.cities.length 
+                  : selectedInternationalData?.cities.length})
+              </span>
+            )}
+          </p>
+        )}
       </div>
-    ))
-  ) : (
-    <div className="px-4 py-3 text-sm text-gray-400">
-      No data available
     </div>
-  )}
-</div>  
-          </div>
+  </div>
 
-          <div className="flex-1 min-w-0 flex flex-col">
-            <div className="bg-[#2E3A8A] text-white text-center py-3 font-semibold text-md md:text-base">
-              Domestic
-            </div>
+            {/* Content Header */}
+            {(selectedDomesticCategories.length > 0 || selectedInternationalCategories.length > 0 || selectedCategory) && (
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                <div>
+                  <h2 className="text-3xl font-bold text-gray-800">
+                    {selectedDomesticCategories.length > 0 || selectedInternationalCategories.length > 0 
+                      ? "Selected Exhibition Packages" 
+                      : (selectedType === 'domestic' ? 'Domestic' : 'International') + " Exhibition Packages"}
+                  </h2>
+                  <p className="text-gray-600 mt-1">
+                    Showing {filteredCities.length} exhibition packages • Best prices guaranteed
+                  </p>
+                </div>
+              </div>
+            )}
 
-            <div className="flex-1 overflow-y-auto bg-[#FFEBEE]">
-              {renderContent()}
-            </div>
-          </div>
+            {renderContent()}
+          </main>
         </div>
       </div>
 

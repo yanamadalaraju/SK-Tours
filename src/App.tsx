@@ -101,6 +101,7 @@ import Onedaypicnic from "./pages/OnedayPicnic/OnedayPicnic/Onedaypicnic";
 import ExhibitionDashboard from "./pages/Exhibition/Exhibitionend";
 import ExhibitionStatic from "./pages/Exhibition/Exhibitionview";
 import Exhibitiondetail from "./pages/Exhibition/Exhibitiondetail";
+import Exhibitioninternationalindetail from "./pages/Exhibition/Exhibitioninternationalindetail";
 
 const queryClient = new QueryClient();
 
@@ -225,6 +226,9 @@ const App = () => (
           <Route path="/exhibitiondetail" element={<Exhibitiondetail />} />
 <Route path="/exhibitiondetail/:tourId" element={<Exhibitiondetail />} />
           <Route path="/insuranceform" element={<Insurances  />} />
+          <Route path="/exhibitioninternationalindetail" element={<Exhibitioninternationalindetail/>} />
+          <Route path="/exhibitioninternationalindetail/:tourId" element={<Exhibitioninternationalindetail/>} />
+
           <Route path="/apidata" element={<Apidata />} />
 
 
