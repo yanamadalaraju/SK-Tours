@@ -21,6 +21,9 @@ interface City {
   price: string;
   state_name?: string;
   country_name?: string;
+  start_date?: string;
+  duration_days?: number;
+  emi_price?: string; 
 }
 
 interface DomesticExhibition {
@@ -29,6 +32,9 @@ interface DomesticExhibition {
   created_at: string;
   updated_at: string;
   cities: City[];
+  start_date?: string;
+  duration_days?: number;
+   emi_price?: string; 
 }
 
 interface InternationalExhibition {
@@ -37,6 +43,9 @@ interface InternationalExhibition {
   created_at: string;
   updated_at: string;
   cities: City[];
+  start_date?: string;
+  duration_days?: number;
+   emi_price?: string;
 }
 
 const ExhibitionView: React.FC = () => {
@@ -58,20 +67,21 @@ const ExhibitionView: React.FC = () => {
   );
 
   // Filter states
-  const [priceRange, setPriceRange] = useState([0, 500000]);
+  const [priceRange, setPriceRange] = useState([0, 200000]);
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearchBtn, setShowSearchBtn] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [filteredCities, setFilteredCities] = useState<City[]>([]);
   
-  // Show More/Less states
+  const [departureMonths, setDepartureMonths] = useState<string[]>([]);
+  
   const [showMoreDomestic, setShowMoreDomestic] = useState(false);
   const [showMoreInternational, setShowMoreInternational] = useState(false);
-  
-  // Selected filters for domestic and international categories
+  const [selectedDepartureMonths, setSelectedDepartureMonths] = useState<string[]>([]);
   const [selectedDomesticCategories, setSelectedDomesticCategories] = useState<string[]>([]);
   const [selectedInternationalCategories, setSelectedInternationalCategories] = useState<string[]>([]);
-
+  const [showAllDepartureMonths, setShowAllDepartureMonths] = useState(false);
+const [durationRange, setDurationRange] = useState([0, 10]); // Add this with other states
   // ── Data state ─────────────────────────────────────────────────────────────
   const [aboutData, setAboutData] = useState<AboutData>({
     banner_image: "",
@@ -236,65 +246,128 @@ useEffect(() => {
 }, [passedCategory, domesticCategories, internationalCategories]);
 
 
-  useEffect(() => {
-    let allCities: City[] = [];
-    
-    // Get cities from selected domestic categories
-    if (selectedDomesticCategories.length > 0) {
-      selectedDomesticCategories.forEach(categoryName => {
-        const domesticData = domesticExhibitionData.find(
-          item => item.domestic_category_name === categoryName
-        );
-        if (domesticData && domesticData.cities) {
-          allCities = [...allCities, ...domesticData.cities];
-        }
-      });
-    }
-    
-    // Get cities from selected international categories
-    if (selectedInternationalCategories.length > 0) {
-      selectedInternationalCategories.forEach(categoryName => {
-        const internationalData = internationalExhibitionData.find(
-          item => item.international_category_name === categoryName
-        );
-        if (internationalData && internationalData.cities) {
-          allCities = [...allCities, ...internationalData.cities];
-        }
-      });
-    }
-
-    // If no categories selected, show all cities from selected category (for backward compatibility)
-    if (selectedDomesticCategories.length === 0 && selectedInternationalCategories.length === 0) {
-      const currentData = selectedType === 'domestic' ? selectedDomesticData : selectedInternationalData;
-      if (currentData && currentData.cities) {
-        allCities = currentData.cities;
+useEffect(() => {
+  // ✅ Departure Month Filter
+  let allCities: City[] = [];
+  
+  // Get cities from selected domestic categories
+  if (selectedDomesticCategories.length > 0) {
+    selectedDomesticCategories.forEach(categoryName => {
+      const domesticData = domesticExhibitionData.find(
+        item => item.domestic_category_name === categoryName
+      );
+      if (domesticData && domesticData.cities) {
+        // Attach duration to each city from the parent exhibition
+        const citiesWithDuration = domesticData.cities.map(city => ({
+          ...city,
+          duration_days: domesticData.duration_days ,
+          emi_price: domesticData.emi_price 
+        }));
+        allCities = [...allCities, ...citiesWithDuration];
       }
+    });
+  }
+  
+
+  // Get cities from selected international categories
+  if (selectedInternationalCategories.length > 0) {
+    selectedInternationalCategories.forEach(categoryName => {
+      const internationalData = internationalExhibitionData.find(
+        item => item.international_category_name === categoryName
+      );
+      if (internationalData && internationalData.cities) {
+        // Attach duration to each city from the parent exhibition
+        const citiesWithDuration = internationalData.cities.map(city => ({
+          ...city,
+          duration_days: internationalData.duration_days ,
+           emi_price: internationalData.emi_price
+        }));
+        allCities = [...allCities, ...citiesWithDuration];
+      }
+    });
+  }
+
+  // If no categories selected, show all cities from selected category (for backward compatibility)
+  if (selectedDomesticCategories.length === 0 && selectedInternationalCategories.length === 0) {
+    const currentData = selectedType === 'domestic' ? selectedDomesticData : selectedInternationalData;
+    if (currentData && currentData.cities) {
+      const citiesWithDuration = currentData.cities.map(city => ({
+        ...city,
+        duration_days: currentData.duration_days,
+         emi_price: currentData.emi_price 
+      }));
+      allCities = citiesWithDuration;
+    }
+  }
+
+  if (allCities.length === 0) {
+    setFilteredCities([]);
+    return;
+  }
+
+  let result = [...allCities];
+
+  // ✅ Exhibition Range filter - NEW
+  result = result.filter(
+    (city) => (city.duration_days || 0) >= durationRange[0] && 
+               (city.duration_days || 0) <= durationRange[1]
+  );
+
+  // Price filter
+  result = result.filter(
+    (city) => parseFloat(city.price) >= priceRange[0] && 
+              parseFloat(city.price) <= priceRange[1]
+  );
+if (selectedDepartureMonths.length > 0) {
+  result = result.filter((city) => {
+    // City level start_date check cheyyi first
+    if (city.start_date) {
+      const cityMonth = formatMonthYear(city.start_date);
+      if (selectedDepartureMonths.includes(cityMonth)) return true;
     }
 
-    if (allCities.length === 0) {
-      setFilteredCities([]);
-      return;
-    }
-
-    let result = [...allCities];
-
-    // Price filter
-    result = result.filter(
-      (city) => parseFloat(city.price) >= priceRange[0] && parseFloat(city.price) <= priceRange[1]
+    // Parent exhibition level start_date check cheyyi
+    const parentDomestic = domesticExhibitionData.find(d =>
+      d.cities.some(c => c.id === city.id)
     );
+    const parentInternational = internationalExhibitionData.find(i =>
+      i.cities.some(c => c.id === city.id)
+    );
+    const parent = parentDomestic || parentInternational;
 
-    // Search filter - only apply if search is active
-    if (isSearchActive && searchQuery.trim() !== "") {
-      const query = searchQuery.trim().toLowerCase();
-      result = result.filter(city => {
-        const cityName = (city.country_name || city.city_name).toLowerCase();
-        return cityName.includes(query);
-      });
+    if (parent?.start_date) {
+      const parentMonth = formatMonthYear(parent.start_date);
+      return selectedDepartureMonths.includes(parentMonth);
     }
+    return false;
+  });
+}
 
-    setFilteredCities(result);
-  }, [selectedDomesticCategories, selectedInternationalCategories, domesticExhibitionData, internationalExhibitionData, selectedType, selectedDomesticData, selectedInternationalData, priceRange, searchQuery, isSearchActive]);
 
+  // Search filter - only apply if search is active
+  if (isSearchActive && searchQuery.trim() !== "") {
+    const query = searchQuery.trim().toLowerCase();
+    result = result.filter(city => {
+      const cityName = (city.country_name || city.city_name).toLowerCase();
+      return cityName.includes(query);
+    });
+  }
+
+  setFilteredCities(result);
+}, [
+  selectedDomesticCategories, 
+  selectedInternationalCategories, 
+  domesticExhibitionData, 
+  internationalExhibitionData, 
+  selectedType, 
+  selectedDomesticData, 
+  selectedInternationalData, 
+  priceRange, 
+  searchQuery, 
+  isSearchActive,
+  durationRange, // ✅ Add to dependencies
+  selectedDepartureMonths // ✅ Add to dependencies
+]);
 const fetchExhibitionByCategory = async (categoryName: string) => {
   setLoading((prev) => ({ ...prev, exhibitions: true }));
   try {
@@ -309,7 +382,7 @@ const fetchExhibitionByCategory = async (categoryName: string) => {
       setSelectedType('domestic');
       setSelectedDomesticCategories([categoryName]); // Check this box
       setSelectedInternationalCategories([]);
-      setPriceRange([0, 500000]);
+      setPriceRange([0, 200000]);
       setSearchQuery("");
       setIsSearchActive(false);
       return;
@@ -326,7 +399,7 @@ const fetchExhibitionByCategory = async (categoryName: string) => {
       setSelectedType('international');
       setSelectedInternationalCategories([categoryName]); // Check this box
       setSelectedDomesticCategories([]);
-      setPriceRange([0, 500000]);
+      setPriceRange([0, 200000]);
       setSearchQuery("");
       setIsSearchActive(false);
       return;
@@ -353,7 +426,7 @@ const fetchExhibitionByCategory = async (categoryName: string) => {
     setHeaderTitle(next ? "About Exhibition" : "Exhibition");
     if (isMobile) setIsMobileMenuOpen(false);
     // Reset filters
-    setPriceRange([0, 500000]);
+    setPriceRange([0, 200000]);
     setSearchQuery("");
     setIsSearchActive(false);
     setSelectedDomesticCategories([]);
@@ -395,7 +468,7 @@ const handleInternationalCheckboxChange = (category: string, checked: boolean) =
   };
 
 const clearAllFilters = () => {
-  setPriceRange([0, 500000]);
+  setPriceRange([0, 200000]);
   setSearchQuery("");
   setShowSearchBtn(false);
   setIsSearchActive(false);
@@ -427,6 +500,14 @@ const clearAllFilters = () => {
       setIsSearchActive(false);
     }
   };
+      const formatMonthYear = (dateString: string) => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  return date.toLocaleString("en-IN", {
+    month: "long",
+    year: "numeric",
+  }); // Example: March 2026
+};
 
   const isImageUrl = (url: string) =>
     url && (url.startsWith("http") || url.startsWith("/"));
@@ -444,6 +525,51 @@ const clearAllFilters = () => {
       navigate(`/exhibitioninternationalindetail/${exhibitionId}`);
     }
   };
+useEffect(() => {
+  let monthsSet = new Set<string>();
+
+  // Domestic - category level start_date
+  domesticExhibitionData.forEach((item) => {
+    if (item.start_date) {
+      const m = formatMonthYear(item.start_date);
+      if (m) monthsSet.add(m);
+    }
+    // Cities level lo kuda check cheyyi
+    item.cities?.forEach((city) => {
+      if (city.start_date) {
+        const m = formatMonthYear(city.start_date);
+        if (m) monthsSet.add(m);
+      }
+    });
+  });
+
+  // International - category level + cities level
+  internationalExhibitionData.forEach((item) => {
+    if (item.start_date) {
+      const m = formatMonthYear(item.start_date);
+      if (m) monthsSet.add(m);
+    }
+    item.cities?.forEach((city) => {
+      if (city.start_date) {
+        const m = formatMonthYear(city.start_date);
+        if (m) monthsSet.add(m);
+      }
+    });
+  });
+
+  setDepartureMonths(Array.from(monthsSet).sort());
+}, [domesticExhibitionData, internationalExhibitionData]);
+
+
+const handleDepartureMonthChange = (month: string, checked: boolean) => {
+  if (checked) {
+    setSelectedDepartureMonths((prev) => [...prev, month]);
+  } else {
+    setSelectedDepartureMonths((prev) =>
+      prev.filter((m) => m !== month)
+    );
+  }
+};
 
   const handleBookNowClick = (city: City) => {
     // Handle booking logic
@@ -599,26 +725,37 @@ const clearAllFilters = () => {
             
             return (
               <div key={city.id} className="flex flex-col">
-                {/* Separate Top Block - Excel-like box design */}
-                <div className="bg-white border-2 border-gray-300 rounded-lg p-3 mb-3 shadow-sm">
-                  <div className="grid grid-cols-2 gap-0 border border-gray-400 rounded overflow-hidden">
-                    {/* Box 1 - Type Label */}
-                    <div className="bg-[#2E4D98] border-r border-gray-400 p-2 flex items-center justify-center">
-                      <div className="text-sm font-bold text-white text-center">
-                        {isDomestic ? 'CITY' : 'COUNTRY'}
-                      </div>
-                    </div>
+             <div className="bg-white border-2 border-gray-300 rounded-lg p-3 mb-3 shadow-sm">
+  <div className="grid grid-cols-3 gap-0 border border-gray-400 rounded overflow-hidden">
+    
+    {/* CITY / COUNTRY */}
+    <div className="bg-[#2E4D98] border-r border-gray-400 p-2 flex items-center justify-center">
+      <div className="text-sm font-bold text-white text-center">
+        {isDomestic ? 'CITY' : 'COUNTRY'}
+      </div>
+    </div>
 
-                    {/* Box 2 - Name Value */}
-                    <div className="bg-gradient-to-br from-blue-100 to-blue-50 border-gray-400 p-2 flex items-center justify-center">
-                      <div className="text-sm font-bold text-gray-900 text-center">
-                        {isDomestic ? city.city_name : (city.country_name || city.city_name)}
-                      </div>
-                    </div>
+    {/* NAME */}
+    <div className="bg-gradient-to-br from-blue-100 to-blue-50 border-r border-gray-400 p-2 flex items-center justify-center">
+      <div className="text-sm font-bold text-gray-900 text-center">
+        {isDomestic ? city.city_name : (city.country_name || city.city_name)}
+      </div>
+    </div>
 
+    {/* DURATION (4N/5D) */}
+    <div className="bg-[#2E4D98] p-2 flex items-center justify-center">
+      <div className="text-sm font-bold text-white text-center">
+        {city.duration_days 
+          ? `${city.duration_days - 1}N/${city.duration_days}D`
+          : 'N/A'}
+      </div>
+    </div>
+
+  </div>
+</div>
+
+    
                 
-                  </div>
-                </div>
 
                 {/* Separate Card with Light Blue Background */}
                 <div className="group bg-blue-50 rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer border border-blue-100 flex flex-col flex-1 min-h-0">
@@ -626,7 +763,7 @@ const clearAllFilters = () => {
                   <div className="relative h-56 overflow-hidden flex-shrink-0">
                     {city.image ? (
                       <img
-                        src={getFullImageUrl(city.image)}
+                       src={getFullImageUrl(city.image)}
                         alt={isDomestic ? city.city_name : city.country_name || city.city_name}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                         onError={(e) => {
@@ -663,6 +800,12 @@ const clearAllFilters = () => {
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-sm text-[#2E4D98] font-bold">Exhibtion Price</span>
                         <p className="text-2xl font-bold text-gray-900">₹{parseFloat(city.price).toLocaleString('en-IN')}</p>
+                      </div>
+                    </div>
+                      <div className="mb-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-sm text-[#2E4D98] font-bold">Emi Price</span>
+                        <p className="text-2xl font-bold text-gray-900">₹{parseFloat(city.emi_price || '0').toLocaleString('en-IN')}</p>
                       </div>
                     </div>
 
@@ -735,7 +878,7 @@ const clearAllFilters = () => {
           <aside className="lg:w-80">
             <div className="bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl shadow-lg p-6 border border-blue-200 sticky top-24">
               <div className="flex justify-between items-center mb-4 bg-white p-2 rounded-lg border border-black">
-                <h2 className="text-2xl font-bold text-[#2E4D98]">Exhibition Tours</h2>
+                <h2 className="text-2xl font-bold text-[#2E4D98]">Exhibitions</h2>
                 <button
                   onClick={clearAllFilters}
                   className="text-sm text-[#E53C42] hover:underline"
@@ -757,6 +900,22 @@ const clearAllFilters = () => {
   </div>
 </div>
 
+   {/* Exhibition Range */}
+              <div className="mb-8">
+                <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Exhibition Range</h3>
+                <div className="flex justify-between text-sm text-gray-600 mb-3">
+                  <span>{durationRange[0]} days</span>
+                  <span>{durationRange[1]} days</span>
+                </div>
+                <Slider 
+                  value={durationRange} 
+                  onValueChange={setDurationRange}
+                  max={10} 
+                  step={1} 
+                  className="w-full" 
+                />
+              </div>
+
               {/* Price Filter */}
               <div className="mb-6">
                 <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Price Range</h3>
@@ -768,12 +927,50 @@ const clearAllFilters = () => {
                   value={priceRange}
                   onValueChange={setPriceRange}
                   min={0}
-                  max={500000}
+                  max={200000}
                   step={1000}
                   className="w-full"
                 />
               </div>
 
+
+{/* Departure Months */}
+<div className="mb-8">
+  <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">
+    Departure Months
+  </h3>
+
+  <div className="space-y-3">
+    {departureMonths.length === 0 ? (
+      <p className="text-sm text-gray-500">Loading departure months...</p>
+    ) : (
+      departureMonths
+        .slice(0, showAllDepartureMonths ? departureMonths.length : 6)
+        .map((month) => (
+          <label key={month} className="flex items-center gap-3 cursor-pointer">
+            <Checkbox
+              checked={selectedDepartureMonths.includes(month)}
+              onCheckedChange={(checked) =>
+                handleDepartureMonthChange(month, checked as boolean)
+              }
+              className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
+            />
+            <span className="text-gray-700">{month}</span>
+          
+          </label>
+        ))
+    )}
+  </div>
+
+  {departureMonths.length > 6 && (
+    <button
+      onClick={() => setShowAllDepartureMonths(!showAllDepartureMonths)}
+      className="mt-4 text-[#2E4D98] font-medium hover:text-[#1E3A8A]"
+    >
+      {showAllDepartureMonths ? "Show Less" : `Show ${departureMonths.length - 6} More`}
+    </button>
+  )}
+</div>
                     {/* Search */}
               <div className="mb-4 mt-3">
                 <form onSubmit={handleSearch} className="flex gap-2">
