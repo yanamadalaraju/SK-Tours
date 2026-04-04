@@ -175,7 +175,9 @@ const App = () => (
           <Route path="/international_tour_details/:tourId" element={<International_Tourdetails />} />
           <Route path="/exhibition" element={<Exhibition />} />
           <Route path="/flighthotels" element={<FlightHotels />} /> 
-          <Route path="/FlightSeatSelection" element={<SeatSelection />} />
+          <Route path="/FlightSeatSelection" element={<SeatSelection flightData={undefined} fareQuoteData={undefined} passengers={{ adults: 0, children: 0, infants: 0 }} onBack={() => { } } onBookingComplete={function (bookingResponse: any): void {
+            throw new Error("Function not implemented.");
+          } } bookingTokenId={""} token={""} endUserIp={""} staticParam={""} />} />
           <Route path="/bookinginformation" element={<BookingConfirmation bookingData={{}} referenceId="" passengerDetails={[]} contactDetails={{}} onBack={() => {}} />} />
           <Route path="/flightfrontend" element={<Flightfrontend />} />
 

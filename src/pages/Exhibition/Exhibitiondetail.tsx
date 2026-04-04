@@ -15,7 +15,7 @@ import { PDFDownloadLink } from '@react-pdf/renderer';
 import TourPdfDocument from '../TourPdfDocument';
 import { Download } from 'lucide-react';
 import EmailModal from '../EmailModal';
-
+import { FaSearch } from "react-icons/fa";
 interface DepartureData {
   id?: any;
   description: string;
@@ -167,7 +167,7 @@ const Exhibitiondetail = () => {
   const { tourId } = useParams<{ tourId: string }>();
   const navigate = useNavigate();
 
-  // Sidebar states - Same as ExhibitionView
+const [durationRange, setDurationRange] = useState([0, 10]);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [domesticList, setDomesticList] = useState<string[]>([]);
@@ -176,7 +176,10 @@ const Exhibitiondetail = () => {
   const [internationalExhibitionData, setInternationalExhibitionData] = useState<InternationalExhibition[]>([]);
   const [internationalList, setInternationalList] = useState<string[]>([]);
   const [domesticExhibitionData, setDomesticExhibitionData] = useState<DomesticExhibition[]>([]);
-  
+  const [selectedMonth, setSelectedMonth] = useState("ALL");
+const [openIndex, setOpenIndex] = useState(null);
+const [selectedCostMonth, setSelectedCostMonth] = useState("");
+const [selectedCostDate, setSelectedCostDate] = useState("");
   // Show More/Less states for sidebar
   const [showMoreDomestic, setShowMoreDomestic] = useState(false);
   const [showMoreInternational, setShowMoreInternational] = useState(false);
@@ -185,8 +188,7 @@ const Exhibitiondetail = () => {
   const [selectedDomesticCategories, setSelectedDomesticCategories] = useState<string[]>([]);
   const [selectedInternationalCategories, setSelectedInternationalCategories] = useState<string[]>([]);
   
-  // Price filter state
-  const [priceRange, setPriceRange] = useState([0, 500000]);
+  const [priceRange, setPriceRange] = useState([0, 200000]);
 
   const [activeTab, setActiveTab] = useState("itinerary");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -194,12 +196,14 @@ const Exhibitiondetail = () => {
   const [emailLoading, setEmailLoading] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [loadingInternational, setLoadingInternational] = useState(false);
-
+const [filteredTourData, setFilteredTourData] = useState<any>(null);
   const [tour, setTour] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [autoScrollInterval, setAutoScrollInterval] = useState<NodeJS.Timeout | null>(null);
-
+const [searchQuery, setSearchQuery] = useState("");
+const [showSearchBtn, setShowSearchBtn] = useState(false);
+const [isSearchActive, setIsSearchActive] = useState(false);
   const handleAboutClick = () => {
     navigate('/exhibition', { state: { category: null } });
   };
@@ -269,234 +273,292 @@ const Exhibitiondetail = () => {
     }, 1000);
   };
 
-  const calculateEMI = (price: string | number) => {
-    if (!price) return 'EMI from ₹0/month';
-    const numPrice = typeof price === 'string' ? parseFloat(price) : price;
-    const emiAmount = Math.round(numPrice / 6);
-    return `EMI from ₹${emiAmount.toLocaleString('en-IN')}/month`;
+
+
+const processExhibitionData = (apiData: any, exhibitionImages: string[] = []) => {
+  const {
+    exhibition,
+    tours,
+    itineraries,
+    departures,
+    costs,
+    optionaltours,
+    emioptions,
+    inclusions,
+    exclusions,
+    transports,
+    hotels,
+    bookingpoi,
+    cancellationpolicies,
+    instructions
+  } = apiData;
+
+  const tourData = tours && tours.length > 0 ? tours[0] : null;
+
+  const getImages = () => {
+    return exhibitionImages.length > 0 ? exhibitionImages : [
+      "https://i.pinimg.com/736x/09/16/c4/0916c43d72ac007aee1a1a7d6d31d231.jpg",
+      "https://i.pinimg.com/1200x/6a/f9/0e/6af90eea656d653c788e7d3f92a77247.jpg",
+    ];
   };
 
-  const formatDuration = (days: number) => {
-    const nights = days - 1;
-    return `${nights}N/${days}D`;
+  const processItinerary = () => {
+    if (itineraries && itineraries.length > 0) {
+      return itineraries.map((day: any, index: number) => ({
+        day: `Day ${day.day || index + 1}`,
+        title: day.title || `Day ${index + 1}`,
+        description: day.description || '',
+        meals: day.meals || ''
+      }));
+    }
+    return [];
   };
 
-  const processExhibitionData = (apiData: any, exhibitionImages: string[] = []) => {
-    const {
-      exhibition,
-      tours,
-      itineraries,
-      departures,
-      costs,
-      optionaltours,
-      emioptions,
-      inclusions,
-      exclusions,
-      transports,
-      hotels,
-      bookingpoi,
-      cancellationpolicies,
-      instructions
-    } = apiData;
+  const formatPriceExhibition = (price: string | number) => {
+  if (!price) return 'NA';
+  const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+  if (isNaN(numPrice)) return 'NA';
+  return `₹${numPrice.toLocaleString('en-IN')}`;
+};
 
-    const tourData = tours && tours.length > 0 ? tours[0] : null;
 
-    const getImages = () => {
-      return exhibitionImages.length > 0 ? exhibitionImages : [
-        "https://i.pinimg.com/736x/09/16/c4/0916c43d72ac007aee1a1a7d6d31d231.jpg",
-        "https://i.pinimg.com/1200x/6a/f9/0e/6af90eea656d653c788e7d3f92a77247.jpg",
-      ];
-    };
-
-    const processItinerary = () => {
-      if (itineraries && itineraries.length > 0) {
-        return itineraries.map((day: any, index: number) => ({
-          day: `Day ${day.day || index + 1}`,
-          title: day.title || `Day ${index + 1}`,
-          description: day.description || '',
-          meals: day.meals || ''
-        }));
-      }
-      return [];
-    };
-
-    const processDepartures = () => {
-      if (departures && departures.length > 0) {
-        const descriptions: string[] = [];
-        departures.forEach((dep: any) => {
-          if (dep.description && !descriptions.includes(dep.description)) {
-            descriptions.push(dep.description);
-          }
-        });
-        return {
-          type: 'Individual',
-          data: [],
-          descriptions: descriptions.length > 0 ? descriptions : ["No departure information available."]
-        };
-      }
-      return {
-        type: 'Individual',
-        data: [],
-        descriptions: ["No departure information available."]
-      };
-    };
-
-    const processTourCost = () => {
-      if (costs && costs.length > 0) {
-        return {
-          tableData: costs.map((cost: any) => ({
-            passenger: `${cost.pax} Pax`,
-            standard: cost.standard_hotel !== "0.00" ? formatPrice(cost.standard_hotel) : "NA",
-            deluxe: cost.deluxe_hotel !== "0.00" ? formatPrice(cost.deluxe_hotel) : "NA",
-            executive: cost.executive_hotel !== "0.00" ? formatPrice(cost.executive_hotel) : "NA",
-            childWithBed: cost.child_with_bed !== "0.00" ? formatPrice(cost.child_with_bed) : "NA",
-            childNoBed: cost.child_no_bed !== "0.00" ? formatPrice(cost.child_no_bed) : "NA"
-          })),
-          remarks: tourData?.cost_remarks ? [tourData.cost_remarks] : []
-        };
-      }
-      return {
-        tableData: [],
-        remarks: tourData?.cost_remarks ? [tourData.cost_remarks] : []
-      };
-    };
-
-    const processOptionalTours = () => {
-      if (optionaltours && optionaltours.length > 0) {
-        return optionaltours.map((tour: any) => ({
-          tourName: tour.tour_name || '',
-          adultPrice: tour.adult_price || 'NA',
-          childPrice: tour.child_price || 'NA'
-        }));
-      }
-      return [];
-    };
-
-    const processEMIOptions = () => {
-      if (emioptions && emioptions.length > 0) {
-        return {
-          loanAmount: emioptions[0]?.loan_amount || "N/A",
-          options: emioptions.map((option: any) => ({
-            particulars: option.particulars || 'Per Month Payment',
-            loanAmount: formatPrice(option.loan_amount || '0'),
-            months: option.months || 0,
-            emi: formatPrice(option.emi)
-          }))
-        };
-      }
-      return {
-        loanAmount: "N/A",
-        options: []
-      };
+  const transformDeparturesToGroupFormat = (departures: any[]) => {
+  if (!departures || departures.length === 0) return [];
+  
+  return departures.map((dep, index) => {
+    const startDate = new Date(dep.start_date);
+    const endDate = new Date(dep.end_date);
+    
+    const month = startDate.toLocaleString('default', { month: 'short' }).toUpperCase();
+    const year = startDate.getFullYear();
+    const monthYear = `${month} ${year}`;
+    
+    const formatDate = (date: Date) => {
+      const day = date.getDate();
+      const month = date.toLocaleString('default', { month: 'short' });
+      const year = date.getFullYear();
+      return `${day} ${month} ${year}`;
     };
     
-    const processBooking = () => {
-      if (bookingpoi && bookingpoi.length > 0) {
-        return {
-          items: bookingpoi.map((item: any) => item.item || ''),
-          amountDetails: bookingpoi.map((item: any) => item.amount_details || '0')
-        };
-      }
-      return {
-        items: ["Standard booking terms apply"],
-        amountDetails: ["0"]
-      };
+    const getDayOfWeek = (date: Date) => {
+      return date.toLocaleString('default', { weekday: 'long' });
     };
-
-    const processHotels = () => {
-      if (hotels && hotels.length > 0) {
-        return {
-          tableData: hotels.map((hotel: any) => ({
-            city: hotel.city,
-            nights: `${hotel.nights} Night${hotel.nights > 1 ? 's' : ''}`,
-            standard: hotel.standard_hotel_name || "N/A",
-            deluxe: hotel.deluxe_hotel_name || "N/A",
-            executive: hotel.executive_hotel_name || "N/A",
-          })),
-          remarks: tourData?.hotel_remarks ? [tourData.hotel_remarks] : []
-        };
-      }
-      return {
-        tableData: [],
-        remarks: tourData?.hotel_remarks ? [tourData.hotel_remarks] : []
-      };
-    };
-
-    const processTransport = () => {
-      if (transports && transports.length > 0) {
-        return {
-          tableData: transports.map((transport: any) => ({
-            airline: transport.airline || transport.carrier || '',
-            flightNo: transport.flight_no || transport.number_code || '-',
-            from: transport.from_city || '',
-            to: transport.to_city || '',
-            depDate: transport.from_date ? new Date(transport.from_date).toLocaleDateString() : '',
-            depTime: transport.from_time || '',
-            arrDate: transport.to_date ? new Date(transport.to_date).toLocaleDateString() : '',
-            arrTime: transport.to_time || '',
-            via: transport.via || '',
-            description: transport.description || ''
-          })),
-          remarks: tourData?.transport_remarks ? [tourData.transport_remarks] : []
-        };
-      }
-      return {
-        tableData: [],
-        remarks: tourData?.transport_remarks ? [tourData.transport_remarks] : []
-      };
-    };
-
-    const processCancellation = () => {
-      if (cancellationpolicies && cancellationpolicies.length > 0) {
-        return {
-          policies: cancellationpolicies.map((policy: any) => policy.cancellation_policy || ''),
-          charges: cancellationpolicies.map((policy: any) => policy.charges || '')
-        };
-      }
-      return {
-        policies: [],
-        charges: []
-      };
-    };
-
-    const processInstructions = () => {
-      if (instructions && instructions.length > 0) {
-        return instructions.map((inst: any) => inst.item || '');
-      }
-      return [];
-    };
-
+    
     return {
-      title: exhibition?.country_name || tourData?.title || "Exhibition Tour",
-      duration: formatDuration(tourData?.duration_days || 2),
-      cityName: tourData?.city_name || "",
-      price: formatPrice(tourData?.base_price_adult || 0),
-      emi: calculateEMI(tourData?.base_price_adult || 0),
-      code: tourData?.tour_code || "N/A",
-      overview: tourData?.overview || "Tour overview not available",
-      images: getImages(),
-      itinerary: processItinerary(),
-      departures: processDepartures(),
-      inclusionExclusion: {
-        inclusions: inclusions?.map((inc: any) => inc.item) || [],
-        exclusions: exclusions?.map((exc: any) => exc.item) || []
+      id: dep.departure_id || index,
+      month: monthYear,
+      fromDay: getDayOfWeek(startDate),
+      fromDate: formatDate(startDate),
+      toDay: getDayOfWeek(endDate),
+      toDate: formatDate(endDate),
+      status: dep.status || 'Available',
+      price: parseFloat(dep.standard_twin) || 0,
+      threeStar: {
+        twin: formatPriceExhibition(dep.standard_twin),
+        triple: formatPriceExhibition(dep.standard_triple),
+        childWithBed: formatPriceExhibition(dep.child_with_bed) || "NA",
+        childWithoutBed: formatPriceExhibition(dep.child_without_bed) || "NA",
+        infant: "NA",
+        single: formatPriceExhibition(dep.standard_single)
       },
-      hotels: processHotels(),
-      airlines: processTransport(),
-      tourCost: processTourCost(),
-      optionalTours: processOptionalTours(),
-      emiOptions: processEMIOptions(),
-      booking: processBooking(),
-      cancellation: processCancellation(),
-      instructions: processInstructions(),
-      bookingRemarks: tourData?.booking_poi_remarks ? [tourData.booking_poi_remarks] : [],
-      cancellationRemarks: tourData?.cancellation_remarks ? [tourData.cancellation_remarks] : [],
-      emiRemarks: tourData?.emi_remarks ? [tourData.emi_remarks] : [],
-      optionalTourRemarks: tourData?.optional_tour_remarks ? [tourData.optional_tour_remarks] : [],
-      additionalRemarks: []
+      fourStar: {
+        twin: formatPriceExhibition(dep.deluxe_twin),
+        triple: formatPriceExhibition(dep.deluxe_triple),
+        childWithBed: "NA",
+        childWithoutBed: "NA",
+        infant: "NA",
+        single: formatPriceExhibition(dep.deluxe_single)
+      },
+      fiveStar: {
+        twin: formatPriceExhibition(dep.luxury_twin),
+        triple: formatPriceExhibition(dep.luxury_triple),
+        childWithBed: "NA",
+        childWithoutBed: "NA",
+        infant: "NA",
+        single: formatPriceExhibition(dep.luxury_single)
+      }
+    };
+  });
+};
+  // Transform departures to Group format
+  const transformedDepartures = transformDeparturesToGroupFormat(departures);
+  
+  const processDepartures = () => {
+    return {
+      type: 'Group',
+      data: transformedDepartures,
+      descriptions: departures?.map((dep: any) => dep.description || '') || []
     };
   };
 
+  const processTourCost = () => {
+    if (costs && costs.length > 0) {
+      return {
+        tableData: costs.map((cost: any) => ({
+          passenger: `${cost.pax} Pax`,
+          standard: cost.standard_hotel !== "0.00" ? formatPriceExhibition(cost.standard_hotel) : "NA",
+          deluxe: cost.deluxe_hotel !== "0.00" ? formatPriceExhibition(cost.deluxe_hotel) : "NA",
+          executive: cost.executive_hotel !== "0.00" ? formatPriceExhibition(cost.executive_hotel) : "NA",
+          childWithBed: cost.child_with_bed !== "0.00" ? formatPriceExhibition(cost.child_with_bed) : "NA",
+          childNoBed: cost.child_no_bed !== "0.00" ? formatPriceExhibition(cost.child_no_bed) : "NA"
+        })),
+        remarks: tourData?.cost_remarks ? [tourData.cost_remarks] : []
+      };
+    }
+    return {
+      tableData: [],
+      remarks: tourData?.cost_remarks ? [tourData.cost_remarks] : []
+    };
+  };
+
+  const processOptionalTours = () => {
+    if (optionaltours && optionaltours.length > 0) {
+      return optionaltours.map((tour: any) => ({
+        tourName: tour.tour_name || '',
+        adultPrice: formatPriceExhibition(tour.adult_price),
+        childPrice: formatPriceExhibition(tour.child_price)
+      }));
+    }
+    return [];
+  };
+
+  const processEMIOptions = () => {
+    if (emioptions && emioptions.length > 0) {
+      return {
+        loanAmount: formatPriceExhibition(emioptions[0]?.loan_amount),
+        options: emioptions.map((option: any) => ({
+          particulars: option.particulars || 'Per Month Payment',
+          loanAmount: formatPriceExhibition(option.loan_amount),
+          months: option.months || 0,
+          emi: formatPriceExhibition(option.emi)
+        }))
+      };
+    }
+    return {
+      loanAmount: "N/A",
+      options: []
+    };
+  };
+  
+  const processBooking = () => {
+    if (bookingpoi && bookingpoi.length > 0) {
+      return {
+        items: bookingpoi.map((item: any) => item.item || ''),
+        amountDetails: bookingpoi.map((item: any) => formatPriceExhibition(item.amount_details))
+      };
+    }
+    return {
+      items: ["Standard booking terms apply"],
+      amountDetails: ["0"]
+    };
+  };
+
+  const processHotels = () => {
+    if (hotels && hotels.length > 0) {
+      return {
+        tableData: hotels.map((hotel: any) => ({
+          city: hotel.city,
+          nights: `${hotel.nights} Night${hotel.nights > 1 ? 's' : ''}`,
+          standard: hotel.standard_hotel_name || "N/A",
+          deluxe: hotel.deluxe_hotel_name || "N/A",
+          executive: hotel.executive_hotel_name || "N/A",
+        })),
+        remarks: tourData?.hotel_remarks ? [tourData.hotel_remarks] : []
+      };
+    }
+    return {
+      tableData: [],
+      remarks: tourData?.hotel_remarks ? [tourData.hotel_remarks] : []
+    };
+  };
+
+  const processTransport = () => {
+    if (transports && transports.length > 0) {
+      return {
+        tableData: transports.map((transport: any) => ({
+          airline: transport.airline || transport.carrier || '',
+          flightNo: transport.flight_no || transport.number_code || '-',
+          from: transport.from_city || '',
+          to: transport.to_city || '',
+          depDate: transport.from_date ? new Date(transport.from_date).toLocaleDateString() : '',
+          depTime: transport.from_time || '',
+          arrDate: transport.to_date ? new Date(transport.to_date).toLocaleDateString() : '',
+          arrTime: transport.to_time || '',
+          via: transport.via || '',
+          description: transport.description || ''
+        })),
+        remarks: tourData?.transport_remarks ? [tourData.transport_remarks] : []
+      };
+    }
+    return {
+      tableData: [],
+      remarks: tourData?.transport_remarks ? [tourData.transport_remarks] : []
+    };
+  };
+
+  const processCancellation = () => {
+    if (cancellationpolicies && cancellationpolicies.length > 0) {
+      return {
+        policies: cancellationpolicies.map((policy: any) => policy.cancellation_policy || ''),
+        charges: cancellationpolicies.map((policy: any) => policy.charges || '')
+      };
+    }
+    return {
+      policies: [],
+      charges: []
+    };
+  };
+
+  const processInstructions = () => {
+    if (instructions && instructions.length > 0) {
+      return instructions.map((inst: any) => inst.item || '');
+    }
+    return [];
+  };
+
+  return {
+    title: exhibition?.domestic_category_name || tourData?.title || "Exhibition Tour",
+    duration: formatDuration(tourData?.duration_days || 2),
+    cityName: tourData?.city_name || "",
+    price: formatPriceExhibition(tourData?.base_price_adult || 0),
+    emi: calculateEMI(tourData?.base_price_adult || 0),
+    code: tourData?.tour_code || "N/A",
+    overview: tourData?.overview || "Tour overview not available",
+    images: getImages(),
+    itinerary: processItinerary(),
+    departures: processDepartures(),
+    inclusionExclusion: {
+      inclusions: inclusions?.map((inc: any) => inc.item) || [],
+      exclusions: exclusions?.map((exc: any) => exc.item) || []
+    },
+    hotels: processHotels(),
+    airlines: processTransport(),
+    tourCost: processTourCost(),
+    optionalTours: processOptionalTours(),
+    emiOptions: processEMIOptions(),
+    booking: processBooking(),
+    cancellation: processCancellation(),
+    instructions: processInstructions(),
+    bookingRemarks: tourData?.booking_poi_remarks ? [tourData.booking_poi_remarks] : [],
+    cancellationRemarks: tourData?.cancellation_remarks ? [tourData.cancellation_remarks] : [],
+    emiRemarks: tourData?.emi_remarks ? [tourData.emi_remarks] : [],
+    optionalTourRemarks: tourData?.optional_tour_remarks ? [tourData.optional_tour_remarks] : [],
+    additionalRemarks: []
+  };
+};
+
+const formatDuration = (days: number) => {
+  const nights = days - 1;
+  return `${nights}N/${days}D`;
+};
+
+const calculateEMI = (price: string | number) => {
+  if (!price) return 'EMI from ₹0/month';
+  const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+  if (isNaN(numPrice)) return 'EMI from ₹0/month';
+  const emiAmount = Math.round(numPrice / 6);
+  return `EMI from ₹${emiAmount.toLocaleString('en-IN')}/month`;
+};
   const fetchExhibitionDetails = async () => {
     try {
       setLoading(true);
@@ -548,6 +610,22 @@ const Exhibitiondetail = () => {
       setLoading(false);
     }
   };
+
+
+
+useEffect(() => {
+  if (!tour) return;
+  
+  const tourDuration = tour.duration ? parseInt(tour.duration.split('/')[1]) || 0 : 0;
+  
+  const isWithinDuration = tourDuration >= durationRange[0] && tourDuration <= durationRange[1];
+  
+  if (isWithinDuration) {
+    setFilteredTourData(tour);
+  } else {
+    setFilteredTourData(null);
+  }
+}, [durationRange, tour]);
 
   useEffect(() => {
     if (tourId) {
@@ -631,6 +709,40 @@ const Exhibitiondetail = () => {
     }
   };
 
+
+
+const formatPriceExhibition = (price) => {
+  if (typeof price === 'number') {
+    return `₹${price.toLocaleString('en-IN')}`;
+  }
+  return price || '₹0';
+};
+
+// Helper function to toggle tables
+const toggleTable = (index) => {
+  setOpenIndex(openIndex === index ? null : index);
+};
+
+// Add this memoized function to process departures by month
+const departuresByMonth = React.useMemo(() => {
+  if (!tour?.departures?.data) return {};
+  const map = {};
+  tour.departures.data.forEach(dep => {
+    if (!map[dep.month]) map[dep.month] = [];
+    map[dep.month].push(dep);
+  });
+  return map;
+}, [tour?.departures?.data]);
+
+const availableMonths = Object.keys(departuresByMonth);
+const filteredDepartureData = selectedMonth === "ALL"
+  ? (tour?.departures?.data || [])
+  : (tour?.departures?.data?.filter(d => d.month === selectedMonth) || []);
+
+const availableDates = selectedCostMonth && departuresByMonth[selectedCostMonth]
+  ? departuresByMonth[selectedCostMonth]
+  : [];
+const selectedDeparture = availableDates.find(d => d.fromDate === selectedCostDate);
   // Get current exhibition ID to highlight active item
   const currentExhibitionId = tourId ? parseInt(tourId) : null;
 
@@ -677,6 +789,71 @@ const Exhibitiondetail = () => {
   const goToImage = (index: number) => {
     setCurrentImageIndex(index);
   };
+
+  // Add this effect to filter content based on search
+useEffect(() => {
+  if (!tour) return;
+  
+  if (isSearchActive && searchQuery.trim() !== "") {
+    const query = searchQuery.trim().toLowerCase();
+    // Filter itinerary
+    const filteredItinerary = tour.itinerary?.filter((day: any) => 
+      day.title?.toLowerCase().includes(query) || 
+      day.description?.toLowerCase().includes(query)
+    );
+    
+    // Filter departure data
+    const filteredDepartures = tour.departures?.data?.filter((dep: any) => 
+      dep.fromDate?.toLowerCase().includes(query) || 
+      dep.toDate?.toLowerCase().includes(query) ||
+      dep.status?.toLowerCase().includes(query)
+    );
+    
+    setFilteredTourData({
+      ...tour,
+      itinerary: filteredItinerary,
+      departures: { ...tour.departures, data: filteredDepartures }
+    });
+  } else {
+    setFilteredTourData(tour);
+  }
+}, [isSearchActive, searchQuery, tour]);
+
+  const clearSearch = () => {
+  setSearchQuery("");
+  setShowSearchBtn(false);
+  setIsSearchActive(false);
+};
+
+const handleSearch = (e: React.FormEvent) => {
+  e.preventDefault();
+  if (searchQuery.trim() === "") return;
+
+  const query = searchQuery.trim().toLowerCase();
+
+  // Check domestic first
+  const domesticMatch = domesticExhibitionData.find(item =>
+    item.domestic_category_name.toLowerCase().includes(query)
+  );
+
+  if (domesticMatch) {
+    navigate(`/exhibitiondetail/${domesticMatch.id}`);
+    return;
+  }
+
+  // Check international
+  const internationalMatch = internationalExhibitionData.find(item =>
+    item.international_category_name.toLowerCase().includes(query)
+  );
+
+  if (internationalMatch) {
+    navigate(`/exhibitioninternationalindetail/${internationalMatch.id}`);
+    return;
+  }
+
+  // No match found
+  alert("No exhibition found for: " + searchQuery);
+};
 
   if (loading) {
     return (
@@ -731,213 +908,287 @@ const Exhibitiondetail = () => {
         <div className="container mx-auto px-4 py-6">
           <div className="flex flex-col lg:flex-row gap-6">
             {/* Sidebar - EXACT same as ExhibitionView */}
-            <aside className="lg:w-80">
-              <div className="bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl shadow-lg p-6 border border-blue-200 sticky top-24">
-                <div className="flex justify-between items-center mb-4 bg-white p-2 rounded-lg border border-black">
-                  <h2 className="text-2xl font-bold text-[#2E4D98]">Exhibition Tours</h2>
-               
-                </div>
+       <aside className="lg:w-80">
+  <div className="bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl shadow-lg p-6 border border-blue-200 sticky top-24">
+    {/* Header with Clear All button - Updated */}
+    <div className="flex justify-between items-center mb-4 bg-white p-2 rounded-lg border border-black">
+      <h2 className="text-2xl font-bold text-[#2E4D98]">Exhibitions</h2>
+      <button
+        onClick={() => {
+          // Reset all filters
+          setDurationRange([0, 10]);
+          setPriceRange([0, 200000]);
+          setSelectedDomesticCategories([]);
+          setSelectedInternationalCategories([]);
+          setSelectedMonth("ALL");
+          setSelectedCostMonth("");
+          setSelectedCostDate("");
+          setOpenIndex(null);
+          // Navigate back to main exhibition page
+         
+        }}
+        className="text-sm text-[#E53C42] hover:underline"
+      >
+        Clear All
+      </button>
+    </div>
 
-                <div className="mt-3 mb-4">
-                  <div
-                    onClick={handleAboutClick}
-                    className="flex justify-between items-center p-2 rounded-lg cursor-pointer border border-black bg-white text-[#2E4D98]"
-                  >
-                    <h2 className="text-xl font-bold text-[#2E4D98]">About Exhibition</h2>
-                    <span className="text-xs">▶</span>
-                  </div>
-                </div>
+    <div className="mt-3 mb-4">
+      <div
+        onClick={handleAboutClick}
+        className="flex justify-between items-center p-2 rounded-lg cursor-pointer border border-black bg-white text-[#2E4D98]"
+      >
+        <h2 className="text-xl font-bold text-[#2E4D98]">About Exhibition</h2>
+        <span className="text-xs">▶</span>
+      </div>
+    </div>
 
-                {/* Price Filter */}
-                <div className="mb-6">
-                  <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Price Range</h3>
-                  <div className="flex justify-between text-sm text-gray-600 mb-3">
-                    <span>₹{priceRange[0].toLocaleString()}</span>
-                    <span>₹{priceRange[1].toLocaleString()}</span>
-                  </div>
-                  <Slider
-                    value={priceRange}
-                    onValueChange={setPriceRange}
-                    min={0}
-                    max={500000}
-                    step={1000}
-                    className="w-full"
+    {/* Exhibition Range Filter */}
+    <div className="mb-6">
+      <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Exhibition Range</h3>
+      <div className="flex justify-between text-sm text-gray-600 mb-3">
+        <span>{durationRange[0]} days</span>
+        <span>{durationRange[1]} days</span>
+      </div>
+      <Slider 
+        value={durationRange} 
+        onValueChange={setDurationRange}
+        max={10} 
+        step={1} 
+        className="w-full" 
+      />
+    </div>
+
+    {/* Price Filter */}
+    <div className="mb-6">
+      <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Price Range</h3>
+      <div className="flex justify-between text-sm text-gray-600 mb-3">
+        <span>₹{priceRange[0].toLocaleString()}</span>
+        <span>₹{priceRange[1].toLocaleString()}</span>
+      </div>
+      <Slider
+        value={priceRange}
+        onValueChange={setPriceRange}
+        min={0}
+        max={200000}
+        step={1000}
+        className="w-full"
+      />
+    </div>
+
+    {/* Domestic Exhibition Section with Checkboxes */}
+    <div className="mb-6">
+      <div className="flex justify-between items-center mb-3 bg-white p-2 rounded-lg border border-black">
+        <h2 className="text-xl font-bold text-[#2E4D98]">Domestic Exhibition</h2>
+      </div>
+      
+      <div className={`${showMoreDomestic ? "max-h-64 overflow-y-auto pr-1" : ""} space-y-3`}>
+        {loadingDomestic ? (
+          <div className="flex justify-center py-4">
+            <span className="animate-spin h-5 w-5 border-2 border-gray-300 border-t-blue-600 rounded-full" />
+          </div>
+        ) : domesticList.length > 0 ? (
+          domesticList
+            .slice(0, showMoreDomestic ? domesticList.length : 6)
+            .sort((a, b) => a.localeCompare(b))
+            .map((category) => {
+              const found = domesticExhibitionData.find(
+                item => item.domestic_category_name === category
+              );
+              const isActive = found?.id === currentExhibitionId;
+              return (
+                <div key={category} className="flex items-center gap-3 cursor-pointer">
+                  <Checkbox
+                    checked={selectedDomesticCategories.includes(category) || isActive}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setSelectedDomesticCategories([category]);
+                        setSelectedInternationalCategories([]);
+                        handleDomesticClick(category);
+                      } else {
+                        setSelectedDomesticCategories([]);
+                      }
+                    }}
+                    className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
                   />
+                  <span
+                    className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${
+                      isActive ? 'font-bold text-[#2E4D98]' : ''
+                    }`}
+                    onClick={() => {
+                      setSelectedDomesticCategories([category]);
+                      setSelectedInternationalCategories([]);
+                      handleDomesticClick(category);
+                    }}
+                  >
+                    {category}
+                  </span>
                 </div>
-
-{/* Domestic Exhibition Section with Checkboxes */}
-<div className="mb-6">
-  <div className="flex justify-between items-center mb-3 bg-white p-2 rounded-lg border border-black">
-    <h2 className="text-xl font-bold text-[#2E4D98]">Domestic Exhibition</h2>
-  </div>
-  
-  <div className={`${showMoreDomestic ? "max-h-64 overflow-y-auto pr-1" : ""} space-y-3`}>
-    {loadingDomestic ? (
-      <div className="flex justify-center py-4">
-        <span className="animate-spin h-5 w-5 border-2 border-gray-300 border-t-blue-600 rounded-full" />
+              );
+            })
+        ) : (
+          <div className="text-sm text-gray-400">No domestic exhibitions available</div>
+        )}
       </div>
-    ) : domesticList.length > 0 ? (
-      domesticList
-        .slice(0, showMoreDomestic ? domesticList.length : 6)
-        .sort((a, b) => a.localeCompare(b))
-        .map((category) => {
-          const found = domesticExhibitionData.find(
-            item => item.domestic_category_name === category
-          );
-          const isActive = found?.id === currentExhibitionId;
-          return (
-            <div key={category} className="flex items-center gap-3 cursor-pointer">
-              <Checkbox
-                checked={selectedDomesticCategories.includes(category) || isActive}
-                onCheckedChange={(checked) => {
-                  if (checked) {
-                    setSelectedDomesticCategories([category]);
-                    setSelectedInternationalCategories([]);
-                    handleDomesticClick(category);
-                  } else {
-                    setSelectedDomesticCategories([]);
-                  }
-                }}
-                className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
-              />
-              <span
-                className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${
-                  isActive ? 'font-bold text-[#2E4D98]' : ''
-                }`}
-                onClick={() => {
-                  setSelectedDomesticCategories([category]);
-                  setSelectedInternationalCategories([]);
-                  handleDomesticClick(category);
-                }}
-              >
-                {category}
-              </span>
-            </div>
-          );
-        })
-    ) : (
-      <div className="text-sm text-gray-400">No domestic exhibitions available</div>
-    )}
-  </div>
-  
-  {domesticList.length > 6 && (
-    <button
-      onClick={() => setShowMoreDomestic(!showMoreDomestic)}
-      className="mt-4 text-[#2E4D98] text-sm font-semibold hover:underline"
-    >
-      {showMoreDomestic ? "Show Less" : "Show More"}
-    </button>
-  )}
-</div>
-                
-              <div>
-  <div className="flex justify-between items-center mb-3 bg-white p-2 rounded-lg border border-black">
-    <h2 className="text-xl font-bold text-[#2E4D98]">International Exhibition</h2>
-  </div>
-  
-  <div className={`${showMoreInternational ? "max-h-64 overflow-y-auto pr-1" : ""} space-y-3`}>
-    {loadingInternational ? (
-      <div className="flex justify-center py-4">
-        <span className="animate-spin h-5 w-5 border-2 border-gray-300 border-t-blue-600 rounded-full" />
+      
+      {domesticList.length > 6 && (
+        <button
+          onClick={() => setShowMoreDomestic(!showMoreDomestic)}
+          className="mt-4 text-[#2E4D98] text-sm font-semibold hover:underline"
+        >
+          {showMoreDomestic ? "Show Less" : "Show More"}
+        </button>
+      )}
+    </div>
+    
+    {/* International Exhibition Section */}
+    <div>
+      <div className="flex justify-between items-center mb-3 bg-white p-2 rounded-lg border border-black">
+        <h2 className="text-xl font-bold text-[#2E4D98]">International Exhibition</h2>
       </div>
-    ) : internationalList.length > 0 ? (
-      internationalList
-        .slice(0, showMoreInternational ? internationalList.length : 6)
-        .sort((a, b) => a.localeCompare(b))
-        .map((category) => {
-          const found = internationalExhibitionData.find(
-            item => item.international_category_name === category
-          );
-          const isActive = found?.id === currentExhibitionId;
-          return (
-            <div key={category} className="flex items-center gap-3 cursor-pointer">
-              <Checkbox
-                checked={selectedInternationalCategories.includes(category) || isActive}
-                onCheckedChange={(checked) => {
-                  if (checked) {
-                    setSelectedInternationalCategories([category]);
-                    setSelectedDomesticCategories([]);
-                    handleInternationalClick(category);
-                  } else {
-                    setSelectedInternationalCategories([]);
-                  }
-                }}
-                className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
-              />
-              <span
-                className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${
-                  isActive ? 'font-bold text-[#2E4D98]' : ''
-                }`}
-                onClick={() => {
-                  setSelectedInternationalCategories([category]);
-                  setSelectedDomesticCategories([]);
-                  handleInternationalClick(category);
-                }}
-              >
-                {category}
-              </span>
-            </div>
-          );
-        })
-    ) : (
-      <div className="text-sm text-gray-400">No international exhibitions available</div>
-    )}
+      
+      <div className={`${showMoreInternational ? "max-h-64 overflow-y-auto pr-1" : ""} space-y-3`}>
+        {loadingInternational ? (
+          <div className="flex justify-center py-4">
+            <span className="animate-spin h-5 w-5 border-2 border-gray-300 border-t-blue-600 rounded-full" />
+          </div>
+        ) : internationalList.length > 0 ? (
+          internationalList
+            .slice(0, showMoreInternational ? internationalList.length : 6)
+            .sort((a, b) => a.localeCompare(b))
+            .map((category) => {
+              const found = internationalExhibitionData.find(
+                item => item.international_category_name === category
+              );
+              const isActive = found?.id === currentExhibitionId;
+              return (
+                <div key={category} className="flex items-center gap-3 cursor-pointer">
+                  <Checkbox
+                    checked={selectedInternationalCategories.includes(category) || isActive}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setSelectedInternationalCategories([category]);
+                        setSelectedDomesticCategories([]);
+                        handleInternationalClick(category);
+                      } else {
+                        setSelectedInternationalCategories([]);
+                      }
+                    }}
+                    className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
+                  />
+                  <span
+                    className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${
+                      isActive ? 'font-bold text-[#2E4D98]' : ''
+                    }`}
+                    onClick={() => {
+                      setSelectedInternationalCategories([category]);
+                      setSelectedDomesticCategories([]);
+                      handleInternationalClick(category);
+                    }}
+                  >
+                    {category}
+                  </span>
+                </div>
+              );
+            })
+        ) : (
+          <div className="text-sm text-gray-400">No international exhibitions available</div>
+        )}
+      </div>
+      
+      {internationalList.length > 6 && (
+        <button
+          onClick={() => setShowMoreInternational(!showMoreInternational)}
+          className="mt-4 text-[#2E4D98] text-sm font-semibold hover:underline"
+        >
+          {showMoreInternational ? "Show Less" : "Show More"}
+        </button>
+      )}
+    </div>
   </div>
-  
-  {internationalList.length > 6 && (
-    <button
-      onClick={() => setShowMoreInternational(!showMoreInternational)}
-      className="mt-4 text-[#2E4D98] text-sm font-semibold hover:underline"
-    >
-      {showMoreInternational ? "Show Less" : "Show More"}
-    </button>
-  )}
-</div>
-              </div>
-            </aside>
+</aside>
 
             <main className="flex-1">
-               <div className="bg-[#2E3A8A] text-white text-center py-3 font-semibold text-md mb-2">
-                Domestic Exhibition
-              </div>
-<div className="w-full overflow-hidden border-black border border-t-1 mb-2">
-  <div className="flex w-full divide-x divide-white ">
+  <div className="bg-[#2E3A8A] text-white text-center py-3 font-semibold text-md mb-2">
+  Domestic Exhibition
+</div>
+
+<div className="w-full overflow-hidden border-black border mb-2">
+  <div className="flex w-full divide-x divide-black">
     
     {/* City Label */}
-    <div className="w-1/4 flex items-center justify-center p-3 bg-[#2E3A8A]">
-      <span className="font-bold text-white">
-        City:
-      </span>
+    <div className="w-1/5 flex items-center justify-center p-3 bg-[#2E3A8A]">
+      <span className="font-bold text-white">City:</span>
     </div>
 
     {/* City Value */}
-    <div className="w-1/4 flex items-center justify-center p-3 bg-white">
-      <span className="text-[#2E3A8A] font-bold">
-        {tour.cityName || "City"}
-      </span>
+    <div className="w-1/5 flex items-center justify-center p-3 bg-blue-100">
+      <span className="text-[#2E3A8A]  font-bold">{tour.cityName || "City"}</span>
     </div>
 
     {/* Exhibition Label */}
-    <div className="w-1/4 flex items-center justify-center p-3 bg-[#2E3A8A]">
-      <span className="font-bold text-white">
-        Exhibition:
-      </span>
+    <div className="w-1/5 flex items-center justify-center p-3 bg-[#2E3A8A]">
+      <span className="font-bold text-white">Exhibition:</span>
     </div>
 
     {/* Exhibition Value */}
-    <div className="w-1/4 flex items-center justify-center p-3 bg-white">
-      <span className="text-[#2E3A8A] font-bold">
-        {tour.title || "Exhibition Name"}
-      </span>
+    <div className="w-1/5 flex items-center justify-center p-3 bg-blue-100">
+      <span className="text-[#2E3A8A] font-bold text-sm text-center">{tour.title || "Exhibition Name"}</span>
     </div>
+{/* Search - 5th column */}
+<div className="w-1/5 flex items-center" style={{ backgroundColor: "red" }}>
+  <style>{`
+    input::placeholder {
+      color: white !important;
+      opacity: 1;
+    }
+  `}</style>
+  <form onSubmit={handleSearch} className="flex w-full h-full">
+    <input
+      type="text"
+      placeholder="Search..."
+      value={searchQuery}
+      onChange={(e) => {
+        setSearchQuery(e.target.value);
+        setIsSearchActive(false);
+      }}
+      className="flex-1 px-2 py-2 text-sm outline-none border-none w-full"
+      style={{
+        backgroundColor: "red",
+        color: "white"
+      }}
+    />
+    {searchQuery && (
+      <button
+        type="button"
+        onClick={clearSearch}
+        className="px-1 " style={{
+        backgroundColor: "red",
+        color: "white"
+      }}
+      >
+        ✕
+      </button>
+    )}
+    {searchQuery && (
+      <button
+        type="submit"
+        className="text-white p-3"
+      >
+        <FaSearch size={16} />
+      </button>
+    )}
+  </form>
+</div>
 
   </div>
 </div>
+
+
  
 
 
               <div className="flex flex-col gap-0.6">
-                {/* Image Slider Section */}
                 <div className="relative rounded-2xl overflow-hidden mb-1">
                   <div className="relative h-64 sm:h-80 lg:h-[500px] overflow-hidden">
                     <img
@@ -1024,8 +1275,8 @@ const Exhibitiondetail = () => {
                           {tour.cityName}
                         </p>
                       </div>
-                      <div className="col-span-6 border-r border-black px-2 lg:px-4 py-2 lg:py-3 bg-gray-50">
-                        <p className="text-sm lg:text-lg font-semibold text-gray-900 text-left break-words">
+                      <div className="col-span-6 border-r border-black px-2 lg:px-4 py-2 lg:py-3 bg-blue-50">
+                        <p className="text-sm lg:text-lg font-semibold text-gray-900 text-left break-words ">
                           {tour.title}
                         </p>
                       </div>
@@ -1121,271 +1372,509 @@ const Exhibitiondetail = () => {
                       </div>
                     </div>
                   )}
-                    {/* Dep Date Tab - Individual Tour */}
-                    {activeTab === "dep-date" && (
-                      <div className="bg-[#E8F0FF] rounded-lg p-1 w-full">
-                        <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
-                          Departure Dates
+{activeTab === "dep-date" && (
+  <div className="bg-[#E8F0FF] rounded-lg p-1 w-full">
+    <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
+      Departure Dates
+    </div>
+
+    <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg w-full flex flex-col min-h-[400px] lg:min-h-[680px] max-h-[400px] lg:max-h-[780px] overflow-hidden">
+      <div className="flex-1 overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+        <div className="flex flex-wrap gap-1 lg:gap-2 mb-2 overflow-x-auto pb-2">
+          {(() => {
+            const availableMonths = tour.departures.data
+              .map((dep) => dep.month)
+              .filter((month, index, self) =>
+                self.indexOf(month) === index
+              )
+              .sort((a, b) => {
+                const monthOrder = [
+                  "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
+                  "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"
+                ];
+                const getMonthNum = (monthStr) => {
+                  const monthAbbr = monthStr.split(' ')[0];
+                  return monthOrder.indexOf(monthAbbr);
+                };
+                return getMonthNum(a) - getMonthNum(b);
+              });
+
+            const allTabs = ["ALL", ...availableMonths];
+
+            return (
+              <div className="flex flex-wrap gap-1 lg:gap-2 mb-1">
+                {allTabs.map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setSelectedMonth(tab)}
+                    className={`
+                      px-2 lg:px-3 py-1 lg:py-2 
+                      border-2 
+                      font-semibold
+                      text-center
+                      w-20 lg:w-32
+                      text-xs lg:text-sm
+                      transition-all
+                      duration-200
+                      flex-shrink-0
+                      ${selectedMonth === tab
+                        ? "bg-blue-100 border-blue-600 text-blue-800 shadow-md"
+                        : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400"
+                      }
+                    `}
+                  >
+                    {tab}
+                  </button>
+                ))}
+              </div>
+            );
+          })()}
+        </div>
+
+        <div className="space-y-3 lg:space-y-4 w-full">
+          {filteredDepartureData.map((item, index) => (
+            <div key={item.id || index} className="border border-2 border-black p-2 lg:p-4 bg-white space-y-3 lg:space-y-4">
+              <div className="grid grid-cols-2 lg:grid-cols-5 items-center gap-2 lg:gap-0">
+                <div>
+                  <p className="text-xs lg:text-sm text-gray-500">From</p>
+                  <p className="font-semibold text-xs lg:text-base">{item.fromDate}</p>
+                  <p className="text-xs text-gray-500">{item.fromDay}</p>
+                </div>
+
+                <div>
+                  <p className="text-xs lg:text-sm text-gray-500">To</p>
+                  <p className="font-semibold text-xs lg:text-base">{item.toDate}</p>
+                  <p className="text-xs text-gray-500">{item.toDay}</p>
+                </div>
+
+                <div className="col-span-2 lg:col-span-1 flex items-center justify-center">
+                  <span className={`font-semibold text-xs lg:text-base ${item.status === 'Sold Out'
+                    ? 'text-red-600'
+                    : item.status === 'Available'
+                      ? 'text-green-600'
+                      : 'text-blue-700'
+                    }`}>
+                    {item.status}
+                  </span>
+                </div>
+
+                <div className="text-sm lg:text-lg font-bold text-gray-900">
+                  {formatPriceExhibition(item.price)}
+                </div>
+
+                <button
+                  onClick={() => toggleTable(index)}
+                  disabled={item.status === 'Sold Out'}
+                  className={`px-2 lg:px-6 py-1 lg:py-2 transition-colors text-xs lg:text-sm ${item.status === 'Sold Out'
+                    ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                    : 'bg-[#003366] text-white hover:bg-[#002244]'
+                    } ${openIndex === index ? 'bg-[#002244]' : ''}`}
+                >
+                  {item.status === 'Sold Out'
+                    ? 'Sold Out'
+                    : openIndex === index
+                      ? 'Hide Table'
+                      : 'Select'
+                  }
+                </button>
+              </div>
+
+              {openIndex === index && item.status !== 'Sold Out' && (
+                <div className="border-2 border-black overflow-hidden animate-fadeIn overflow-x-auto">
+                  <div className="min-w-[600px] lg:min-w-0">
+                    <div className="grid grid-cols-4 bg-[#0A1D4A] text-white font-semibold text-center">
+                      <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Particulars - Tour Cost</div>
+                      <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Standard</div>
+                      <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Deluxe</div>
+                      <div className="p-2 text-xs lg:text-sm">Luxury</div>
+                    </div>
+
+                    {[
+                      { particular: "Per pax on Twin Basis", star3: item.threeStar?.twin || "NA", star4: item.fourStar?.twin || "NA", star5: item.fiveStar?.twin || "NA" },
+                      { particular: "Per pax on Triple Basis", star3: item.threeStar?.triple || "NA", star4: item.fourStar?.triple || "NA", star5: item.fiveStar?.triple || "NA" },
+                      // { particular: "Child with Bed", star3: item.threeStar?.childWithBed || "NA", star4: item.fourStar?.childWithBed || "NA", star5: item.fiveStar?.childWithBed || "NA" },
+                      // { particular: "Child without Bed", star3: item.threeStar?.childWithoutBed || "NA", star4: item.fourStar?.childWithoutBed || "NA", star5: item.fiveStar?.childWithoutBed || "NA" },
+                      // { particular: "Infant", star3: item.threeStar?.infant || "NA", star4: item.fourStar?.infant || "NA", star5: item.fiveStar?.infant || "NA" },
+                      { particular: "Per pax Single Occupancy", star3: item.threeStar?.single || "NA", star4: item.fourStar?.single || "NA", star5: item.fiveStar?.single || "NA" },
+                    ].map((row, i) => (
+                      <div
+                        key={i}
+                        className={`grid grid-cols-4 text-center border-b-2 border-black ${i % 2 === 0 ? "bg-[#EEF1F7]" : "bg-white"
+                          } ${i === 5 ? 'border-b-0' : ''}`}
+                      >
+                        <div className="p-2 border-r-2 border-black font-medium text-xs lg:text-sm text-left">
+                          {row.particular}
                         </div>
-
-                        <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg w-full flex flex-col min-h-[200px] lg:min-h-[280px] max-h-[200px] lg:max-h-[280px] overflow-hidden">
-                          <div className="flex-1 overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-                            <div className="space-y-4 w-full">
-                              {tour.departures.descriptions.map((description: string, index: number) => (
-                                <div key={index} className="border-gray-200 rounded-lg w-full">
-                                  <div className="flex items-start w-full">
-                                    <div className="flex-1 min-w-0">
-                                      <p className="text-black break-words whitespace-pre-wrap text-justify w-full text-sm lg:text-base">
-                                        {description}
-                                      </p>
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
+                        <div className="p-2 border-r-2 border-black text-xs lg:text-sm">
+                          {row.star3}
                         </div>
-                        <div className="mt-1">
-                          <button
-                            onClick={() => navigate("/alert")}
-                            className="w-full font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90 text-sm lg:text-base"
-                          >
-                            Customize your tour on chargeable basis
-                          </button>
+                        <div className="p-2 border-r-2 border-black font-semibold text-green-700 text-xs lg:text-sm">
+                          {row.star4}
                         </div>
-                      </div>
-                    )}
-
-                    {/* Tour Cost Tab */}
-                    {activeTab === "tour-cost" && (
-                      <div className="bg-[#E8F0FF] rounded-lg p-1">
-                        <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg mb-1.5">
-                          Tour Cost
-                        </div>
-
-                        <div>
-                          <div className="overflow-x-auto border shadow-sm">
-                            <table className="w-full border-collapse table-fixed min-w-[600px] lg:min-w-0">
-                              <thead>
-                                <tr className="bg-[#2E4D98]">
-                                  <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-base h-10 lg:h-12 w-1/6">
-                                    Passenger
-                                  </th>
-                                  <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-base h-10 lg:h-12 w-1/6">
-                                    Standard Hotel
-                                  </th>
-                                  <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-base h-10 lg:h-12 w-1/6">
-                                    Deluxe Hotel
-                                  </th>
-                                  <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-base h-10 lg:h-12 w-1/6">
-                                    Executive Hotel
-                                  </th>
-                                  <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-base h-10 lg:h-12 w-1/6">
-                                    Child With Bed
-                                  </th>
-                                  <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-base h-10 lg:h-12 w-1/6">
-                                    Child No Bed
-                                  </th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {tour.tourCost.tableData.length > 0 ? (
-                                  tour.tourCost.tableData.map((row: any, index: number) => (
-                                    <tr key={index} className={index % 2 === 0 ? 'bg-[#FFEBEE]' : 'bg-[#FFEBEE]/80'}>
-                                      <td className="border-2 border-[#1e3a8a] px-2 lg:px-4 py-2 lg:py-3 text-center font-medium text-gray-700 text-xs lg:text-base h-10 lg:h-12 w-1/6">
-                                        {row.passenger}
-                                      </td>
-                                      <td className="border-2 border-[#1e3a8a] px-2 lg:px-4 py-2 lg:py-3 text-center text-blue-800 font-semibold text-xs lg:text-base h-10 lg:h-12 w-1/6">
-                                        {row.standard}
-                                      </td>
-                                      <td className="border-2 border-[#1e3a8a] px-2 lg:px-4 py-2 lg:py-3 text-center text-green-800 font-semibold text-xs lg:text-base h-10 lg:h-12 w-1/6">
-                                        {row.deluxe}
-                                      </td>
-                                      <td className="border-2 border-[#1e3a8a] px-2 lg:px-4 py-2 lg:py-3 text-center text-[#A72703] font-semibold text-xs lg:text-base h-10 lg:h-12 w-1/6">
-                                        {row.executive}
-                                      </td>
-                                      <td className="border-2 border-[#1e3a8a] px-2 lg:px-4 py-2 lg:py-3 text-center text-blue-600 font-medium text-xs lg:text-base h-10 lg:h-12 w-1/6">
-                                        {row.childWithBed}
-                                      </td>
-                                      <td className="border-2 border-[#1e3a8a] px-2 lg:px-4 py-2 lg:py-3 text-center text-purple-600 font-medium text-xs lg:text-base h-10 lg:h-12 w-1/6">
-                                        {row.childNoBed}
-                                      </td>
-                                    </tr>
-                                  ))
-                                ) : (
-                                  <tr className="bg-[#FFEBEE]">
-                                    <td colSpan={6} className="border-2 border-[#1e3a8a] px-2 lg:px-4 py-2 lg:py-3 text-center text-gray-500 text-sm lg:text-base">
-                                      No cost information available
-                                    </td>
-                                  </tr>
-                                )}
-                              </tbody>
-                            </table>
-                          </div>
-                        </div>
-
-                        {/* Tour Cost Remarks */}
-                        <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
-                          <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
-                            Tour Cost Remarks
-                          </div>
-                          <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-                            <div className="min-h-[150px] lg:min-h-[180px] max-h-[150px] lg:max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-                              {tour.tourCost.remarks && tour.tourCost.remarks.length > 0 ? (
-                                <ul className="space-y-2 w-full">
-                                  {tour.tourCost.remarks.map((remark: string, index: number) => (
-                                    <li key={index} className="flex items-start gap-2 w-full">
-                                      <span className="text-black whitespace-pre-wrap break-words hyphens-auto text-justify w-full text-sm lg:text-base">
-                                        {remark}
-                                      </span>
-                                    </li>
-                                  ))}
-                                </ul>
-                              ) : (
-                                <div className="flex items-center justify-center h-full">
-                                  <span className="text-gray-500 italic text-sm lg:text-base">No tour cost remarks available</span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Optional Tour Section */}
-                        {tour.optionalTours && tour.optionalTours.length > 0 && (
-                          <div className='mt-1'>
-                            <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-xl rounded-t-lg py-2 lg:py-3 mb-1">
-                              Optional Tour
-                            </div>
-                            <div className="overflow-x-auto">
-                              <table className="w-full border-collapse min-w-[500px] lg:min-w-0">
-                                <thead>
-                                  <tr className="bg-[#2E4D98]">
-                                    <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-left font-semibold text-white text-xs lg:text-sm w-[70%]">
-                                      Tour Name
-                                    </th>
-                                    <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-left font-semibold text-white text-xs lg:text-sm w-[15%]">
-                                      Adult Price
-                                    </th>
-                                    <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-left font-semibold text-white text-xs lg:text-sm w-[15%]">
-                                      Child Price
-                                    </th>
-                                  </tr>
-                                </thead>
-                                <tbody className="border-2 border-[#1e3a8a] border-t-0">
-                                  {tour.optionalTours.map((optTour: any, index: number) => (
-                                    <tr key={index} className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}>
-                                      <td className="border border-black px-2 lg:px-4 py-1 lg:py-2 text-black text-xs lg:text-sm">{optTour.tourName}</td>
-                                      <td className="border border-black px-2 lg:px-4 py-1 lg:py-2 border-l-0 text-black text-xs lg:text-sm">{optTour.adultPrice}</td>
-                                      <td className="border border-black px-2 lg:px-4 py-1 lg:py-2 border-l-0 text-black text-xs lg:text-sm">{optTour.childPrice}</td>
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Optional Tour Remarks Section */}
-                        {tour.optionalTourRemarks && tour.optionalTourRemarks.length > 0 && (
-                          <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
-                            <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
-                              Optional Tour Remarks
-                            </div>
-                            <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-                              <div className="min-h-[150px] lg:min-h-[180px] max-h-[150px] lg:max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-                                <ul className="space-y-2 w-full">
-                                  {tour.optionalTourRemarks.map((remark: string, index: number) => (
-                                    <li key={index} className="flex items-start gap-2 w-full">
-                                      <span className="text-black whitespace-pre-wrap break-words hyphens-auto text-justify w-full text-sm lg:text-base">
-                                        {remark}
-                                      </span>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* EMI Options Section */}
-                        {tour.emiOptions && tour.emiOptions.options && tour.emiOptions.options.length > 0 && (
-                          <div className='mb-1 mt-1'>
-                            <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-xl rounded-t-lg py-2 lg:py-3 mb-1">
-                              EMI Options
-                            </div>
-                            <div className="overflow-x-auto">
-                              <table className="w-full border-collapse min-w-[500px] lg:min-w-0">
-                                <thead>
-                                  <tr className="bg-[#2E4D98]">
-                                    <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-left font-semibold text-white text-xs lg:text-sm w-[40%]">
-                                      Particulars
-                                    </th>
-                                    <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm w-[20%]">
-                                      Loan Amount
-                                    </th>
-                                    <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm w-[20%]">
-                                      Months
-                                    </th>
-                                    <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm w-[20%]">
-                                      EMI
-                                    </th>
-                                  </tr>
-                                </thead>
-                                <tbody className="border-2 border-[#1e3a8a] border-t-0">
-                                  {tour.emiOptions.options.map((emi: any, index: number) => (
-                                    <tr key={index} className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}>
-                                      <td className="border border-black px-2 lg:px-4 py-1 lg:py-2 font-bold text-xs lg:text-base text-black">
-                                        {emi.particulars}
-                                      </td>
-                                      <td className="border border-black px-2 lg:px-4 py-1 lg:py-2 border-l-0 text-center text-black text-xs lg:text-sm">
-                                        {emi.loanAmount}
-                                      </td>
-                                      <td className="border border-black px-2 lg:px-4 py-1 lg:py-2 border-l-0 text-center text-black text-xs lg:text-sm">
-                                        {emi.months}
-                                      </td>
-                                      <td className="border border-black px-2 lg:px-4 py-1 lg:py-2 border-l-0 text-center text-black text-xs lg:text-sm">
-                                        {emi.emi}
-                                      </td>
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* EMI Remarks */}
-                        {tour.emiRemarks && tour.emiRemarks.length > 0 && (
-                          <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
-                            <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
-                              EMI Remarks
-                            </div>
-                            <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-                              <div className="min-h-[150px] lg:min-h-[180px] max-h-[150px] lg:max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-                                <ul className="space-y-2 w-full">
-                                  {tour.emiRemarks.map((remark: string, index: number) => (
-                                    <li key={index} className="flex items-start gap-2 w-full">
-                                      <span className="text-black whitespace-pre-wrap break-words hyphens-auto text-justify w-full text-sm lg:text-base">
-                                        {remark}
-                                      </span>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                        <div className="mt-1">
-                          <button
-                            onClick={() => navigate("/alert")}
-                            className="w-full font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90 text-sm lg:text-base"
-                          >
-                            Customize your tour on chargeable basis
-                          </button>
+                        <div className="p-2 text-xs lg:text-sm">
+                          {row.star5}
                         </div>
                       </div>
-                    )}
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
 
+          {filteredDepartureData.length === 0 && (
+            <div className="text-center py-4 lg:py-8 bg-white border border-gray-300 rounded-lg">
+              <p className="text-gray-600 text-sm lg:text-lg mb-2">
+                {selectedMonth === "ALL"
+                  ? "No departure dates available for this tour"
+                  : `No departure dates available for ${selectedMonth}`
+                }
+              </p>
+              <p className="text-gray-500 text-xs lg:text-sm">
+                Please check back later or contact us for more information
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+
+
+    <div className="mt-1">
+      <button
+        onClick={() => navigate("/alert")}
+        className="w-full font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90 text-sm lg:text-base"
+      >
+        Customize your tour on chargeable basis
+      </button>
+    </div>
+  </div>
+)}
+
+            {activeTab === "tour-cost" && (
+  <div className="bg-[#E8F0FF] rounded-lg p-1">
+    <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg mb-1.5">
+      Tour Cost
+    </div>
+
+    <div className="mb-0">
+      <div className="p-3 lg:p-4 border-2 border-black border-t-0 rounded-b-lg">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4 mb-3 lg:mb-4">
+          <div>
+            <label className="block text-gray-700 font-bold mb-2 text-sm lg:text-base">Month</label>
+            <select
+              className="w-full border-2 border-black rounded-md px-3 py-2 bg-white text-sm lg:text-base"
+              value={selectedCostMonth}
+              onChange={(e) => {
+                setSelectedCostMonth(e.target.value);
+                setSelectedCostDate("");
+              }}
+            >
+              <option value="">Select Month</option>
+              {availableMonths.map(month => {
+                const monthDepartures = departuresByMonth[month] || [];
+                const allSoldOut = monthDepartures.length > 0 && 
+                                  monthDepartures.every(dep => dep.status === 'Sold Out');
+                
+                return (
+                  <option 
+                    key={month} 
+                    value={month}
+                    disabled={allSoldOut}
+                    style={allSoldOut ? { color: '#999', fontStyle: 'italic' } : {}}
+                  >
+                    {month} {allSoldOut ? '(Sold Out)' : ''}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-gray-700 font-bold mb-2 text-sm lg:text-base">Date</label>
+            <select
+              className="w-full border-2 border-black rounded-md px-3 py-2 bg-white text-sm lg:text-base"
+              value={selectedCostDate}
+              onChange={(e) => setSelectedCostDate(e.target.value)}
+              disabled={!selectedCostMonth}
+            >
+              <option value="">Select Date</option>
+              {availableDates
+                .filter(dep => dep.status !== 'Sold Out')
+                .map(dep => (
+                  <option key={dep.id} value={dep.fromDate}>
+                    {dep.fromDate} – {dep.toDate}
+                  </option>
+                ))
+              }
+            </select>
+          </div>
+        </div>
+
+        {selectedDeparture ? (
+          <div className="border-2 border-black overflow-hidden animate-fadeIn overflow-x-auto">
+            <div className="min-w-[600px] lg:min-w-0">
+              <div className="grid grid-cols-4 bg-[#0A1D4A] text-white font-semibold text-center">
+                <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Particulars - Tour Cost</div>
+                <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Standard</div>
+                <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Deluxe</div>
+                <div className="p-2 text-xs lg:text-sm">Luxury</div>
+              </div>
+
+              {[
+                {
+                  particular: "Per pax on Twin Basis",
+                  star3: selectedDeparture.threeStar?.twin || "NA",
+                  star4: selectedDeparture.fourStar?.twin || "NA",
+                  star5: selectedDeparture.fiveStar?.twin || "NA"
+                },
+                {
+                  particular: "Per pax on Triple Basis",
+                  star3: selectedDeparture.threeStar?.triple || "NA",
+                  star4: selectedDeparture.fourStar?.triple || "NA",
+                  star5: selectedDeparture.fiveStar?.triple || "NA"
+                },
+                // {
+                //   particular: "Child with Bed",
+                //   star3: selectedDeparture.threeStar?.childWithBed || "NA",
+                //   star4: selectedDeparture.fourStar?.childWithBed || "NA",
+                //   star5: selectedDeparture.fiveStar?.childWithBed || "NA"
+                // },
+                // {
+                //   particular: "Child without Bed",
+                //   star3: selectedDeparture.threeStar?.childWithoutBed || "NA",
+                //   star4: selectedDeparture.fourStar?.childWithoutBed || "NA",
+                //   star5: selectedDeparture.fiveStar?.childWithoutBed || "NA"
+                // },
+                // {
+                //   particular: "Infant",
+                //   star3: selectedDeparture.threeStar?.infant || "NA",
+                //   star4: selectedDeparture.fourStar?.infant || "NA",
+                //   star5: selectedDeparture.fiveStar?.infant || "NA"
+                // },
+                {
+                  particular: "Per pax Single Occupancy",
+                  star3: selectedDeparture.threeStar?.single || "NA",
+                  star4: selectedDeparture.fourStar?.single || "NA",
+                  star5: selectedDeparture.fiveStar?.single || "NA"
+                },
+              ].map((row, i) => (
+                <div
+                  key={i}
+                  className={`grid grid-cols-4 text-center border-b-2 border-black ${i % 2 === 0 ? "bg-[#EEF1F7]" : "bg-white"
+                    } ${i === 5 ? 'border-b-0' : ''}`}
+                >
+                  <div className="p-2 border-r-2 border-black font-medium text-xs lg:text-sm text-left">
+                    {row.particular}
+                  </div>
+                  <div className="p-2 border-r-2 border-black text-xs lg:text-sm">
+                    {row.star3}
+                  </div>
+                  <div className="p-2 border-r-2 border-black font-semibold text-green-700 text-xs lg:text-sm">
+                    {row.star4}
+                  </div>
+                  <div className="p-2 text-xs lg:text-sm">
+                    {row.star5}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="text-center p-3 lg:p-4 border-2 border-dashed border-gray-300 rounded-lg">
+            <p className="text-gray-500 text-sm lg:text-base">Please select a month and date to view tour cost</p>
+            <p className="text-gray-400 text-xs lg:text-sm mt-2">Departure dates are available in the "Dep Date" tab</p>
+          </div>
+        )}
+      </div>
+    </div>
+
+    {/* Tour Cost Remarks */}
+    <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
+      <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
+        Tour Cost Remarks
+      </div>
+      <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
+        <div className="min-h-[150px] lg:min-h-[180px] max-h-[150px] lg:max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+          {tour.tourCost.remarks && tour.tourCost.remarks.length > 0 ? (
+            <ul className="space-y-2 w-full">
+              {tour.tourCost.remarks.map((remark: string, index: number) => (
+                <li key={index} className="flex items-start gap-2 w-full">
+                  <span className="text-black whitespace-pre-wrap break-words hyphens-auto text-justify w-full text-sm lg:text-base">
+                    {remark}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <span className="text-gray-500 italic text-sm lg:text-base">No tour cost remarks available</span>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+
+    {/* Optional Tour Section */}
+    <div className='mt-1'>
+      <div className="flex flex-col lg:flex-row gap-1">
+        <div className='flex-1 min-w-0 lg:w-1/2'>
+          <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-xl rounded-t-lg py-2 lg:py-3 mb-1">
+            Optional Tour
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse min-w-[400px] lg:min-w-0">
+              <thead>
+                <tr className="bg-[#2E4D98]">
+                  <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-left font-semibold text-white text-xs lg:text-sm w-[40%] lg:w-[50%]">
+                    Tour Name
+                  </th>
+                  <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-left font-semibold text-white text-xs lg:text-sm w-[30%] lg:w-[25%]">
+                    Adult Price
+                  </th>
+                  <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-left font-semibold text-white text-xs lg:text-sm w-[30%] lg:w-[25%]">
+                    Child Price
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="border-2 border-[#1e3a8a] border-t-0">
+                {tour.optionalTours && tour.optionalTours.length > 0 ? (
+                  tour.optionalTours.map((optTour: any, index: number) => (
+                    <tr key={index} className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}>
+                      <td className="border border-black px-2 lg:px-4 py-1 lg:py-2 text-black text-xs lg:text-sm">
+                        {optTour.tourName || "N/A"}
+                      </td>
+                      <td className="border border-black px-2 lg:px-4 py-1 lg:py-2 border-l-0 text-black text-xs lg:text-sm">
+                        {optTour.adultPrice || "N/A"}
+                      </td>
+                      <td className="border border-black px-2 lg:px-4 py-1 lg:py-2 border-l-0 text-black text-xs lg:text-sm">
+                        {optTour.childPrice || "N/A"}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr className="bg-[#FFEBEE]">
+                    <td colSpan={3} className="border border-black px-2 lg:px-4 py-2 lg:py-3 text-center text-gray-500 text-xs lg:text-sm">
+                      No optional tours available
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className='flex-1 min-w-0 lg:w-1/2'>
+          <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-xl rounded-t-lg py-2 lg:py-3 mb-1">
+            EMI Options
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse min-w-[400px] lg:min-w-0">
+              <thead>
+                <tr className="bg-[#2E4D98]">
+                  <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm w-[33.33%]">
+                    Loan Amount
+                  </th>
+                  <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm w-[33.33%]">
+                    Months
+                  </th>
+                  <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm w-[33.33%]">
+                    EMI
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="border-2 border-[#1e3a8a] border-t-0">
+                {tour.emiOptions && tour.emiOptions.options && tour.emiOptions.options.length > 0 ? (
+                  tour.emiOptions.options.map((emi: any, index: number) => (
+                    <tr key={index} className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}>
+                      <td className="border border-black px-2 lg:px-4 py-1 lg:py-2 border-l-0 text-center text-black text-xs lg:text-sm">
+                        {emi.loanAmount || "N/A"}
+                      </td>
+                      <td className="border border-black px-2 lg:px-4 py-1 lg:py-2 border-l-0 text-center text-black text-xs lg:text-sm">
+                        {emi.months || "N/A"}
+                      </td>
+                      <td className="border border-black px-2 lg:px-4 py-1 lg:py-2 border-l-0 text-center text-black text-xs lg:text-sm">
+                        {emi.emi || "N/A"}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr className="bg-[#FFEBEE]">
+                    <td colSpan={3} className="border border-black px-2 lg:px-4 py-2 lg:py-3 text-center text-gray-500 text-xs lg:text-sm">
+                      No EMI options available
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* Optional Tour Remarks */}
+    <div className="flex flex-col lg:flex-row gap-1 mt-1 w-full">
+      <div className="bg-[#E8F0FF] rounded-lg w-full lg:w-1/2 overflow-x-hidden">
+        <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
+          Optional Tour Remarks
+        </div>
+        <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
+          <div className="min-h-[150px] lg:min-h-[180px] max-h-[150px] lg:max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+            {tour.optionalTourRemarks && tour.optionalTourRemarks.length > 0 ? (
+              <ul className="space-y-2 w-full">
+                {tour.optionalTourRemarks.map((remark: string, index: number) => (
+                  <li key={index} className="flex items-start gap-2 w-full">
+                    <span className="text-black whitespace-pre-wrap break-words hyphens-auto text-justify w-full text-sm lg:text-base">
+                      {remark}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <span className="text-gray-500 italic text-sm lg:text-base">No optional tour remarks available</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-[#E8F0FF] rounded-lg w-full lg:w-1/2 overflow-x-hidden">
+        <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
+          EMI Remarks
+        </div>
+        <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
+          <div className="min-h-[150px] lg:min-h-[180px] max-h-[150px] lg:max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+            {tour.emiRemarks && tour.emiRemarks.length > 0 ? (
+              <ul className="space-y-2 w-full">
+                {tour.emiRemarks.map((remark: string, index: number) => (
+                  <li key={index} className="flex items-start gap-2 w-full">
+                    <span className="text-black whitespace-pre-wrap break-words hyphens-auto text-justify w-full text-sm lg:text-base">
+                      {remark}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <span className="text-gray-500 italic text-sm lg:text-base">No EMI remarks available</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div className="mt-1">
+      <button
+        onClick={() => navigate("/alert")}
+        className="w-full font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90 text-sm lg:text-base"
+      >
+        Customize your tour on chargeable basis
+      </button>
+    </div>
+  </div>
+)}
                     {/* Cost In/Cost Ex Tab */}
                     {activeTab === "cost-inc./cost-ex." && (
                       <div className="bg-[#E8F0FF] rounded-lg p-1 w-full overflow-x-hidden">

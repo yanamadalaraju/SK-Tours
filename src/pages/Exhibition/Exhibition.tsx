@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { BASE_URL } from '@/ApiUrls';
 import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
+import { Input } from "@/components/ui/input";
 
 const Exhibition = () => {
   const [activeMenu, setActiveMenu] = useState(null);
@@ -31,18 +34,25 @@ const Exhibition = () => {
     domestic: false,
     international: false
   });
+
+  // Filter states
+  const [priceRange, setPriceRange] = useState([0, 200000]);
+  const [durationRange, setDurationRange] = useState([0, 10]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSearchBtn, setShowSearchBtn] = useState(false);
+  const [isSearchActive, setIsSearchActive] = useState(false);
+  
   // Auto-open About Exhibition on page load
-useEffect(() => {
-  if (!activeMenu && !activeCategory) {
-    setActiveMenu("About Exhibition");
-  }
-}, []);
+  useEffect(() => {
+    if (!activeMenu && !activeCategory) {
+      setActiveMenu("About Exhibition");
+    }
+  }, []);
   
- const handleCellClick = (value) => {
-  if (!value || value === "") return;
-  
-  navigate("/exhibitionview", { state: { category: value } });
-};
+  const handleCellClick = (value) => {
+    if (!value || value === "") return;
+    navigate("/exhibitionview", { state: { category: value } });
+  };
   
   useEffect(() => {
     const checkMobile = () => {
@@ -69,14 +79,10 @@ useEffect(() => {
         if (!response.ok) throw new Error('Failed to fetch about data');
         const data = await response.json();
         
-        console.log('About Exhibition API Response:', data);
-        
         if (data) {
           const imageUrl = data.banner_image
             ? `${BASE_URL}/uploads/exhibition/${data.banner_image}`
             : data.image_url || data.image_path || "";
-          
-          console.log('Constructed Image URL:', imageUrl);
           
           setMenuData(prev => ({
             ...prev,
@@ -117,24 +123,16 @@ useEffect(() => {
         if (!response.ok) throw new Error('Failed to fetch domestic data');
         const data = await response.json();
         
-        console.log('Domestic API Response:', data);
-        
         if (Array.isArray(data)) {
-          // Extract category names from domestic exhibitions
           const allCategories = data.map(exhibition => exhibition.domestic_category_name);
-          
-          // Remove duplicates if any
           const uniqueCategories = [...new Set(allCategories)];
           
-          // Format into rows of 3 for the table display
           const formattedData = [];
           for (let i = 0; i < uniqueCategories.length; i += 3) {
             const row = uniqueCategories.slice(i, i + 3);
             while (row.length < 3) row.push("");
             formattedData.push(row);
           }
-          
-          console.log('Formatted Domestic Data (Categories):', formattedData);
           
           setCategoryData(prev => ({
             ...prev,
@@ -164,24 +162,16 @@ useEffect(() => {
         if (!response.ok) throw new Error('Failed to fetch international data');
         const data = await response.json();
         
-        console.log('International API Response:', data);
-        
         if (Array.isArray(data)) {
-          // Extract category names from international exhibitions
           const allCategories = data.map(exhibition => exhibition.international_category_name);
-          
-          // Remove duplicates if any
           const uniqueCategories = [...new Set(allCategories)];
           
-          // Format into rows of 3 for the table display
           const formattedData = [];
           for (let i = 0; i < uniqueCategories.length; i += 3) {
             const row = uniqueCategories.slice(i, i + 3);
             while (row.length < 3) row.push("");
             formattedData.push(row);
           }
-          
-          console.log('Formatted International Data (Categories):', formattedData);
           
           setCategoryData(prev => ({
             ...prev,
@@ -201,18 +191,69 @@ useEffect(() => {
     
     fetchInternationalData();
   }, []);
+
+  // Get filtered domestic categories based on search query
+  const filteredDomesticCategories = useMemo(() => {
+    if (!isSearchActive || !searchQuery.trim()) {
+      return categoryData.Domestic.flat().filter(cell => cell && cell !== "");
+    }
+    
+    const searchLower = searchQuery.toLowerCase().trim();
+    const allDomestic = categoryData.Domestic.flat().filter(cell => cell && cell !== "");
+    
+    return allDomestic.filter(cell => 
+      cell.toLowerCase().includes(searchLower)
+    );
+  }, [categoryData.Domestic, searchQuery, isSearchActive]);
+
+  // Get filtered international categories based on search query
+  const filteredInternationalCategories = useMemo(() => {
+    if (!isSearchActive || !searchQuery.trim()) {
+      return categoryData.International.flat().filter(cell => cell && cell !== "");
+    }
+    
+    const searchLower = searchQuery.toLowerCase().trim();
+    const allInternational = categoryData.International.flat().filter(cell => cell && cell !== "");
+    
+    return allInternational.filter(cell => 
+      cell.toLowerCase().includes(searchLower)
+    );
+  }, [categoryData.International, searchQuery, isSearchActive]);
+
+  const clearAllFilters = () => {
+    setPriceRange([0, 200000]);
+    setDurationRange([0, 10]);
+    clearSearch();
+  };
+
+  const clearSearch = () => {
+    setSearchQuery("");
+    setShowSearchBtn(false);
+    setIsSearchActive(false);
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim() !== "") {
+      setIsSearchActive(true);
+    } else {
+      setIsSearchActive(false);
+    }
+  };
   
   /* ===== HANDLERS ===== */
   const handleMenuClick = (menu) => {
     setActiveMenu(prev => prev === menu ? null : menu);
     setActiveCategory(null);
     setOpenQA(null);
+    clearSearch(); // Clear search when changing menu
   };
   
   const handleCategoryClick = (cat) => {
     setActiveCategory(prev => prev === cat ? null : cat);
     setActiveMenu(null);
     setOpenQA(null);
+    clearSearch(); // Clear search when changing category
   };
   
   const handleQAClick = (index) => {
@@ -230,105 +271,151 @@ useEffect(() => {
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
       
-      <main className="flex-grow p-4 md:p-6 bg-[#FFEBEE]">
-        <div className="bg-white border rounded-lg shadow overflow-hidden">
-          <div className="flex flex-col md:grid md:grid-cols-12 bg-[#E8F0FF]">
+      <main className="flex-grow p-2 md:p-6 bg-[#FFEBEE]">
+     <div className="max-w-[1400px] mx-auto w-full">
+          <div className="flex flex-col lg:flex-row gap-6">
             
-            {/* Mobile Menu Toggle Button */}
-            <div className="md:hidden bg-[#2E3A8A] p-3 flex justify-between items-center">
-              <span className="text-white font-semibold">Menu</span>
-              <button 
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="text-white text-xl"
-              >
-                {isMobileMenuOpen ? "✕" : "☰"}
-              </button>
-            </div>
-            
-            <div className={`
-              ${isMobileMenuOpen ? 'block' : 'hidden'} 
-              md:block md:col-span-3 
-              ${isMobile ? 'border-b' : 'border-r border-black'}
-            `}>
-              <div className="bg-[#2E3A8A] text-white px-4 py-2 font-semibold border-b border-black">
-                Exhibition
-              </div>
-              
-              {Object.keys(menuData).map((item) => (
-                <button
-                  key={item}
-                  onClick={() => handleMenuClick(item)}
-                  className={`w-full flex justify-between items-center px-4 py-3 border-b border-black text-left text-sm md:text-base
-                    ${activeMenu === item ? "bg-blue-100 font-medium" : "hover:bg-blue-50"}
-                    ${loading.about && item === "About Exhibition" ? "opacity-50 cursor-not-allowed" : ""}`}
-                  disabled={loading.about && item === "About Exhibition"}
-                >
-                  <span className="truncate">{item}</span>
-                  <span className="flex items-center gap-2 flex-shrink-0">
-                    {loading.about && item === "About Exhibition" && (
-                      <span className="animate-spin h-3 w-3 md:h-4 md:w-4 border-2 border-gray-300 border-t-gray-600 rounded-full" />
-                    )}
-                    <span className="text-xs md:text-sm">{activeMenu === item ? "▼" : "▶"}</span>
-                  </span>
-                </button>
-              ))}
-              
-              <div className="bg-[#2E3A8A] text-white px-4 py-2 font-semibold border-b border-black border-t border-black">
-                Categories
-              </div>
-              
-              {Object.keys(categoryData).map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => handleCategoryClick(cat)}
-                  className={`w-full flex justify-between items-center px-4 py-3 text-left text-sm md:text-base relative border-b border-black
-                    ${activeCategory === cat ? "bg-blue-100 font-medium" : "hover:bg-blue-50"}
-                    ${(cat === "Domestic" && loading.domestic) || (cat === "International" && loading.international) ? "opacity-50 cursor-not-allowed" : ""}`}
-                  disabled={cat === "Domestic" ? loading.domestic : loading.international}
-                >
-                  <span>{cat}</span>
-                  <span className="flex items-center gap-2 flex-shrink-0">
-                    {(cat === "Domestic" && loading.domestic) ||
-                     (cat === "International" && loading.international) ? (
-                      <span className="animate-spin h-3 w-3 md:h-4 md:w-4 border-2 border-gray-300 border-t-gray-600 rounded-full" />
-                    ) : null}
-                    <span className="text-xs md:text-sm">{activeCategory === cat ? "▼" : "▶"}</span>
-                  </span>
-                </button>
-              ))}
-            </div>
-            
-            {/* Content Area */}
-            <div className="md:col-span-9">
-              
-              {activeMenu && (
-                <>
-                  <div className="border-b px-4 py-2 font-semibold flex justify-center items-center bg-[#2E3A8A] text-white">
-                    <span className="text-sm md:text-base">{activeMenu}</span>
-                    {loading.about && activeMenu === "About Exhibition" && (
-                      <span className="text-xs text-gray-200 flex items-center gap-1 ml-2">
-                        <span className="animate-spin h-2 w-2 md:h-3 md:w-3 border-2 border-gray-300 border-t-white rounded-full" />
-                        Loading...
-                      </span>
-                    )}
+            {/* Sidebar - Same design as ExhibitionView */}
+            <aside className="lg:w-80">
+              <div className="bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl shadow-lg p-6 border border-blue-200 sticky top-24">
+                <div className="flex justify-between items-center mb-4 bg-white p-2 rounded-lg border border-black">
+                  <h2 className="text-2xl font-bold text-[#2E4D98]">Exhibitions</h2>
+                  <button
+                    onClick={clearAllFilters}
+                    className="text-sm text-[#E53C42] hover:underline"
+                  >
+                    Clear All
+                  </button>
+                </div>
+
+                {/* About Exhibition */}
+                <div className="mt-3 mb-4">
+                  <div
+                    onClick={() => handleMenuClick("About Exhibition")}
+                    className="flex justify-between items-center p-2 rounded-lg cursor-pointer border border-black bg-white text-[#2E4D98]"
+                  >
+                    <h2 className="text-xl font-bold text-[#2E4D98]">About Exhibition</h2>
+                    <span className="text-xs">
+                      {activeMenu === "About Exhibition" ? "▼" : "▶"}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Exhibition Range Filter */}
+                <div className="mb-8">
+                  <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Exhibition Range</h3>
+                  <div className="flex justify-between text-sm text-gray-600 mb-3">
+                    <span>{durationRange[0]} days</span>
+                    <span>{durationRange[1]} days</span>
+                  </div>
+                  <Slider 
+                    value={durationRange} 
+                    onValueChange={setDurationRange}
+                    max={10} 
+                    step={1} 
+                    className="w-full" 
+                  />
+                </div>
+
+                {/* Price Filter */}
+                <div className="mb-6">
+                  <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Price Range</h3>
+                  <div className="flex justify-between text-sm text-gray-600 mb-3">
+                    <span>₹{priceRange[0].toLocaleString()}</span>
+                    <span>₹{priceRange[1].toLocaleString()}</span>
+                  </div>
+                  <Slider
+                    value={priceRange}
+                    onValueChange={setPriceRange}
+                    min={0}
+                    max={200000}
+                    step={1000}
+                    className="w-full"
+                  />
+                </div>
+
+                {/* Categories Section */}
+                <div className="mt-6">
+                  <div className="flex justify-between items-center mb-3 bg-white p-2 rounded-lg border border-black">
+                    <h2 className="text-xl font-bold text-[#2E4D98]">Categories</h2>
                   </div>
                   
-                  <div className="border m-2 md:m-4 bg-gray-50 overflow-hidden">
-                    {loading.about && activeMenu === "About Exhibition" ? (
+                  {/* Domestic Exhibition */}
+                  <div className="mb-4">
+                    <div
+                      onClick={() => handleCategoryClick("Domestic")}
+                      className="flex justify-between items-center p-2 rounded-lg cursor-pointer border border-black bg-white text-[#2E4D98]"
+                    >
+                      <h3 className="text-lg font-semibold text-[#2E4D98]">Domestic Exhibition</h3>
+                      <span className="text-xs">
+                        {activeCategory === "Domestic" ? "▼" : "▶"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* International Exhibition */}
+                  <div>
+                    <div
+                      onClick={() => handleCategoryClick("International")}
+                      className="flex justify-between items-center p-2 rounded-lg cursor-pointer border border-black bg-white text-[#2E4D98]"
+                    >
+                      <h3 className="text-lg font-semibold text-[#2E4D98]">International Exhibition</h3>
+                      <span className="text-xs">
+                        {activeCategory === "International" ? "▼" : "▶"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </aside>
+            
+            {/* Content Area */}
+            <main className="flex-1">
+              {/* Header Banner */}
+              <div 
+                className="relative rounded-2xl overflow-hidden mb-6 bg-cover bg-center bg-no-repeat"
+                style={{
+                  backgroundImage: `url('https://360biznus.com/wp-content/uploads/2025/08/360-virtual-tour-of-shiva-carpets1.jpg')`,
+                }}
+              >
+                <div className="p-8 min-h-[180px] flex items-center">
+                  <div className="text-white">
+                    <h1 className="text-3xl font-bold mb-2" style={{ textShadow: "2px 2px 4px rgb(0, 0, 0)" }}>
+                      {activeMenu === "About Exhibition" 
+                        ? "About Exhibition"
+                        : (activeCategory 
+                          ? `${activeCategory} Exhibition`
+                          : "Exhibition Packages")}
+                    </h1>
+                    <p className="text-base opacity-90 max-w-2xl" style={{ textShadow: "1px 1px 2px rgba(0, 0, 0, 0.5)" }}>
+                      {activeMenu === "About Exhibition"
+                        ? "Learn more about our exhibition tours and frequently asked questions"
+                        : (activeCategory 
+                          ? `Explore our exclusive ${activeCategory} exhibition categories`
+                          : "Explore our exclusive funtite exhibition packages")}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Content */}
+              {activeMenu === "About Exhibition" && (
+                <>
+                  <div className="border rounded-lg overflow-hidden mb-6">
+                    {loading.about ? (
                       <div className="flex flex-col items-center justify-center gap-2" style={{ minHeight: "200px", height: "auto" }}>
                         <span className="animate-spin h-6 w-6 md:h-8 md:w-8 border-4 border-gray-300 border-t-blue-600 rounded-full" />
                         <span className="text-gray-500 text-sm">Loading image...</span>
                       </div>
-                    ) : menuData[activeMenu].imageText && isImageUrl(menuData[activeMenu].imageText) ? (
+                    ) : menuData["About Exhibition"].imageText && isImageUrl(menuData["About Exhibition"].imageText) ? (
                       <div className="relative w-full">
-                        {/* Banner Image */}
                         <img
-                          src={menuData[activeMenu].imageText}
+                          src={menuData["About Exhibition"].imageText}
                           alt="Exhibition Banner"
                           className="w-full h-auto block"
                           style={{ maxHeight: "450px", objectFit: "cover" }}
                           onError={(e) => {
-                            console.error('Image failed to load:', menuData[activeMenu].imageText);
+                            console.error('Image failed to load:', menuData["About Exhibition"].imageText);
                             e.currentTarget.style.display = 'none';
                             const parent = e.currentTarget.parentElement;
                             if (parent) {
@@ -345,18 +432,8 @@ useEffect(() => {
                           style={{ minHeight: "200px" }}
                         >
                           <div className="text-sm">Failed to load image</div>
-                          <div className="text-xs mt-2 break-all px-2">
-                            URL: {menuData[activeMenu].imageText}
-                          </div>
-                          <button
-                            className="mt-2 text-blue-500 text-xs underline"
-                            onClick={() => window.open(menuData[activeMenu].imageText, '_blank')}
-                          >
-                            Open image in new tab
-                          </button>
                         </div>
                         
-                        {/* Overlay Title - Responsive */}
                         <div className="absolute inset-0 flex items-center justify-center p-2">
                           <h1
                             className="font-black text-center"
@@ -374,25 +451,18 @@ useEffect(() => {
                       </div>
                     ) : (
                       <div className="flex items-center justify-center text-gray-500 text-center p-4" style={{ minHeight: "200px" }}>
-                        <div className="text-sm">
-                          No image available
-                          {menuData[activeMenu].banner_image && (
-                            <div className="text-xs mt-2 break-all">
-                              Image filename: {menuData[activeMenu].banner_image}
-                            </div>
-                          )}
-                        </div>
+                        <div className="text-sm">No image available</div>
                       </div>
                     )}
                   </div>
                   
-                  <div className="mx-2 md:mx-4 mb-4 border">
-                    {menuData[activeMenu].qa.length > 0 ? (
-                      menuData[activeMenu].qa.map((item, index) => (
-                        <div key={index} className="border-t">
+                  <div className="border rounded-lg overflow-hidden">
+                    {menuData["About Exhibition"].qa.length > 0 ? (
+                      menuData["About Exhibition"].qa.map((item, index) => (
+                        <div key={index} className="border-b">
                           <div
                             onClick={() => handleQAClick(index)}
-                            className="flex justify-between items-center px-3 md:px-4 py-2 md:py-3 cursor-pointer"
+                            className="flex justify-between items-center px-4 py-3 cursor-pointer hover:bg-gray-50"
                             style={{ backgroundColor: "#2E3A8A", color: "#fff" }}
                           >
                             <span className="text-sm md:text-base">{item.q}</span>
@@ -400,11 +470,10 @@ useEffect(() => {
                           </div>
                           {openQA === index && (
                             <div
-                              className="px-3 md:px-4 py-3 md:py-4 bg-[#E8F0FF] overflow-y-auto text-sm md:text-base border border-black"
+                              className="px-4 py-4 bg-[#E8F0FF] overflow-y-auto text-sm md:text-base"
                               style={{
                                 minHeight: "150px",
                                 maxHeight: "250px",
-                                width: "100%",
                                 textAlign: "justify"
                               }}
                             >
@@ -415,7 +484,7 @@ useEffect(() => {
                       ))
                     ) : (
                       <div className="px-4 py-6 text-center text-gray-500 text-sm">
-                        {loading.about && activeMenu === "About Exhibition" ? (
+                        {loading.about ? (
                           <div className="flex items-center justify-center gap-2">
                             <span className="animate-spin h-4 w-4 border-2 border-gray-300 border-t-blue-600 rounded-full" />
                             Loading questions...
@@ -429,80 +498,192 @@ useEffect(() => {
                 </>
               )}
               
- {activeCategory && (
-  <div className="p-3 md:p-4">
-    <div className="flex justify-between items-center mb-3">
-      <h3 className="font-semibold text-sm md:text-base text-[#2E4D98]">{activeCategory}</h3>
-      {(activeCategory === "Domestic" && loading.domestic) ||
-       (activeCategory === "International" && loading.international) ? (
-        <span className="text-xs text-gray-500 flex items-center gap-1">
-          <span className="animate-spin h-2 w-2 md:h-3 md:w-3 border-2 border-gray-300 border-t-blue-600 rounded-full" />
-          Loading...
-        </span>
-      ) : null}
-    </div>
-    
-    {categoryData[activeCategory].length > 0 ? (
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse border border-black" style={{ tableLayout: "fixed" }}>
-          <colgroup>
-            <col style={{ width: "33.333%" }} />
-            <col style={{ width: "33.333%" }} />
-            <col style={{ width: "33.333%" }} />
-          </colgroup>
-          <tbody>
-            {categoryData[activeCategory].map((row, i) => (
-              <tr key={i}>
-                {row.map((cell, j) => (
-                  <td
-                    key={j}
-                    onClick={() => handleCellClick(cell)}
-                    className={`
-                      border border-black px-2.5 py-2
-                      text-center text-sm
-                      ${cell && cell !== "" 
-                        ? "cursor-pointer hover:bg-blue-100 transition-colors" 
-                        : "cursor-default bg-gray-100"
-                      }
-                    `}
-                  >
-                    <span className={cell && cell !== "" ? "font-medium text-gray-800 text-sm" : "text-gray-400 text-sm"}>
-                      {cell || "—"}
-                    </span>
-                    </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        {activeCategory === "Domestic" && (
+  <div className="p-0">
+
+    {/* 🔹 TOP ROW */}
+    <div className="flex items-center mb-1 gap-1">
+      {/* Box 1 */}
+      <div className="border border-black w-[355px] h-[45px] flex items-center justify-center font-semibold" style={{ backgroundColor: "#2E4D98", color: "white" }}>
+        Domestic
       </div>
-    ) : (
-      <div className="text-center py-6 md:py-8 text-gray-500">
-        {activeCategory === "Domestic" && loading.domestic ? (
-          <div className="flex flex-col items-center gap-2">
-            <span className="animate-spin h-6 w-6 border-4 border-gray-300 border-t-blue-600 rounded-full" />
-            <span className="text-sm">Loading domestic categories...</span>
-          </div>
-        ) : activeCategory === "International" && loading.international ? (
-          <div className="flex flex-col items-center gap-2">
-            <span className="animate-spin h-6 w-6 border-4 border-gray-300 border-t-blue-600 rounded-full" />
-            <span className="text-sm">Loading international categories...</span>
-          </div>
-        ) : (
-          <p className="text-sm">No categories available</p>
+
+      {/* Box 2 - Search with clear button */}
+      <div className="relative w-[365px] b-blue-100">
+        <input
+          type="text"
+          placeholder="Search categories..."
+          value={searchQuery}
+          onChange={(e) => {
+            setSearchQuery(e.target.value);
+            setShowSearchBtn(e.target.value.trim() !== "");
+            if (e.target.value.trim() === "") {
+              setIsSearchActive(false);
+            }
+          }}
+          className="border border-black w-full h-[45px] px-4 outline-none pr-10 bg-blue-100"
+        />
+        {searchQuery && (
+          <button
+            type="button"
+            onClick={() => {
+              setSearchQuery("");
+              setShowSearchBtn(false);
+              setIsSearchActive(false);
+            }}
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+          >
+            ✕
+          </button>
         )}
+      </div>
+
+      {/* Box 3 */}
+      <button
+        onClick={handleSearch}
+        className="text-white w-[330px] h-[45px] border border-black"
+        style={{ backgroundColor: "red" }}
+      >
+        Search
+      </button>
+    </div>
+
+    {/* 🔹 CATEGORY BOXES */}
+    {loading.domestic ? (
+      <div className="flex justify-center py-8">
+        <span className="animate-spin h-4 w-8 border-4 border-gray-300 border-t-blue-600 rounded-full" />
+      </div>
+    ) : filteredDomesticCategories.length > 0 ? (
+      <>
+        {/* {isSearchActive && (
+          <div className="mb-3 text-sm text-gray-600">
+            Found {filteredDomesticCategories.length} result(s) for "{searchQuery}"
+          </div>
+        )} */}
+        <div className="grid grid-cols-5 gap-1">
+          {filteredDomesticCategories.map((cell, index) => (
+            <div
+              key={index}
+              onClick={() => handleCellClick(cell)}
+              className="
+                border border-black
+                w-full h-[40px]
+                flex items-center justify-center
+                text-center text-sm
+                cursor-pointer bg-blue-100 hover:bg-blue-200
+              "
+            >
+              <span className="font-medium">{cell}</span>
+            </div>
+          ))}
+        </div>
+      </>
+    ) : (
+      <div className="text-center py-8 text-gray-500">
+        {isSearchActive 
+          ? `No categories found matching "${searchQuery}"`
+          : "No domestic categories available"}
+      </div>
+    )}
+  </div>
+)}
+
+{activeCategory === "International" && (
+  <div className="p-1">
+
+    {/* 🔹 TOP ROW */}
+    <div className="flex items-center mb-1 gap-1">
+      {/* Box 1 */}
+      <div className="border border-black w-[355px] h-[45px] flex items-center justify-center font-semibold" style={{ backgroundColor: "#2E4D98", color: "white" }}>
+        International
+      </div>
+
+      {/* Box 2 - Search with clear button */}
+      <div className="relative w-[355px] bg-blue-100">
+        <input
+          type="text"
+          placeholder="Search categories..."
+          value={searchQuery}
+          onChange={(e) => {
+            setSearchQuery(e.target.value);
+            setShowSearchBtn(e.target.value.trim() !== "");
+            if (e.target.value.trim() === "") {
+              setIsSearchActive(false);
+            }
+          }}
+          className="border border-black w-full h-[45px] px-4 outline-none pr-10 bg-blue-100"
+        />
+        {searchQuery && (
+          <button
+            type="button"
+            onClick={() => {
+              setSearchQuery("");
+              setShowSearchBtn(false);
+              setIsSearchActive(false);
+            }}
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+          >
+            ✕
+          </button>
+        )}
+      </div>
+
+      {/* Box 3 */}
+      <button
+        onClick={handleSearch}
+        className="text-white w-[330px] h-[45px] border border-black"
+        style={{ backgroundColor: "red" }}
+      >
+        Search
+      </button>
+    </div>
+
+    {/* 🔹 CATEGORY BOXES */}
+    {loading.international ? (
+      <div className="flex justify-center py-8">
+        <span className="animate-spin h-2 w-8 border-4 border-gray-300 border-t-blue-600 rounded-full" />
+      </div>
+    ) : filteredInternationalCategories.length > 0 ? (
+      <>
+        {/* {isSearchActive && (
+          <div className="mb-3 text-sm text-gray-600">
+            Found {filteredInternationalCategories.length} result(s) for "{searchQuery}"
+          </div>
+        )} */}
+        <div className="grid grid-cols-5 gap-1">
+          {filteredInternationalCategories.map((cell, index) => (
+            <div
+              key={index}
+              onClick={() => handleCellClick(cell)}
+              className="
+                border border-black
+                w-full h-[40px]
+                flex items-center justify-center
+                text-center text-sm
+                cursor-pointer bg-blue-100 hover:bg-blue-200
+              "
+            >
+              <span className="font-medium">{cell}</span>
+            </div>
+          ))}
+        </div>
+      </>
+    ) : (
+      <div className="text-center py-8 text-gray-500">
+        {isSearchActive 
+          ? `No categories found matching "${searchQuery}"`
+          : "No international categories available"}
       </div>
     )}
   </div>
 )}
               
               {!activeMenu && !activeCategory && (
-                <div className="flex items-center justify-center h-full text-gray-400 py-8 md:py-16">
-                  <p className="text-sm md:text-base text-center px-4">Select an item from the menu</p>
+                <div className="flex items-center justify-center h-full text-gray-400 py-16">
+                  <p className="text-sm md:text-base text-center px-4">Select an item from the sidebar to view content</p>
                 </div>
               )}
-              
-            </div>
+            </main>
           </div>
         </div>
       </main>
