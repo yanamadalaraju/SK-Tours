@@ -200,7 +200,7 @@ const [filteredTourData, setFilteredTourData] = useState<any>(null);
   const [tour, setTour] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [autoScrollInterval, setAutoScrollInterval] = useState<NodeJS.Timeout | null>(null);
+  const [autoScrollInterval, setAutoScrollInterval] = useState<number | null>(null);
 const [searchQuery, setSearchQuery] = useState("");
 const [showSearchBtn, setShowSearchBtn] = useState(false);
 const [isSearchActive, setIsSearchActive] = useState(false);
@@ -911,8 +911,8 @@ const handleSearch = (e: React.FormEvent) => {
        <aside className="lg:w-80">
   <div className="bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl shadow-lg p-6 border border-blue-200 sticky top-24">
     {/* Header with Clear All button - Updated */}
-    <div className="flex justify-between items-center mb-4 bg-white p-2 rounded-lg border border-black">
-      <h2 className="text-2xl font-bold text-[#2E4D98]">Exhibitions</h2>
+    <div className="flex justify-between items-center mb-4 bg-[#2E4D98] p-2 rounded-lg border border-black">
+      <h2 className="text-2xl font-bold text-white">Exhibitions</h2>
       <button
         onClick={() => {
           // Reset all filters
@@ -927,7 +927,7 @@ const handleSearch = (e: React.FormEvent) => {
           // Navigate back to main exhibition page
          
         }}
-        className="text-sm text-[#E53C42] hover:underline"
+        className="text-sm text-[white] hover:underline"
       >
         Clear All
       </button>
@@ -1113,77 +1113,77 @@ const handleSearch = (e: React.FormEvent) => {
   Domestic Exhibition
 </div>
 
-<div className="w-full overflow-hidden border-black border mb-2">
-  <div className="flex w-full divide-x divide-black">
-    
+<div className="w-full overflow-hidden border mb-2">
+  <div className="flex w-full items-stretch gap-1">
     {/* City Label */}
-    <div className="w-1/5 flex items-center justify-center p-3 bg-[#2E3A8A]">
+    <div className="flex-1 flex items-center justify-center p-3 bg-[#2E3A8A] border border-black">
       <span className="font-bold text-white">City:</span>
     </div>
 
     {/* City Value */}
-    <div className="w-1/5 flex items-center justify-center p-3 bg-blue-100">
-      <span className="text-[#2E3A8A]  font-bold">{tour.cityName || "City"}</span>
+    <div className="flex-1 flex items-center justify-center p-3 bg-blue-100 border border-black">
+      <span className="text-[#2E3A8A] font-bold">{tour.cityName || "City"}</span>
     </div>
 
     {/* Exhibition Label */}
-    <div className="w-1/5 flex items-center justify-center p-3 bg-[#2E3A8A]">
+    <div className="flex-1 flex items-center justify-center p-3 bg-[#2E3A8A] border border-black">
       <span className="font-bold text-white">Exhibition:</span>
     </div>
 
     {/* Exhibition Value */}
-    <div className="w-1/5 flex items-center justify-center p-3 bg-blue-100">
+    <div className="flex-1 flex items-center justify-center p-3 bg-blue-100 border border-black">
       <span className="text-[#2E3A8A] font-bold text-sm text-center">{tour.title || "Exhibition Name"}</span>
     </div>
-{/* Search - 5th column */}
-<div className="w-1/5 flex items-center" style={{ backgroundColor: "red" }}>
-  <style>{`
-    input::placeholder {
-      color: white !important;
-      opacity: 1;
-    }
-  `}</style>
-  <form onSubmit={handleSearch} className="flex w-full h-full">
-    <input
-      type="text"
-      placeholder="Search..."
-      value={searchQuery}
-      onChange={(e) => {
-        setSearchQuery(e.target.value);
-        setIsSearchActive(false);
-      }}
-      className="flex-1 px-2 py-2 text-sm outline-none border-none w-full"
-      style={{
-        backgroundColor: "red",
-        color: "white"
-      }}
-    />
-    {searchQuery && (
-      <button
-        type="button"
-        onClick={clearSearch}
-        className="px-1 " style={{
-        backgroundColor: "red",
-        color: "white"
-      }}
-      >
-        ✕
-      </button>
-    )}
-    {searchQuery && (
-      <button
-        type="submit"
-        className="text-white p-3"
-      >
-        <FaSearch size={16} />
-      </button>
-    )}
-  </form>
-</div>
 
+    {/* Search Column */}
+    <div className="w-64 flex items-center bg-red-500 border border-black flex-shrink-0">
+      <style>{`
+        input::placeholder {
+          color: white !important;
+          opacity: 1;
+        }
+      `}</style>
+      <form onSubmit={handleSearch} className="flex w-full h-full">
+        <input
+          type="text"
+          placeholder="Search..."
+          value={searchQuery}
+          onChange={(e) => {
+            setSearchQuery(e.target.value);
+            setIsSearchActive(false);
+          }}
+          className="flex-1 px-2 py-2 text-md font-bold outline-none border-none min-w-0"
+          style={{
+            backgroundColor: "red",
+            color: "white"
+          }}
+        />
+        {searchQuery && (
+          <button
+            type="button"
+            onClick={clearSearch}
+            className="px-3 py-2 flex-shrink-0 hover:bg-red-600 transition-colors"
+            style={{
+              backgroundColor: "red",
+              color: "white"
+            }}
+          >
+            ✕
+          </button>
+        )}
+        <button
+          type="submit"
+          className="text-white px-3 py-2 flex-shrink-0 hover:bg-red-600 transition-colors"
+          style={{
+            backgroundColor: "red"
+          }}
+        >
+          <FaSearch size={16} />
+        </button>
+      </form>
+    </div>
   </div>
 </div>
-
 
  
 
@@ -1318,60 +1318,63 @@ const handleSearch = (e: React.FormEvent) => {
 
                 {/* Tab Content */}
                 <div className="bg-[#2E4D98] rounded-md shadow-sm p-2 lg:p-4">
-                  {activeTab === "itinerary" && (
-                    <div className="bg-[#C2E2FA] rounded-lg p-1 h-full">
-                      <div className="mx-auto bg-white rounded-lg shadow-lg h-full flex flex-col min-h-0">
-                        <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 rounded-t-lg flex-shrink-0">
-                          Tour Itinerary
-                        </div>
+             {activeTab === "itinerary" && (
+  <div className="bg-[#C2E2FA] rounded-lg p-1 h-full">
+    <div className="mx-auto bg-[#FFEBEE] rounded-lg shadow-lg h-full flex flex-col min-h-0">
+      
+      {/* Tour Overview Box - First */}
+      <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden flex-shrink-0">
+        <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
+          Exhibition Overview
+        </div>
+        <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
+          <div className="min-h-[150px] lg:min-h-[180px] max-h-[200px] lg:max-h-[250px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+            <div className="space-y-4 w-full">
+              <div className="border-gray-200 rounded-lg w-full">
+                <div className="flex items-start w-full">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-black break-words whitespace-pre-wrap text-justify w-full text-sm lg:text-base">
+                      {tour.overview || "No overview available for this tour."}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-                        <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
-                          <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
-                            Tour Overview
-                          </div>
-                          <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-                            <div className="min-h-[150px] lg:min-h-[180px] max-h-[200px] lg:max-h-[250px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-                              <div className="space-y-4 w-full">
-                                <div className="border-gray-200 rounded-lg w-full">
-                                  <div className="flex items-start w-full">
-                                    <div className="flex-1 min-w-0">
-                                      <p className="text-black break-words whitespace-pre-wrap text-justify w-full text-sm lg:text-base">
-                                        {tour.overview || "No overview available for this tour."}
-                                      </p>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+      {/* Tour Itinerary Box - Second */}
+      <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 rounded-t-lg flex-shrink-0 mt-1">
+        Tour Itinerary
+      </div>
 
-                        <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg flex-1 min-h-0">
-                          <div className="bg-[#FFEBEE] h-full overflow-hidden">
-                            <div className="space-y-1 p-1 h-full overflow-y-auto">
-                              {tour.itinerary.map((day: any, index: number) => (
-                                <DayCard
-                                  key={index}
-                                  dayNumber={day.day}
-                                  headerColor={dayCardColors[index % dayCardColors.length]?.headerColor || "bg-[#A72703]"}
-                                  bodyColor={dayCardColors[index % dayCardColors.length]?.bodyColor || "bg-[#FFE797]"}
-                                  dayData={day}
-                                />
-                              ))}
-                              <div className="pt-0">
-                                <button
-                                  onClick={() => navigate("/alert")}
-                                  className="w-full font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90 text-sm lg:text-base"
-                                >
-                                  Customize your tour on chargeable basis
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+      <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg flex-1 min-h-0">
+        <div className="bg-[#FFEBEE] h-full overflow-hidden">
+          <div className="space-y-1 p-1 h-full overflow-y-auto">
+            {tour.itinerary.map((day: any, index: number) => (
+              <DayCard
+                key={index}
+                dayNumber={day.day}
+                headerColor={dayCardColors[index % dayCardColors.length]?.headerColor || "bg-[#A72703]"}
+                bodyColor={dayCardColors[index % dayCardColors.length]?.bodyColor || "bg-[#FFE797]"}
+                dayData={day}
+              />
+            ))}
+            <div className="pt-0">
+              <button
+                onClick={() => navigate("/alert")}
+                className="w-full font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90 text-sm lg:text-base"
+              >
+                Customize your tour on chargeable basis
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
 {activeTab === "dep-date" && (
   <div className="bg-[#E8F0FF] rounded-lg p-1 w-full">
     <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
@@ -1431,58 +1434,75 @@ const handleSearch = (e: React.FormEvent) => {
           })()}
         </div>
 
+        {/* Table Header */}
+        <div className="border-2 border-[#2E3a8a] overflow-hidden mb-2">
+          <div className="grid grid-cols-5 bg-[#2E3a8a] text-white font-semibold text-center">
+            <div className="p-2 border-r-2 border-white text-xs lg:text-sm">From</div>
+            <div className="p-2 border-r-2 border-white text-xs lg:text-sm">To</div>
+            <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Status</div>
+            <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Price</div>
+            <div className="p-2 text-xs lg:text-sm">Action</div>
+          </div>
+        </div>
+
         <div className="space-y-3 lg:space-y-4 w-full">
           {filteredDepartureData.map((item, index) => (
-            <div key={item.id || index} className="border border-2 border-black p-2 lg:p-4 bg-white space-y-3 lg:space-y-4">
-              <div className="grid grid-cols-2 lg:grid-cols-5 items-center gap-2 lg:gap-0">
-                <div>
-                  <p className="text-xs lg:text-sm text-gray-500">From</p>
-                  <p className="font-semibold text-xs lg:text-base">{item.fromDate}</p>
-                  <p className="text-xs text-gray-500">{item.fromDay}</p>
-                </div>
+            <div key={item.id || index} className="w-full">
+              {/* Table Row */}
+              <div className="border-2 border-black bg-white">
+                <div className="grid grid-cols-5 items-center gap-0">
+                  <div className="p-2 border-r-2 border-black">
+                    <p className="font-semibold text-xs lg:text-base">{item.fromDate}</p>
+                    <p className="text-xs text-gray-500">{item.fromDay}</p>
+                  </div>
 
-                <div>
-                  <p className="text-xs lg:text-sm text-gray-500">To</p>
-                  <p className="font-semibold text-xs lg:text-base">{item.toDate}</p>
-                  <p className="text-xs text-gray-500">{item.toDay}</p>
-                </div>
+                  <div className="p-2 border-r-2 border-black">
+                    <p className="font-semibold text-xs lg:text-base">{item.toDate}</p>
+                    <p className="text-xs text-gray-500">{item.toDay}</p>
+                  </div>
 
-                <div className="col-span-2 lg:col-span-1 flex items-center justify-center">
-                  <span className={`font-semibold text-xs lg:text-base ${item.status === 'Sold Out'
-                    ? 'text-red-600'
-                    : item.status === 'Available'
-                      ? 'text-green-600'
-                      : 'text-blue-700'
-                    }`}>
-                    {item.status}
-                  </span>
-                </div>
+                  <div className="p-2 border-r-2 border-black text-center">
+                    <span className={`font-semibold text-xs lg:text-base ${item.status === 'Sold Out'
+                      ? 'text-red-600'
+                      : item.status === 'Available'
+                        ? 'text-green-600'
+                        : 'text-blue-700'
+                      }`}>
+                      {item.status}
+                    </span>
+                  </div>
 
-                <div className="text-sm lg:text-lg font-bold text-gray-900">
-                  {formatPriceExhibition(item.price)}
-                </div>
+                  <div className="p-2 border-r-2 border-black text-center">
+                    <span className="text-sm lg:text-lg font-bold text-gray-900">
+                      {formatPriceExhibition(item.price)}
+                    </span>
+                  </div>
 
-                <button
-                  onClick={() => toggleTable(index)}
-                  disabled={item.status === 'Sold Out'}
-                  className={`px-2 lg:px-6 py-1 lg:py-2 transition-colors text-xs lg:text-sm ${item.status === 'Sold Out'
-                    ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                    : 'bg-[#003366] text-white hover:bg-[#002244]'
-                    } ${openIndex === index ? 'bg-[#002244]' : ''}`}
-                >
-                  {item.status === 'Sold Out'
-                    ? 'Sold Out'
-                    : openIndex === index
-                      ? 'Hide Table'
-                      : 'Select'
-                  }
-                </button>
+                  <div className="p-2 text-center">
+                    <button
+                      onClick={() => toggleTable(index)}
+                      disabled={item.status === 'Sold Out'}
+                      className={`px-2 lg:px-6 py-1 lg:py-2 transition-colors text-xs lg:text-sm w-full ${item.status === 'Sold Out'
+                        ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                        : 'bg-[#2E3a8a] text-white hover:bg-[#2E4D98]'
+                        } ${openIndex === index ? 'bg-[#2E3a8a]' : ''}`}
+                    >
+                      {item.status === 'Sold Out'
+                        ? 'Sold Out'
+                        : openIndex === index
+                          ? 'Hide Table'
+                          : 'Select'
+                      }
+                    </button>
+                  </div>
+                </div>
               </div>
 
+              {/* Expanded Table */}
               {openIndex === index && item.status !== 'Sold Out' && (
-                <div className="border-2 border-black overflow-hidden animate-fadeIn overflow-x-auto">
+                <div className="border-2 border-[#2E3a8a] border-t-0 overflow-hidden animate-fadeIn overflow-x-auto mt-1">
                   <div className="min-w-[600px] lg:min-w-0">
-                    <div className="grid grid-cols-4 bg-[#0A1D4A] text-white font-semibold text-center">
+                    <div className="grid grid-cols-4 bg-[#2E3a8a] text-white font-semibold text-center">
                       <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Particulars - Tour Cost</div>
                       <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Standard</div>
                       <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Deluxe</div>
@@ -1492,15 +1512,12 @@ const handleSearch = (e: React.FormEvent) => {
                     {[
                       { particular: "Per pax on Twin Basis", star3: item.threeStar?.twin || "NA", star4: item.fourStar?.twin || "NA", star5: item.fiveStar?.twin || "NA" },
                       { particular: "Per pax on Triple Basis", star3: item.threeStar?.triple || "NA", star4: item.fourStar?.triple || "NA", star5: item.fiveStar?.triple || "NA" },
-                      // { particular: "Child with Bed", star3: item.threeStar?.childWithBed || "NA", star4: item.fourStar?.childWithBed || "NA", star5: item.fiveStar?.childWithBed || "NA" },
-                      // { particular: "Child without Bed", star3: item.threeStar?.childWithoutBed || "NA", star4: item.fourStar?.childWithoutBed || "NA", star5: item.fiveStar?.childWithoutBed || "NA" },
-                      // { particular: "Infant", star3: item.threeStar?.infant || "NA", star4: item.fourStar?.infant || "NA", star5: item.fiveStar?.infant || "NA" },
                       { particular: "Per pax Single Occupancy", star3: item.threeStar?.single || "NA", star4: item.fourStar?.single || "NA", star5: item.fiveStar?.single || "NA" },
                     ].map((row, i) => (
                       <div
                         key={i}
                         className={`grid grid-cols-4 text-center border-b-2 border-black ${i % 2 === 0 ? "bg-[#EEF1F7]" : "bg-white"
-                          } ${i === 5 ? 'border-b-0' : ''}`}
+                          } ${i === 2 ? 'border-b-0' : ''}`}
                       >
                         <div className="p-2 border-r-2 border-black font-medium text-xs lg:text-sm text-left">
                           {row.particular}
@@ -1539,7 +1556,6 @@ const handleSearch = (e: React.FormEvent) => {
       </div>
     </div>
 
-
     <div className="mt-1">
       <button
         onClick={() => navigate("/alert")}
@@ -1551,7 +1567,7 @@ const handleSearch = (e: React.FormEvent) => {
   </div>
 )}
 
-            {activeTab === "tour-cost" && (
+{activeTab === "tour-cost" && (
   <div className="bg-[#E8F0FF] rounded-lg p-1">
     <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg mb-1.5">
       Tour Cost
@@ -1559,62 +1575,67 @@ const handleSearch = (e: React.FormEvent) => {
 
     <div className="mb-0">
       <div className="p-3 lg:p-4 border-2 border-black border-t-0 rounded-b-lg">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4 mb-3 lg:mb-4">
-          <div>
-            <label className="block text-gray-700 font-bold mb-2 text-sm lg:text-base">Month</label>
-            <select
-              className="w-full border-2 border-black rounded-md px-3 py-2 bg-white text-sm lg:text-base"
-              value={selectedCostMonth}
-              onChange={(e) => {
-                setSelectedCostMonth(e.target.value);
-                setSelectedCostDate("");
-              }}
-            >
-              <option value="">Select Month</option>
-              {availableMonths.map(month => {
-                const monthDepartures = departuresByMonth[month] || [];
-                const allSoldOut = monthDepartures.length > 0 && 
-                                  monthDepartures.every(dep => dep.status === 'Sold Out');
-                
-                return (
-                  <option 
-                    key={month} 
-                    value={month}
-                    disabled={allSoldOut}
-                    style={allSoldOut ? { color: '#999', fontStyle: 'italic' } : {}}
-                  >
-                    {month} {allSoldOut ? '(Sold Out)' : ''}
-                  </option>
-                );
-              })}
-            </select>
+        {/* Month and Date Selection - Table format */}
+        <div className="border-2 border-[#2E3a8a] overflow-hidden mb-4">
+          <div className="grid grid-cols-2 bg-[#2E3a8a] text-white font-semibold text-center">
+            <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Month</div>
+            <div className="p-2 text-xs lg:text-sm">Date</div>
           </div>
-
-          <div>
-            <label className="block text-gray-700 font-bold mb-2 text-sm lg:text-base">Date</label>
-            <select
-              className="w-full border-2 border-black rounded-md px-3 py-2 bg-white text-sm lg:text-base"
-              value={selectedCostDate}
-              onChange={(e) => setSelectedCostDate(e.target.value)}
-              disabled={!selectedCostMonth}
-            >
-              <option value="">Select Date</option>
-              {availableDates
-                .filter(dep => dep.status !== 'Sold Out')
-                .map(dep => (
-                  <option key={dep.id} value={dep.fromDate}>
-                    {dep.fromDate} – {dep.toDate}
-                  </option>
-                ))
-              }
-            </select>
+          
+          <div className="grid grid-cols-2 text-center">
+            <div className="p-2 border-r-2 border-black bg-[#EEF1F7]">
+              <select
+                className="w-full border-2 border-black rounded-md px-3 py-2 bg-white text-sm lg:text-base"
+                value={selectedCostMonth}
+                onChange={(e) => {
+                  setSelectedCostMonth(e.target.value);
+                  setSelectedCostDate("");
+                }}
+              >
+                <option value="">Select Month</option>
+                {availableMonths.map(month => {
+                  const monthDepartures = departuresByMonth[month] || [];
+                  const allSoldOut = monthDepartures.length > 0 && 
+                                    monthDepartures.every(dep => dep.status === 'Sold Out');
+                  
+                  return (
+                    <option 
+                      key={month} 
+                      value={month}
+                      disabled={allSoldOut}
+                      style={allSoldOut ? { color: '#999', fontStyle: 'italic' } : {}}
+                    >
+                      {month} {allSoldOut ? '(Sold Out)' : ''}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+            <div className="p-2 bg-white">
+              <select
+                className="w-full border-2 border-black rounded-md px-3 py-2 bg-white text-sm lg:text-base"
+                value={selectedCostDate}
+                onChange={(e) => setSelectedCostDate(e.target.value)}
+                disabled={!selectedCostMonth}
+              >
+                <option value="">Select Date</option>
+                {availableDates
+                  .filter(dep => dep.status !== 'Sold Out')
+                  .map(dep => (
+                    <option key={dep.id} value={dep.fromDate}>
+                      {dep.fromDate} – {dep.toDate}
+                    </option>
+                  ))
+                }
+              </select>
+            </div>
           </div>
         </div>
 
         {selectedDeparture ? (
-          <div className="border-2 border-black overflow-hidden animate-fadeIn overflow-x-auto">
+          <div className="border-2 border-[#2E3a8a] overflow-hidden animate-fadeIn overflow-x-auto">
             <div className="min-w-[600px] lg:min-w-0">
-              <div className="grid grid-cols-4 bg-[#0A1D4A] text-white font-semibold text-center">
+              <div className="grid grid-cols-4 bg-[#2E3a8a] text-white font-semibold text-center">
                 <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Particulars - Tour Cost</div>
                 <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Standard</div>
                 <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Deluxe</div>
@@ -1634,24 +1655,6 @@ const handleSearch = (e: React.FormEvent) => {
                   star4: selectedDeparture.fourStar?.triple || "NA",
                   star5: selectedDeparture.fiveStar?.triple || "NA"
                 },
-                // {
-                //   particular: "Child with Bed",
-                //   star3: selectedDeparture.threeStar?.childWithBed || "NA",
-                //   star4: selectedDeparture.fourStar?.childWithBed || "NA",
-                //   star5: selectedDeparture.fiveStar?.childWithBed || "NA"
-                // },
-                // {
-                //   particular: "Child without Bed",
-                //   star3: selectedDeparture.threeStar?.childWithoutBed || "NA",
-                //   star4: selectedDeparture.fourStar?.childWithoutBed || "NA",
-                //   star5: selectedDeparture.fiveStar?.childWithoutBed || "NA"
-                // },
-                // {
-                //   particular: "Infant",
-                //   star3: selectedDeparture.threeStar?.infant || "NA",
-                //   star4: selectedDeparture.fourStar?.infant || "NA",
-                //   star5: selectedDeparture.fiveStar?.infant || "NA"
-                // },
                 {
                   particular: "Per pax Single Occupancy",
                   star3: selectedDeparture.threeStar?.single || "NA",
@@ -1662,7 +1665,7 @@ const handleSearch = (e: React.FormEvent) => {
                 <div
                   key={i}
                   className={`grid grid-cols-4 text-center border-b-2 border-black ${i % 2 === 0 ? "bg-[#EEF1F7]" : "bg-white"
-                    } ${i === 5 ? 'border-b-0' : ''}`}
+                    } ${i === 2 ? 'border-b-0' : ''}`}
                 >
                   <div className="p-2 border-r-2 border-black font-medium text-xs lg:text-sm text-left">
                     {row.particular}
@@ -1689,6 +1692,7 @@ const handleSearch = (e: React.FormEvent) => {
       </div>
     </div>
 
+    {/* Rest of the code remains the same */}
     {/* Tour Cost Remarks */}
     <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
       <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">

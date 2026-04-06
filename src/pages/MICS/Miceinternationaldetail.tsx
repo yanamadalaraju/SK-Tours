@@ -5,9 +5,9 @@ import { ChevronLeft, ChevronRight, Download } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { PDFDownloadLink } from '@react-pdf/renderer';
-import TourPdfDocumentinternational from '../../pages/TourPdfDocumentinternational';
+import TourPdfDocumentinternational from '../TourPdfDocumentinternational';
 import { BASE_URL } from '@/ApiUrls';
-import EmailModal from '../../pages/EmailModal';
+import EmailModal from '../EmailModal';
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -91,8 +91,8 @@ const DayCard = ({ dayNumber, headerColor, bodyColor, dayData }) => {
 };
 
 // Main Component
-const Exhibitioninternationalindetail = () => {
-  const { tourId: exhibitionId } = useParams();
+const Miceinternationaldetail = () => {
+  const { tourId: miceId } = useParams();
   const navigate = useNavigate();
 
   // State Management
@@ -184,16 +184,16 @@ const Exhibitioninternationalindetail = () => {
   // ── Sidebar Handlers ─────────────────────────────────────────────────────
   const handleAboutClick = () => navigate('/exhibition', { state: { category: null } });
 
-  const handleDomesticClick = (category: string) => {
-    const found = domesticExhibitionData.find(
-      (item) => item.domestic_category_name === category
-    );
-    if (found) {
-      navigate(`/exhibitiondetail/${found.id}`);
-    } else {
-      navigate('/exhibition', { state: { category } });
-    }
-  };
+// Update this function in Miceinternationaldetail.tsx
+const handleDomesticClick = (category: string) => {
+  const found = domesticExhibitionData.find(
+    (item) => item.domestic_category_name === category
+  );
+  if (found) {
+    // Change this line - use the MICE domestic detail route instead
+    navigate(`/micedomesticdetail/${found.id}`);
+  } 
+};
 
   const handleInternationalClick = (category: string) => {
     const found = internationalExhibitionData.find(
@@ -204,12 +204,10 @@ const Exhibitioninternationalindetail = () => {
     }
   };
 
-
   const transformDeparturesToGroupFormat = (departures: any[]) => {
     if (!departures || departures.length === 0) return [];
 
     return departures.map((dep, index) => {
-      // Check if start_date exists and is valid
       if (!dep.start_date || dep.start_date === null) {
         return {
           id: dep.departure_id || index,
@@ -220,37 +218,15 @@ const Exhibitioninternationalindetail = () => {
           toDate: "N/A",
           status: dep.status || 'Available',
           price: 0,
-          threeStar: {
-            twin: "NA",
-            triple: "NA",
-            childWithBed: "NA",
-            childWithoutBed: "NA",
-            infant: "NA",
-            single: "NA"
-          },
-          fourStar: {
-            twin: "NA",
-            triple: "NA",
-            childWithBed: "NA",
-            childWithoutBed: "NA",
-            infant: "NA",
-            single: "NA"
-          },
-          fiveStar: {
-            twin: "NA",
-            triple: "NA",
-            childWithBed: "NA",
-            childWithoutBed: "NA",
-            infant: "NA",
-            single: "NA"
-          }
+          threeStar: { twin: "NA", triple: "NA", childWithBed: "NA", childWithoutBed: "NA", infant: "NA", single: "NA" },
+          fourStar: { twin: "NA", triple: "NA", childWithBed: "NA", childWithoutBed: "NA", infant: "NA", single: "NA" },
+          fiveStar: { twin: "NA", triple: "NA", childWithBed: "NA", childWithoutBed: "NA", infant: "NA", single: "NA" }
         };
       }
 
       const startDate = new Date(dep.start_date);
       const endDate = dep.end_date ? new Date(dep.end_date) : startDate;
 
-      // Check if date is valid
       if (isNaN(startDate.getTime())) {
         return {
           id: dep.departure_id || index,
@@ -261,30 +237,9 @@ const Exhibitioninternationalindetail = () => {
           toDate: "N/A",
           status: dep.status || 'Available',
           price: 0,
-          threeStar: {
-            twin: "NA",
-            triple: "NA",
-            childWithBed: "NA",
-            childWithoutBed: "NA",
-            infant: "NA",
-            single: "NA"
-          },
-          fourStar: {
-            twin: "NA",
-            triple: "NA",
-            childWithBed: "NA",
-            childWithoutBed: "NA",
-            infant: "NA",
-            single: "NA"
-          },
-          fiveStar: {
-            twin: "NA",
-            triple: "NA",
-            childWithBed: "NA",
-            childWithoutBed: "NA",
-            infant: "NA",
-            single: "NA"
-          }
+          threeStar: { twin: "NA", triple: "NA", childWithBed: "NA", childWithoutBed: "NA", infant: "NA", single: "NA" },
+          fourStar: { twin: "NA", triple: "NA", childWithBed: "NA", childWithoutBed: "NA", infant: "NA", single: "NA" },
+          fiveStar: { twin: "NA", triple: "NA", childWithBed: "NA", childWithoutBed: "NA", infant: "NA", single: "NA" }
         };
       }
 
@@ -351,12 +306,10 @@ const Exhibitioninternationalindetail = () => {
 
   useEffect(() => {
     if (!tour) return;
-
     const tourDuration = tour.duration ? parseInt(tour.duration.split('/')[1]) || 0 : 0;
-
     const isWithinDuration = tourDuration >= durationRange[0] && tourDuration <= durationRange[1];
-
   }, [durationRange, tour]);
+
   const formatPriceExhibition = (price: string | number) => {
     if (typeof price === 'number') {
       return `₹${price.toLocaleString('en-IN')}`;
@@ -369,17 +322,20 @@ const Exhibitioninternationalindetail = () => {
     }
     return price || '₹0';
   };
-  const handleDomesticCheckboxChange = (category: string, checked: boolean) => {
-    if (checked) {
-      setSelectedDomesticCategories([category]);
-      setSelectedInternationalCategories([]);
-      const found = domesticExhibitionData.find(d => d.domestic_category_name === category);
-      if (found) navigate(`/exhibitiondetail/${found.id}`);
-    } else {
-      setSelectedDomesticCategories([]);
-    }
-  };
 
+const handleDomesticCheckboxChange = (category: string, checked: boolean) => {
+  if (checked) {
+    setSelectedDomesticCategories([category]);
+    setSelectedInternationalCategories([]);
+    const found = domesticExhibitionData.find(d => d.domestic_category_name === category);
+    if (found) {
+      // Change this line as well
+      navigate(`/micedomesticdetail/${found.id}`);
+    }
+  } else {
+    setSelectedDomesticCategories([]);
+  }
+};
   const handleInternationalCheckboxChange = (category: string, checked: boolean) => {
     if (checked) {
       setSelectedInternationalCategories([category]);
@@ -407,41 +363,56 @@ const Exhibitioninternationalindetail = () => {
     setActiveVisaFeeType('tourist');
   };
 
-
-
-  const processTourData = (apiData, imagesArray) => {
+  // ── processTourData — updated for MICE API ────────────────────────────────
+  const processTourData = (apiData) => {
     const {
-      exhibition, tours, itineraries, departures, inclusions, exclusions,
-      costs, hotels, transports, bookingpoi, cancellationpolicies, instructions,
-      optionaltours, emioptions, visa_details, visa_forms, visa_fees, visa_submission,
-      structured_currency  ,tourist_visa_remarks  
+      mice_city,
+      tours,
+      itineraries,
+      departures,
+      inclusions,
+      exclusions,
+      hotels,
+      transports,
+      bookingpoi,
+      cancellationpolicies,
+      instructions,
+      optionaltours,
+      emioptions,
+      visa_details,
+      visa_forms,
+      visa_fees,
+      visa_submission,
+      structured_currency,
+      tourist_visa_remarks,
+      images   // ← pulled directly from apiData
     } = apiData;
 
     const basicDetails = tours?.[0] || {};
 
     const processImages = (imgs) => {
-      if (imgs?.length) {
+      console.log('🖼️ processImages called with:', imgs);
+      if (imgs && imgs.length > 0) {
+        // Sort so cover images come first
         const sorted = [...imgs].sort((a, b) => (b.is_cover - a.is_cover));
-        return sorted.map(img => img.url);
+          const urls = sorted.map(img => img.url).filter(Boolean);
+        console.log('🖼️ Processed image URLs:', urls);
+        return urls;
       }
+      console.warn('⚠️ No images found, using defaults');
       return getDefaultImages();
     };
 
-    // Transform departures to Group format
     const transformedDepartures = transformDeparturesToGroupFormat(departures);
-
-    // Filter out invalid departure data (dates that are N/A or Invalid)
     const validDepartures = transformedDepartures.filter(dep =>
       dep.month !== "No Date Available" && dep.month !== "Invalid Date"
     );
 
-    const processDepartures = () => {
-      return {
-        type: 'Group',
-        data: validDepartures,
-        descriptions: departures?.map((dep: any) => dep.description || '') || []
-      };
-    };
+    const processDepartures = () => ({
+      type: 'Group',
+      data: validDepartures,
+      descriptions: departures?.map((dep: any) => dep.description || '') || []
+    });
 
     const processItinerary = (arr) => {
       if (arr?.length) {
@@ -463,33 +434,22 @@ const Exhibitioninternationalindetail = () => {
       }));
     };
 
-    const processTourCost = (arr) => {
-      // Get remarks from basicDetails (outside this function)
+    // MICE API has no separate costs table — pricing comes from departures
+    const processTourCost = () => {
       const remarks = basicDetails.cost_remarks &&
         basicDetails.cost_remarks !== "Departures Description" ?
         [basicDetails.cost_remarks] : [];
-
-      if (arr?.length && arr[0]?.pax) {
-        return {
-          tableData: arr.map(cost => ({
-            passenger: `${cost.pax} Pax`,
-            standard: cost.standard_hotel !== "0.00" && cost.standard_hotel !== "0" ? formatPriceExhibition(cost.standard_hotel) : "NA",
-            deluxe: cost.deluxe_hotel !== "0.00" && cost.deluxe_hotel !== "0" ? formatPriceExhibition(cost.deluxe_hotel) : "NA",
-            executive: cost.executive_hotel !== "0.00" && cost.executive_hotel !== "0" ? formatPriceExhibition(cost.executive_hotel) : "NA",
-            childWithBed: cost.child_with_bed !== "0.00" && cost.child_with_bed !== "0" ? formatPriceExhibition(cost.child_with_bed) : "NA",
-            childNoBed: cost.child_no_bed !== "0.00" && cost.child_no_bed !== "0" ? formatPriceExhibition(cost.child_no_bed) : "NA"
-          })),
-          remarks: remarks
-        };
-      }
-      return {
-        tableData: [],
-        remarks: remarks
-      };
+      return { tableData: [], remarks };
     };
 
     const processOptionalTours = (arr) =>
-      arr?.length && arr[0]?.tour_name && arr[0]?.tour_name !== "Departures Description" ? arr.map(t => ({ tourName: t.tour_name || '', adultPrice: formatPriceExhibition(t.adult_price), childPrice: formatPriceExhibition(t.child_price) })) : [];
+      arr?.length && arr[0]?.tour_name && arr[0]?.tour_name !== "Departures Description"
+        ? arr.map(t => ({
+          tourName: t.tour_name || '',
+          adultPrice: formatPriceExhibition(t.adult_price),
+          childPrice: formatPriceExhibition(t.child_price)
+        }))
+        : [];
 
     const processEMIOptions = (arr) => {
       if (arr?.length && arr[0]?.loan_amount && arr[0]?.loan_amount !== "0.00") {
@@ -525,7 +485,8 @@ const Exhibitioninternationalindetail = () => {
             deluxe: hotel.deluxe_hotel_name !== "Departures Description" ? hotel.deluxe_hotel_name : "N/A",
             executive: hotel.executive_hotel_name !== "Departures Description" ? hotel.executive_hotel_name : "N/A",
           })),
-          remarks: basicDetails.hotel_remarks && basicDetails.hotel_remarks !== "Departures Description" ? [basicDetails.hotel_remarks] : []
+          remarks: basicDetails.hotel_remarks && basicDetails.hotel_remarks !== "Departures Description"
+            ? [basicDetails.hotel_remarks] : []
         };
       }
       return { tableData: [], remarks: [] };
@@ -535,7 +496,8 @@ const Exhibitioninternationalindetail = () => {
       if (arr?.length && arr[0]?.description && arr[0]?.description !== "Departures Description") {
         return {
           tableData: arr.map(t => ({ description: t.description || '' })),
-          remarks: basicDetails.transport_remarks && basicDetails.transport_remarks !== "Departures Description" ? [basicDetails.transport_remarks] : []
+          remarks: basicDetails.transport_remarks && basicDetails.transport_remarks !== "Departures Description"
+            ? [basicDetails.transport_remarks] : []
         };
       }
       return { tableData: [], remarks: [] };
@@ -571,8 +533,8 @@ const Exhibitioninternationalindetail = () => {
         visaType: form.visa_type,
         downloadAction: form.download_action,
         fillAction: form.fill_action,
-        action1FileUrl: form.action1_file ? `${BASE_URL}/uploads/exhibition/visa/${form.action1_file}` : null,
-        action2FileUrl: form.action2_file ? `${BASE_URL}/uploads/exhibition/visa/${form.action2_file}` : null,
+        action1FileUrl: form.action1_file ? `${BASE_URL}/uploads/mice/visa/${form.action1_file}` : null,
+        action2FileUrl: form.action2_file ? `${BASE_URL}/uploads/mice/visa/${form.action2_file}` : null,
         remarks: form.remarks && form.remarks !== "Departures Description" ? form.remarks : "No remarks available"
       })) : [];
 
@@ -596,7 +558,6 @@ const Exhibitioninternationalindetail = () => {
         rowOrder: sub.row_order
       })) : [];
 
-    // Process structured_currency
     const processStructuredCurrency = (arr) => {
       if (arr && arr.length > 0) {
         return arr.map(item => ({
@@ -612,16 +573,17 @@ const Exhibitioninternationalindetail = () => {
     };
 
     return {
-      title: basicDetails.title || exhibition?.international_category_name || 'Exhibition Tour',
+      // City name: prefer mice_city, fallback to basicDetails
+      title: basicDetails.title || mice_city?.city_name || 'MICE Tour',
       duration: formatDuration(basicDetails.duration_days || 1),
-      cityName: basicDetails.city_name || "City not available",
+      cityName: basicDetails.city_name || mice_city?.city_name || "City not available",
       overview: basicDetails.overview || "Tour overview not available",
       price: formatPriceExhibition(basicDetails.base_price_adult),
       emi: calculateEMI(basicDetails.base_price_adult),
       badge: getBadge(basicDetails.category_id || 1),
       code: basicDetails.tour_code || '',
       description: basicDetails.overview || '',
-      images: processImages(imagesArray),
+      images: processImages(images),
       itinerary: processItinerary(itineraries),
       departures: processDepartures(),
       inclusionExclusion: {
@@ -630,26 +592,27 @@ const Exhibitioninternationalindetail = () => {
       },
       hotels: processHotels(hotels),
       airlines: processTransport(transports),
-      tourCost: processTourCost(costs),
+      tourCost: processTourCost(),       // no costs array in MICE API
       optionalTours: processOptionalTours(optionaltours),
       emiOptions: processEMIOptions(emioptions),
       booking: processBooking(bookingpoi),
       cancellation: processCancellation(cancellationpolicies),
       instructions: instructions?.map(item => item.item && item.item !== "Departures Description" ? item.item : '')?.filter(item => item) || [],
-      tourType: basicDetails.tour_type || 'exhibition',
+      tourType: basicDetails.tour_type || 'mice',
       visaDetails: processVisaDetails(visa_details),
       visaForms: processVisaForms(visa_forms),
       visaFees: processVisaFees(visa_fees),
       visaSubmission: processVisaSubmission(visa_submission),
-      structured_currency: processStructuredCurrency(structured_currency), // ← ADD THIS LINE
-      optionalTourRemarks: basicDetails.optional_tour_remarks && basicDetails.optional_tour_remarks !== "Departures Description" ? [basicDetails.optional_tour_remarks] : [],
-      bookingRemarks: basicDetails.booking_poi_remarks && basicDetails.booking_poi_remarks !== "Departures Description" ? [basicDetails.booking_poi_remarks] : [],
+      structured_currency: processStructuredCurrency(structured_currency),
+      optionalTourRemarks: basicDetails.optional_tour_remarks && basicDetails.optional_tour_remarks !== "Departures Description"
+        ? [basicDetails.optional_tour_remarks] : [],
+      bookingRemarks: basicDetails.booking_poi_remarks && basicDetails.booking_poi_remarks !== "Departures Description"
+        ? [basicDetails.booking_poi_remarks] : [],
       cancellationRemarks: basicDetails.cancellation_remarks ? [basicDetails.cancellation_remarks] : [],
       emiRemarks: basicDetails.emi_remarks ? [basicDetails.emi_remarks] : [],
-       touristVisaRemarks: tourist_visa_remarks || "No remarks available",
+      touristVisaRemarks: tourist_visa_remarks || "No remarks available",
     };
   };
-
 
   const departuresByMonth = React.useMemo(() => {
     if (!tour?.departures?.data) return {};
@@ -673,89 +636,105 @@ const Exhibitioninternationalindetail = () => {
     : [];
   const selectedDeparture = availableDates.find(d => d.fromDate === selectedCostDate);
 
-  // Add toggleTable function
   const toggleTable = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
   };
 
-  // Helper to check if there are any valid departures
   const hasValidDepartures = () => {
     return tour?.departures?.data?.some(dep => dep.month !== "No Date Available" && dep.month !== "Invalid Date") || false;
   };
 
-  // ── API: Main tour details + images ───────────────────────────────────────
+  // ── API: Main MICE details — UPDATED to use new endpoint ──────────────────
   const fetchTourDetails = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const [detailsRes, imagesRes] = await Promise.all([
-        fetch(`${BASE_URL}/api/exhibitions/international/${exhibitionId}/details`),
-        fetch(`${BASE_URL}/api/exhibitions/exhibition-images/${exhibitionId}`)
-      ]);
+      const res = await fetch(`${BASE_URL}/api/mice/international-details/${miceId}`);
+      if (!res.ok) throw new Error('Failed to fetch MICE data');
+      const json = await res.json();
+      if (!json.success) throw new Error('MICE city not found');
 
-      if (!detailsRes.ok) throw new Error('Failed to fetch exhibition data');
-      const detailsJson = await detailsRes.json();
-      if (!detailsJson.success) throw new Error('Exhibition not found');
+      console.log('✅ MICE API response:', json.data);
+      console.log('🖼️ Images from API:', json.data.images);
 
-      let imagesArray = [];
-      if (imagesRes.ok) imagesArray = await imagesRes.json();
-
-      const processedData = processTourData(detailsJson.data, imagesArray);
+      // Pass the full data object; processTourData reads images from apiData.images directly
+      const processedData = processTourData(json.data);
       setTour(processedData);
-      setTourType('Exhibition');
+      setTourType('MICE');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
   };
-
-  // ── API: Domestic sidebar list ─────────────────────────────────────────────
-  const fetchDomesticData = async () => {
-    setLoadingDomestic(true);
-    try {
-      const response = await fetch(`${BASE_URL}/api/exhibitions/domestic`);
-      if (!response.ok) throw new Error(`Failed: ${response.status}`);
-      const data: DomesticExhibition[] = await response.json();
-      if (Array.isArray(data) && data.length > 0) {
-        setDomesticList(data.map(item => item.domestic_category_name));
-        setDomesticExhibitionData(data);
-      } else {
-        setDomesticList([]);
-        setDomesticExhibitionData([]);
-      }
-    } catch (error) {
-      console.error("Error fetching domestic:", error);
+// ── API: Domestic sidebar list ─────────────────────────────────────────────
+const fetchDomesticData = async () => {
+  setLoadingDomestic(true);
+  try {
+    const response = await fetch(`${BASE_URL}/api/mice/domestic`);
+    if (!response.ok) throw new Error(`Failed: ${response.status}`);
+    const data = await response.json();
+    
+    // Transform the data to match expected structure
+    if (Array.isArray(data) && data.length > 0) {
+      const transformedData = data.map((item: any) => ({
+        id: item.id,
+        domestic_category_name: item.city_name, // Map city_name to domestic_category_name
+        city_name: item.city_name,
+        state_name: item.state_name,
+        image: item.image,
+        price: item.price
+      }));
+      
+      setDomesticList(transformedData.map(item => item.domestic_category_name));
+      setDomesticExhibitionData(transformedData);
+    } else {
       setDomesticList([]);
       setDomesticExhibitionData([]);
-    } finally {
-      setLoadingDomestic(false);
     }
-  };
+  } catch (error) {
+    console.error("Error fetching domestic:", error);
+    setDomesticList([]);
+    setDomesticExhibitionData([]);
+  } finally {
+    setLoadingDomestic(false);
+  }
+};
 
-  // ── API: International sidebar list ───────────────────────────────────────
-  const fetchInternationalData = async () => {
-    setLoadingInternational(true);
-    try {
-      const response = await fetch(`${BASE_URL}/api/exhibitions/international`);
-      if (!response.ok) throw new Error(`Failed: ${response.status}`);
-      const data: InternationalExhibition[] = await response.json();
-      if (Array.isArray(data) && data.length > 0) {
-        setInternationalList(data.map(item => item.international_category_name));
-        setInternationalExhibitionData(data);
-      } else {
-        setInternationalList([]);
-        setInternationalExhibitionData([]);
-      }
-    } catch (error) {
-      console.error("Error fetching international:", error);
+// ── API: International sidebar list ───────────────────────────────────────
+const fetchInternationalData = async () => {
+  setLoadingInternational(true);
+  try {
+    const response = await fetch(`${BASE_URL}/api/mice/international`);
+    if (!response.ok) throw new Error(`Failed: ${response.status}`);
+    const data = await response.json();
+    
+    // Transform the data to match expected structure
+    if (Array.isArray(data) && data.length > 0) {
+      const transformedData = data.map((item: any) => ({
+        id: item.id,
+        international_category_name: item.city_name, // Map city_name to international_category_name
+        city_name: item.city_name,
+        country_name: item.country_name,
+        image: item.image,
+        price: item.price
+      }));
+      
+      setInternationalList(transformedData.map(item => item.international_category_name));
+      setInternationalExhibitionData(transformedData);
+    } else {
       setInternationalList([]);
       setInternationalExhibitionData([]);
-    } finally {
-      setLoadingInternational(false);
     }
-  };
+  } catch (error) {
+    console.error("Error fetching international:", error);
+    setInternationalList([]);
+    setInternationalExhibitionData([]);
+  } finally {
+    setLoadingInternational(false);
+  }
+};
 
   // ── Email Handler ──────────────────────────────────────────────────────────
   const handleEmailSubmit = async (emailData: EmailFormData) => {
@@ -797,8 +776,8 @@ const Exhibitioninternationalindetail = () => {
 
   // ── Effects ────────────────────────────────────────────────────────────────
   useEffect(() => {
-    if (exhibitionId) fetchTourDetails();
-  }, [exhibitionId]);
+    if (miceId) fetchTourDetails();
+  }, [miceId]);
 
   useEffect(() => {
     fetchDomesticData();
@@ -810,20 +789,18 @@ const Exhibitioninternationalindetail = () => {
     return () => { if (autoScrollInterval) clearInterval(autoScrollInterval); };
   }, [tour?.images]);
 
-  const handleSearch = (e: React.FormEvent) => {
+const handleSearch = (e: React.FormEvent) => {
   e.preventDefault();
   if (searchQuery.trim() === "") return;
-
   const query = searchQuery.trim().toLowerCase();
-
   const domesticMatch = domesticExhibitionData.find(item =>
     item.domestic_category_name.toLowerCase().includes(query)
   );
   if (domesticMatch) {
-    navigate(`/exhibitiondetail/${domesticMatch.id}`);
+    // Change this line
+    navigate(`/micedomesticdetail/${domesticMatch.id}`);
     return;
   }
-
   const internationalMatch = internationalExhibitionData.find(item =>
     item.international_category_name.toLowerCase().includes(query)
   );
@@ -831,7 +808,6 @@ const Exhibitioninternationalindetail = () => {
     navigate(`/exhibitioninternationalindetail/${internationalMatch.id}`);
     return;
   }
-
   alert("No exhibition found for: " + searchQuery);
 };
 
@@ -841,7 +817,7 @@ const Exhibitioninternationalindetail = () => {
       <div className="min-h-screen bg-[#FFEBEE]">
         <Header />
         <div className="container mx-auto px-4 py-20 text-center">
-          <div className="text-2xl font-bold text-[#2E4D98]">Loading tour details...</div>
+          <div className="text-2xl font-bold text-[#2E4D98]">Loading MICE details...</div>
           <div className="mt-4 text-gray-600">Fetching data from the server</div>
         </div>
       </div>
@@ -854,10 +830,10 @@ const Exhibitioninternationalindetail = () => {
       <div className="min-h-screen bg-[#FFEBEE]">
         <Header />
         <div className="container mx-auto px-4 py-20 text-center">
-          <div className="text-2xl font-bold text-red-600">Error loading tour</div>
+          <div className="text-2xl font-bold text-red-600">Error loading MICE tour</div>
           <div className="mt-4 text-gray-600">{error || 'Tour not found'}</div>
           <Button onClick={() => navigate('/exhibition')} className="mt-6 bg-[#2E4D98] hover:bg-[#2E4D98] hover:opacity-90 text-white">
-            Back to Exhibitions
+            Back to Mice
           </Button>
           <Button onClick={fetchTourDetails} className="mt-4 ml-4 bg-[#E53C42] hover:bg-[#E53C42] hover:opacity-90 text-white">
             Retry
@@ -880,11 +856,8 @@ const Exhibitioninternationalindetail = () => {
             {/* ── LEFT SIDEBAR ── */}
             <div className="w-80 flex-shrink-0 bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl shadow-lg p-6 border border-blue-200 self-start sticky top-24">
               <div className="flex justify-between items-center mb-4 bg-[#2E4D98] p-2 rounded-lg border border-black">
-                <h2 className="text-2xl font-bold text-white">Exhibitions</h2>
-                <button
-                  onClick={clearAllFilters}
-                  className="text-sm text-white hover:underline"
-                >
+                <h2 className="text-2xl font-bold text-white">Mice</h2>
+                <button onClick={clearAllFilters} className="text-sm text-white hover:underline">
                   Clear All
                 </button>
               </div>
@@ -895,7 +868,7 @@ const Exhibitioninternationalindetail = () => {
                   onClick={handleAboutClick}
                   className="flex justify-between items-center p-2 rounded-lg cursor-pointer border border-black bg-white text-[#2E4D98]"
                 >
-                  <h2 className="text-xl font-bold text-[#2E4D98]">About Exhibition</h2>
+                  <h2 className="text-xl font-bold text-[#2E4D98]">About Mice</h2>
                   <span className="text-xs">▶</span>
                 </div>
               </div>
@@ -906,14 +879,9 @@ const Exhibitioninternationalindetail = () => {
                   <span>{durationRange[0]} days</span>
                   <span>{durationRange[1]} days</span>
                 </div>
-                <Slider
-                  value={durationRange}
-                  onValueChange={setDurationRange}
-                  max={10}
-                  step={1}
-                  className="w-full"
-                />
+                <Slider value={durationRange} onValueChange={setDurationRange} max={10} step={1} className="w-full" />
               </div>
+
               {/* Price Filter */}
               <div className="mb-6">
                 <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Price Range</h3>
@@ -921,22 +889,14 @@ const Exhibitioninternationalindetail = () => {
                   <span>₹{priceRange[0].toLocaleString()}</span>
                   <span>₹{priceRange[1].toLocaleString()}</span>
                 </div>
-                <Slider
-                  value={priceRange}
-                  onValueChange={setPriceRange}
-                  min={0}
-                  max={200000}
-                  step={1000}
-                  className="w-full"
-                />
+                <Slider value={priceRange} onValueChange={setPriceRange} min={0} max={200000} step={1000} className="w-full" />
               </div>
 
-              {/* Domestic Exhibition Section with Checkboxes */}
+              {/* Domestic Exhibition Section */}
               <div className="mb-6">
                 <div className="flex justify-between items-center mb-3 bg-white p-2 rounded-lg border border-black">
-                  <h2 className="text-xl font-bold text-[#2E4D98]">Domestic Exhibition</h2>
+                  <h2 className="text-xl font-bold text-[#2E4D98]">Domestic Mice</h2>
                 </div>
-
                 <div className={`${showMoreDomestic ? "max-h-64 overflow-y-auto pr-1" : ""} space-y-3`}>
                   {loadingDomestic ? (
                     <div className="flex justify-center py-4">
@@ -954,8 +914,7 @@ const Exhibitioninternationalindetail = () => {
                             className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
                           />
                           <span
-                            className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${selectedDomesticCategories.includes(category) ? 'font-bold text-[#2E4D98]' : ''
-                              }`}
+                            className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${selectedDomesticCategories.includes(category) ? 'font-bold text-[#2E4D98]' : ''}`}
                             onClick={() => handleDomesticCheckboxChange(category, !selectedDomesticCategories.includes(category))}
                           >
                             {category}
@@ -963,26 +922,21 @@ const Exhibitioninternationalindetail = () => {
                         </div>
                       ))
                   ) : (
-                    <div className="text-sm text-gray-400">No domestic exhibitions available</div>
+                    <div className="text-sm text-gray-400">No domestic Mice available</div>
                   )}
                 </div>
-
                 {domesticList.length > 6 && (
-                  <button
-                    onClick={() => setShowMoreDomestic(!showMoreDomestic)}
-                    className="mt-4 text-[#2E4D98] text-sm font-semibold hover:underline"
-                  >
+                  <button onClick={() => setShowMoreDomestic(!showMoreDomestic)} className="mt-4 text-[#2E4D98] text-sm font-semibold hover:underline">
                     {showMoreDomestic ? "Show Less" : "Show More"}
                   </button>
                 )}
               </div>
 
-              {/* International Exhibition Section with Checkboxes */}
+              {/* International Exhibition Section */}
               <div>
                 <div className="flex justify-between items-center mb-3 bg-white p-2 rounded-lg border border-black">
-                  <h2 className="text-xl font-bold text-[#2E4D98]">International Exhibition</h2>
+                  <h2 className="text-xl font-bold text-[#2E4D98]">International Mice</h2>
                 </div>
-
                 <div className={`${showMoreInternational ? "max-h-64 overflow-y-auto pr-1" : ""} space-y-3`}>
                   {loadingInternational ? (
                     <div className="flex justify-center py-4">
@@ -996,7 +950,7 @@ const Exhibitioninternationalindetail = () => {
                         const found = internationalExhibitionData.find(
                           item => item.international_category_name === category
                         );
-                        const isActive = found?.id === Number(exhibitionId);
+                        const isActive = found?.id === Number(miceId);
                         return (
                           <div key={category} className="flex items-center gap-3 cursor-pointer">
                             <Checkbox
@@ -1005,8 +959,7 @@ const Exhibitioninternationalindetail = () => {
                               className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
                             />
                             <span
-                              className={`cursor-pointer ${isActive ? 'font-bold text-[#2E4D98]' : 'text-gray-700 hover:text-[#2E4D98]'
-                                }`}
+                              className={`cursor-pointer ${isActive ? 'font-bold text-[#2E4D98]' : 'text-gray-700 hover:text-[#2E4D98]'}`}
                               onClick={() => handleInternationalCheckboxChange(category, !selectedInternationalCategories.includes(category) && !isActive)}
                             >
                               {category}
@@ -1018,12 +971,8 @@ const Exhibitioninternationalindetail = () => {
                     <div className="text-sm text-gray-400">No international exhibitions available</div>
                   )}
                 </div>
-
                 {internationalList.length > 6 && (
-                  <button
-                    onClick={() => setShowMoreInternational(!showMoreInternational)}
-                    className="mt-4 text-[#2E4D98] text-sm font-semibold hover:underline"
-                  >
+                  <button onClick={() => setShowMoreInternational(!showMoreInternational)} className="mt-4 text-[#2E4D98] text-sm font-semibold hover:underline">
                     {showMoreInternational ? "Show Less" : "Show More"}
                   </button>
                 )}
@@ -1033,82 +982,82 @@ const Exhibitioninternationalindetail = () => {
             {/* ── MAIN CONTENT ── */}
             <main className="flex-1 min-w-0">
 
-              {/* Title banners */}
+              {/* Title banner — updated to MICE */}
               <div className="bg-[#2E3A8A] text-white text-center py-3 font-semibold text-md mb-2">
-                International Exhibition
+                International MICE
               </div>
-<div className="w-full overflow-hidden border mb-2">
-  <div className="flex w-full items-stretch gap-1">
-    {/* City Label */}
-    <div className="flex-1 flex items-center justify-center p-3 bg-[#2E3A8A] border border-black">
-      <span className="font-bold text-white">City:</span>
-    </div>
 
-    {/* City Value */}
-    <div className="flex-1 flex items-center justify-center p-3 bg-blue-100 border border-black">
-      <span className="text-[#2E3A8A] font-bold">{tour.cityName || "City"}</span>
-    </div>
-
-    {/* Exhibition Label */}
-    <div className="flex-1 flex items-center justify-center p-3 bg-[#2E3A8A] border border-black">
-      <span className="font-bold text-white">Exhibition:</span>
-    </div>
-
-    {/* Exhibition Value */}
-    <div className="flex-1 flex items-center justify-center p-3 bg-blue-100 border border-black">
-      <span className="text-[#2E3A8A] font-bold text-sm text-center">{tour.title || "Exhibition Name"}</span>
-    </div>
-
-    {/* Search Column */}
-    <div className="w-64 flex items-center bg-red-500 border border-black flex-shrink-0">
-      <style>{`
-        input::placeholder {
-          color: white !important;
-          opacity: 1;
-        }
-      `}</style>
-      <form onSubmit={handleSearch} className="flex w-full h-full">
-        <input
-          type="text"
-          placeholder="Search..."
-          value={searchQuery}
-          onChange={(e) => {
-            setSearchQuery(e.target.value);
-            setIsSearchActive(false);
-          }}
-          className="flex-1 px-2 py-2 text-md font-bold outline-none border-none min-w-0"
-          style={{
-            backgroundColor: "red",
-            color: "white"
-          }}
-        />
-        {searchQuery && (
-          <button
-            type="button"
-         
-            className="px-3 py-2 flex-shrink-0 hover:bg-red-600 transition-colors"
-            style={{
-              backgroundColor: "red",
-              color: "white"
-            }}
-          >
-            ✕
-          </button>
-        )}
-        <button
-          type="submit"
-          className="text-white px-3 py-2 flex-shrink-0 hover:bg-red-600 transition-colors"
-          style={{
-            backgroundColor: "red"
-          }}
-        >
-          <FaSearch size={16} />
-        </button>
-      </form>
-    </div>
-  </div>
-</div>
-
+        <div className="w-full overflow-hidden border mb-2">
+          <div className="flex w-full items-stretch gap-1">
+            {/* City Label */}
+            <div className="flex-1 flex items-center justify-center p-3 bg-[#2E3A8A] border border-black">
+              <span className="font-bold text-white">City:</span>
+            </div>
+        
+            {/* City Value */}
+            <div className="flex-1 flex items-center justify-center p-3 bg-blue-100 border border-black">
+              <span className="text-[#2E3A8A] font-bold">{tour.cityName || "City"}</span>
+            </div>
+        
+            {/* Exhibition Label */}
+            <div className="flex-1 flex items-center justify-center p-3 bg-[#2E3A8A] border border-black">
+              <span className="font-bold text-white">Mice:</span>
+            </div>
+        
+            {/* Exhibition Value */}
+            <div className="flex-1 flex items-center justify-center p-3 bg-blue-100 border border-black">
+              <span className="text-[#2E3A8A] font-bold text-sm text-center">{tour.title || "Exhibition Name"}</span>
+            </div>
+        
+            {/* Search Column */}
+            <div className="w-64 flex items-center bg-red-500 border border-black flex-shrink-0">
+              <style>{`
+                input::placeholder {
+                  color: white !important;
+                  opacity: 1;
+                }
+              `}</style>
+              <form onSubmit={handleSearch} className="flex w-full h-full">
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setIsSearchActive(false);
+                  }}
+                  className="flex-1 px-2 py-2 text-md font-bold outline-none border-none min-w-0"
+                  style={{
+                    backgroundColor: "red",
+                    color: "white"
+                  }}
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                 
+                    className="px-3 py-2 flex-shrink-0 hover:bg-red-600 transition-colors"
+                    style={{
+                      backgroundColor: "red",
+                      color: "white"
+                    }}
+                  >
+                    ✕
+                  </button>
+                )}
+                <button
+                  type="submit"
+                  className="text-white px-3 py-2 flex-shrink-0 hover:bg-red-600 transition-colors"
+                  style={{
+                    backgroundColor: "red"
+                  }}
+                >
+                  <FaSearch size={16} />
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
 
               {/* Hero image carousel */}
               <div className="relative rounded-2xl overflow-hidden mb-1">
@@ -1140,9 +1089,8 @@ const Exhibitioninternationalindetail = () => {
                           key={index}
                           onClick={() => goToImage(index)}
                           className={`flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 lg:w-20 lg:h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 ${index === currentImageIndex
-                              ? 'border-[#2E4D98] ring-1 lg:ring-2 ring-[#2E4D98] ring-opacity-50 scale-105'
-                              : 'border-transparent hover:border-gray-300'
-                            }`}
+                            ? 'border-[#2E4D98] ring-1 lg:ring-2 ring-[#2E4D98] ring-opacity-50 scale-105'
+                            : 'border-transparent hover:border-gray-300'}`}
                         >
                           <img src={image} alt={`Thumbnail ${index + 1}`} className="w-full h-full object-cover" />
                         </button>
@@ -1157,10 +1105,10 @@ const Exhibitioninternationalindetail = () => {
                 <div className="min-w-[600px] lg:min-w-0">
                   <div className="grid grid-cols-8 bg-[#E8F0FF] border-b border-black">
                     <div className="border-r border-white bg-[#2E3a8a] px-2 lg:px-4 py-2 lg:py-3">
-                      <h3 className="font-bold text-white text-start text-[10px] xs:text-xs lg:text-lg"> City</h3>
+                      <h3 className="font-bold text-white text-start text-[10px] xs:text-xs lg:text-lg">City</h3>
                     </div>
                     <div className="col-span-6 border-r border-white bg-[#2E3a8a] px-2 lg:px-4 py-2 lg:py-3">
-                      <h3 className="font-bold text-white text-start text-sm lg:text-lg">Exhibition Name</h3>
+                      <h3 className="font-bold text-white text-start text-sm lg:text-lg">Mice Name</h3>
                     </div>
                     <div className="px-2 lg:px-4 py-2 lg:py-3 bg-[#2E3a8a]">
                       <h3 className="font-bold text-white text-start text-sm lg:text-lg">Days</h3>
@@ -1199,12 +1147,11 @@ const Exhibitioninternationalindetail = () => {
                 {/* Itinerary Tab */}
                 {activeTab === "itinerary" && (
                   <div className="bg-[#C2E2FA] rounded-lg p-1 h-full">
-                    
                     <div className="mx-auto bg-white rounded-lg shadow-lg h-full flex flex-col min-h-0">
-                              {/* Overview Section */}
+                      {/* Overview Section */}
                       <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mb-1">
                         <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
-                          Exhibition Overview
+                          Mice Overview
                         </div>
                         <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
                           <div className="min-h-[150px] lg:min-h-[180px] max-h-[200px] lg:max-h-[250px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
@@ -1223,7 +1170,6 @@ const Exhibitioninternationalindetail = () => {
                         </div>
                       </div>
                       <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 rounded-t-lg flex-shrink-0">Tour Itinerary</div>
-              
                       <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg flex-1 min-h-0">
                         <div className="bg-[#FFEBEE] h-full overflow-hidden">
                           <div className="space-y-1 p-1 h-full overflow-y-auto">
@@ -1243,529 +1189,352 @@ const Exhibitioninternationalindetail = () => {
                   </div>
                 )}
 
-            {/* Dep Date Tab - MODIFIED with Table UI */}
-{activeTab === "dep-date" && (
-  <div className="bg-[#E8F0FF] rounded-lg p-1 w-full">
-    <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
-      Departure Dates
-    </div>
+                {/* Dep Date Tab */}
+                {activeTab === "dep-date" && (
+                  <div className="bg-[#E8F0FF] rounded-lg p-1 w-full">
+                    <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
+                      Departure Dates
+                    </div>
+                    <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg w-full flex flex-col min-h-[400px] lg:min-h-[680px] max-h-[400px] lg:max-h-[780px] overflow-hidden">
+                      <div className="flex-1 overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+                        {hasValidDepartures() ? (
+                          <>
+                            <div className="flex flex-wrap gap-1 lg:gap-2 mb-2 overflow-x-auto pb-2">
+                              {(() => {
+                                const allTabs = ["ALL", ...availableMonths.sort((a, b) => {
+                                  const monthOrder = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+                                  return monthOrder.indexOf(a.split(' ')[0]) - monthOrder.indexOf(b.split(' ')[0]);
+                                })];
+                                return (
+                                  <div className="flex flex-wrap gap-1 lg:gap-2 mb-1">
+                                    {allTabs.map((tab) => (
+                                      <button
+                                        key={tab}
+                                        onClick={() => setSelectedMonth(tab)}
+                                        className={`px-2 lg:px-3 py-1 lg:py-2 border-2 font-semibold text-center w-20 lg:w-32 text-xs lg:text-sm transition-all duration-200 flex-shrink-0 ${selectedMonth === tab
+                                          ? "bg-blue-100 border-blue-600 text-blue-800 shadow-md"
+                                          : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400"}`}
+                                      >
+                                        {tab}
+                                      </button>
+                                    ))}
+                                  </div>
+                                );
+                              })()}
+                            </div>
 
-    <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg w-full flex flex-col min-h-[400px] lg:min-h-[680px] max-h-[400px] lg:max-h-[780px] overflow-hidden">
-      <div className="flex-1 overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-        {hasValidDepartures() ? (
-          <>
-            <div className="flex flex-wrap gap-1 lg:gap-2 mb-2 overflow-x-auto pb-2">
-              {(() => {
-                const availableMonths = tour.departures.data
-                  .map((dep) => dep.month)
-                  .filter((month, index, self) =>
-                    self.indexOf(month) === index && month !== "No Date Available" && month !== "Invalid Date"
-                  )
-                  .sort((a, b) => {
-                    const monthOrder = [
-                      "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
-                      "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"
-                    ];
-                    const getMonthNum = (monthStr) => {
-                      const monthAbbr = monthStr.split(' ')[0];
-                      return monthOrder.indexOf(monthAbbr);
-                    };
-                    return getMonthNum(a) - getMonthNum(b);
-                  });
+                            {/* Table Header */}
+                            <div className="border-2 border-[#2E3a8a] overflow-hidden mb-2">
+                              <div className="grid grid-cols-5 bg-[#2E3a8a] text-white font-semibold text-center">
+                                <div className="p-2 border-r-2 border-white text-xs lg:text-sm">From</div>
+                                <div className="p-2 border-r-2 border-white text-xs lg:text-sm">To</div>
+                                <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Status</div>
+                                <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Price</div>
+                                <div className="p-2 text-xs lg:text-sm">Action</div>
+                              </div>
+                            </div>
 
-                const allTabs = ["ALL", ...availableMonths];
+                            <div className="space-y-3 lg:space-y-4 w-full">
+                              {filteredDepartureData.map((item, index) => (
+                                <div key={item.id || index} className="w-full">
+                                  <div className="border-2 border-black bg-white">
+                                    <div className="grid grid-cols-5 items-center gap-0">
+                                      <div className="p-2 border-r-2 border-black">
+                                        <p className="font-semibold text-xs lg:text-base">{item.fromDate}</p>
+                                        <p className="text-xs text-gray-500">{item.fromDay}</p>
+                                      </div>
+                                      <div className="p-2 border-r-2 border-black">
+                                        <p className="font-semibold text-xs lg:text-base">{item.toDate}</p>
+                                        <p className="text-xs text-gray-500">{item.toDay}</p>
+                                      </div>
+                                      <div className="p-2 border-r-2 border-black text-center">
+                                        <span className={`font-semibold text-xs lg:text-base ${item.status === 'Sold Out' ? 'text-red-600' : item.status === 'Available' ? 'text-green-600' : 'text-blue-700'}`}>
+                                          {item.status}
+                                        </span>
+                                      </div>
+                                      <div className="p-2 border-r-2 border-black text-center">
+                                        <span className="text-sm lg:text-lg font-bold text-gray-900">
+                                          {formatPriceExhibition(item.price)}
+                                        </span>
+                                      </div>
+                                      <div className="p-2 text-center">
+                                        <button
+                                          onClick={() => toggleTable(index)}
+                                          disabled={item.status === 'Sold Out'}
+                                          className={`px-2 lg:px-6 py-1 lg:py-2 transition-colors text-xs lg:text-sm w-full ${item.status === 'Sold Out' ? 'bg-gray-400 text-gray-200 cursor-not-allowed' : 'bg-[#2E3a8a] text-white hover:bg-[#2E3a8a]'} ${openIndex === index ? 'bg-[#2E3a8a]' : ''}`}
+                                        >
+                                          {item.status === 'Sold Out' ? 'Sold Out' : openIndex === index ? 'Hide Table' : 'Select'}
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
 
-                return (
-                  <div className="flex flex-wrap gap-1 lg:gap-2 mb-1">
-                    {allTabs.map((tab) => (
-                      <button
-                        key={tab}
-                        onClick={() => setSelectedMonth(tab)}
-                        className={`
-                          px-2 lg:px-3 py-1 lg:py-2 
-                          border-2 
-                          font-semibold
-                          text-center
-                          w-20 lg:w-32
-                          text-xs lg:text-sm
-                          transition-all
-                          duration-200
-                          flex-shrink-0
-                          ${selectedMonth === tab
-                            ? "bg-blue-100 border-blue-600 text-blue-800 shadow-md"
-                            : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400"
-                          }
-                        `}
-                      >
-                        {tab}
-                      </button>
-                    ))}
-                  </div>
-                );
-              })()}
-            </div>
+                                  {/* Expanded Table */}
+                                  {openIndex === index && item.status !== 'Sold Out' && (
+                                    <div className="border-2 border-black border-t-0 overflow-hidden animate-fadeIn overflow-x-auto mt-1">
+                                      <div className="min-w-[600px] lg:min-w-0">
+                                        <div className="grid grid-cols-4 bg-[#2E3a8a] text-white font-semibold text-center">
+                                          <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Particulars - Tour Cost</div>
+                                          <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Standard</div>
+                                          <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Deluxe</div>
+                                          <div className="p-2 text-xs lg:text-sm">Luxury</div>
+                                        </div>
+                                        {[
+                                          { particular: "Per pax on Twin Basis", star3: item.threeStar?.twin || "NA", star4: item.fourStar?.twin || "NA", star5: item.fiveStar?.twin || "NA" },
+                                          { particular: "Per pax on Triple Basis", star3: item.threeStar?.triple || "NA", star4: item.fourStar?.triple || "NA", star5: item.fiveStar?.triple || "NA" },
+                                          { particular: "Per pax Single Occupancy", star3: item.threeStar?.single || "NA", star4: item.fourStar?.single || "NA", star5: item.fiveStar?.single || "NA" },
+                                        ].map((row, i) => (
+                                          <div key={i} className={`grid grid-cols-4 text-center border-b-2 border-black ${i % 2 === 0 ? "bg-[#EEF1F7]" : "bg-white"} ${i === 2 ? 'border-b-0' : ''}`}>
+                                            <div className="p-2 border-r-2 border-black font-medium text-xs lg:text-sm text-left">{row.particular}</div>
+                                            <div className="p-2 border-r-2 border-black text-xs lg:text-sm">{row.star3}</div>
+                                            <div className="p-2 border-r-2 border-black font-semibold text-green-700 text-xs lg:text-sm">{row.star4}</div>
+                                            <div className="p-2 text-xs lg:text-sm">{row.star5}</div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
 
-            {/* Table Header */}
-            <div className="border-2 border-[#2E3a8a] overflow-hidden mb-2">
-              <div className="grid grid-cols-5 bg-[#2E3a8a] text-white font-semibold text-center">
-                <div className="p-2 border-r-2 border-white text-xs lg:text-sm">From</div>
-                <div className="p-2 border-r-2 border-white text-xs lg:text-sm">To</div>
-                <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Status</div>
-                <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Price</div>
-                <div className="p-2 text-xs lg:text-sm">Action</div>
-              </div>
-            </div>
-
-            <div className="space-y-3 lg:space-y-4 w-full">
-              {filteredDepartureData.map((item, index) => (
-                <div key={item.id || index} className="w-full">
-                  {/* Table Row */}
-                  <div className="border-2 border-black bg-white">
-                    <div className="grid grid-cols-5 items-center gap-0">
-                      <div className="p-2 border-r-2 border-black">
-                        <p className="font-semibold text-xs lg:text-base">{item.fromDate}</p>
-                        <p className="text-xs text-gray-500">{item.fromDay}</p>
-                      </div>
-
-                      <div className="p-2 border-r-2 border-black">
-                        <p className="font-semibold text-xs lg:text-base">{item.toDate}</p>
-                        <p className="text-xs text-gray-500">{item.toDay}</p>
-                      </div>
-
-                      <div className="p-2 border-r-2 border-black text-center">
-                        <span className={`font-semibold text-xs lg:text-base ${item.status === 'Sold Out'
-                          ? 'text-red-600'
-                          : item.status === 'Available'
-                            ? 'text-green-600'
-                            : 'text-blue-700'
-                          }`}>
-                          {item.status}
-                        </span>
-                      </div>
-
-                      <div className="p-2 border-r-2 border-black text-center">
-                        <span className="text-sm lg:text-lg font-bold text-gray-900">
-                          {formatPriceExhibition(item.price)}
-                        </span>
-                      </div>
-
-                      <div className="p-2 text-center">
-                        <button
-                          onClick={() => toggleTable(index)}
-                          disabled={item.status === 'Sold Out'}
-                          className={`px-2 lg:px-6 py-1 lg:py-2 transition-colors text-xs lg:text-sm w-full ${item.status === 'Sold Out'
-                            ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                            : 'bg-[#2E3a8a] text-white hover:bg-[#2E3a8a]'
-                            } ${openIndex === index ? 'bg-[#2E3a8a]' : ''}`}
-                        >
-                          {item.status === 'Sold Out'
-                            ? 'Sold Out'
-                            : openIndex === index
-                              ? 'Hide Table'
-                              : 'Select'
-                          }
-                        </button>
+                              {filteredDepartureData.length === 0 && (
+                                <div className="text-center py-4 lg:py-8 bg-white border border-gray-300 rounded-lg">
+                                  <p className="text-gray-600 text-sm lg:text-lg mb-2">
+                                    {selectedMonth === "ALL" ? "No departure dates available for this tour" : `No departure dates available for ${selectedMonth}`}
+                                  </p>
+                                  <p className="text-gray-500 text-xs lg:text-sm">Please check back later or contact us for more information</p>
+                                </div>
+                              )}
+                            </div>
+                          </>
+                        ) : (
+                          <div className="text-center py-8 lg:py-12 bg-white border border-gray-300 rounded-lg">
+                            <p className="text-gray-600 text-sm lg:text-lg mb-2">No departure dates available for this tour</p>
+                            <p className="text-gray-500 text-xs lg:text-sm">Please check back later or contact us for more information</p>
+                          </div>
+                        )}
                       </div>
                     </div>
+                    <div className="mt-1">
+                      <button onClick={() => navigate("/alert")} className="w-full font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90 text-sm lg:text-base">
+                        Customize your tour on chargeable basis
+                      </button>
+                    </div>
                   </div>
+                )}
 
-                  {/* Expanded Table */}
-                  {openIndex === index && item.status !== 'Sold Out' && (
-                    <div className="border-2 border-black border-t-0 overflow-hidden animate-fadeIn overflow-x-auto mt-1">
-                      <div className="min-w-[600px] lg:min-w-0">
-                        <div className="grid grid-cols-4 bg-[#2E3a8a] text-white font-semibold text-center">
-                          <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Particulars - Tour Cost</div>
-                          <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Standard</div>
-                          <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Deluxe</div>
-                          <div className="p-2 text-xs lg:text-sm">Luxury</div>
+                {/* Tour Cost Tab */}
+                {activeTab === "tour-cost" && (
+                  <div className="bg-[#E8F0FF] rounded-lg p-1">
+                    <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg mb-1.5">
+                      Tour Cost
+                    </div>
+                    <div className="mb-0">
+                      <div className="p-3 lg:p-4 border-2 border-black border-t-0 rounded-b-lg">
+                        {hasValidDepartures() ? (
+                          <>
+                            <div className="border-2 border-[#0A1D4A] overflow-hidden mb-4">
+                              <div className="grid grid-cols-2 bg-[#2E3a8a] text-white font-semibold text-center">
+                                <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Month</div>
+                                <div className="p-2 text-xs lg:text-sm">Date</div>
+                              </div>
+                              <div className="grid grid-cols-2 text-center">
+                                <div className="p-2 border-r-2 border-black bg-[#EEF1F7]">
+                                  <select
+                                    className="w-full border-2 border-black rounded-md px-3 py-2 bg-white text-sm lg:text-base"
+                                    value={selectedCostMonth}
+                                    onChange={(e) => { setSelectedCostMonth(e.target.value); setSelectedCostDate(""); }}
+                                  >
+                                    <option value="">Select Month</option>
+                                    {availableMonths.map(month => {
+                                      const monthDepartures = departuresByMonth[month] || [];
+                                      const allSoldOut = monthDepartures.length > 0 && monthDepartures.every(dep => dep.status === 'Sold Out');
+                                      return (
+                                        <option key={month} value={month} disabled={allSoldOut} style={allSoldOut ? { color: '#999', fontStyle: 'italic' } : {}}>
+                                          {month} {allSoldOut ? '(Sold Out)' : ''}
+                                        </option>
+                                      );
+                                    })}
+                                  </select>
+                                </div>
+                                <div className="p-2 bg-white">
+                                  <select
+                                    className="w-full border-2 border-black rounded-md px-3 py-2 bg-white text-sm lg:text-base"
+                                    value={selectedCostDate}
+                                    onChange={(e) => setSelectedCostDate(e.target.value)}
+                                    disabled={!selectedCostMonth}
+                                  >
+                                    <option value="">Select Date</option>
+                                    {availableDates.filter(dep => dep.status !== 'Sold Out').map(dep => (
+                                      <option key={dep.id} value={dep.fromDate}>{dep.fromDate} – {dep.toDate}</option>
+                                    ))}
+                                  </select>
+                                </div>
+                              </div>
+                            </div>
+
+                            {selectedDeparture ? (
+                              <div className="border-2 border-black overflow-hidden animate-fadeIn overflow-x-auto">
+                                <div className="min-w-[600px] lg:min-w-0">
+                                  <div className="grid grid-cols-4 bg-[#2E3a8a] text-white font-semibold text-center">
+                                    <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Particulars - Tour Cost</div>
+                                    <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Standard</div>
+                                    <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Deluxe</div>
+                                    <div className="p-2 text-xs lg:text-sm">Luxury</div>
+                                  </div>
+                                  {[
+                                    { particular: "Per pax on Twin Basis", star3: selectedDeparture.threeStar?.twin || "NA", star4: selectedDeparture.fourStar?.twin || "NA", star5: selectedDeparture.fiveStar?.twin || "NA" },
+                                    { particular: "Per pax on Triple Basis", star3: selectedDeparture.threeStar?.triple || "NA", star4: selectedDeparture.fourStar?.triple || "NA", star5: selectedDeparture.fiveStar?.triple || "NA" },
+                                    { particular: "Per pax Single Occupancy", star3: selectedDeparture.threeStar?.single || "NA", star4: selectedDeparture.fourStar?.single || "NA", star5: selectedDeparture.fiveStar?.single || "NA" },
+                                  ].map((row, i) => (
+                                    <div key={i} className={`grid grid-cols-4 text-center border-b-2 border-black ${i % 2 === 0 ? "bg-[#EEF1F7]" : "bg-white"} ${i === 2 ? 'border-b-0' : ''}`}>
+                                      <div className="p-2 border-r-2 border-black font-medium text-xs lg:text-sm text-left">{row.particular}</div>
+                                      <div className="p-2 border-r-2 border-black text-xs lg:text-sm">{row.star3}</div>
+                                      <div className="p-2 border-r-2 border-black font-semibold text-green-700 text-xs lg:text-sm">{row.star4}</div>
+                                      <div className="p-2 text-xs lg:text-sm">{row.star5}</div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="text-center p-3 lg:p-4 border-2 border-dashed border-gray-300 rounded-lg">
+                                <p className="text-gray-500 text-sm lg:text-base">Please select a month and date to view tour cost</p>
+                                <p className="text-gray-400 text-xs lg:text-sm mt-2">Departure dates are available in the "Dep Date" tab</p>
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <div className="text-center p-6 lg:p-8 border-2 border-dashed border-gray-300 rounded-lg">
+                            <p className="text-gray-500 text-sm lg:text-base">No departure dates available for this tour</p>
+                            <p className="text-gray-400 text-xs lg:text-sm mt-2">Tour cost information will be available once departure dates are added</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Tour Cost Remarks */}
+                    <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
+                      <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">Tour Cost Remarks</div>
+                      <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
+                        <div className="min-h-[150px] lg:min-h-[180px] max-h-[150px] lg:max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+                          {tour.tourCost.remarks && tour.tourCost.remarks.length > 0 ? (
+                            <ul className="space-y-2 w-full">
+                              {tour.tourCost.remarks.map((remark: string, index: number) => (
+                                <li key={index} className="flex items-start gap-2 w-full">
+                                  <span className="text-black whitespace-pre-wrap break-words hyphens-auto text-justify w-full text-sm lg:text-base">{remark}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <div className="flex items-center justify-center h-full">
+                              <span className="text-gray-500 italic text-sm lg:text-base">No tour cost remarks available</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Optional Tour + EMI */}
+                    <div className='mt-1'>
+                      <div className="flex flex-col lg:flex-row gap-1">
+                        <div className='flex-1 min-w-0 lg:w-1/2'>
+                          <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-xl rounded-t-lg py-2 lg:py-3 mb-1">Optional Tour</div>
+                          <div className="overflow-x-auto">
+                            <table className="w-full border-collapse min-w-[400px] lg:min-w-0">
+                              <thead>
+                                <tr className="bg-[#2E4D98]">
+                                  <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-left font-semibold text-white text-xs lg:text-sm w-[40%] lg:w-[50%]">Tour Name</th>
+                                  <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-left font-semibold text-white text-xs lg:text-sm w-[30%] lg:w-[25%]">Adult Price</th>
+                                  <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-left font-semibold text-white text-xs lg:text-sm w-[30%] lg:w-[25%]">Child Price</th>
+                                </tr>
+                              </thead>
+                              <tbody className="border-2 border-[#1e3a8a] border-t-0">
+                                {tour.optionalTours && tour.optionalTours.length > 0 ? (
+                                  tour.optionalTours.map((optTour: any, index: number) => (
+                                    <tr key={index} className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}>
+                                      <td className="border border-black px-2 lg:px-4 py-1 lg:py-2 text-black text-xs lg:text-sm">{optTour.tourName || "N/A"}</td>
+                                      <td className="border border-black px-2 lg:px-4 py-1 lg:py-2 border-l-0 text-black text-xs lg:text-sm">{optTour.adultPrice || "N/A"}</td>
+                                      <td className="border border-black px-2 lg:px-4 py-1 lg:py-2 border-l-0 text-black text-xs lg:text-sm">{optTour.childPrice || "N/A"}</td>
+                                    </tr>
+                                  ))
+                                ) : (
+                                  <tr className="bg-[#FFEBEE]">
+                                    <td colSpan={3} className="border border-black px-2 lg:px-4 py-2 lg:py-3 text-center text-gray-500 text-xs lg:text-sm">No optional tours available</td>
+                                  </tr>
+                                )}
+                              </tbody>
+                            </table>
+                          </div>
                         </div>
 
-                        {[
-                          { particular: "Per pax on Twin Basis", star3: item.threeStar?.twin || "NA", star4: item.fourStar?.twin || "NA", star5: item.fiveStar?.twin || "NA" },
-                          { particular: "Per pax on Triple Basis", star3: item.threeStar?.triple || "NA", star4: item.fourStar?.triple || "NA", star5: item.fiveStar?.triple || "NA" },
-                          { particular: "Per pax Single Occupancy", star3: item.threeStar?.single || "NA", star4: item.fourStar?.single || "NA", star5: item.fiveStar?.single || "NA" },
-                        ].map((row, i) => (
-                          <div
-                            key={i}
-                            className={`grid grid-cols-4 text-center border-b-2 border-black ${i % 2 === 0 ? "bg-[#EEF1F7]" : "bg-white"
-                              } ${i === 2 ? 'border-b-0' : ''}`}
-                          >
-                            <div className="p-2 border-r-2 border-black font-medium text-xs lg:text-sm text-left">
-                              {row.particular}
-                            </div>
-                            <div className="p-2 border-r-2 border-black text-xs lg:text-sm">
-                              {row.star3}
-                            </div>
-                            <div className="p-2 border-r-2 border-black font-semibold text-green-700 text-xs lg:text-sm">
-                              {row.star4}
-                            </div>
-                            <div className="p-2 text-xs lg:text-sm">
-                              {row.star5}
+                        <div className='flex-1 min-w-0 lg:w-1/2'>
+                          <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-xl rounded-t-lg py-2 lg:py-3 mb-1">EMI Options</div>
+                          <div className="overflow-x-auto">
+                            <table className="w-full border-collapse min-w-[400px] lg:min-w-0">
+                              <thead>
+                                <tr className="bg-[#2E4D98]">
+                                  <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm w-[33.33%]">Loan Amount</th>
+                                  <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm w-[33.33%]">Months</th>
+                                  <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm w-[33.33%]">EMI</th>
+                                </tr>
+                              </thead>
+                              <tbody className="border-2 border-[#1e3a8a] border-t-0">
+                                {tour.emiOptions && tour.emiOptions.options && tour.emiOptions.options.length > 0 ? (
+                                  tour.emiOptions.options.map((emi: any, index: number) => (
+                                    <tr key={index} className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}>
+                                      <td className="border border-black px-2 lg:px-4 py-1 lg:py-2 border-l-0 text-center text-black text-xs lg:text-sm">{emi.loanAmount || "N/A"}</td>
+                                      <td className="border border-black px-2 lg:px-4 py-1 lg:py-2 border-l-0 text-center text-black text-xs lg:text-sm">{emi.months || "N/A"}</td>
+                                      <td className="border border-black px-2 lg:px-4 py-1 lg:py-2 border-l-0 text-center text-black text-xs lg:text-sm">{emi.emi || "N/A"}</td>
+                                    </tr>
+                                  ))
+                                ) : (
+                                  <tr className="bg-[#FFEBEE]">
+                                    <td colSpan={3} className="border border-black px-2 lg:px-4 py-2 lg:py-3 text-center text-gray-500 text-xs lg:text-sm">No EMI options available</td>
+                                  </tr>
+                                )}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Optional Tour Remarks + EMI Remarks */}
+                    <div className="flex flex-col lg:flex-row gap-1 mt-1 w-full">
+                      {[
+                        { title: "Optional Tour Remarks", data: tour.optionalTourRemarks },
+                        { title: "EMI Remarks", data: tour.emiRemarks }
+                      ].map(({ title, data }) => (
+                        <div key={title} className="bg-[#E8F0FF] rounded-lg w-full lg:w-1/2 overflow-x-hidden">
+                          <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">{title}</div>
+                          <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
+                            <div className="min-h-[150px] lg:min-h-[180px] max-h-[150px] lg:max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+                              {data && data.length > 0 ? (
+                                <ul className="space-y-2 w-full">
+                                  {data.map((remark: string, index: number) => (
+                                    <li key={index} className="flex items-start gap-2 w-full">
+                                      <span className="text-black whitespace-pre-wrap break-words hyphens-auto text-justify w-full text-sm lg:text-base">{remark}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <div className="flex items-center justify-center h-full">
+                                  <span className="text-gray-500 italic text-sm lg:text-base">No {title.toLowerCase()} available</span>
+                                </div>
+                              )}
                             </div>
                           </div>
-                        ))}
-                      </div>
+                        </div>
+                      ))}
                     </div>
-                  )}
-                </div>
-              ))}
 
-              {filteredDepartureData.length === 0 && (
-                <div className="text-center py-4 lg:py-8 bg-white border border-gray-300 rounded-lg">
-                  <p className="text-gray-600 text-sm lg:text-lg mb-2">
-                    {selectedMonth === "ALL"
-                      ? "No departure dates available for this tour"
-                      : `No departure dates available for ${selectedMonth}`
-                    }
-                  </p>
-                  <p className="text-gray-500 text-xs lg:text-sm">
-                    Please check back later or contact us for more information
-                  </p>
-                </div>
-              )}
-            </div>
-          </>
-        ) : (
-          <div className="text-center py-8 lg:py-12 bg-white border border-gray-300 rounded-lg">
-            <p className="text-gray-600 text-sm lg:text-lg mb-2">No departure dates available for this tour</p>
-            <p className="text-gray-500 text-xs lg:text-sm">Please check back later or contact us for more information</p>
-          </div>
-        )}
-      </div>
-    </div>
-
-    <div className="mt-1">
-      <button
-        onClick={() => navigate("/alert")}
-        className="w-full font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90 text-sm lg:text-base"
-      >
-        Customize your tour on chargeable basis
-      </button>
-    </div>
-  </div>
-)}
-
-{/* Tour Cost Tab - MODIFIED with Table UI for Month & Date */}
-{activeTab === "tour-cost" && (
-  <div className="bg-[#E8F0FF] rounded-lg p-1">
-    <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg mb-1.5">
-      Tour Cost
-    </div>
-
-    <div className="mb-0">
-      <div className="p-3 lg:p-4 border-2 border-black border-t-0 rounded-b-lg">
-        {hasValidDepartures() ? (
-          <>
-            {/* Month and Date Selection - Table format */}
-            <div className="border-2 border-[#0A1D4A] overflow-hidden mb-4">
-              <div className="grid grid-cols-2 bg-[#2E3a8a] text-white font-semibold text-center">
-                <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Month</div>
-                <div className="p-2 text-xs lg:text-sm">Date</div>
-              </div>
-              
-              <div className="grid grid-cols-2 text-center">
-                <div className="p-2 border-r-2 border-black bg-[#EEF1F7]">
-                  <select
-                    className="w-full border-2 border-black rounded-md px-3 py-2 bg-white text-sm lg:text-base"
-                    value={selectedCostMonth}
-                    onChange={(e) => {
-                      setSelectedCostMonth(e.target.value);
-                      setSelectedCostDate("");
-                    }}
-                  >
-                    <option value="">Select Month</option>
-                    {availableMonths.map(month => {
-                      const monthDepartures = departuresByMonth[month] || [];
-                      const allSoldOut = monthDepartures.length > 0 &&
-                        monthDepartures.every(dep => dep.status === 'Sold Out');
-
-                      return (
-                        <option
-                          key={month}
-                          value={month}
-                          disabled={allSoldOut}
-                          style={allSoldOut ? { color: '#999', fontStyle: 'italic' } : {}}
-                        >
-                          {month} {allSoldOut ? '(Sold Out)' : ''}
-                        </option>
-                      );
-                    })}
-                  </select>
-                </div>
-                <div className="p-2 bg-white">
-                  <select
-                    className="w-full border-2 border-black rounded-md px-3 py-2 bg-white text-sm lg:text-base"
-                    value={selectedCostDate}
-                    onChange={(e) => setSelectedCostDate(e.target.value)}
-                    disabled={!selectedCostMonth}
-                  >
-                    <option value="">Select Date</option>
-                    {availableDates
-                      .filter(dep => dep.status !== 'Sold Out')
-                      .map(dep => (
-                        <option key={dep.id} value={dep.fromDate}>
-                          {dep.fromDate} – {dep.toDate}
-                        </option>
-                      ))
-                    }
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            {selectedDeparture ? (
-              <div className="border-2 border-black overflow-hidden animate-fadeIn overflow-x-auto">
-                <div className="min-w-[600px] lg:min-w-0">
-                  <div className="grid grid-cols-4 bg-[#2E3a8a] text-white font-semibold text-center">
-                    <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Particulars - Tour Cost</div>
-                    <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Standard</div>
-                    <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Deluxe</div>
-                    <div className="p-2 text-xs lg:text-sm">Luxury</div>
+                    <div className="mt-1">
+                      <button onClick={() => navigate("/alert")} className="w-full font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90 text-sm lg:text-base">
+                        Customize your tour on chargeable basis
+                      </button>
+                    </div>
                   </div>
-
-                  {[
-                    {
-                      particular: "Per pax on Twin Basis",
-                      star3: selectedDeparture.threeStar?.twin || "NA",
-                      star4: selectedDeparture.fourStar?.twin || "NA",
-                      star5: selectedDeparture.fiveStar?.twin || "NA"
-                    },
-                    {
-                      particular: "Per pax on Triple Basis",
-                      star3: selectedDeparture.threeStar?.triple || "NA",
-                      star4: selectedDeparture.fourStar?.triple || "NA",
-                      star5: selectedDeparture.fiveStar?.triple || "NA"
-                    },
-                    {
-                      particular: "Per pax Single Occupancy",
-                      star3: selectedDeparture.threeStar?.single || "NA",
-                      star4: selectedDeparture.fourStar?.single || "NA",
-                      star5: selectedDeparture.fiveStar?.single || "NA"
-                    },
-                  ].map((row, i) => (
-                    <div
-                      key={i}
-                      className={`grid grid-cols-4 text-center border-b-2 border-black ${i % 2 === 0 ? "bg-[#EEF1F7]" : "bg-white"
-                        } ${i === 2 ? 'border-b-0' : ''}`}
-                    >
-                      <div className="p-2 border-r-2 border-black font-medium text-xs lg:text-sm text-left">
-                        {row.particular}
-                      </div>
-                      <div className="p-2 border-r-2 border-black text-xs lg:text-sm">
-                        {row.star3}
-                      </div>
-                      <div className="p-2 border-r-2 border-black font-semibold text-green-700 text-xs lg:text-sm">
-                        {row.star4}
-                      </div>
-                      <div className="p-2 text-xs lg:text-sm">
-                        {row.star5}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="text-center p-3 lg:p-4 border-2 border-dashed border-gray-300 rounded-lg">
-                <p className="text-gray-500 text-sm lg:text-base">Please select a month and date to view tour cost</p>
-                <p className="text-gray-400 text-xs lg:text-sm mt-2">Departure dates are available in the "Dep Date" tab</p>
-              </div>
-            )}
-          </>
-        ) : (
-          <div className="text-center p-6 lg:p-8 border-2 border-dashed border-gray-300 rounded-lg">
-            <p className="text-gray-500 text-sm lg:text-base">No departure dates available for this tour</p>
-            <p className="text-gray-400 text-xs lg:text-sm mt-2">Tour cost information will be available once departure dates are added</p>
-          </div>
-        )}
-      </div>
-    </div>
-
-    {/* Tour Cost Remarks - Same UI */}
-    <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
-      <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
-        Tour Cost Remarks
-      </div>
-      <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-        <div className="min-h-[150px] lg:min-h-[180px] max-h-[150px] lg:max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-          {tour.tourCost.remarks && tour.tourCost.remarks.length > 0 ? (
-            <ul className="space-y-2 w-full">
-              {tour.tourCost.remarks.map((remark: string, index: number) => (
-                <li key={index} className="flex items-start gap-2 w-full">
-                  <span className="text-black whitespace-pre-wrap break-words hyphens-auto text-justify w-full text-sm lg:text-base">
-                    {remark}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <div className="flex items-center justify-center h-full">
-              <span className="text-gray-500 italic text-sm lg:text-base">No tour cost remarks available</span>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-
-    {/* Optional Tour Section - Same UI */}
-    <div className='mt-1'>
-      <div className="flex flex-col lg:flex-row gap-1">
-        <div className='flex-1 min-w-0 lg:w-1/2'>
-          <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-xl rounded-t-lg py-2 lg:py-3 mb-1">
-            Optional Tour
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse min-w-[400px] lg:min-w-0">
-              <thead>
-                <tr className="bg-[#2E4D98]">
-                  <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-left font-semibold text-white text-xs lg:text-sm w-[40%] lg:w-[50%]">
-                    Tour Name
-                  </th>
-                  <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-left font-semibold text-white text-xs lg:text-sm w-[30%] lg:w-[25%]">
-                    Adult Price
-                  </th>
-                  <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-left font-semibold text-white text-xs lg:text-sm w-[30%] lg:w-[25%]">
-                    Child Price
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="border-2 border-[#1e3a8a] border-t-0">
-                {tour.optionalTours && tour.optionalTours.length > 0 ? (
-                  tour.optionalTours.map((optTour: any, index: number) => (
-                    <tr key={index} className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}>
-                      <td className="border border-black px-2 lg:px-4 py-1 lg:py-2 text-black text-xs lg:text-sm">
-                        {optTour.tourName || "N/A"}
-                      </td>
-                      <td className="border border-black px-2 lg:px-4 py-1 lg:py-2 border-l-0 text-black text-xs lg:text-sm">
-                        {optTour.adultPrice || "N/A"}
-                      </td>
-                      <td className="border border-black px-2 lg:px-4 py-1 lg:py-2 border-l-0 text-black text-xs lg:text-sm">
-                        {optTour.childPrice || "N/A"}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr className="bg-[#FFEBEE]">
-                    <td colSpan={3} className="border border-black px-2 lg:px-4 py-2 lg:py-3 text-center text-gray-500 text-xs lg:text-sm">
-                      No optional tours available
-                    </td>
-                  </tr>
                 )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div className='flex-1 min-w-0 lg:w-1/2'>
-          <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-xl rounded-t-lg py-2 lg:py-3 mb-1">
-            EMI Options
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse min-w-[400px] lg:min-w-0">
-              <thead>
-                <tr className="bg-[#2E4D98]">
-                  <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm w-[33.33%]">
-                    Loan Amount
-                  </th>
-                  <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm w-[33.33%]">
-                    Months
-                  </th>
-                  <th className="border border-white px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm w-[33.33%]">
-                    EMI
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="border-2 border-[#1e3a8a] border-t-0">
-                {tour.emiOptions && tour.emiOptions.options && tour.emiOptions.options.length > 0 ? (
-                  tour.emiOptions.options.map((emi: any, index: number) => (
-                    <tr key={index} className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}>
-                      <td className="border border-black px-2 lg:px-4 py-1 lg:py-2 border-l-0 text-center text-black text-xs lg:text-sm">
-                        {emi.loanAmount || "N/A"}
-                      </td>
-                      <td className="border border-black px-2 lg:px-4 py-1 lg:py-2 border-l-0 text-center text-black text-xs lg:text-sm">
-                        {emi.months || "N/A"}
-                      </td>
-                      <td className="border border-black px-2 lg:px-4 py-1 lg:py-2 border-l-0 text-center text-black text-xs lg:text-sm">
-                        {emi.emi || "N/A"}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr className="bg-[#FFEBEE]">
-                    <td colSpan={3} className="border border-black px-2 lg:px-4 py-2 lg:py-3 text-center text-gray-500 text-xs lg:text-sm">
-                      No EMI options available
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    {/* Optional Tour Remarks - Same UI */}
-    <div className="flex flex-col lg:flex-row gap-1 mt-1 w-full">
-      <div className="bg-[#E8F0FF] rounded-lg w-full lg:w-1/2 overflow-x-hidden">
-        <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
-          Optional Tour Remarks
-        </div>
-        <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-          <div className="min-h-[150px] lg:min-h-[180px] max-h-[150px] lg:max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-            {tour.optionalTourRemarks && tour.optionalTourRemarks.length > 0 ? (
-              <ul className="space-y-2 w-full">
-                {tour.optionalTourRemarks.map((remark: string, index: number) => (
-                  <li key={index} className="flex items-start gap-2 w-full">
-                    <span className="text-black whitespace-pre-wrap break-words hyphens-auto text-justify w-full text-sm lg:text-base">
-                      {remark}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div className="flex items-center justify-center h-full">
-                <span className="text-gray-500 italic text-sm lg:text-base">No optional tour remarks available</span>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-[#E8F0FF] rounded-lg w-full lg:w-1/2 overflow-x-hidden">
-        <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
-          EMI Remarks
-        </div>
-        <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-          <div className="min-h-[150px] lg:min-h-[180px] max-h-[150px] lg:max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-            {tour.emiRemarks && tour.emiRemarks.length > 0 ? (
-              <ul className="space-y-2 w-full">
-                {tour.emiRemarks.map((remark: string, index: number) => (
-                  <li key={index} className="flex items-start gap-2 w-full">
-                    <span className="text-black whitespace-pre-wrap break-words hyphens-auto text-justify w-full text-sm lg:text-base">
-                      {remark}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div className="flex items-center justify-center h-full">
-                <span className="text-gray-500 italic text-sm lg:text-base">No EMI remarks available</span>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div className="mt-1">
-      <button
-        onClick={() => navigate("/alert")}
-        className="w-full font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90 text-sm lg:text-base"
-      >
-        Customize your tour on chargeable basis
-      </button>
-    </div>
-  </div>
-)}
 
                 {/* Cost Inc/Ex Tab */}
                 {activeTab === "cost-inc./cost-ex." && (
@@ -1877,22 +1646,13 @@ const Exhibitioninternationalindetail = () => {
                   </div>
                 )}
 
+                {/* Visa Tab */}
                 {activeTab === "visa" && (
                   <div className="bg-[#E8F0FF] rounded-lg p-1">
                     <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg mb-1">Documents Required for Visa</div>
-
-                    {/* Tab Buttons */}
                     <div className="flex bg-white border border-black rounded-t-lg overflow-hidden overflow-x-auto">
                       {["Tourist Visa", "Transit Visa", "Business Visa", "Visa Forms", "Currency", "Visa Fees", "Submission & Pick Up"].map((label, idx) => {
-                        const tabMap = {
-                          "Tourist Visa": "tourist",
-                          "Transit Visa": "transit",
-                          "Business Visa": "business",
-                          "Visa Forms": "forms",
-                          "Currency": "currency",
-                          "Visa Fees": "fees",
-                          "Submission & Pick Up": "time"
-                        };
+                        const tabMap = { "Tourist Visa": "tourist", "Transit Visa": "transit", "Business Visa": "business", "Visa Forms": "forms", "Currency": "currency", "Visa Fees": "fees", "Submission & Pick Up": "time" };
                         const tabKey = tabMap[label];
                         return (
                           <button key={label} onClick={() => setActiveVisaTab(tabKey)}
@@ -1905,8 +1665,7 @@ const Exhibitioninternationalindetail = () => {
                       })}
                     </div>
 
-                    <div className="space-y-0 ">
-                      {/* Tourist, Transit, Business Visa Content */}
+                    <div className="space-y-0">
                       {['tourist', 'transit', 'business'].includes(activeVisaTab) && (
                         <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg w-full flex flex-col min-h-[250px] max-h-[280px] overflow-hidden">
                           <div className="flex-1 overflow-y-auto p-2 bg-[#FFEBEE] w-full">
@@ -1925,7 +1684,6 @@ const Exhibitioninternationalindetail = () => {
                         </div>
                       )}
 
-                      {/* Visa Forms */}
                       {activeVisaTab === 'forms' && (
                         <div className="space-y-1 mt-1 mb-1">
                           <table className="w-full border-collapse min-w-[400px] border border-gray-300">
@@ -1940,29 +1698,19 @@ const Exhibitioninternationalindetail = () => {
                               {tour.visaForms?.length > 0 ? (
                                 tour.visaForms.map((form, index) => (
                                   <tr key={index} className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}>
-                                    <td className="border border-black px-3 py-3 text-black text-xs lg:text-sm">
-                                      {form.visaType || 'Visa Form'}
-                                    </td>
+                                    <td className="border border-black px-3 py-3 text-black text-xs lg:text-sm">{form.visaType || 'Visa Form'}</td>
                                     <td className="border border-black px-3 py-1 text-center">
                                       {form.action1FileUrl ? (
-                                        <a href={form.action1FileUrl} download className="block bg-red-600 text-white py-2 rounded text-xs lg:text-sm hover:bg-red-700 transition-colors">
-                                          {form.downloadAction || "Download PDF"}
-                                        </a>
+                                        <a href={form.action1FileUrl} download className="block bg-red-600 text-white py-2 rounded text-xs lg:text-sm hover:bg-red-700 transition-colors">{form.downloadAction || "Download PDF"}</a>
                                       ) : (
-                                        <span className="block bg-gray-400 text-white py-2 rounded text-xs lg:text-sm cursor-not-allowed">
-                                          {form.downloadAction || "Not Available"}
-                                        </span>
+                                        <span className="block bg-gray-400 text-white py-2 rounded text-xs lg:text-sm cursor-not-allowed">{form.downloadAction || "Not Available"}</span>
                                       )}
                                     </td>
                                     <td className="border border-black px-3 py-1 text-center">
                                       {form.action2FileUrl ? (
-                                        <a href={form.action2FileUrl} download className="block bg-amber-800 text-white py-2 rounded text-xs lg:text-sm hover:bg-amber-900 transition-colors">
-                                          {form.fillAction || "Download Word"}
-                                        </a>
+                                        <a href={form.action2FileUrl} download className="block bg-amber-800 text-white py-2 rounded text-xs lg:text-sm hover:bg-amber-900 transition-colors">{form.fillAction || "Download Word"}</a>
                                       ) : (
-                                        <span className="block bg-gray-400 text-white py-2 rounded text-xs lg:text-sm cursor-not-allowed">
-                                          {form.fillAction || "Not Available"}
-                                        </span>
+                                        <span className="block bg-gray-400 text-white py-2 rounded text-xs lg:text-sm cursor-not-allowed">{form.fillAction || "Not Available"}</span>
                                       )}
                                     </td>
                                   </tr>
@@ -1979,83 +1727,36 @@ const Exhibitioninternationalindetail = () => {
 
                       {activeVisaTab === 'currency' && (
                         <table className="w-full border-collapse border border-gray-300 mt-1 mb-1">
-
-                        <thead>
-  <tr className="bg-[#2E4D98]">
-    <th className="w-1/6 border border-white px-3 py-3 text-center text-white text-sm">
-      Local Currency
-    </th>
-
-    <th
-      className="w-2/6 border border-white px-3 py-2 text-center text-white text-sm"
-      colSpan={2}
-    >
-      Currency Conversion
-    </th>
-
-    <th className="w-1/6 border border-white px-2 py-2 text-center text-white text-sm">
-      City Name
-    </th>
-
-    <th className="w-1/6 border border-white px-2 py-2 text-center text-white text-sm">
-      India Time
-    </th>
-
-    <th className="w-1/6 border border-white px-2 py-2 text-center text-white text-sm">
-      Local Time
-    </th>
-  </tr>
-</thead>
-                          {/* BODY */}
+                          <thead>
+                            <tr className="bg-[#2E4D98]">
+                              <th className="w-1/6 border border-white px-3 py-3 text-center text-white text-sm">Local Currency</th>
+                              <th className="w-2/6 border border-white px-3 py-2 text-center text-white text-sm" colSpan={2}>Currency Conversion</th>
+                              <th className="w-1/6 border border-white px-2 py-2 text-center text-white text-sm">City Name</th>
+                              <th className="w-1/6 border border-white px-2 py-2 text-center text-white text-sm">India Time</th>
+                              <th className="w-1/6 border border-white px-2 py-2 text-center text-white text-sm">Local Time</th>
+                            </tr>
+                          </thead>
                           <tbody className="border-2 border-[#1e3a8a] border-t-0">
                             {tour.structured_currency && tour.structured_currency.length > 0 ? (
                               tour.structured_currency.map((item, index) => (
                                 <tr key={index} className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}>
-
-                                  {/* Local Currency */}
-                                  <td className="border border-black px-2 py-3 text-center text-sm">
-                                    {item.local_currency || '-'}
-                                  </td>
-
-                                  {/* Conversion 1 */}
-                             {/* Conversion 1 */}
-<td className="w-[16%] border border-black px-2 py-3 text-center text-sm">
-  {item.currency_conversion_1 || '-'}
-</td>
-
-{/* Conversion 2 */}
-<td className="w-[16%] border border-black px-2 py-3 text-center text-sm">
-  {item.currency_conversion_2 || '-'}
-</td>
-                                  {/* City */}
-                                  <td className="border border-black px-2 py-3 text-center text-sm">
-                                    {item.city_name || '-'}
-                                  </td>
-
-                                  {/* India Time */}
-                                  <td className="border border-black px-2 py-3 text-center text-sm">
-                                    {item.india_time || '-'}
-                                  </td>
-
-                                  {/* Local Time */}
-                                  <td className="border border-black px-2 py-3 text-center text-sm">
-                                    {item.local_time || '-'}
-                                  </td>
-
+                                  <td className="border border-black px-2 py-3 text-center text-sm">{item.local_currency || '-'}</td>
+                                  <td className="w-[16%] border border-black px-2 py-3 text-center text-sm">{item.currency_conversion_1 || '-'}</td>
+                                  <td className="w-[16%] border border-black px-2 py-3 text-center text-sm">{item.currency_conversion_2 || '-'}</td>
+                                  <td className="border border-black px-2 py-3 text-center text-sm">{item.city_name || '-'}</td>
+                                  <td className="border border-black px-2 py-3 text-center text-sm">{item.india_time || '-'}</td>
+                                  <td className="border border-black px-2 py-3 text-center text-sm">{item.local_time || '-'}</td>
                                 </tr>
                               ))
                             ) : (
                               <tr className="bg-[#FFEBEE]">
-                                <td colSpan={6} className="border border-black px-2 py-3 text-center text-sm">
-                                  No currency data available
-                                </td>
+                                <td colSpan={6} className="border border-black px-2 py-3 text-center text-sm">No currency data available</td>
                               </tr>
                             )}
                           </tbody>
                         </table>
                       )}
 
-                      {/* Visa Fees */}
                       {activeVisaTab === 'fees' && (
                         <div className="mt-1 mb-1">
                           <div className="flex bg-white border border-black rounded-t-lg overflow-x-auto">
@@ -2100,7 +1801,6 @@ const Exhibitioninternationalindetail = () => {
                         </div>
                       )}
 
-                      {/* Submission & Pick Up */}
                       {activeVisaTab === 'time' && (
                         <div className="mt-1 mb-1">
                           <div className="flex bg-white border border-black rounded-t-lg overflow-x-auto">
@@ -2138,23 +1838,19 @@ const Exhibitioninternationalindetail = () => {
                           </table>
                         </div>
                       )}
+                    </div>
 
-                      {/* Visa Remarks */}
-                   
-               {/* Visa Remarks */}
-</div>
-<div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
-  <div className="bg-red-600 text-white text-center font-bold text-lg py-2 rounded-t-lg w-full">
-    Visa Remarks
-  </div>
-  <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-    <div className="min-h-[150px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-      <div className="whitespace-pre-wrap break-words text-justify w-full text-black text-sm lg:text-base">
-        {tour.touristVisaRemarks || "No remarks available"}
-      </div>
-    </div>
-  </div>
-</div>
+                    {/* Visa Remarks */}
+                    <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
+                      <div className="bg-red-600 text-white text-center font-bold text-lg py-2 rounded-t-lg w-full">Visa Remarks</div>
+                      <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
+                        <div className="min-h-[150px] max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+                          <div className="whitespace-pre-wrap break-words text-justify w-full text-black text-sm lg:text-base">
+                            {tour.touristVisaRemarks || "No remarks available"}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 )}
 
@@ -2275,7 +1971,7 @@ const Exhibitioninternationalindetail = () => {
               </div>
 
             </main>
-          </div>{/* end flex layout */}
+          </div>
         </div>
       </div>
       <Footer />
@@ -2283,4 +1979,4 @@ const Exhibitioninternationalindetail = () => {
   );
 };
 
-export default Exhibitioninternationalindetail;
+export default Miceinternationaldetail;

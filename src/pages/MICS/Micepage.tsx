@@ -1,19 +1,55 @@
 import React, { useState, useEffect } from "react";
-import Sidebar from "./Sidebar";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { BASE_URL } from "@/ApiUrls";
+import {
+  FaChevronDown,
+  FaChevronUp,
+  FaBars,
+  FaTimes,
+} from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+import { Slider } from "@/components/ui/slider";
 
 const MicePage: React.FC = () => {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [openQA, setOpenQA] = useState<number | null>(null);
   const [data, setData] = useState<any>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  
+  const [miceMain, setMiceMain] = useState(null);
+  const [activeSidebarMenu, setActiveSidebarMenu] = useState<string | null>("About Exhibition");
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [priceRange, setPriceRange] = useState([0, 200000]);
+  const [durationRange, setDurationRange] = useState([0, 10]);
+
+  // Search states for categories
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSearchBtn, setShowSearchBtn] = useState(false);
+  const [isSearchActive, setIsSearchActive] = useState(false);
+  const [loading, setLoading] = useState({ domestic: false, international: false });
+  
+  // Category data states
+  const [domesticCities, setDomesticCities] = useState<any[]>([]);
+  const [internationalCities, setInternationalCities] = useState<any[]>([]);
+  const [filteredDomesticCities, setFilteredDomesticCities] = useState<any[]>([]);
+  const [filteredInternationalCities, setFilteredInternationalCities] = useState<any[]>([]);
+
+  // Right side view state - 'micpage' or 'domestic' or 'international' or 'home'
+  const [rightSideView, setRightSideView] = useState<'micpage' | 'domestic' | 'international' | 'home'>('micpage');
+
+  // State for section open/close (Domestic, International, Home)
+  const [isDomesticOpen, setIsDomesticOpen] = useState(false);
+  const [isInternationalOpen, setIsInternationalOpen] = useState(false);
+  const [isHomeOpen, setIsHomeOpen] = useState(false);
+
+  const navigate = useNavigate();
 
   /* ===== FETCH DATA ===== */
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch(`${BASE_URL}/api/mice/main`);
+        const res = await fetch(`${BASE_URL}/api/mice/domestic`);
         const result = await res.json();
         setData(result);
       } catch (error) {
@@ -24,145 +60,675 @@ const MicePage: React.FC = () => {
     fetchData();
   }, []);
 
-  return (
-    <div className="min-h-screen  bg-[#FFEBEE]">
-      <Header />
+  // Fetch domestic cities
+  useEffect(() => {
+    if (rightSideView === 'domestic') {
+      fetchDomesticCities();
+    }
+  }, [rightSideView]);
 
-      <div className="main-layout flex flex-col md:flex-row w-full gap-3 md:gap-5 p-3 md:p-5">
+  // Fetch international cities
+  useEffect(() => {
+    if (rightSideView === 'international') {
+      fetchInternationalCities();
+    }
+  }, [rightSideView]);
 
-        {/* Sidebar */}
-        <div className="w-full md:w-auto">
-          <Sidebar />
-        </div>
+  // Filter cities when search query changes
+  useEffect(() => {
+    if (rightSideView === 'domestic') {
+      if (searchQuery.trim() === "") {
+        setFilteredDomesticCities(domesticCities);
+      } else {
+        const filtered = domesticCities.filter(city =>
+          city.city_name.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+        setFilteredDomesticCities(filtered);
+      }
+    } else if (rightSideView === 'international') {
+      if (searchQuery.trim() === "") {
+        setFilteredInternationalCities(internationalCities);
+      } else {
+        const filtered = internationalCities.filter(city =>
+          city.city_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          city.country_name.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+        setFilteredInternationalCities(filtered);
+      }
+    }
+  }, [searchQuery, domesticCities, internationalCities, rightSideView]);
 
-        <div className="flex-1">
+  const fetchDomesticCities = async () => {
+    setLoading(prev => ({ ...prev, domestic: true }));
+    try {
+      const response = await fetch(`${BASE_URL}/api/mice/domestic`);
+      const result = await response.json();
+      console.log("Domestic cities data:", result);
+      setDomesticCities(result || []);
+      setFilteredDomesticCities(result || []);
+    } catch (error) {
+      console.error("Error fetching domestic cities:", error);
+    } finally {
+      setLoading(prev => ({ ...prev, domestic: false }));
+    }
+  };
 
-          {/* ===== TOP SECTION ===== */}
-          <div className="flex flex-col md:flex-row w-full h-auto md:h-[480px] overflow-hidden">
+  const fetchInternationalCities = async () => {
+    setLoading(prev => ({ ...prev, international: true }));
+    try {
+      const response = await fetch(`${BASE_URL}/api/mice/international`);
+      const result = await response.json();
+      console.log("International cities data:", result);
+      setInternationalCities(result || []);
+      setFilteredInternationalCities(result || []);
+    } catch (error) {
+      console.error("Error fetching international cities:", error);
+    } finally {
+      setLoading(prev => ({ ...prev, international: false }));
+    }
+  };
 
-            {/* LEFT IMAGE */}
-            <div
-              className="relative w-full md:w-[60%] h-[250px] md:h-full bg-cover bg-center"
+  const handleSidebarMenuClick = (menu: string) => {
+    setActiveSidebarMenu(prev => prev === menu ? null : menu);
+    setActiveCategory(null);
+    setSearchQuery("");
+    setIsSearchActive(false);
+    
+    if (menu === "About Exhibition") {
+      setRightSideView('micpage');
+      setActiveMenu("Micpage");
+    }
+  };
+
+  const handleCategoryClick = (category: string) => {
+    if (category === "Domestic") {
+      setIsDomesticOpen(!isDomesticOpen);
+      if (!isDomesticOpen) {
+        setRightSideView('domestic');
+        setActiveCategory(category);
+        setIsHomeOpen(false); // Close home when opening domestic
+      } else {
+        setRightSideView('micpage');
+        setActiveCategory(null);
+      }
+    } else if (category === "International") {
+      setIsInternationalOpen(!isInternationalOpen);
+      if (!isInternationalOpen) {
+        setRightSideView('international');
+        setActiveCategory(category);
+        setIsHomeOpen(false); // Close home when opening international
+      } else {
+        setRightSideView('micpage');
+        setActiveCategory(null);
+      }
+    }
+    setActiveSidebarMenu(null);
+    setSearchQuery("");
+    setIsSearchActive(false);
+  };
+
+  const handleHomeClick = () => {
+    if (!isHomeOpen) {
+      // Opening home - show home content
+      setIsHomeOpen(true);
+      setRightSideView('home');
+      setActiveCategory(null);
+      setIsDomesticOpen(false);
+      setIsInternationalOpen(false);
+    } else {
+      // Closing home - go back to micpage
+      setIsHomeOpen(false);
+      setRightSideView('micpage');
+    }
+  };
+
+  useEffect(() => {
+    const fetchMiceMain = async () => {
+      try {
+        const res = await fetch(`${BASE_URL}/api/mice/main`);
+        const result = await res.json();
+        setMiceMain(result);
+      } catch (error) {
+        console.error("Error fetching MICE main:", error);
+      }
+    };
+    fetchMiceMain();
+  }, []);
+
+  const handleCityClick = (city: any, type: string) => {
+    if (!city || city === "") return;
+    navigate("/miceview", { 
+      state: { 
+        category: city, 
+        type: type,
+        preSelectedCity: city.city_name,
+        preSelectedType: type,
+        cityData: city
+      } 
+    });
+  };
+
+  const handleSearch = () => {
+    if (searchQuery.trim() !== "") {
+      setIsSearchActive(true);
+    }
+  };
+
+  const handleClearAll = () => {
+    setPriceRange([0, 200000]);
+    setDurationRange([0, 10]);
+    setSearchQuery("");
+    setIsSearchActive(false);
+    setActiveCategory(null);
+    setIsDomesticOpen(false);
+    setIsInternationalOpen(false);
+    setIsHomeOpen(false);
+    setRightSideView('micpage');
+  };
+
+  const closeSidebar = () => setSidebarOpen(false);
+
+  const resetToMicpage = () => {
+    setRightSideView('micpage');
+    setActiveMenu("Micpage");
+    setActiveSidebarMenu("About Exhibition");
+    setActiveCategory(null);
+    setIsHomeOpen(false);
+  };
+
+  const menuItems = [
+    { label: "About MICE", path: "/aboutmic" },
+    { label: "Enquiry Form", path: "/enquiryformmic" },
+    { label: "Our Clients", path: "/bankgallery" },
+    { label: "Venue Photos", path: "/venuephotos" },
+    { label: "MICE Gallery", path: "/micgallery" },
+  ];
+
+  // Render Home content
+  const renderHomeContent = () => {
+    return (
+       <div 
+              className="relative rounded-2xl overflow-hidden mb-2 bg-cover bg-center bg-no-repeat"
               style={{
-                backgroundImage: data?.banner_image
-                  ? `url(${BASE_URL}/uploads/mice/main/${data.banner_image})`
-                  : "none"
+                backgroundImage: `url('https://360biznus.com/wp-content/uploads/2025/08/360-virtual-tour-of-shiva-carpets1.jpg')`,
               }}
             >
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <h1
-                  className="text-[70px] sm:text-[100px] md:text-[140px] lg:text-[180px] font-black text-[#00205b] leading-none mb-1"
-                  style={{ textShadow: "0px 0px 20px rgba(255, 255, 255, 0.19)" }}
-                >
-                  MICE
-                </h1>
+              <div className="p-8 min-h-[180px] flex items-center">
+                <div className="text-white">
+                  <h1 className="text-3xl font-bold mb-2" style={{ textShadow: "2px 2px 4px rgb(0, 0, 0)" }}>
+                     Mice
+                  </h1>
+                  <p className="text-base opacity-90 max-w-2xl" style={{ textShadow: "1px 1px 2px rgba(0, 0, 0, 0.5)" }}>
+                    Explore our exclusive Mice  cities
+                  </p>
+                </div>
               </div>
             </div>
-
-            {/* RIGHT MENU */}
-         <div className="w-full md:w-[40%] h-full bg-[#00205b] flex flex-col items-start justify-center gap-3 md:gap-5 px-4 md:px-6 py-4 md:py-0">
-  {["Meeting", "Incentives", "Conference", "Events"].map((menu) => {
-    const subItems: Record<string, string[]> = {
-      Meeting: ["Board Meeting", "Team Meeting", "Annual Meeting"],
-      Incentives: ["Staff Incentives", "Sales Incentives", "Travel Incentives"],
-      Conference: ["Tech Conference", "Business Conference", "Global Conference"],
-      Events: ["Corporate Events", "Social Events", "Exhibition Events"],
-    };
-
-    return (
-      <div key={menu} className="relative w-full md:w-78">
-        <button
-          onClick={() =>
-            setActiveMenu(activeMenu === menu ? null : menu)
-          }
-          className="bg-white text-[#00205b] px-5 py-4 font-semibold w-full text-left flex justify-between items-center"
-        >
-          {menu}
-          <span>{activeMenu === menu ? "◀" : "▶"}</span>
-        </button>
-
-        {/* ▼ Dropdown below button */}
-        {activeMenu === menu && (
-          <div className="absolute left-0 top-full mt-1 flex flex-col bg-white shadow-lg w-full md:w-[435px] z-50">
-            {subItems[menu].map((sub) => (
-              <a
-                key={sub}
-                href="#"
-                className="px-4 py-3 text-sm hover:bg-blue-50 border-b"
-              >
-                {sub}
-              </a>
-            ))}
-          </div>
-        )}
-      </div>
     );
-  })}
-</div>
-          </div>
+  };
 
-    {/* ===== BELOW SECTION ===== */}
-<div className="grid grid-cols-1 md:grid-cols-12 mt-6 md:mt-8 border  rounded-lg shadow bg-blue-100">
-<div className="md:col-span-3 bg-blue-100 border-r border-black">
-    <div className="bg-[#00205b] text-white px-4 py-3 font-semibold border-b border-black">
-      MicePage
-    </div>
-
-    <button
-      onClick={() =>
-        setActiveMenu(activeMenu === "Micpage" ? null : "Micpage")
-      }
-      className={`w-full text-left px-4 py-3 border-b border-black flex justify-between bg-blue-100 ${
-        activeMenu === "Micpage"
-          ? "bg-blue-100 font-medium"
-          : "bg-blue-100 hover:bg-blue-100"
-      }`}
-    >
-      Micpage
-      <span>{activeMenu === "Micpage" ? "▼" : "▶"}</span>
-    </button>
-  </div>
-
-  {/* RIGHT */}
-  <div className="md:col-span-9 p-4 md:p-6 bg-blue-100">
-
-    {activeMenu === "Micpage" && data ? (
-      <>
-        {data.questions?.map((item: any, index: number) => (
-          <div key={index} className="border border-black mb-3 rounded overflow-hidden">
-
-            <div
-              onClick={() =>
-                setOpenQA(openQA === index ? null : index)
-              }
-              className="bg-[#00205b] text-white px-4 py-3 cursor-pointer flex justify-between border-b border-black"
+  const renderRightSideContent = () => {
+    switch(rightSideView) {
+      case 'home':
+        return renderHomeContent();
+      
+      case 'domestic':
+        return (
+          <div>
+            <div 
+              className="relative rounded-2xl overflow-hidden mb-2 bg-cover bg-center bg-no-repeat"
+              style={{
+                backgroundImage: `url('https://360biznus.com/wp-content/uploads/2025/08/360-virtual-tour-of-shiva-carpets1.jpg')`,
+              }}
             >
-              <span className="text-sm md:text-base">
-                {item.question}
-              </span>
-              <span>{openQA === index ? "▼" : "▶"}</span>
+              <div className="p-8 min-h-[180px] flex items-center">
+                <div className="text-white">
+                  <h1 className="text-3xl font-bold mb-2" style={{ textShadow: "2px 2px 4px rgb(0, 0, 0)" }}>
+                    Domestic Mice
+                  </h1>
+                  <p className="text-base opacity-90 max-w-2xl" style={{ textShadow: "1px 1px 2px rgba(0, 0, 0, 0.5)" }}>
+                    Explore our exclusive Domestic Mice cities
+                  </p>
+                </div>
+              </div>
             </div>
 
-            {openQA === index && (
-              <div className="px-4 py-4 bg-blue-100 text-sm md:text-base border-t border-black">
-                {item.answer}
+            <div className="p-0">
+              <div className="flex items-center mb-2 gap-1">
+                <div className="border border-black w-[355px] h-[45px] flex items-center justify-center font-semibold" style={{ backgroundColor: "#2E4D98", color: "white" }}>
+                  Domestic Cities
+                </div>
+                <div className="relative w-[365px]">
+                  <input
+                    type="text"
+                    placeholder="Search cities..."
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setShowSearchBtn(e.target.value.trim() !== "");
+                      if (e.target.value.trim() === "") {
+                        setIsSearchActive(false);
+                      }
+                    }}
+                    className="border border-black w-full h-[45px] px-4 outline-none pr-10 bg-blue-100"
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchQuery("");
+                        setShowSearchBtn(false);
+                        setIsSearchActive(false);
+                      }}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+                <button
+                  onClick={handleSearch}
+                  className="text-white w-[330px] h-[45px] border border-black"
+                  style={{ backgroundColor: "red" }}
+                >
+                  Search
+                </button>
               </div>
-            )}
 
+              {loading.domestic ? (
+                <div className="flex justify-center py-8">
+                  <span className="animate-spin h-4 w-8 border-4 border-gray-300 border-t-blue-600 rounded-full" />
+                </div>
+              ) : filteredDomesticCities.length > 0 ? (
+                <div className="grid grid-cols-5 gap-1">
+                  {filteredDomesticCities.map((city, index) => (
+                    <div
+                      key={city.id || index}
+                      onClick={() => handleCityClick(city, 'domestic')}
+                      className="
+                        border border-black
+                        w-full h-[40px]
+                        flex items-center justify-center
+                        text-center text-sm
+                        cursor-pointer bg-blue-100 hover:bg-blue-200
+                        transition-colors duration-200
+                      "
+                    >
+                      <span className="font-medium">{city.city_name}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  {isSearchActive 
+                    ? `No cities found matching "${searchQuery}"`
+                    : "No domestic cities available"}
+                </div>
+              )}
+            </div>
           </div>
-        ))}
-      </>
-    ) : (
-      <div className="text-center text-gray-500 py-10 bg-blue-100">
-        Click "Micpage" to view details
-      </div>
-    )}
+        );
+      
+      case 'international':
+        return (
+          <div>
+            <div 
+              className="relative rounded-2xl overflow-hidden mb-1 bg-cover bg-center bg-no-repeat"
+              style={{
+                backgroundImage: `url('https://360biznus.com/wp-content/uploads/2025/08/360-virtual-tour-of-shiva-carpets1.jpg')`,
+              }}
+            >
+              <div className="p-8 min-h-[180px] flex items-center">
+                <div className="text-white">
+                  <h1 className="text-3xl font-bold mb-2" style={{ textShadow: "2px 2px 4px rgb(0, 0, 0)" }}>
+                    International Mice
+                  </h1>
+                  <p className="text-base opacity-90 max-w-2xl" style={{ textShadow: "1px 1px 2px rgba(0, 0, 0, 0.5)" }}>
+                    Explore our exclusive International Mice cities
+                  </p>
+                </div>
+              </div>
+            </div>
 
-  </div>
-</div>
+            <div className="p-1">
+              <div className="flex items-center mb-2 gap-1">
+                <div className="border border-black w-[355px] h-[45px] flex items-center justify-center font-semibold" style={{ backgroundColor: "#2E4D98", color: "white" }}>
+                  International Cities
+                </div>
+                <div className="relative w-[355px]">
+                  <input
+                    type="text"
+                    placeholder="Search cities..."
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setShowSearchBtn(e.target.value.trim() !== "");
+                      if (e.target.value.trim() === "") {
+                        setIsSearchActive(false);
+                      }
+                    }}
+                    className="border border-black w-full h-[45px] px-4 outline-none pr-10 bg-blue-100"
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchQuery("");
+                        setShowSearchBtn(false);
+                        setIsSearchActive(false);
+                      }}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+                <button
+                  onClick={handleSearch}
+                  className="text-white w-[330px] h-[45px] border border-black"
+                  style={{ backgroundColor: "red" }}
+                >
+                  Search
+                </button>
+              </div>
 
+              {loading.international ? (
+                <div className="flex justify-center py-8">
+                  <span className="animate-spin h-2 w-8 border-4 border-gray-300 border-t-blue-600 rounded-full" />
+                </div>
+              ) : filteredInternationalCities.length > 0 ? (
+                <div className="grid grid-cols-5 gap-1">
+                  {filteredInternationalCities.map((city, index) => (
+                    <div
+                      key={city.id || index}
+                      onClick={() => handleCityClick(city, 'international')}
+                      className="
+                        border border-black
+                        w-full h-[40px]
+                        flex items-center justify-center
+                        text-center text-sm
+                        cursor-pointer bg-blue-100 hover:bg-blue-200
+                        transition-colors duration-200
+                      "
+                    >
+                      <span className="font-medium">{city.city_name}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  {isSearchActive 
+                    ? `No cities found matching "${searchQuery}"`
+                    : "No international cities available"}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      
+      case 'micpage':
+      default:
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-12 border rounded-lg shadow bg-blue-100">
+            <div className="md:col-span-3 bg-blue-100 border-r border-black">
+              <div className="bg-[#00205b] text-white px-4 py-3 font-semibold border-b border-black">
+                MicePage
+              </div>
+              <button
+                onClick={() => setActiveMenu(activeMenu === "Micpage" ? null : "Micpage")}
+                className={`w-full text-left px-4 py-3 border-b border-black flex justify-between ${
+                  activeMenu === "Micpage"
+                    ? "bg-blue-200 font-medium"
+                    : "bg-blue-100 hover:bg-blue-200"
+                }`}
+              >
+                Micpage
+                <span>{activeMenu === "Micpage" ? "▼" : "▶"}</span>
+              </button>
+            </div>
+
+            <div className="md:col-span-9 p-4 md:p-6 bg-blue-100">
+              {activeMenu === "Micpage" && miceMain?.questions ? (
+                <>
+                  {miceMain.questions.map((item: any, index: number) => (
+                    <div key={index} className="border border-black mb-3 rounded overflow-hidden">
+                      <div
+                        onClick={() => setOpenQA(openQA === index ? null : index)}
+                        className="bg-[#00205b] text-white px-4 py-3 cursor-pointer flex justify-between border-b border-black"
+                      >
+                        <span className="text-sm md:text-base">{item.question}</span>
+                        <span>{openQA === index ? "▼" : "▶"}</span>
+                      </div>
+                      {openQA === index && (
+                        <div className="px-4 py-4 bg-blue-100 text-sm md:text-base border-t border-black">
+                          {item.answer}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </>
+              ) : (
+                <div className="text-center text-gray-500 py-10">No questions available</div>
+              )}
+            </div>
+          </div>
+        );
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      <Header />
+      
+      <main className="flex-grow p-1 md:p-1 bg-[#FFEBEE]">
+        <div className="max-w-[1470px] mx-auto w-full">
+          {sidebarOpen && (
+            <div
+              className="fixed inset-0 bg-black/40 z-40 md:hidden"
+              onClick={closeSidebar}
+            />
+          )}
+
+          <div className="main-layout flex flex-col md:flex-row w-full gap-3 md:gap-5 p-3 md:p-5">
+            {/* Sidebar */}
+            <div
+              className={`
+                fixed top-[64px] left-0 h-[calc(100vh-64px)] w-80 bg-gradient-to-br from-blue-100 to-blue-50 border-r border-gray-300 z-30 border-b
+                transform transition-transform duration-300 overflow-y-auto
+                ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+                md:translate-x-0 md:static md:block md:h-auto
+              `}
+            >
+              <div className="md:hidden flex justify-end p-3">
+                <FaTimes size={20} onClick={closeSidebar} />
+              </div>
+
+              <div className="p-4">
+                <div className="flex justify-between items-center mb-6 bg-[#2E4D98] p-3 rounded-lg border border-black">
+                  <h2 className="text-2xl font-bold text-[white]">MICE</h2>
+                  <button
+                    onClick={handleClearAll}
+                    className="text-sm text-[white] hover:underline"
+                  >
+                    Clear All
+                  </button>
+                </div>
+
+                {/* HOME BUTTON - Moved above price filters */}
+                <div className="mb-6">
+                  <div
+                    onClick={() => {
+                      handleHomeClick();
+                      closeSidebar();
+                    }}
+                    className={`flex justify-between items-center p-3 rounded-lg cursor-pointer border border-black transition ${
+                      isHomeOpen
+                        ? 'bg-[#2E4D98] text-white'
+                        : 'bg-white text-[#2E4D98] hover:bg-gray-50'
+                    }`}
+                  >
+                    <h3 className="text-lg font-semibold">Home</h3>
+                    <span className="text-xs">{isHomeOpen ? "▼" : "▶"}</span>
+                  </div>
+                </div>
+
+                {/* Duration Range Filter */}
+                <div className="mb-8">
+                  <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Mice Range</h3>
+                  <div className="flex justify-between text-sm text-gray-600 mb-3">
+                    <span>{durationRange[0]} days</span>
+                    <span>{durationRange[1]} days</span>
+                  </div>
+                  <Slider 
+                    value={durationRange} 
+                    onValueChange={setDurationRange}
+                    max={10} 
+                    step={1} 
+                    className="w-full" 
+                  />
+                </div>
+
+                {/* Price Filter */}
+                <div className="mb-8">
+                  <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Price Range</h3>
+                  <div className="flex justify-between text-sm text-gray-600 mb-3">
+                    <span>₹{priceRange[0].toLocaleString()}</span>
+                    <span>₹{priceRange[1].toLocaleString()}</span>
+                  </div>
+                  <Slider
+                    value={priceRange}
+                    onValueChange={setPriceRange}
+                    min={0}
+                    max={200000}
+                    step={1000}
+                    className="w-full"
+                  />
+                </div>
+
+                {/* Categories Section */}
+                <div className="mt-6">
+                  <div className="flex justify-between items-center mb-4 bg-white p-3 rounded-lg border border-black">
+                    <h2 className="text-xl font-bold text-[#2E4D98]">Categories</h2>
+                  </div>
+                  
+                  {/* Domestic Exhibition */}
+                  <div className="mb-4">
+                    <div
+                      onClick={() => handleCategoryClick("Domestic")}
+                      className={`flex justify-between items-center p-3 rounded-lg cursor-pointer border border-black transition ${
+                        rightSideView === 'domestic' && isDomesticOpen
+                          ? 'bg-[#2E4D98] text-white' 
+                          : 'bg-white text-[#2E4D98] hover:bg-gray-50'
+                      }`}
+                    >
+                      <h3 className="text-lg font-semibold">Domestic Mice</h3>
+                      <span className="text-xs">{isDomesticOpen ? "▼" : "▶"}</span>
+                    </div>
+                  </div>
+
+                  {/* International Exhibition */}
+                  <div className="mb-6">
+                    <div
+                      onClick={() => handleCategoryClick("International")}
+                      className={`flex justify-between items-center p-3 rounded-lg cursor-pointer border border-black transition ${
+                        rightSideView === 'international' && isInternationalOpen
+                          ? 'bg-[#2E4D98] text-white' 
+                          : 'bg-white text-[#2E4D98] hover:bg-gray-50'
+                      }`}
+                    >
+                      <h3 className="text-lg font-semibold">International Mice</h3>
+                      <span className="text-xs">{isInternationalOpen ? "▼" : "▶"}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Menu Items Section */}
+                <div className="mt-4 pt-4 border-t border-gray-300">
+                  {menuItems.map((item, index) => (
+                    <div key={index} className="mb-3">
+                      <div
+                        onClick={() => {
+                          if (item.path) {
+                            navigate(item.path);
+                          }
+                          closeSidebar();
+                        }}
+                        className="flex justify-between items-center p-3 rounded-lg cursor-pointer border border-black transition bg-white text-[#2E4D98] hover:bg-gray-50"
+                      >
+                        <h3 className="text-lg font-semibold">{item.label}</h3>
+                        <span className="text-xs">▶</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Right Side Content */}
+            <div className="flex-1">
+              {/* Top section with image - Only show when NOT in home view */}
+              {rightSideView !== 'home' && rightSideView === 'micpage' &&  (
+                <div className="flex flex-col md:flex-row w-full h-auto md:h-[480px] overflow-hidden mb-2">
+                  <div
+                    className="relative w-full md:w-[58%] h-[250px] md:h-full bg-cover bg-center"
+                    style={{
+                      backgroundImage: `url('https://360biznus.com/wp-content/uploads/2025/08/360-virtual-tour-of-shiva-carpets1.jpg')`,
+                    }}
+                  >
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <h1
+                        className="text-[70px] sm:text-[100px] md:text-[140px] lg:text-[180px] font-black text-[#00205b] leading-none mb-1"
+                        style={{ textShadow: "0px 0px 20px rgba(255, 255, 255, 0.19)" }}
+                      >
+                        MICE
+                      </h1>
+                    </div>
+                  </div>
+
+                  <div className="w-full md:w-[40%] h-full bg-[#00205b] flex flex-col items-start justify-center gap-3 md:gap-5 px-4 md:px-6 py-4 md:py-0">
+                    {["Meeting", "Incentives", "Conference", "Events"].map((menu) => {
+                      const subItems: Record<string, string[]> = {
+                        Meeting: ["Board Meeting", "Team Meeting", "Annual Meeting"],
+                        Incentives: ["Staff Incentives", "Sales Incentives", "Travel Incentives"],
+                        Conference: ["Tech Conference", "Business Conference", "Global Conference"],
+                        Events: ["Corporate Events", "Social Events", "Exhibition Events"],
+                      };
+
+                      return (
+                        <div key={menu} className="relative w-full md:w-78">
+                          <button
+                            onClick={() => setActiveMenu(activeMenu === menu ? null : menu)}
+                            className="bg-white text-[#00205b] px-5 py-4 font-semibold w-full text-left flex justify-between items-center"
+                          >
+                            {menu}
+                            <span>{activeMenu === menu ? "◀" : "▶"}</span>
+                          </button>
+
+                          {activeMenu === menu && (
+                            <div className="absolute left-0 top-full mt-1 flex flex-col bg-white shadow-lg w-full md:w-[435px] z-50">
+                              {subItems[menu].map((sub) => (
+                                <a
+                                  key={sub}
+                                  href="#"
+                                  className="px-4 py-3 text-sm hover:bg-blue-50 border-b"
+                                >
+                                  {sub}
+                                </a>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {renderRightSideContent()}
+            </div>
+          </div>
         </div>
-      </div>
+      </main>
 
       <Footer />
     </div>

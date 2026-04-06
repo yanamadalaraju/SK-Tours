@@ -102,6 +102,10 @@ import ExhibitionDashboard from "./pages/Exhibition/Exhibitionend";
 import ExhibitionStatic from "./pages/Exhibition/Exhibitionview";
 import Exhibitiondetail from "./pages/Exhibition/Exhibitiondetail";
 import Exhibitioninternationalindetail from "./pages/Exhibition/Exhibitioninternationalindetail";
+import Mic_categoires from "./pages/MICS/Mic_categoires";
+import Micedomesticdetail from "./pages/MICS/Micedomesticdetail";
+import Miceview from "./pages/MICS/Miceview";
+import Miceinternationaldetail from "./pages/MICS/Miceinternationaldetail";
 
 const queryClient = new QueryClient();
 
@@ -158,7 +162,7 @@ const App = () => (
           <Route path="/international-honeymoon_tours/:state" element={<International_honeymoon />} />
           <Route path="/international-senior_tours/:state" element={<International_senior />} />
           <Route path="/international_tour_details/:tourId" element={<International_Tourdetails />} />
-          <Route path="/exhibition" element={<Exhibition />} />
+        
           <Route path="/flighthotels" element={<FlightHotels />} /> 
           <Route path="/FlightSeatSelection" element={<SeatSelection flightData={undefined} fareQuoteData={undefined} passengers={{ adults: 0, children: 0, infants: 0 }} onBack={() => { } } onBookingComplete={function (bookingResponse: any): void {
             throw new Error("Function not implemented.");
@@ -232,6 +236,16 @@ const App = () => (
           <Route path="/exhibitioninternationalindetail/:tourId" element={<Exhibitioninternationalindetail/>} />
 
           <Route path="/apidata" element={<Apidata />} />
+
+          <Route path="/miccategoires" element={<Mic_categoires />} />
+          <Route path="/micedomesticdetail" element={<Micedomesticdetail />} />
+          <Route path="/micedomesticdetail/:tourId" element={<Micedomesticdetail />} />
+
+          <Route path="/miceview" element={<Miceview />} />
+          <Route path="/miceinternationaldetail" element={<Miceinternationaldetail />} />
+          <Route path="/miceinternationaldetail/:tourId" element={<Miceinternationaldetail />} />
+
+          
 
 
         </Routes>
