@@ -15,6 +15,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import Header from '@/components/Header';
 import Footer from "@/components/Footer";
+import { useNavigate } from 'react-router-dom';
 
 // API Base URL
 const API_BASE_URL = "http://localhost:5000/api";
@@ -578,11 +579,12 @@ const CitySelector = ({
 };
 
 // Flight Results Component
-const FlightResults = ({ searchData, onBack }: { searchData: any; onBack: () => void }) => {
+const FlightResults = ({ searchData, onBack, travellers }: { searchData: any; onBack: () => void; travellers: TravellerCount }) => {
   const [activeTab, setActiveTab] = useState<string | null>(null);
   const [flights, setFlights] = useState<Flight[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   // Fetch flights from API when search data changes
   useEffect(() => {
@@ -650,6 +652,42 @@ const FlightResults = ({ searchData, onBack }: { searchData: any; onBack: () => 
     fetchFlights();
   }, [searchData]);
 
+  // Handle book now click
+  const handleBookNowClick = (flight: Flight) => {
+    // Calculate total cost based on passengers
+    const adultCount = travellers.adults;
+    const childCount = travellers.children;
+    const infantCount = travellers.infants;
+    
+    const adultPrice = parseFloat(flight.price_per_adult);
+    const childPrice = adultPrice * 0.75; // 75% of adult price
+    const infantPrice = adultPrice * 0.1; // 10% of adult price
+    
+    const totalPriceValue = (adultCount * adultPrice) + (childCount * childPrice) + (infantCount * infantPrice);
+    
+    // Create flight object with passenger details
+    const flightWithDetails = {
+      ...flight,
+      adults: adultCount,
+      children: childCount,
+      infants: infantCount,
+      child_price: childPrice,
+      infant_price: infantPrice,
+      total_price_value: totalPriceValue,
+      payment_type: 'full'
+    };
+    
+    // Store in localStorage
+    localStorage.setItem('selectedOfflineFlight', JSON.stringify(flightWithDetails));
+    
+    // Navigate to checkout
+    navigate('/checkout-offline-flights', { 
+      state: { 
+        flight: flightWithDetails,
+      } 
+    });
+  };
+
   // Format time from HH:MM:SS to HH:MM
   const formatTime = (timeString: string) => {
     if (!timeString) return 'N/A';
@@ -681,7 +719,7 @@ const FlightResults = ({ searchData, onBack }: { searchData: any; onBack: () => 
                   </>
                 )}
                 <span>|</span>
-                <span>{searchData.travellers?.adults + searchData.travellers?.children + searchData.travellers?.infants} Traveller(s)</span>
+                <span>{travellers.adults + travellers.children + travellers.infants} Traveller(s)</span>
                 <span>|</span>
                 <span className="capitalize">{searchData.tripType === 'one-way' ? 'One Way' : 'Round Trip'}</span>
               </div>
@@ -996,10 +1034,10 @@ const FlightResults = ({ searchData, onBack }: { searchData: any; onBack: () => 
                         <p className="text-xs text-gray-500">/adult</p>
                       </div>
                       <div className="flex flex-col gap-2 w-full max-w-[120px]">
-                        <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold w-full">
-                          VIEW PRICE
-                        </button>
-                        <button className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-semibold w-full">
+                        <button 
+                          onClick={() => handleBookNowClick(flight)}
+                          className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-semibold w-full"
+                        >
                           BOOK
                         </button>
                       </div>
@@ -1277,7 +1315,7 @@ const FlightSearch = () => {
         {/* Flight Results Section */}
         {showResults && searchData && (
           <div id="flight-results" className="mt-8">
-            <FlightResults searchData={searchData} onBack={handleBackToSearch} />
+            <FlightResults searchData={searchData} onBack={handleBackToSearch} travellers={travellers} />
           </div>
         )}
       </div>
