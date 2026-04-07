@@ -685,17 +685,32 @@ const MicePage: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="w-full md:w-[40%] h-full bg-[#00205b] flex flex-col items-start justify-center gap-3 md:gap-5 px-4 md:px-6 py-4 md:py-0">
+                  <div className="w-full md:w-[45%] h-full bg-[#00205b] flex flex-col items-start justify-center gap-3 md:gap-5 px-4 md:px-6 py-4 md:py-0">
                     {["Meeting", "Incentives", "Conference", "Events"].map((menu) => {
                       const subItems: Record<string, string[]> = {
-                        Meeting: ["Board Meeting", "Team Meeting", "Annual Meeting"],
-                        Incentives: ["Staff Incentives", "Sales Incentives", "Travel Incentives"],
-                        Conference: ["Tech Conference", "Business Conference", "Global Conference"],
-                        Events: ["Corporate Events", "Social Events", "Exhibition Events"],
+                      Meeting: [
+  "Meetings help teams share ideas and make decisions.",
+  "They keep everyone aligned and informed."
+],
+
+Incentives: [
+  "Incentives encourage better performance.",
+  "They boost motivation and job satisfaction."
+],
+
+Conference: [
+  "Conferences are for learning and networking.",
+  "They share industry knowledge and trends."
+],
+
+Events: [
+  "Events bring people together for a purpose.",
+  "They create engagement and connections."
+]
                       };
 
                       return (
-                        <div key={menu} className="relative w-full md:w-78">
+                        <div key={menu} className="relative w-full md:w-75">
                           <button
                             onClick={() => setActiveMenu(activeMenu === menu ? null : menu)}
                             className="bg-white text-[#00205b] px-5 py-4 font-semibold w-full text-left flex justify-between items-center"
