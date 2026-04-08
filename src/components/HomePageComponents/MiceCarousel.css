@@ -1,0 +1,580 @@
+/* MICECarousel.css */
+.mice-carousel-container {
+  border-radius: 1rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid rgba(243, 244, 246, 1);
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(circle at center, #5a92edff 0%, #4c70e7ff 30%, #0F1F5C 70%, #0A1128 100%);
+}
+
+@media (min-width: 768px) {
+  .mice-carousel-container {
+    padding: 1.5rem;
+    margin-bottom: 2.5rem;
+  }
+}
+
+.mice-carousel-gradient {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at center, rgba(59, 130, 246, 0.3) 0%, transparent 50%);
+}
+
+.mice-carousel-content {
+  position: relative;
+  z-index: 10;
+}
+
+.mice-carousel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 768px) {
+  .mice-carousel-header {
+    margin-bottom: 1.5rem;
+  }
+}
+
+.mice-carousel-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: white;
+  text-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+@media (min-width: 768px) {
+  .mice-carousel-title {
+    font-size: 1.25rem;
+  }
+}
+
+.mice-carousel-subtitle {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.75rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+@media (min-width: 768px) {
+  .mice-carousel-subtitle {
+    font-size: 0.875rem;
+  }
+}
+
+.mice-carousel-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+@media (min-width: 768px) {
+  .mice-carousel-controls {
+    gap: 0.75rem;
+  }
+}
+
+.mice-control-button {
+  background-color: #2563eb;
+  color: white;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+}
+
+.mice-control-button:hover {
+  background-color: #1d4ed8;
+  transform: scale(1.1);
+}
+
+.mice-control-button:active {
+  transform: scale(0.95);
+}
+
+@media (min-width: 768px) {
+  .mice-control-button {
+    width: 2rem;
+    height: 2rem;
+  }
+}
+
+.mice-control-icon {
+  height: 0.75rem;
+  width: 0.75rem;
+}
+
+@media (min-width: 768px) {
+  .mice-control-icon {
+    height: 1rem;
+    width: 1rem;
+  }
+}
+
+.mice-carousel-track-wrapper {
+  position: relative;
+}
+
+.mice-carousel-track {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
+}
+
+.mice-carousel-track::-webkit-scrollbar {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .mice-carousel-track {
+    gap: 1rem;
+  }
+}
+
+.mice-card {
+  flex-shrink: 0;
+}
+
+.mice-card-inner {
+  cursor: pointer;
+  background-color: white;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  height: 100%;
+  border: 1px solid rgba(243, 244, 246, 1);
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.mice-card-inner:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  transform: translateY(-0.25rem);
+}
+
+.mice-card-image-wrapper {
+  position: relative;
+  height: 10rem;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+  .mice-card-image-wrapper {
+    height: 12rem;
+  }
+}
+
+.mice-card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.mice-card-inner:hover .mice-card-image {
+  transform: scale(1.1);
+}
+
+.mice-image-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.5), transparent);
+}
+
+.mice-type-badge {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 10;
+}
+
+.mice-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: white;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.mice-badge-domestic {
+  background-color: rgba(22, 163, 74, 0.9);
+}
+
+.mice-badge-international {
+  background-color: rgba(147, 51, 234, 0.9);
+}
+
+.mice-badge-icon {
+  height: 0.75rem;
+  width: 0.75rem;
+}
+
+.mice-price-badge {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 10;
+}
+
+.mice-price-badge-text {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: white;
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+.mice-card-content {
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .mice-card-content {
+    padding: 1rem;
+  }
+}
+
+.mice-card-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+  transition: color 0.3s ease;
+  margin-bottom: 0.5rem;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.mice-card-inner:hover .mice-card-title {
+  color: #2563eb;
+}
+
+.mice-card-location {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #4b5563;
+  margin-bottom: 0.5rem;
+  width: 100%;
+}
+
+.mice-location-icon {
+  height: 0.75rem;
+  width: 0.75rem;
+  flex-shrink: 0;
+}
+
+.mice-location-text {
+  font-size: 0.75rem;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.mice-card-date {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #4b5563;
+  margin-bottom: 0.5rem;
+  font-size: 0.75rem;
+}
+
+.mice-date-icon {
+  height: 0.75rem;
+  width: 0.75rem;
+}
+
+.mice-date-text {
+  font-size: 0.75rem;
+}
+
+.mice-card-duration {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #4b5563;
+  margin-bottom: 0.75rem;
+  font-size: 0.75rem;
+}
+
+.mice-duration-icon {
+  height: 0.75rem;
+  width: 0.75rem;
+}
+
+.mice-duration-text {
+  font-size: 0.75rem;
+}
+
+.mice-card-price-section {
+  margin-bottom: 0.75rem;
+  margin-top: auto;
+  width: 100%;
+}
+
+.mice-price-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+  width: 100%;
+}
+
+.mice-price-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.mice-price-value {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+@media (min-width: 768px) {
+  .mice-price-value {
+    font-size: 1.25rem;
+  }
+}
+
+.mice-emi-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.mice-emi-label {
+  font-size: 0.75rem;
+  color: #4b5563;
+}
+
+.mice-emi-value {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #16a34a;
+}
+
+.mice-details-button {
+  width: 100%;
+  background-color: #2563eb;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+  margin-top: auto;
+  cursor: pointer;
+  border: none;
+}
+
+.mice-details-button:hover {
+  background-color: #1d4ed8;
+  transform: scale(1.05);
+}
+
+.mice-details-button:active {
+  transform: scale(0.95);
+}
+
+.mice-auto-scroll-indicator {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1rem;
+  gap: 0.5rem;
+}
+
+@media (min-width: 768px) {
+  .mice-auto-scroll-indicator {
+    margin-top: 1.5rem;
+    gap: 0.75rem;
+  }
+}
+
+.mice-indicator-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+}
+
+@media (min-width: 768px) {
+  .mice-indicator-dot {
+    width: 0.75rem;
+    height: 0.75rem;
+  }
+}
+
+.mice-indicator-dot.mice-active {
+  background-color: #4ade80;
+  animation: micePulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.mice-indicator-dot.mice-inactive {
+  background-color: #ef4444;
+}
+
+.mice-indicator-text {
+  font-size: 0.75rem;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Loading States */
+.mice-carousel-loading {
+  border-radius: 1rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+  margin-bottom: 2rem;
+  border: 1px solid rgba(243, 244, 246, 1);
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(to bottom right, #eff6ff, #e0e7ff);
+}
+
+@media (min-width: 768px) {
+  .mice-carousel-loading {
+    padding: 1.5rem;
+    margin-bottom: 3rem;
+  }
+}
+
+.mice-loading-spinner {
+  display: block;
+  margin: 0 auto;
+  animation: miceSpin 1s linear infinite;
+  border-radius: 9999px;
+  height: 2rem;
+  width: 2rem;
+  border-width: 4px;
+  border-color: #2563eb;
+  border-top-color: transparent;
+  margin-bottom: 1rem;
+}
+
+@keyframes miceSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.mice-loading-text {
+  text-align: center;
+  color: #4b5563;
+}
+
+/* Error States */
+.mice-carousel-error {
+  border-radius: 1rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+  margin-bottom: 2rem;
+  border: 1px solid rgba(243, 244, 246, 1);
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(to bottom right, #fef2f2, #fce7f3);
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .mice-carousel-error {
+    padding: 1.5rem;
+    margin-bottom: 3rem;
+  }
+}
+
+.mice-error-text {
+  color: #dc2626;
+  margin-bottom: 0.5rem;
+}
+
+.mice-retry-button {
+  padding: 0.5rem 1rem;
+  background-color: #2563eb;
+  color: white;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: none;
+  margin-top: 0.5rem;
+}
+
+.mice-retry-button:hover {
+  background-color: #1d4ed8;
+}
+
+/* Empty States */
+.mice-carousel-empty {
+  border-radius: 1rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+  margin-bottom: 2rem;
+  border: 1px solid rgba(243, 244, 246, 1);
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(to bottom right, #fefce8, #ffedd5);
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .mice-carousel-empty {
+    padding: 1.5rem;
+    margin-bottom: 3rem;
+  }
+}
+
+.mice-empty-text {
+  color: #ca8a04;
+  margin-bottom: 0.5rem;
+}
+
+.mice-empty-subtext {
+  color: #4b5563;
+}
+
+@keyframes micePulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}

@@ -1,0 +1,58 @@
+/* MICESection.css */
+.mice-section {
+  padding: 0;
+  background: linear-gradient(to bottom right, #bae6fd, #bae6fd);
+}
+
+.mice-header {
+  width: 100%;
+  background: linear-gradient(to right, #0F1F5C, #1F3F93, #0F1F5C);
+  padding: 1.5rem 0;
+  margin: 1.5rem 0 1.5rem 0;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+@media (min-width: 768px) {
+  .mice-header {
+    padding: 2rem 0;
+    margin: 2.5rem 0 2.5rem 0;
+  }
+}
+
+.mice-title {
+  font-family: 'Baloo 2', sans-serif;
+  font-size: 1.875rem;
+  font-weight: 800;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.025em;
+  color: white;
+  text-shadow: 2px 2px 0 #1F3F5C, -2px -2px 0 #1F3F5C, 0 0 18px rgba(255, 255, 255, 0.65);
+}
+
+@media (min-width: 768px) {
+  .mice-title {
+    font-size: 2.25rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .mice-title {
+    font-size: 3.75rem;
+  }
+}
+
+.mice-highlight {
+  color: #E31B23;
+}
+
+.mice-subtitle {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+@media (min-width: 768px) {
+  .mice-subtitle {
+    font-size: 1rem;
+  }
+}

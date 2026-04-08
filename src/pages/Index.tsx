@@ -16,11 +16,14 @@ import LeadPopup from "@/components/HomePageComponents/LeadPopup";
 import TrendingGroupHolidaysSection from "@/components/HomePageComponents/TrendingGroupHolidaysSection";
 import DomesticToursSection from "@/components/HomePageComponents/DomesticToursSection";
 import InternationalToursSection from "@/components/HomePageComponents/InternationalToursSection";
+
 import WeekendGetawaysSection from "@/components/HomePageComponents/weekendGetaways";
 import LadiesSpecialSection from "@/components/HomePageComponents/LadiesSpecialSection";
 import StudentToursSection from "@/components/HomePageComponents/StudentToursSection";
 import CustomerReviewsSection from "@/components/HomePageComponents/CustomerReviewsSection";
 import Header from "@/components/Header";
+import MICESection from "@/components/HomePageComponents/MiceSection";
+import ExhibitionSection from "@/components/HomePageComponents/ExhibitionSection";
 
 
 
@@ -33,8 +36,10 @@ const Index = () => {
       <Header />
       <main>
         <Hero />
-        <DomesticToursSection />
+         <DomesticToursSection />
          <InternationalToursSection />
+         <ExhibitionSection />
+         <MICESection />
          <WeekendGetawaysSection />
          {/* <LadiesSpecialSection /> */}
          {/* <StudentToursSection /> */}

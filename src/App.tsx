@@ -235,7 +235,7 @@ const App = () => (
 
           <Route path="/onedaycardcheckbox" element={<Onedaypicnic_checkbox />} />
           <Route path="/exhibitionend" element={<ExhibitionDashboard />} />
-          <Route path="/exhibitionview" element={<ExhibitionStatic />} />
+          <Route  path="/exhibitionview" element={<ExhibitionStatic />} />
           <Route path="/exhibitiondetail" element={<Exhibitiondetail />} />
           <Route path="/exhibitiondetail/:tourId" element={<Exhibitiondetail />} />
           <Route path="/insuranceform" element={<Insurances />} />
@@ -248,9 +248,14 @@ const App = () => (
           <Route path="/micedomesticdetail" element={<Micedomesticdetail />} />
           <Route path="/micedomesticdetail/:tourId" element={<Micedomesticdetail />} />
 
-          <Route path="/miceview" element={<Miceview />} />
+          
+          <Route path="/miceview/" element={<Miceview />} />
           <Route path="/miceinternationaldetail" element={<Miceinternationaldetail />} />
           <Route path="/miceinternationaldetail/:tourId" element={<Miceinternationaldetail />} />
+
+
+          {/* <Route path="/exhibition/:type/:category" element={<ExhibitionStatic />} /> */}
+          {/* <Route path="/mice/:type/:city/:location" element={<Miceview />} /> */}
 
 
 

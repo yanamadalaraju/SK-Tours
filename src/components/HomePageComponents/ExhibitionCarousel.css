@@ -1,0 +1,580 @@
+/* ExhibitionCarousel.css */
+.exhibition-carousel-container {
+  border-radius: 1rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid rgba(243, 244, 246, 1);
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(circle at center, #5a92edff 0%, #4c70e7ff 30%, #0F1F5C 70%, #0A1128 100%);
+}
+
+@media (min-width: 768px) {
+  .exhibition-carousel-container {
+    padding: 1.5rem;
+    margin-bottom: 2.5rem;
+  }
+}
+
+.exhibition-carousel-gradient {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at center, rgba(59, 130, 246, 0.3) 0%, transparent 50%);
+}
+
+.exhibition-carousel-content {
+  position: relative;
+  z-index: 10;
+}
+
+.exhibition-carousel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 768px) {
+  .exhibition-carousel-header {
+    margin-bottom: 1.5rem;
+  }
+}
+
+.exhibition-carousel-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: white;
+  text-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+@media (min-width: 768px) {
+  .exhibition-carousel-title {
+    font-size: 1.25rem;
+  }
+}
+
+.exhibition-carousel-subtitle {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.75rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+@media (min-width: 768px) {
+  .exhibition-carousel-subtitle {
+    font-size: 0.875rem;
+  }
+}
+
+.exhibition-carousel-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+@media (min-width: 768px) {
+  .exhibition-carousel-controls {
+    gap: 0.75rem;
+  }
+}
+
+.exhibition-control-button {
+  background-color: #2563eb;
+  color: white;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+}
+
+.exhibition-control-button:hover {
+  background-color: #1d4ed8;
+  transform: scale(1.1);
+}
+
+.exhibition-control-button:active {
+  transform: scale(0.95);
+}
+
+@media (min-width: 768px) {
+  .exhibition-control-button {
+    width: 2rem;
+    height: 2rem;
+  }
+}
+
+.exhibition-control-icon {
+  height: 0.75rem;
+  width: 0.75rem;
+}
+
+@media (min-width: 768px) {
+  .exhibition-control-icon {
+    height: 1rem;
+    width: 1rem;
+  }
+}
+
+.exhibition-carousel-track-wrapper {
+  position: relative;
+}
+
+.exhibition-carousel-track {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
+}
+
+.exhibition-carousel-track::-webkit-scrollbar {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .exhibition-carousel-track {
+    gap: 1rem;
+  }
+}
+
+.exhibition-card {
+  flex-shrink: 0;
+}
+
+.exhibition-card-inner {
+  cursor: pointer;
+  background-color: white;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  height: 100%;
+  border: 1px solid rgba(243, 244, 246, 1);
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.exhibition-card-inner:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  transform: translateY(-0.25rem);
+}
+
+.exhibition-card-image-wrapper {
+  position: relative;
+  height: 10rem;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+  .exhibition-card-image-wrapper {
+    height: 12rem;
+  }
+}
+
+.exhibition-card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.exhibition-card-inner:hover .exhibition-card-image {
+  transform: scale(1.1);
+}
+
+.exhibition-image-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.5), transparent);
+}
+
+.exhibition-type-badge {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 10;
+}
+
+.exhibition-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: white;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.exhibition-badge-domestic {
+  background-color: rgba(22, 163, 74, 0.9);
+}
+
+.exhibition-badge-international {
+  background-color: rgba(147, 51, 234, 0.9);
+}
+
+.exhibition-badge-icon {
+  height: 0.75rem;
+  width: 0.75rem;
+}
+
+.exhibition-price-badge {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 10;
+}
+
+.exhibition-price-badge-text {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: white;
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+.exhibition-card-content {
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .exhibition-card-content {
+    padding: 1rem;
+  }
+}
+
+.exhibition-card-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+  transition: color 0.3s ease;
+  margin-bottom: 0.5rem;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.exhibition-card-inner:hover .exhibition-card-title {
+  color: #2563eb;
+}
+
+.exhibition-card-location {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #4b5563;
+  margin-bottom: 0.5rem;
+  width: 100%;
+}
+
+.exhibition-location-icon {
+  height: 0.75rem;
+  width: 0.75rem;
+  flex-shrink: 0;
+}
+
+.exhibition-location-text {
+  font-size: 0.75rem;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.exhibition-card-date {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #4b5563;
+  margin-bottom: 0.5rem;
+  font-size: 0.75rem;
+}
+
+.exhibition-date-icon {
+  height: 0.75rem;
+  width: 0.75rem;
+}
+
+.exhibition-date-text {
+  font-size: 0.75rem;
+}
+
+.exhibition-card-duration {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #4b5563;
+  margin-bottom: 0.75rem;
+  font-size: 0.75rem;
+}
+
+.exhibition-duration-icon {
+  height: 0.75rem;
+  width: 0.75rem;
+}
+
+.exhibition-duration-text {
+  font-size: 0.75rem;
+}
+
+.exhibition-card-price-section {
+  margin-bottom: 0.75rem;
+  margin-top: auto;
+  width: 100%;
+}
+
+.exhibition-price-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+  width: 100%;
+}
+
+.exhibition-price-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.exhibition-price-value {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+@media (min-width: 768px) {
+  .exhibition-price-value {
+    font-size: 1.25rem;
+  }
+}
+
+.exhibition-emi-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.exhibition-emi-label {
+  font-size: 0.75rem;
+  color: #4b5563;
+}
+
+.exhibition-emi-value {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #16a34a;
+}
+
+.exhibition-details-button {
+  width: 100%;
+  background-color: #2563eb;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+  margin-top: auto;
+  cursor: pointer;
+  border: none;
+}
+
+.exhibition-details-button:hover {
+  background-color: #1d4ed8;
+  transform: scale(1.05);
+}
+
+.exhibition-details-button:active {
+  transform: scale(0.95);
+}
+
+.exhibition-auto-scroll-indicator {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1rem;
+  gap: 0.5rem;
+}
+
+@media (min-width: 768px) {
+  .exhibition-auto-scroll-indicator {
+    margin-top: 1.5rem;
+    gap: 0.75rem;
+  }
+}
+
+.exhibition-indicator-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+}
+
+@media (min-width: 768px) {
+  .exhibition-indicator-dot {
+    width: 0.75rem;
+    height: 0.75rem;
+  }
+}
+
+.exhibition-indicator-dot.exhibition-active {
+  background-color: #4ade80;
+  animation: exhibitionPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.exhibition-indicator-dot.exhibition-inactive {
+  background-color: #ef4444;
+}
+
+.exhibition-indicator-text {
+  font-size: 0.75rem;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Loading States */
+.exhibition-carousel-loading {
+  border-radius: 1rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+  margin-bottom: 2rem;
+  border: 1px solid rgba(243, 244, 246, 1);
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(to bottom right, #eff6ff, #e0e7ff);
+}
+
+@media (min-width: 768px) {
+  .exhibition-carousel-loading {
+    padding: 1.5rem;
+    margin-bottom: 3rem;
+  }
+}
+
+.exhibition-loading-spinner {
+  display: block;
+  margin: 0 auto;
+  animation: exhibitionSpin 1s linear infinite;
+  border-radius: 9999px;
+  height: 2rem;
+  width: 2rem;
+  border-width: 4px;
+  border-color: #2563eb;
+  border-top-color: transparent;
+  margin-bottom: 1rem;
+}
+
+@keyframes exhibitionSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.exhibition-loading-text {
+  text-align: center;
+  color: #4b5563;
+}
+
+/* Error States */
+.exhibition-carousel-error {
+  border-radius: 1rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+  margin-bottom: 2rem;
+  border: 1px solid rgba(243, 244, 246, 1);
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(to bottom right, #fef2f2, #fce7f3);
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .exhibition-carousel-error {
+    padding: 1.5rem;
+    margin-bottom: 3rem;
+  }
+}
+
+.exhibition-error-text {
+  color: #dc2626;
+  margin-bottom: 0.5rem;
+}
+
+.exhibition-retry-button {
+  padding: 0.5rem 1rem;
+  background-color: #2563eb;
+  color: white;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: none;
+  margin-top: 0.5rem;
+}
+
+.exhibition-retry-button:hover {
+  background-color: #1d4ed8;
+}
+
+/* Empty States */
+.exhibition-carousel-empty {
+  border-radius: 1rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+  margin-bottom: 2rem;
+  border: 1px solid rgba(243, 244, 246, 1);
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(to bottom right, #fefce8, #ffedd5);
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .exhibition-carousel-empty {
+    padding: 1.5rem;
+    margin-bottom: 3rem;
+  }
+}
+
+.exhibition-empty-text {
+  color: #ca8a04;
+  margin-bottom: 0.5rem;
+}
+
+.exhibition-empty-subtext {
+  color: #4b5563;
+}
+
+@keyframes exhibitionPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
