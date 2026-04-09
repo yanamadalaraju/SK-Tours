@@ -33,7 +33,7 @@ const Miceview: React.FC = () => {
   const passedType = location.state?.type || null;
   const preSelectedCity = location.state?.preSelectedCity || null;
   const preSelectedType = location.state?.preSelectedType || null;
-  
+
   const [showHome, setShowHome] = useState(true);
   const [openQA, setOpenQA] = useState<number | null>(null);
   const [isMobile, setIsMobile] = useState(false);
@@ -42,11 +42,11 @@ const Miceview: React.FC = () => {
   const [selectedType, setSelectedType] = useState<'domestic' | 'international' | null>(passedType);
   const [domesticCities, setDomesticCities] = useState<City[]>([]);
   const [internationalCities, setInternationalCities] = useState<City[]>([]);
-  
+
   // State for MICE main data
   const [miceMain, setMiceMain] = useState<MiceMain | null>(null);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
-
+  const [bannerImage, setBannerImage] = useState('');
   // Filter states
   const [priceRange, setPriceRange] = useState([0, 200000]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -74,6 +74,14 @@ const Miceview: React.FC = () => {
       try {
         const res = await fetch(`${BASE_URL}/api/mice/main`);
         const result = await res.json();
+        console.log("MICE Main data:", result);
+
+        // Set the banner image URL
+        if (result && result.banner_image) {
+          const bannerImageUrl = `${BASE_URL}/uploads/mice/main/${result.banner_image}`;
+          setBannerImage(bannerImageUrl);
+        }
+
         setMiceMain(result);
       } catch (error) {
         console.error("Error fetching MICE main:", error);
@@ -98,7 +106,7 @@ const Miceview: React.FC = () => {
         const response = await fetch(`${BASE_URL}/api/mice/domestic`);
         if (!response.ok) throw new Error(`Failed: ${response.status}`);
         const data = await response.json();
-        
+
         if (Array.isArray(data) && data.length > 0) {
           const processedData = data.map((city: City) => ({
             ...city,
@@ -125,7 +133,7 @@ const Miceview: React.FC = () => {
         const response = await fetch(`${BASE_URL}/api/mice/international`);
         if (!response.ok) throw new Error(`Failed: ${response.status}`);
         const data = await response.json();
-        
+
         if (Array.isArray(data) && data.length > 0) {
           const processedData = data.map((city: City) => ({
             ...city,
@@ -293,7 +301,7 @@ const Miceview: React.FC = () => {
     setDurationRange([0, 10]);
     setSelectedDepartureMonths([]);
   };
-  
+
   const clearSearch = () => {
     setSearchQuery("");
     setShowSearchBtn(false);
@@ -360,9 +368,9 @@ const Miceview: React.FC = () => {
       <div className="flex flex-col gap-6">
         <div className="flex flex-col md:flex-row w-full h-auto md:h-[480px] overflow-hidden rounded-2xl shadow-md">
           <div
-            className="relative w-full md:w-[60%] h-[250px] md:h-full bg-cover bg-center"
+            className="relative w-full md:w-[60%] h-[250px] md:h-full bg-cover bg-center bg-no-repeat"
             style={{
-              backgroundImage: `url('https://360biznus.com/wp-content/uploads/2025/08/360-virtual-tour-of-shiva-carpets1.jpg')`,
+              backgroundImage: `url('${bannerImage || 'https://360biznus.com/wp-content/uploads/2025/08/360-virtual-tour-of-shiva-carpets1.jpg'}')`,
             }}
           >
             <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -375,72 +383,94 @@ const Miceview: React.FC = () => {
             </div>
           </div>
 
-          <div className="w-full md:w-[40%] h-full bg-[#00205b] flex flex-col items-start justify-center gap-3 md:gap-5 px-4 md:px-6 py-4 md:py-0">
-            {["Meeting", "Incentives", "Conference", "Events"].map((menu) => (
-              <div key={menu} className="relative w-full">
-                <button
-                  onClick={() => setActiveMenu(activeMenu === menu ? null : menu)}
-                  className="bg-white text-[#00205b] px-5 py-4 font-semibold w-full text-left flex justify-between items-center"
-                >
-                  {menu}
-                  <span>{activeMenu === menu ? "◀" : "▶"}</span>
-                </button>
-                {activeMenu === menu && (
-                  <div className="absolute left-0 top-full mt-1 flex flex-col bg-white shadow-lg w-full z-50">
-                    {subItems[menu].map((sub) => (
-                      <a key={sub} href="#" className="px-4 py-3 text-sm hover:bg-blue-50 border-b">
-                        {sub}
-                      </a>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
+          <div className="w-full md:w-[52%] h-full bg-[#00205b] flex flex-col items-start justify-center gap-3 md:gap-5 px-4 md:px-6 py-4 md:py-0">
+            {["Meeting", "Incentives", "Conference", "Events"].map((menu) => {
+              const subItems = {
+                Meeting: [
+                  "Meetings play a crucial role in facilitating effective communication among team members. They help in sharing ideas, discussing challenges, and making informed decisions while ensuring that everyone stays aligned with the organization’s goals and objectives."
+                ],
+
+                Incentives: [
+                  "Incentives are essential for motivating employees to perform better and achieve their targets. They enhance job satisfaction, encourage healthy competition, and contribute to increased productivity and long-term employee retention."
+                ],
+
+                Conference: [
+                  "Conferences provide valuable opportunities for learning, networking, and professional growth. They bring together experts and participants to share industry knowledge, discuss trends, and explore new innovations that drive business success."
+                ],
+
+                Events: [
+                  "Events are designed to bring people together for a specific purpose, fostering engagement and meaningful connections. They create memorable experiences, strengthen relationships, and help in building brand awareness and visibility."
+                ]
+              };
+
+              return (
+                <div key={menu} className="relative w-full md:w-75">
+                  <button
+                    onClick={() => setActiveMenu(activeMenu === menu ? null : menu)}
+                    className="bg-white text-[#00205b] px-5 py-4 font-semibold w-full text-left flex justify-between items-center"
+                  >
+                    {menu}
+                    <span>{activeMenu === menu ? "▲" : "▼"}</span>
+                  </button>
+
+                  {activeMenu === menu && (
+                    <div className="absolute left-0 top-full mt-1 flex flex-col bg-white shadow-lg w-full md:w-[430px] z-50">
+                      {subItems[menu].map((sub) => (
+                        <a
+                          key={sub}
+                          href="#"
+                          className="px-2 py-3 text-sm leading-relaxed text-gray-700 text-justify hover:bg-blue-50 border-b"
+                        >
+                          {sub}
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-12 border rounded-lg shadow bg-blue-100">
-          <div className="md:col-span-3 bg-blue-100 border-r border-black">
-            <div className="bg-[#00205b] text-white px-4 py-3 font-semibold border-b border-black">
-              MicePage
-            </div>
-            <button
-              onClick={() => setActiveMenu(activeMenu === "Micpage" ? null : "Micpage")}
-              className={`w-full text-left px-4 py-3 border-b border-black flex justify-between ${
-                activeMenu === "Micpage"
-                  ? "bg-blue-200 font-medium"
-                  : "bg-blue-100 hover:bg-blue-200"
-              }`}
-            >
-              Micpage
-              <span>{activeMenu === "Micpage" ? "▼" : "▶"}</span>
-            </button>
-          </div>
-
-          <div className="md:col-span-9 p-4 md:p-6 bg-blue-100">
-            {activeMenu === "Micpage" && miceMain?.questions ? (
-              <>
-                {miceMain.questions.map((item: any, index: number) => (
-                  <div key={index} className="border border-black mb-3 rounded overflow-hidden">
-                    <div
-                      onClick={() => setOpenQA(openQA === index ? null : index)}
-                      className="bg-[#00205b] text-white px-4 py-3 cursor-pointer flex justify-between border-b border-black"
-                    >
-                      <span className="text-sm md:text-base">{item.question}</span>
-                      <span>{openQA === index ? "▼" : "▶"}</span>
-                    </div>
-                    {openQA === index && (
-                      <div className="px-4 py-4 bg-blue-100 text-sm md:text-base border-t border-black">
-                        {item.answer}
-                      </div>
-                    )}
+        <div>
+          {miceMain?.questions ? (
+            <div className="border rounded-lg overflow-hidden">
+              {miceMain.questions.map((item: any, index: number) => (
+                <div key={index} className="border-b last:border-b-0">
+                  <div
+                    onClick={() => setOpenQA(openQA === index ? null : index)}
+                    className="flex justify-between items-center px-4 py-3 cursor-pointer hover:bg-gray-50"
+                    style={{ backgroundColor: "#2E3A8A", color: "#fff" }}
+                  >
+                    <span className="text-sm md:text-base">{item.question}</span>
+                    <span className="text-xs md:text-sm">{openQA === index ? "▼" : "▶"}</span>
                   </div>
-                ))}
-              </>
-            ) : (
-              <div className="text-center text-gray-500 py-10">No questions available</div>
-            )}
-          </div>
+                  {openQA === index && (
+                    <div
+                      className="bg-[#E8F0FF] px-4 py-4 text-sm md:text-base"
+                      style={{
+                        minHeight: "100px",
+                        maxHeight: "250px",
+                        overflowY: "auto",
+                        overflowX: "hidden",
+                        textAlign: "justify",
+                        wordBreak: "break-word",
+                        whiteSpace: "normal",
+                        borderRadius: "0 0 8px 8px",
+                        borderLeft: "1px solid black",
+                        borderRight: "1px solid black",
+                        borderBottom: "1px solid black",
+                      }}
+                    >
+                      {item.answer}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center text-gray-500 py-10">No questions available</div>
+          )}
         </div>
       </div>
     );
@@ -467,11 +497,11 @@ const Miceview: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredCities.map((city) => {
           const isDomestic = city.state_name !== undefined;
-          
+
           return (
             <div key={city.id} className="flex flex-col">
               <div className="bg-white border-2 border-gray-300 rounded-lg p-3 mb-3 shadow-sm">
-                <div className="grid grid-cols-3 gap-0 border border-gray-400 rounded overflow-hidden">
+                <div className="grid grid-cols-2 gap-0 border border-gray-400 rounded overflow-hidden">
                   <div className="bg-[#2E4D98] border-r border-gray-400 p-2 flex items-center justify-center">
                     <div className="text-sm font-bold text-white text-center">{isDomestic ? 'CITY' : 'COUNTRY'}</div>
                   </div>
@@ -480,11 +510,7 @@ const Miceview: React.FC = () => {
                       {isDomestic ? city.city_name : (city.country_name || city.city_name)}
                     </div>
                   </div>
-                  <div className="bg-[#2E4D98] p-2 flex items-center justify-center">
-                    <div className="text-sm font-bold text-white text-center">
-                      {city.duration_days ? `${city.duration_days - 1}N/${city.duration_days}D` : 'N/A'}
-                    </div>
-                  </div>
+
                 </div>
               </div>
 
@@ -514,37 +540,57 @@ const Miceview: React.FC = () => {
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
                 </div>
+<div className="p-5 flex-1 flex flex-col min-h-0">
 
-                <div className="p-5 flex-1 flex flex-col min-h-0">
-                  <div className="mb-3">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm text-[#2E4D98] font-bold">MicePrice</span>
-                      <p className="text-2xl font-bold text-gray-900">₹{parseFloat(city.price).toLocaleString('en-IN')}</p>
-                    </div>
-                  </div>
-                  <div className="mb-3">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm text-[#2E4D98] font-bold">EMI Price</span>
-                      <p className="text-2xl font-bold text-gray-900">₹{parseFloat(city.emi_price).toLocaleString('en-IN')}</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-2 mt-auto">
-                    <Button
-                      size="sm" variant="outline"
-                      className="flex-1 border-[#2E4D98] text-[#2E4D98] hover:bg-[#2E4D98] hover:text-white"
-                      onClick={() => handleViewDetails(city.id, isDomestic ? 'domestic' : 'international')}
-                    >
-                      View Details
-                    </Button>
-                    <Button
-                      size="sm"
-                      className="flex-1 bg-[#E53C42] hover:bg-[#E53C42] hover:opacity-90 text-white"
-                      onClick={() => handleBookNowClick(city)}
-                    >
-                      Book Now
-                    </Button>
-                  </div>
-                </div>
+  <div className="mb-3 flex items-center">
+    <span className="w-[150px] text-sm text-[#2E4D98] font-bold">
+      Duration Days
+    </span>
+    <p className="text-2lg font-bold text-gray-900 ml-auto text-right">
+      {city.duration_days
+        ? `${city.duration_days - 1}N/${city.duration_days}D`
+        : 'N/A'}
+    </p>
+  </div>
+
+  <div className="mb-3 flex items-center">
+    <span className="w-[150px] text-sm text-[#2E4D98] font-bold">
+      Per Person Price
+    </span>
+    <p className="text-2lg font-bold text-gray-900 ml-auto text-right">
+      ₹{parseFloat(city.price).toLocaleString('en-IN')}
+    </p>
+  </div>
+
+  <div className="mb-3 flex items-center">
+    <span className="w-[150px] text-sm text-[#2E4D98] font-bold">
+      EMI Price
+    </span>
+    <p className="text-2lg font-bold text-gray-900 ml-auto text-right">
+      ₹{parseFloat(city.emi_price).toLocaleString('en-IN')}
+    </p>
+  </div>
+
+  <div className="flex gap-2">
+    <Button
+      size="sm"
+      variant="outline"
+      className="flex-1 border-[#2E4D98] text-[#2E4D98] hover:bg-[#2E4D98] hover:text-white"
+      onClick={() => handleViewDetails(city.id, isDomestic ? 'domestic' : 'international')}
+    >
+      View Details
+    </Button>
+
+    <Button
+      size="sm"
+      className="flex-1 bg-[#E53C42] hover:bg-[#E53C42] hover:opacity-90 text-white"
+      onClick={() => handleBookNowClick(city)}
+    >
+      Book Now
+    </Button>
+  </div>
+
+</div>
               </div>
             </div>
           );
@@ -586,7 +632,7 @@ const Miceview: React.FC = () => {
                 onClick={handleHomeClick}
                 className="flex justify-between items-center mb-4 bg-white p-3 rounded-lg border border-black cursor-pointer hover:bg-gray-50 transition-colors"
               >
-                <h2 className="text-xl font-bold text-[#2E4D98]">Home</h2>
+                <h2 className="text-xl font-bold text-[#2E4D98]">About Mice</h2>
                 <span>{showHome ? "▼" : "▶"}</span>
               </div>
 
@@ -611,7 +657,7 @@ const Miceview: React.FC = () => {
               </div>
 
               {/* Departure Months */}
-              <div className="mb-8">
+              {/* <div className="mb-8">
                 <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Departure Months</h3>
                 <div className="space-y-3">
                   {departureMonths.length === 0 ? (
@@ -639,7 +685,7 @@ const Miceview: React.FC = () => {
                     {showAllDepartureMonths ? "Show Less" : `Show ${departureMonths.length - 6} More`}
                   </button>
                 )}
-              </div>
+              </div> */}
 
               {/* Search */}
               <div className="mb-4">
@@ -690,7 +736,7 @@ const Miceview: React.FC = () => {
                             className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${selectedDomesticCities.includes(city.city_name) ? 'font-bold text-[#2E4D98]' : ''}`}
                             onClick={() => handleDomesticCheckboxChange(city.city_name, !selectedDomesticCities.includes(city.city_name))}
                           >
-                            {city.city_name} 
+                            {city.city_name}
                           </span>
                         </div>
                       ))
@@ -706,7 +752,7 @@ const Miceview: React.FC = () => {
               </div>
 
               {/* International Mice Checkboxes */}
-              <div>
+              <div  className="mb-4">
                 <div className="flex justify-between items-center mb-3 bg-white p-2 rounded-lg border border-black">
                   <h2 className="text-xl font-bold text-[#2E4D98]">International Mice</h2>
                 </div>
@@ -729,7 +775,7 @@ const Miceview: React.FC = () => {
                             className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${selectedInternationalCities.includes(city.city_name) ? 'font-bold text-[#2E4D98]' : ''}`}
                             onClick={() => handleInternationalCheckboxChange(city.city_name, !selectedInternationalCities.includes(city.city_name))}
                           >
-                            {city.city_name} 
+                            {city.city_name}
                           </span>
                         </div>
                       ))
@@ -743,7 +789,52 @@ const Miceview: React.FC = () => {
                   </button>
                 )}
               </div>
+
+              {/* Menu Items Section */}
+<div className="mt-0 pt-0 border-t border-gray-300">
+  <div className="mb-4">
+    <div
+      onClick={() => {
+        navigate("/enquiryformmic");
+      }}
+      className="flex justify-between items-center p-2 rounded-lg cursor-pointer border border-black transition shadow-sm bg-white text-[#2E4D98] hover:bg-gray-50"
+    >
+      <h3 className="text-lg font-semibold">Enquiry Form</h3>
+    </div>
+  </div>
+  <div className="mb-4">
+    <div
+      onClick={() => {
+        navigate("/bankgallery");
+      }}
+      className="flex justify-between items-center p-2 rounded-lg cursor-pointer border border-black transition shadow-sm bg-white text-[#2E4D98] hover:bg-gray-50"
+    >
+      <h3 className="text-lg font-semibold">Our Clients</h3>
+    </div>
+  </div>
+  <div className="mb-4">
+    <div
+      onClick={() => {
+        navigate("/venuephotos");
+      }}
+      className="flex justify-between items-center p-2 rounded-lg cursor-pointer border border-black transition shadow-sm bg-white text-[#2E4D98] hover:bg-gray-50"
+    >
+      <h3 className="text-lg font-semibold">Venue Photos</h3>
+    </div>
+  </div>
+  <div className="mb-4">
+    <div
+      onClick={() => {
+        navigate("/micgallery");
+      }}
+      className="flex justify-between items-center p-2 rounded-lg cursor-pointer border border-black transition shadow-sm bg-white text-[#2E4D98] hover:bg-gray-50"
+    >
+      <h3 className="text-lg font-semibold">Mice Gallery</h3>
+    </div>
+  </div>
+</div>
             </div>
+            
           </aside>
 
           {/* Main Content */}

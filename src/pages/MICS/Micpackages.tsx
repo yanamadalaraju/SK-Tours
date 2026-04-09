@@ -19,6 +19,7 @@ interface PackageItem {
 const Micpackages: React.FC = () => {
   const [packages, setPackages] = useState<PackageItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     fetch(`${BASE_URL}/api/mice/packages`)
@@ -46,7 +47,7 @@ return (
         <div className="flex flex-col md:flex-row w-full gap-3 md:gap-5 p-3 md:p-5">
 
           <div className="md:w-64 w-full">
-            <Sidebar />
+            <Sidebar sidebarOpen={sidebarOpen} closeSidebar={() => setSidebarOpen(false)} />
           </div>
           <div className="flex-1 w-full mx-auto bg-gradient-to-br from-[#e6d29b] to-[#d8b56f] p-4 md:p-8">
 

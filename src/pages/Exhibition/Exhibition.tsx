@@ -398,105 +398,108 @@ const Exhibition = () => {
                 </div>
               </div>
 
-              {/* Content */}
-              {activeMenu === "About Exhibition" && (
-                <>
-                  <div className="border rounded-lg overflow-hidden mb-6">
-                    {loading.about ? (
-                      <div className="flex flex-col items-center justify-center gap-2" style={{ minHeight: "200px", height: "auto" }}>
-                        <span className="animate-spin h-6 w-6 md:h-8 md:w-8 border-4 border-gray-300 border-t-blue-600 rounded-full" />
-                        <span className="text-gray-500 text-sm">Loading image...</span>
-                      </div>
-                    ) : menuData["About Exhibition"].imageText && isImageUrl(menuData["About Exhibition"].imageText) ? (
-                      <div className="relative w-full">
-                        <img
-                          src={menuData["About Exhibition"].imageText}
-                          alt="Exhibition Banner"
-                          className="w-full h-auto block"
-                          style={{ maxHeight: "450px", objectFit: "cover" }}
-                          onError={(e) => {
-                            console.error('Image failed to load:', menuData["About Exhibition"].imageText);
-                            e.currentTarget.style.display = 'none';
-                            const parent = e.currentTarget.parentElement;
-                            if (parent) {
-                              const errorDiv = parent.querySelector('.image-error');
-                              if (errorDiv) {
-                                (errorDiv as HTMLElement).style.display = 'flex';
-                              }
-                            }
-                          }}
-                        />
-                        
-                        <div 
-                          className="image-error hidden flex-col items-center justify-center gap-2 text-gray-500 text-center p-4"
-                          style={{ minHeight: "200px" }}
-                        >
-                          <div className="text-sm">Failed to load image</div>
-                        </div>
-                        
-                        <div className="absolute inset-0 flex items-center justify-center p-2">
-                          <h1
-                            className="font-black text-center"
-                            style={{
-                              fontSize: "clamp(1rem, 6vw, 90px)",
-                              color: "#00205b",
-                              textShadow: "2px 2px 8px rgba(0, 0, 0, 0.34)",
-                              lineHeight: "1.2",
-                              padding: "0 10px"
-                            }}
-                          >
-                            ABOUT EXHIBITION
-                          </h1>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-center text-gray-500 text-center p-4" style={{ minHeight: "200px" }}>
-                        <div className="text-sm">No image available</div>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="border rounded-lg overflow-hidden">
-                    {menuData["About Exhibition"].qa.length > 0 ? (
-                      menuData["About Exhibition"].qa.map((item, index) => (
-                        <div key={index} className="border-b">
-                          <div
-                            onClick={() => handleQAClick(index)}
-                            className="flex justify-between items-center px-4 py-3 cursor-pointer hover:bg-gray-50"
-                            style={{ backgroundColor: "#2E3A8A", color: "#fff" }}
-                          >
-                            <span className="text-sm md:text-base">{item.q}</span>
-                            <span className="text-xs md:text-sm">{openQA === index ? "▼" : "▶"}</span>
-                          </div>
-                          {openQA === index && (
-                            <div
-                              className="px-4 py-4 bg-[#E8F0FF] overflow-y-auto text-sm md:text-base"
-                              style={{
-                                minHeight: "150px",
-                                maxHeight: "250px",
-                                textAlign: "justify"
-                              }}
-                            >
-                              {item.a}
-                            </div>
-                          )}
-                        </div>
-                      ))
-                    ) : (
-                      <div className="px-4 py-6 text-center text-gray-500 text-sm">
-                        {loading.about ? (
-                          <div className="flex items-center justify-center gap-2">
-                            <span className="animate-spin h-4 w-4 border-2 border-gray-300 border-t-blue-600 rounded-full" />
-                            Loading questions...
-                          </div>
-                        ) : (
-                          "No data available"
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </>
-              )}
+        {/* Content */}
+{activeMenu === "About Exhibition" && (
+  <>
+    <div className="border rounded-lg overflow-hidden mb-6">
+      {loading.about ? (
+        <div className="flex flex-col items-center justify-center gap-2" style={{ minHeight: "200px", height: "auto" }}>
+          <span className="animate-spin h-6 w-6 md:h-8 md:w-8 border-4 border-gray-300 border-t-blue-600 rounded-full" />
+          <span className="text-gray-500 text-sm">Loading image...</span>
+        </div>
+      ) : menuData["About Exhibition"].imageText && isImageUrl(menuData["About Exhibition"].imageText) ? (
+        <div className="relative w-full">
+          <img
+            src={menuData["About Exhibition"].imageText}
+            alt="Exhibition Banner"
+            className="w-full h-auto block"
+            style={{ maxHeight: "450px", objectFit: "cover" }}
+            onError={(e) => {
+              console.error('Image failed to load:', menuData["About Exhibition"].imageText);
+              e.currentTarget.style.display = 'none';
+              const parent = e.currentTarget.parentElement;
+              if (parent) {
+                const errorDiv = parent.querySelector('.image-error');
+                if (errorDiv) {
+                  (errorDiv as HTMLElement).style.display = 'flex';
+                }
+              }
+            }}
+          />
+          
+          <div 
+            className="image-error hidden flex-col items-center justify-center gap-2 text-gray-500 text-center p-4"
+            style={{ minHeight: "200px" }}
+          >
+            <div className="text-sm">Failed to load image</div>
+          </div>
+          
+          <div className="absolute inset-0 flex items-center justify-center p-2">
+            <h1
+              className="font-black text-center"
+              style={{
+                fontSize: "clamp(1rem, 6vw, 90px)",
+                color: "#00205b",
+                textShadow: "2px 2px 8px rgba(0, 0, 0, 0.34)",
+                lineHeight: "1.2",
+                padding: "0 10px"
+              }}
+            >
+              ABOUT EXHIBITION
+            </h1>
+          </div>
+        </div>
+      ) : (
+        <div className="flex items-center justify-center text-gray-500 text-center p-4" style={{ minHeight: "200px" }}>
+          <div className="text-sm">No image available</div>
+        </div>
+      )}
+    </div>
+    
+    <div className="border rounded-lg overflow-hidden">
+      {menuData["About Exhibition"].qa.length > 0 ? (
+        menuData["About Exhibition"].qa.map((item, index) => (
+          <div key={index} className="border-b">
+            <div
+              onClick={() => handleQAClick(index)}
+              className="flex justify-between items-center px-4 py-3 cursor-pointer hover:bg-gray-50"
+              style={{ backgroundColor: "#2E3A8A", color: "#fff" }}
+            >
+              <span className="text-sm md:text-base">{item.q}</span>
+              <span className="text-xs md:text-sm">{openQA === index ? "▼" : "▶"}</span>
+            </div>
+            {openQA === index && (
+              <div
+                className="px-4 py-4 bg-[#E8F0FF] overflow-y-auto text-sm md:text-base"
+                style={{
+                  minHeight: "100px",
+                  maxHeight: "250px",
+                  minWidth: "100%",
+                  maxWidth: "100%",
+                  textAlign: "justify",
+                  border: "1px solid black"
+                }}
+              >
+                {item.a}
+              </div>
+            )}
+          </div>
+        ))
+      ) : (
+        <div className="px-4 py-6 text-center text-gray-500 text-sm">
+          {loading.about ? (
+            <div className="flex items-center justify-center gap-2">
+              <span className="animate-spin h-4 w-4 border-2 border-gray-300 border-t-blue-600 rounded-full" />
+              Loading questions...
+            </div>
+          ) : (
+            "No data available"
+          )}
+        </div>
+      )}
+    </div>
+  </>
+)}
               
         {activeCategory === "Domestic" && (
   <div className="p-0">

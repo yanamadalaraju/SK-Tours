@@ -12,6 +12,7 @@ interface VenueImage {
 const VenuePhotos: React.FC = () => {
   const [venues, setVenues] = useState<VenueImage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     fetch(`${BASE_URL}/api/mice/venues`)
@@ -34,10 +35,10 @@ const VenuePhotos: React.FC = () => {
     <div className="min-h-screen  bg-[#FFEBEE]">
       <Header />
 
-      <div className="flex flex-col lg:flex-row w-full gap-5 p-5">
+      <div className="flex flex-col lg:flex-row w-full gap-5 p-9">
         {/* Sidebar */}
         <div className="w-full lg:w-auto">
-          <Sidebar />
+          <Sidebar sidebarOpen={sidebarOpen} closeSidebar={() => setSidebarOpen(false)} />
         </div>
 
         {/* Gallery */}

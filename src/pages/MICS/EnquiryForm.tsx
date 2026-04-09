@@ -31,6 +31,7 @@ interface FormData {
 
 const EnquiryForm = () => {
   const [isMobile, setIsMobile] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -42,6 +43,8 @@ const EnquiryForm = () => {
     
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  const closeSidebar = () => setSidebarOpen(false);
 
   const [formData, setFormData] = useState<FormData>({
     company_name: "",
@@ -164,10 +167,10 @@ const EnquiryForm = () => {
     <div className="font-sans min-h-screen  bg-[#FFEBEE]">
       <Header />
 
-      <div className="main-layout flex flex-col md:flex-row w-full gap-5 p-5">
+      <div className="main-layout flex flex-col md:flex-row w-full gap-5 p-9">
         {/* Sidebar - Always visible, responsive width */}
         <div className="w-full md:w-auto">
-          <Sidebar />
+          <Sidebar sidebarOpen={sidebarOpen} closeSidebar={closeSidebar} />
         </div>
 
         <div className="flex-1 min-w-0">
