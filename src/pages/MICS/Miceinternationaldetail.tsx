@@ -465,6 +465,7 @@ const processTourCost = (apiData) => {
         return {
           loanAmount: formatPriceExhibition(arr[0]?.loan_amount),
           options: arr.map(o => ({
+            particulars: o.particulars || 'Per Month Payment',
             loanAmount: formatPriceExhibition(o.loan_amount || '0'),
             months: o.months || 0,
             emi: formatPriceExhibition(o.emi)

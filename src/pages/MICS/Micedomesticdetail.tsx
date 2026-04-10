@@ -535,6 +535,7 @@ const Micedomesticdetail = () => {
       title: mice_city?.city_name || tourData?.title || "MICE Tour",
       duration: formatDuration(tourData?.duration_days || 2),
       cityName: mice_city?.city_name || "",
+      stateName: mice_city?.state_name || "",  // ← Add this line
       price: formatPriceExhibition(tourData?.base_price_adult || 0),
       emi: calculateEMI(tourData?.base_price_adult || 0),
       code: tourData?.tour_code || "N/A",
@@ -1155,7 +1156,17 @@ useEffect(() => {
               </div>
 <div className="w-full overflow-hidden border mb-2">
   <div className="flex w-full items-stretch gap-1">
-    {/* City Label */}
+     {/* Exhibition Label */}
+    <div className="flex-1 flex items-center justify-center p-3 bg-[#2E3A8A] border border-black">
+      <span className="font-bold text-white">State:</span>
+    </div>
+
+  {/* Exhibition Value */}
+<div className="flex-1 flex items-center justify-center p-3 bg-blue-100 border border-black">
+  <span className="text-[#2E3A8A] font-bold text-sm text-center">
+    {tour.stateName || "State Name"}  {/* ← was tour.state_name */}
+  </span>
+</div>
     <div className="flex-1 flex items-center justify-center p-3 bg-[#2E3A8A] border border-black">
       <span className="font-bold text-white">City:</span>
     </div>
@@ -1165,15 +1176,7 @@ useEffect(() => {
       <span className="text-[#2E3A8A] font-bold">{tour.cityName || "City"}</span>
     </div>
 
-    {/* Exhibition Label */}
-    <div className="flex-1 flex items-center justify-center p-3 bg-[#2E3A8A] border border-black">
-      <span className="font-bold text-white">Mice:</span>
-    </div>
-
-    {/* Exhibition Value */}
-    <div className="flex-1 flex items-center justify-center p-3 bg-blue-100 border border-black">
-      <span className="text-[#2E3A8A] font-bold text-sm text-center">{tour.title || "Exhibition Name"}</span>
-    </div>
+  
 
     {/* Search Column */}
     <div className="w-64 flex items-center bg-red-500 border border-black flex-shrink-0">
@@ -1746,11 +1749,11 @@ useEffect(() => {
                     <div className="bg-[#E8F0FF] rounded-lg p-0.2 w-full overflow-x-hidden">
                       {/* Flights Section */}
                       <div className="bg-[#FFEBEE] rounded-lg p-1 mb-1 w-full">
-                        <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
+                        {/* <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
                           Flight Details
-                        </div>
+                        </div> */}
 
-                        <div className="border-2 border-[#1e3a8a] rounded-t-none border-t-0 rounded-lg overflow-hidden w-full mb-1">
+                        {/* <div className="border-2 border-[#1e3a8a] rounded-t-none border-t-0 rounded-lg overflow-hidden w-full mb-1">
                           <div className="min-h-[250px] lg:min-h-[300px] max-h-[300px] lg:max-h-[400px] overflow-y-auto p-1 bg-[#FFEBEE] w-full">
                             <div>
                               {tour.airlines.tableData && tour.airlines.tableData.length > 0 ? (
@@ -1774,7 +1777,7 @@ useEffect(() => {
                               )}
                             </div>
                           </div>
-                        </div>
+                        </div> */}
 
                         {/* Flight Remarks */}
                         {tour.airlines.remarks.length > 0 && (
