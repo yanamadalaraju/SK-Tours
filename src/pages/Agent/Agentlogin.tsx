@@ -252,7 +252,7 @@ const Login = () => {
             marginBottom: '8px',
             fontWeight: '700'
           }}>
-            Welcome Back
+            Welcome Back Agent
           </h1>
   
         </div>
@@ -380,14 +380,14 @@ const Login = () => {
           }}>
             Don't have an account?{' '}
             <Link 
-              to="/signup" 
+              to="/agentsingnup" 
               style={{ 
                 color: '#667eea', 
                 textDecoration: 'none', 
                 fontWeight: '600' 
               }}
             >
-              Sign up
+             Agent Sign up
             </Link>
           </div>
 
