@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import logo from "../assets/png[3].png"; 
 import { useState, useRef, useEffect } from "react";
 import { BASE_URL } from "@/ApiUrls";
-
+import { useNavigate } from "react-router-dom";
 const indianStates = [
   "Andaman", "Andhra Pradesh", "Bihar", "Chhattisgarh", "Daman & Diu",
    "Goa", "Gujarat",  "Himachal Pradesh", "Jammu & Kashmir",
@@ -68,7 +68,7 @@ const Header = () => {
   const [showIndianHoneymoonStates, setShowIndianHoneymoonStates] = useState(false);
   const [showIndianSportsStates, setShowIndianSportsStates] = useState(false);
   const [showIndianFestivalStates, setShowIndianFestivalStates] = useState(false);
-  
+  const navigate = useNavigate();
   const [showIntlIndividualCountries, setShowIntlIndividualCountries] = useState(false);
   const [showIntlGroupCountries, setShowIntlGroupCountries] = useState(false);
   const [showIntlLadiesCountries, setShowIntlLadiesCountries] = useState(false);
@@ -1191,50 +1191,70 @@ const Header = () => {
             ))}
           </nav>
 
-          {/* Desktop Login/Signup - Vertical Layout */}
-          <div className="hidden lg:flex flex-col items-end gap-2 ml-auto">
-            {/* Sign Up */}
-            <div className="relative group">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="bg-green-500 hover:bg-green-600 text-white px-5 py-2.5 rounded-lg border border-green-600 flex items-center gap-2 w-[120px] justify-center"
-              >
-                <UserPlus className="w-4 h-4" />
-                <span className="font-medium text-sm">Sign Up</span>
-                <ChevronDown className="w-3 h-3" />
-              </Button>
-              <div className="absolute right-full top-0 mr-2 opacity-0 -translate-x-4 invisible group-hover:opacity-100 group-hover:translate-x-0 group-hover:visible bg-green-50 text-gray-800 rounded-xl shadow-2xl py-2 border border-green-200 transition-all duration-300 z-50 min-w-[140px]">
-                <a href="#new-user" className="flex items-center gap-3 px-4 py-2 text-sm font-medium hover:bg-green-100 hover:text-green-700 rounded-lg transition-colors">
-                  <UserPlus className="w-4 h-4 text-green-600" /> New User
-                </a>
-                <a href="#new-agent" className="flex items-center gap-3 px-4 py-2 text-sm font-medium hover:bg-green-100 hover:text-green-700 rounded-lg transition-colors">
-                  <Users className="w-4 h-4 text-green-600" /> New Agent
-                </a>
-              </div>
-            </div>
+       {/* Desktop Login/Signup - Vertical Layout */}
+<div className="hidden lg:flex flex-col items-end gap-2 ml-auto">
+  {/* Sign Up */}
+  <div className="relative group">
+    <Button 
+      variant="ghost" 
+      size="sm" 
+      className="bg-green-500 hover:bg-green-600 text-white px-5 py-2.5 rounded-lg border border-green-600 flex items-center gap-2 w-[120px] justify-center"
+    >
+      <UserPlus className="w-4 h-4" />
+      <span className="font-medium text-sm">Sign Up</span>
+      <ChevronDown className="w-3 h-3" />
+    </Button>
 
-            {/* Login */}
-            <div className="relative group">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="bg-red-500 hover:bg-red-600 text-white px-5 py-2.5 rounded-lg border border-red-600 flex items-center gap-2 w-[120px] justify-center"
-              >
-                <UserCircle className="w-4 h-4" />
-                <span className="font-medium text-sm">Login</span>
-                <ChevronDown className="w-3 h-3" />
-              </Button>
-              <div className="absolute right-full top-0 mr-2 opacity-0 -translate-x-4 invisible group-hover:opacity-100 group-hover:translate-x-0 group-hover:visible bg-red-50 text-gray-800 rounded-xl shadow-2xl py-2 border border-red-200 transition-all duration-300 z-50 min-w-[140px]">
-                <a href="#user-login" className="flex items-center gap-3 px-4 py-2 text-sm font-medium hover:bg-red-100 hover:text-red-700 rounded-lg transition-colors">
-                  <UserCircle className="w-4 h-4 text-red-600" /> User Login
-                </a>
-                <a href="#agent-login" className="flex items-center gap-3 px-4 py-2 text-sm font-medium hover:bg-red-100 hover:text-red-700 rounded-lg transition-colors">
-                  <Users className="w-4 h-4 text-red-600" /> Agent Login
-                </a>
-              </div>
-            </div>
-          </div>
+    <div className="absolute right-full top-0 mr-2 opacity-0 -translate-x-4 invisible group-hover:opacity-100 group-hover:translate-x-0 group-hover:visible bg-green-50 text-gray-800 rounded-xl shadow-2xl py-2 border border-green-200 transition-all duration-300 z-50 min-w-[140px]">
+
+      <a 
+        onClick={() => navigate("/signup")}
+        className="flex items-center gap-3 px-4 py-2 text-sm font-medium hover:bg-green-100 hover:text-green-700 rounded-lg transition-colors cursor-pointer"
+      >
+        <UserPlus className="w-4 h-4 text-green-600" /> New User
+      </a>
+
+      <a 
+        onClick={() => navigate("/agentsingnup")}
+        className="flex items-center gap-3 px-4 py-2 text-sm font-medium hover:bg-green-100 hover:text-green-700 rounded-lg transition-colors cursor-pointer"
+      >
+        <Users className="w-4 h-4 text-green-600" /> New Agent
+      </a>
+
+    </div>
+  </div>
+
+  {/* Login */}
+  <div className="relative group">
+    <Button 
+      variant="ghost" 
+      size="sm" 
+      className="bg-red-500 hover:bg-red-600 text-white px-5 py-2.5 rounded-lg border border-red-600 flex items-center gap-2 w-[120px] justify-center"
+    >
+      <UserCircle className="w-4 h-4" />
+      <span className="font-medium text-sm">Login</span>
+      <ChevronDown className="w-3 h-3" />
+    </Button>
+
+    <div className="absolute right-full top-0 mr-2 opacity-0 -translate-x-4 invisible group-hover:opacity-100 group-hover:translate-x-0 group-hover:visible bg-red-50 text-gray-800 rounded-xl shadow-2xl py-2 border border-red-200 transition-all duration-300 z-50 min-w-[140px]">
+
+      <a 
+        onClick={() => navigate("/login")}
+        className="flex items-center gap-3 px-4 py-2 text-sm font-medium hover:bg-red-100 hover:text-red-700 rounded-lg transition-colors cursor-pointer"
+      >
+        <UserCircle className="w-4 h-4 text-red-600" /> User Login
+      </a>
+
+      <a 
+        onClick={() => navigate("/agentlogin")}
+        className="flex items-center gap-3 px-4 py-2 text-sm font-medium hover:bg-red-100 hover:text-red-700 rounded-lg transition-colors cursor-pointer"
+      >
+        <Users className="w-4 h-4 text-red-600" /> Agent Login
+      </a>
+
+    </div>
+  </div>
+</div>
         </div>
 {/* MOBILE MENU */}
 {mobileMenuOpen && (

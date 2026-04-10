@@ -1,44 +1,37 @@
 import React, { useState, ChangeEvent, FormEvent, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import img from "../../assets/png[3].png";
 import { BASE_URL } from '@/ApiUrls';
 
-interface LoginData {
+interface FormData {
   email: string;
   password: string;
-  rememberMe: boolean;
+  confirmPassword: string;
+  acceptTerms: boolean;
 }
 
-interface LoginErrors {
+interface FormErrors {
   email?: string;
   password?: string;
+  confirmPassword?: string;
+  acceptTerms?: string;
 }
 
-const Login = () => {
-  const [formData, setFormData] = useState<LoginData>({
+const Agentsignup = () => {
+  const [formData, setFormData] = useState<FormData>({
     email: '',
     password: '',
-    rememberMe: false
+    confirmPassword: '',
+    acceptTerms: false
   });
 
-  const [errors, setErrors] = useState<LoginErrors>({});
+  const [errors, setErrors] = useState<FormErrors>({});
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
   const [alertType, setAlertType] = useState<'success' | 'error'>('success');
-  const [isLoading, setIsLoading] = useState(false);
+  
+  // State for password visibility
   const [showPassword, setShowPassword] = useState(false);
-
-  useEffect(() => {
-    // Check for saved login credentials
-    const savedEmail = localStorage.getItem('rememberedEmail');
-    if (savedEmail) {
-      setFormData(prev => ({
-        ...prev,
-        email: savedEmail,
-        rememberMe: true
-      }));
-    }
-  }, []);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     if (showAlert) {
@@ -57,16 +50,10 @@ const Login = () => {
     });
   };
 
-  const showCustomAlert = (message: string, type: 'success' | 'error') => {
-    setAlertMessage(message);
-    setAlertType(type);
-    setShowAlert(true);
-  };
+  const validateForm = (): FormErrors => {
+    const newErrors: FormErrors = {};
 
-  const validateForm = (): LoginErrors => {
-    const newErrors: LoginErrors = {};
-
-    if (!formData.email.trim()) {
+    if (!formData.email) {
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Email is invalid';
@@ -78,85 +65,114 @@ const Login = () => {
       newErrors.password = 'Password must be at least 6 characters';
     }
 
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = 'Please confirm your password';
+    } else if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
+
+    if (!formData.acceptTerms) {
+      newErrors.acceptTerms = 'You must accept the terms';
+    }
+
     return newErrors;
   };
 
- const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const showCustomAlert = (message: string, type: 'success' | 'error') => {
+    setAlertMessage(message);
+    setAlertType(type);
+    setShowAlert(true);
+  };
+const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
   e.preventDefault();
 
   const validationErrors = validateForm();
 
-  if (Object.keys(validationErrors).length > 0) {
+  if (Object.keys(validationErrors).length === 0) {
+    try {
+      const response = await fetch(`${BASE_URL}/api/users`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password
+        })
+      });
+
+      let data = {};
+      try {
+        data = await response.json();
+      } catch {
+        data = {};
+      }
+
+      console.log("Status:", response.status);
+      console.log("Data:", data);
+
+      if (response.ok) {
+        showCustomAlert(
+          (data as any).message || "User registered successfully!",
+          "success"
+        );
+
+        // reset form
+        setFormData({
+          email: '',
+          password: '',
+          confirmPassword: '',
+          acceptTerms: false
+        });
+
+      } else {
+        showCustomAlert(
+          (data as any).error || "Something went wrong",
+          "error"
+        );
+      }
+
+    } catch (error) {
+      console.error(error);
+      showCustomAlert("Network error", "error");
+    }
+  } else {
     setErrors(validationErrors);
-    showCustomAlert('Please fix the errors in the form', 'error');
-    return;
+    showCustomAlert("Fix form errors", "error");
   }
-
-  setIsLoading(true);
-
-  try {
-    const response = await fetch(`${BASE_URL}/api/users`);
-    const data = await response.json();
-
-    console.log("Users:", data);
-
-    if (!data.success) {
-      showCustomAlert("Failed to fetch users", "error");
-      setIsLoading(false);
-      return;
-    }
-
-    const user = data.users.find((u: any) => u.email === formData.email);
-
-    if (!user) {
-      showCustomAlert("User not found", "error");
-      setIsLoading(false);
-      return;
-    }
-
-    // 🔥 PASSWORD CHECK
-    let isMatch = false;
-
-    // Case 1: Plain password
-    if (user.password === formData.password) {
-      isMatch = true;
-    }
-
-    // Case 2: Hashed password (basic skip for now)
-    if (user.password.startsWith("$2b$")) {
-      // ⚠️ bcrypt compare should be backend
-      showCustomAlert("Password is hashed. Use backend login API", "error");
-      setIsLoading(false);
-      return;
-    }
-
-    if (isMatch) {
-      showCustomAlert("Login successful!", "success");
-
-      // ✅ Navigate after success
-      setTimeout(() => {
-        window.location.href = "/micepage";
-      }, 1000);
-
-    } else {
-      showCustomAlert("Invalid password", "error");
-    }
-
-  } catch (error) {
-    console.error(error);
-    showCustomAlert("Network error", "error");
-  }
-
-  setIsLoading(false);
 };
-
-  const handleForgotPassword = () => {
-    if (!formData.email) {
-      showCustomAlert('Please enter your email to reset password', 'error');
-      return;
-    }
-    showCustomAlert(`Password reset link sent to ${formData.email}`, 'success');
-  };
+  // Eye icon component
+  const EyeIcon = ({ show, onClick }: { show: boolean; onClick: () => void }) => (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        position: 'absolute',
+        right: '12px',
+        top: '50%',
+        transform: 'translateY(-50%)',
+        background: 'transparent',
+        border: 'none',
+        cursor: 'pointer',
+        padding: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: '#a0aec0',
+        fontSize: '18px'
+      }}
+    >
+      {show ? (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+          <circle cx="12" cy="12" r="3" />
+        </svg>
+      ) : (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+          <line x1="1" y1="1" x2="23" y2="23" />
+        </svg>
+      )}
+    </button>
+  );
 
   return (
     <div style={{ 
@@ -242,24 +258,15 @@ const Login = () => {
             alt="SK Tours" 
             style={{ 
               height: '56px', 
-              marginBottom: '20px', 
+              marginBottom: '16px', 
               objectFit: 'contain' 
             }} 
           />
-          <h1 style={{ 
-            color: '#2d3748', 
-            fontSize: '28px', 
-            marginBottom: '8px',
-            fontWeight: '700'
-          }}>
-            Welcome Back
-          </h1>
-  
         </div>
 
         <form onSubmit={handleSubmit}>
           {/* EMAIL */}
-          <div style={{ marginBottom: '20px' }}>
+          <div style={{ marginBottom: '16px' }}>
             <label style={labelStyle}>Email Address</label>
             <input 
               type="email" 
@@ -268,13 +275,12 @@ const Login = () => {
               onChange={handleChange} 
               placeholder="Enter your email" 
               style={inputStyle(!!errors.email)} 
-              disabled={isLoading}
             />
             {errors.email && <p style={errorStyle}>{errors.email}</p>}
           </div>
 
-          {/* PASSWORD */}
-          <div style={{ marginBottom: '20px' }}>
+          {/* PASSWORD with Eye Icon */}
+          <div style={{ marginBottom: '16px' }}>
             <label style={labelStyle}>Password</label>
             <div style={{ position: 'relative' }}>
               <input 
@@ -282,116 +288,83 @@ const Login = () => {
                 name="password" 
                 value={formData.password} 
                 onChange={handleChange} 
-                placeholder="Enter your password" 
+                placeholder="Create a password" 
                 style={inputStyle(!!errors.password)} 
-                disabled={isLoading}
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                style={{
-                  position: 'absolute',
-                  right: '12px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontSize: '18px'
-                }}
-                disabled={isLoading}
-              >
-                {showPassword ? '👁️' : '👁️‍🗨️'}
-              </button>
+              <EyeIcon show={showPassword} onClick={() => setShowPassword(!showPassword)} />
             </div>
             {errors.password && <p style={errorStyle}>{errors.password}</p>}
-            
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'center',
-              marginTop: '10px'
-            }}>
-              <label style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                cursor: 'pointer',
-                color: '#4a5568'
-              }}>
-                <input 
-                  type="checkbox" 
-                  name="rememberMe" 
-                  checked={formData.rememberMe} 
-                  onChange={handleChange}
-                  style={{ 
-                    marginRight: '8px', 
-                    width: '16px', 
-                    height: '16px' 
-                  }} 
-                  disabled={isLoading}
-                />
-                <span style={{ fontSize: '14px' }}>Remember me</span>
-              </label>
-              
-              <button 
-                type="button"
-                onClick={handleForgotPassword}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#667eea',
-                  fontSize: '14px',
-                  cursor: 'pointer',
-                  textDecoration: 'none',
-                  fontWeight: '500'
-                }}
-                disabled={isLoading}
-              >
-                Forgot password?
-              </button>
-            </div>
           </div>
 
-          <button 
-            type="submit" 
-            style={{
-              ...buttonStyle,
-              opacity: isLoading ? 0.7 : 1,
-              position: 'relative'
-            }}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <>
-                <span style={{ marginRight: '8px' }}>⏳</span>
-                Signing in...
-              </>
-            ) : (
-              'Sign In'
-            )}
-          </button>
+          {/* CONFIRM PASSWORD with Eye Icon */}
+          <div style={{ marginBottom: '16px' }}>
+            <label style={labelStyle}>Confirm Password</label>
+            <div style={{ position: 'relative' }}>
+              <input 
+                type={showConfirmPassword ? "text" : "password"} 
+                name="confirmPassword" 
+                value={formData.confirmPassword} 
+                onChange={handleChange} 
+                placeholder="Re-enter your password" 
+                style={inputStyle(!!errors.confirmPassword)} 
+              />
+              <EyeIcon show={showConfirmPassword} onClick={() => setShowConfirmPassword(!showConfirmPassword)} />
+            </div>
+            {errors.confirmPassword && <p style={errorStyle}>{errors.confirmPassword}</p>}
+          </div>
 
-  
+          {/* TERMS */}
+          <div style={{ marginBottom: '24px' }}>
+            <label style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              cursor: 'pointer', 
+              color: errors.acceptTerms ? '#fc8181' : '#4a5568' 
+            }}>
+              <input 
+                type="checkbox" 
+                name="acceptTerms" 
+                checked={formData.acceptTerms} 
+                onChange={handleChange} 
+                style={{ 
+                  marginRight: '10px', 
+                  width: '16px', 
+                  height: '16px' 
+                }} 
+              />
+              <span style={{ fontSize: '14px' }}>
+                I agree to the Terms of Service and Privacy Policy
+              </span>
+            </label>
+            {errors.acceptTerms && (
+              <p style={{ ...errorStyle, marginLeft: '26px' }}>
+                {errors.acceptTerms}
+              </p>
+            )}
+          </div>
+
+          <button type="submit" style={buttonStyle}>
+            Create Account
+          </button>
 
           <div style={{ 
             textAlign: 'center', 
             color: '#718096', 
-            fontSize: '14px'
+            fontSize: '14px',
+            marginTop: '16px'
           }}>
-            Don't have an account?{' '}
-            <Link 
-              to="/signup" 
+            Already have an account?{' '}
+            <a 
+              href="/agentlogin" 
               style={{ 
                 color: '#667eea', 
                 textDecoration: 'none', 
                 fontWeight: '600' 
               }}
             >
-              Sign up
-            </Link>
+              Agent Sign in
+            </a>
           </div>
-
-
         </form>
       </div>
 
@@ -423,7 +396,7 @@ const Login = () => {
 
 const labelStyle: React.CSSProperties = {
   display: 'block',
-  marginBottom: '8px',
+  marginBottom: '6px',
   color: '#4a5568',
   fontSize: '14px',
   fontWeight: '600'
@@ -431,48 +404,33 @@ const labelStyle: React.CSSProperties = {
 
 const inputStyle = (error: boolean): React.CSSProperties => ({
   width: '100%',
-  padding: '14px 16px',
+  padding: '12px 40px 12px 14px',
   border: `2px solid ${error ? '#fc8181' : '#e2e8f0'}`,
   borderRadius: '10px',
   fontSize: '15px',
   boxSizing: 'border-box' as 'border-box',
+  outline: 'none',
   transition: 'border-color 0.2s'
 });
 
 const errorStyle: React.CSSProperties = {
   color: '#fc8181',
   fontSize: '13px',
-  marginTop: '6px',
+  marginTop: '4px',
   marginBottom: '0'
 };
 
 const buttonStyle: React.CSSProperties = {
   width: '100%',
-  padding: '15px',
+  padding: '14px',
   background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
   color: 'white',
   border: 'none',
   borderRadius: '10px',
-  fontSize: '16px',
+  fontSize: '15px',
   fontWeight: '600',
   cursor: 'pointer',
-  transition: 'opacity 0.2s'
+  transition: 'transform 0.2s, opacity 0.2s'
 };
 
-const socialButtonStyle: React.CSSProperties = {
-  flex: 1,
-  padding: '12px',
-  background: '#fff',
-  color: '#4a5568',
-  border: '2px solid #e2e8f0',
-  borderRadius: '8px',
-  fontSize: '14px',
-  fontWeight: '500',
-  cursor: 'pointer',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  transition: 'all 0.2s'
-};
-
-export default Login;
+export default Agentsignup;
