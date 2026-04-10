@@ -1,8 +1,8 @@
 import React, { useState, ChangeEvent, FormEvent, useEffect } from 'react';
 import img from "../../assets/png[3].png";
+import { BASE_URL } from '@/ApiUrls';
 
 interface FormData {
-  name: string;
   email: string;
   password: string;
   confirmPassword: string;
@@ -10,7 +10,6 @@ interface FormData {
 }
 
 interface FormErrors {
-  name?: string;
   email?: string;
   password?: string;
   confirmPassword?: string;
@@ -19,7 +18,6 @@ interface FormErrors {
 
 const SignUp = () => {
   const [formData, setFormData] = useState<FormData>({
-    name: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -30,6 +28,10 @@ const SignUp = () => {
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
   const [alertType, setAlertType] = useState<'success' | 'error'>('success');
+  
+  // State for password visibility
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     if (showAlert) {
@@ -50,10 +52,6 @@ const SignUp = () => {
 
   const validateForm = (): FormErrors => {
     const newErrors: FormErrors = {};
-
-    if (!formData.name.trim()) {
-      newErrors.name = 'Name is required';
-    }
 
     if (!formData.email) {
       newErrors.email = 'Email is required';
@@ -85,26 +83,96 @@ const SignUp = () => {
     setAlertType(type);
     setShowAlert(true);
   };
+const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const validationErrors = validateForm();
+  const validationErrors = validateForm();
 
-    if (Object.keys(validationErrors).length === 0) {
-      showCustomAlert('Sign up successful! Welcome to SK Tours!', 'success');
-      setFormData({
-        name: '',
-        email: '',
-        password: '',
-        confirmPassword: '',
-        acceptTerms: false
+  if (Object.keys(validationErrors).length === 0) {
+    try {
+      const response = await fetch(`${BASE_URL}/api/users`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password
+        })
       });
-      setErrors({});
-    } else {
-      showCustomAlert('Please fix the errors in the form', 'error');
-      setErrors(validationErrors);
+
+      let data = {};
+      try {
+        data = await response.json();
+      } catch {
+        data = {};
+      }
+
+      console.log("Status:", response.status);
+      console.log("Data:", data);
+
+      if (response.ok) {
+        showCustomAlert(
+          (data as any).message || "User registered successfully!",
+          "success"
+        );
+
+        // reset form
+        setFormData({
+          email: '',
+          password: '',
+          confirmPassword: '',
+          acceptTerms: false
+        });
+
+      } else {
+        showCustomAlert(
+          (data as any).error || "Something went wrong",
+          "error"
+        );
+      }
+
+    } catch (error) {
+      console.error(error);
+      showCustomAlert("Network error", "error");
     }
-  };
+  } else {
+    setErrors(validationErrors);
+    showCustomAlert("Fix form errors", "error");
+  }
+};
+  // Eye icon component
+  const EyeIcon = ({ show, onClick }: { show: boolean; onClick: () => void }) => (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        position: 'absolute',
+        right: '12px',
+        top: '50%',
+        transform: 'translateY(-50%)',
+        background: 'transparent',
+        border: 'none',
+        cursor: 'pointer',
+        padding: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: '#a0aec0',
+        fontSize: '18px'
+      }}
+    >
+      {show ? (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+          <circle cx="12" cy="12" r="3" />
+        </svg>
+      ) : (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+          <line x1="1" y1="1" x2="23" y2="23" />
+        </svg>
+      )}
+    </button>
+  );
 
   return (
     <div style={{ 
@@ -197,20 +265,6 @@ const SignUp = () => {
         </div>
 
         <form onSubmit={handleSubmit}>
-          {/* NAME */}
-          <div style={{ marginBottom: '16px' }}>
-            <label style={labelStyle}>Full Name</label>
-            <input 
-              type="text" 
-              name="name" 
-              value={formData.name} 
-              onChange={handleChange} 
-              placeholder="Enter your full name" 
-              style={inputStyle(!!errors.name)} 
-            />
-            {errors.name && <p style={errorStyle}>{errors.name}</p>}
-          </div>
-
           {/* EMAIL */}
           <div style={{ marginBottom: '16px' }}>
             <label style={labelStyle}>Email Address</label>
@@ -225,31 +279,37 @@ const SignUp = () => {
             {errors.email && <p style={errorStyle}>{errors.email}</p>}
           </div>
 
-          {/* PASSWORD */}
+          {/* PASSWORD with Eye Icon */}
           <div style={{ marginBottom: '16px' }}>
             <label style={labelStyle}>Password</label>
-            <input 
-              type="password" 
-              name="password" 
-              value={formData.password} 
-              onChange={handleChange} 
-              placeholder="Create a password" 
-              style={inputStyle(!!errors.password)} 
-            />
+            <div style={{ position: 'relative' }}>
+              <input 
+                type={showPassword ? "text" : "password"} 
+                name="password" 
+                value={formData.password} 
+                onChange={handleChange} 
+                placeholder="Create a password" 
+                style={inputStyle(!!errors.password)} 
+              />
+              <EyeIcon show={showPassword} onClick={() => setShowPassword(!showPassword)} />
+            </div>
             {errors.password && <p style={errorStyle}>{errors.password}</p>}
           </div>
 
-          {/* CONFIRM PASSWORD */}
+          {/* CONFIRM PASSWORD with Eye Icon */}
           <div style={{ marginBottom: '16px' }}>
             <label style={labelStyle}>Confirm Password</label>
-            <input 
-              type="password" 
-              name="confirmPassword" 
-              value={formData.confirmPassword} 
-              onChange={handleChange} 
-              placeholder="Re-enter your password" 
-              style={inputStyle(!!errors.confirmPassword)} 
-            />
+            <div style={{ position: 'relative' }}>
+              <input 
+                type={showConfirmPassword ? "text" : "password"} 
+                name="confirmPassword" 
+                value={formData.confirmPassword} 
+                onChange={handleChange} 
+                placeholder="Re-enter your password" 
+                style={inputStyle(!!errors.confirmPassword)} 
+              />
+              <EyeIcon show={showConfirmPassword} onClick={() => setShowConfirmPassword(!showConfirmPassword)} />
+            </div>
             {errors.confirmPassword && <p style={errorStyle}>{errors.confirmPassword}</p>}
           </div>
 
@@ -344,11 +404,13 @@ const labelStyle: React.CSSProperties = {
 
 const inputStyle = (error: boolean): React.CSSProperties => ({
   width: '100%',
-  padding: '12px 14px',
+  padding: '12px 40px 12px 14px',
   border: `2px solid ${error ? '#fc8181' : '#e2e8f0'}`,
   borderRadius: '10px',
   fontSize: '15px',
-  boxSizing: 'border-box' as 'border-box'
+  boxSizing: 'border-box' as 'border-box',
+  outline: 'none',
+  transition: 'border-color 0.2s'
 });
 
 const errorStyle: React.CSSProperties = {
@@ -367,7 +429,8 @@ const buttonStyle: React.CSSProperties = {
   borderRadius: '10px',
   fontSize: '15px',
   fontWeight: '600',
-  cursor: 'pointer'
+  cursor: 'pointer',
+  transition: 'transform 0.2s, opacity 0.2s'
 };
 
 export default SignUp;

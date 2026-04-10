@@ -110,6 +110,8 @@ import Mic_categoires from "./pages/MICS/Mic_categoires";
 import Micedomesticdetail from "./pages/MICS/Micedomesticdetail";
 import Miceview from "./pages/MICS/Miceview";
 import Miceinternationaldetail from "./pages/MICS/Miceinternationaldetail";
+import Agentlogin from "./pages/Agent/Agentlogin";
+import Agentsignup from "./pages/Agent/Agentsignup";
 
 const queryClient = new QueryClient();
 
@@ -252,7 +254,9 @@ const App = () => (
           <Route path="/miceview/" element={<Miceview />} />
           <Route path="/miceinternationaldetail" element={<Miceinternationaldetail />} />
           <Route path="/miceinternationaldetail/:tourId" element={<Miceinternationaldetail />} />
+          <Route path="/agentlogin" element={<Agentlogin />} />
 
+          <Route path="/agentsingnup" element={<Agentsignup />} />
 
           {/* <Route path="/exhibition/:type/:category" element={<ExhibitionStatic />} /> */}
           {/* <Route path="/mice/:type/:city/:location" element={<Miceview />} /> */}

@@ -532,7 +532,7 @@ const Micedomesticdetail = () => {
     };
 
     return {
-      title: mice_city?.city_name || tourData?.title || "MICE Tour",
+      title: tourData?.title || "MICE Tour",
       duration: formatDuration(tourData?.duration_days || 2),
       cityName: mice_city?.city_name || "",
       stateName: mice_city?.state_name || "",  // ← Add this line
