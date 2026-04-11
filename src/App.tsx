@@ -112,6 +112,9 @@ import Miceview from "./pages/MICS/Miceview";
 import Miceinternationaldetail from "./pages/MICS/Miceinternationaldetail";
 import Agentlogin from "./pages/Agent/Agentlogin";
 import Agentsignup from "./pages/Agent/Agentsignup";
+import CheckoutExhibition from "./pages/Exhibition/CheckoutPageExhibition";
+import CheckoutMice from './pages/MICS/CheckoutMice';
+
 
 const queryClient = new QueryClient();
 
@@ -133,6 +136,9 @@ const App = () => (
           <Route path="/checkoutflights" element={<CheckoutPageFlights />} />
           <Route path="/checkout-offline-flights" element={<CheckoutPageOfflineFlights />} />
           <Route path="/checkout-hotels" element={<CheckoutPageHotels />} />
+
+            <Route path="/checkout-exhibition" element={<CheckoutExhibition />} />
+            <Route path="/checkout-mice" element={<CheckoutMice />} />
 
           <Route path="/payment-result" element={<PaymentResult />} />
           <Route path="/about" element={<AboutPage />} />

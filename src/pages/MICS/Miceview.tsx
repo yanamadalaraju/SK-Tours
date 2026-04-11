@@ -332,9 +332,39 @@ const Miceview: React.FC = () => {
     );
   };
 
-  const handleBookNowClick = (city: City) => {
-    console.log("Booking:", city);
+ // Add this function inside the Miceview component
+const parsePrice = (priceString) => {
+  if (!priceString) return 0;
+  const numericString = priceString.toString().replace(/[₹$,]/g, '').replace(/\s+/g, '').trim();
+  return parseFloat(numericString) || 0;
+};
+
+const handleBookNowClick = (city) => {
+  // Prepare MICE data for checkout
+  const miceData = {
+    id: city.id,
+    code: city.mice_code || `MICE_${city.id}`,
+    title: city.city_name || city.country_name,
+    city_name: city.city_name,
+    state_name: city.state_name,
+    country_name: city.country_name,
+    price: city.price,
+    total_price_value: parsePrice(city.price),
+    priceValue: parsePrice(city.price),
+    emi_price: city.emi_price,
+    emiPriceValue: parsePrice(city.emi_price || '0'),
+    duration_days: city.duration_days,
+    duration: city.duration_days ? `${city.duration_days - 1}N/${city.duration_days}D` : '',
+    image: city.image,
+    start_date: city.start_date
   };
+  
+  // Save to localStorage for persistence
+  localStorage.setItem('selectedMice', JSON.stringify(miceData));
+  
+  // Navigate to checkout page
+  navigate('/checkout-mice', { state: { mice: miceData } });
+};
 
   const handleDepartureMonthChange = (month: string, checked: boolean) => {
     setSelectedDepartureMonths(prev =>
