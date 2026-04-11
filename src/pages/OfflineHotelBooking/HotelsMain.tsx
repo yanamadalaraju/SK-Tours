@@ -1224,7 +1224,7 @@ const HotelSearchMain = () => {
       adults: travellers.adults,
       children: travellers.children,
       nights: nights,
-      total_price_value: (Number(hotel.price) * nights * (travellers.rooms || 1))
+      total_price_value: Number(hotel.price)
     };
     localStorage.setItem('selectedHotel', JSON.stringify(hotelForCheckout));
     navigate('/checkout-hotels', { state: { hotel: hotelForCheckout } });

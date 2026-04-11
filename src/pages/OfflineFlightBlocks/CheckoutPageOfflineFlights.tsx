@@ -1,4 +1,4 @@
-// src/pages/CheckoutPageOfflineFlights.jsx
+// src/pages/OfflineFlightBlocks/CheckoutPageOfflineFlights.tsx - Fixed JSX syntax
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -32,14 +32,14 @@ const CheckoutPageOfflineFlights = () => {
   const location = useLocation();
 
   // Get flight data from navigation state or localStorage
-  const [flightData, setFlightData] = useState(null);
+  const [flightData, setFlightData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
   // State for payment amount
   const [showCustomAmountModal, setShowCustomAmountModal] = useState(false);
   const [customPaymentAmount, setCustomPaymentAmount] = useState('');
-  const [paymentType, setPaymentType] = useState('full'); // 'full', 'custom', or 'partial'
+  const [paymentType, setPaymentType] = useState('full');
   const [isPartialPayment, setIsPartialPayment] = useState(false);
 
   // Passenger details state
@@ -66,14 +66,11 @@ const CheckoutPageOfflineFlights = () => {
       const flight = location.state.flight;
       setFlightData(flight);
 
-      // Initialize with full amount by default
       const totalFlightCost = flight.total_price_value || parsePrice(flight.price_per_adult);
       setCustomPaymentAmount(totalFlightCost.toString());
       setPaymentType('full');
 
-      // Initialize passenger details based on flight passenger count
       initializePassengerDetails(flight);
-
       setLoading(false);
     } else {
       const savedFlight = localStorage.getItem('selectedOfflineFlight');
@@ -91,7 +88,7 @@ const CheckoutPageOfflineFlights = () => {
     }
   }, [location]);
 
-  const initializePassengerDetails = (flight) => {
+  const initializePassengerDetails = (flight: any) => {
     const adults = flight.adults || 1;
     const children = flight.children || 0;
     const infants = flight.infants || 0;
@@ -99,7 +96,6 @@ const CheckoutPageOfflineFlights = () => {
     const details: PassengerDetails[] = [];
     let id = 1;
 
-    // Add adults
     for (let i = 0; i < adults; i++) {
       details.push({
         id: id++,
@@ -116,7 +112,6 @@ const CheckoutPageOfflineFlights = () => {
       });
     }
 
-    // Add children
     for (let i = 0; i < children; i++) {
       details.push({
         id: id++,
@@ -133,7 +128,6 @@ const CheckoutPageOfflineFlights = () => {
       });
     }
 
-    // Add infants
     for (let i = 0; i < infants; i++) {
       details.push({
         id: id++,
@@ -153,7 +147,6 @@ const CheckoutPageOfflineFlights = () => {
     setPassengerDetails(details);
   };
 
-  // Handle passenger input change
   const handlePassengerInputChange = (passengerId: number, field: keyof PassengerDetails, value: string | number) => {
     setPassengerDetails(prev =>
       prev.map(passenger =>
@@ -170,7 +163,6 @@ const CheckoutPageOfflineFlights = () => {
     );
   };
 
-  // Validate all passenger details
   const validatePassengerDetails = () => {
     for (const passenger of passengerDetails) {
       if (!passenger.firstName?.trim()) {
@@ -193,8 +185,7 @@ const CheckoutPageOfflineFlights = () => {
     return true;
   };
 
-  // Handle custom amount input
-  const handleCustomAmountChange = (value) => {
+  const handleCustomAmountChange = (value: string) => {
     setCustomPaymentAmount(value);
 
     if (flightData) {
@@ -211,7 +202,6 @@ const CheckoutPageOfflineFlights = () => {
     }
   };
 
-  // Get total flight cost
   const getTotalFlightCost = () => {
     if (!flightData) return 0;
     const adultCount = flightData.adults || 1;
@@ -225,7 +215,6 @@ const CheckoutPageOfflineFlights = () => {
     return (adultCount * adultPrice) + (childCount * childPrice) + (infantCount * infantPrice);
   };
 
-  // Get current payment amount
   const getCurrentPaymentAmount = () => {
     if (!flightData) return 0;
 
@@ -236,7 +225,6 @@ const CheckoutPageOfflineFlights = () => {
     return getTotalFlightCost();
   };
 
-  // Validate custom amount
   const validateCustomAmount = () => {
     if (!flightData) return false;
 
@@ -263,7 +251,6 @@ const CheckoutPageOfflineFlights = () => {
     return true;
   };
 
-  // Handle confirm custom amount
   const handleConfirmCustomAmount = () => {
     if (validateCustomAmount()) {
       const totalFlightCost = getTotalFlightCost();
@@ -281,7 +268,7 @@ const CheckoutPageOfflineFlights = () => {
     }
   };
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -289,8 +276,7 @@ const CheckoutPageOfflineFlights = () => {
     }));
   };
 
-  // Parse price from string to number
-  const parsePrice = (priceString) => {
+  const parsePrice = (priceString: string) => {
     if (!priceString) return 0;
     const numericString = priceString
       .toString()
@@ -300,31 +286,26 @@ const CheckoutPageOfflineFlights = () => {
     return parseFloat(numericString) || 0;
   };
 
-  // Format price to display
-  const formatPrice = (price) => {
-    return `₹${parseFloat(price).toLocaleString('en-IN')}`;
+  const formatPrice = (price: number) => {
+    return `₹${price.toLocaleString('en-IN')}`;
   };
 
-  // Calculate percentage
-  const calculatePercentage = (amount) => {
+  const calculatePercentage = (amount: number) => {
     const total = getTotalFlightCost();
     return total > 0 ? Math.round((amount / total) * 100) : 0;
   };
 
-  // Format time
-  const formatTime = (timeString) => {
+  const formatTime = (timeString: string) => {
     if (!timeString) return 'N/A';
     return timeString.substring(0, 5);
   };
 
-  // Handle PhonePe payment
-  const handlePhonePePayment = async (e) => {
+  const handlePhonePePayment = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
 
-    // Validate required fields
-    const requiredFields = ['firstName', 'lastName', 'email', 'phone'];
-    const missingFields = requiredFields.filter(field => !formData[field]);
+    const requiredFields = ['firstName', 'lastName', 'email', 'phone', 'address', 'city', 'state', 'pincode'];
+    const missingFields = requiredFields.filter(field => !formData[field as keyof typeof formData]);
 
     if (missingFields.length > 0) {
       alert(`Please fill in all required fields: ${missingFields.join(', ')}`);
@@ -338,13 +319,11 @@ const CheckoutPageOfflineFlights = () => {
       return;
     }
 
-    // Validate passenger details
     if (!validatePassengerDetails()) {
       setSubmitting(false);
       return;
     }
 
-    // Validate phone number
     const phoneRegex = /^[6-9]\d{9}$/;
     if (!phoneRegex.test(formData.phone.replace(/\D/g, ''))) {
       alert('Please enter a valid 10-digit Indian phone number');
@@ -352,7 +331,6 @@ const CheckoutPageOfflineFlights = () => {
       return;
     }
 
-    // Validate email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       alert('Please enter a valid email address');
@@ -360,7 +338,6 @@ const CheckoutPageOfflineFlights = () => {
       return;
     }
 
-    // Get current payment amount
     const totalFlightCost = getTotalFlightCost();
     let paymentAmount = getCurrentPaymentAmount();
     const paymentPercentage = calculatePercentage(paymentAmount);
@@ -377,17 +354,7 @@ const CheckoutPageOfflineFlights = () => {
         ? `Full Payment for ${flightData.flight_number} - ${flightData.airline}`
         : `${paymentPercentage}% Partial Payment for ${flightData.flight_number} - ${flightData.airline}`;
 
-      console.log('Payment processing:', {
-        amount: paymentAmount,
-        totalFlightCost: totalFlightCost,
-        paymentPercentage: paymentPercentage,
-        isFullPayment: isFullPayment,
-        description: paymentDescription,
-        passengerDetails: passengerDetails
-      });
-
-      // Prepare passenger details for API
-      const passengerDetailsForAPI = passengerDetails.map(p => ({
+      const passengerDetailsJSON = JSON.stringify(passengerDetails.map(p => ({
         id: p.id,
         type: p.type,
         gender: p.gender,
@@ -398,122 +365,89 @@ const CheckoutPageOfflineFlights = () => {
         dob: p.dob,
         passport_no: p.passportNo || '',
         passport_expire_date: p.passportExpireDate || ''
-      }));
+      })));
 
-      // Prepare contact details
-      const contactDetails = {
-        name: `${formData.firstName} ${formData.lastName}`.trim(),
-        email: formData.email.trim(),
-        phone: formData.phone.trim(),
-        address: formData.address.trim(),
-        city: formData.city.trim(),
-        state: formData.state.trim(),
-        pincode: formData.pincode.trim(),
-        country: formData.country.trim()
-      };
-
-      // Prepare flight data for saving
-      const flightBookingData = {
-        flight: {
-          id: flightData.id,
-          airline: flightData.airline,
-          flight_number: flightData.flight_number,
-          from_city: flightData.from_city,
-          from_airport: flightData.from_airport,
-          from_airport_code: flightData.from_airport_code,
-          to_city: flightData.to_city,
-          to_airport: flightData.to_airport,
-          to_airport_code: flightData.to_airport_code,
-          departure_date: flightData.departure_date,
-          return_date: flightData.return_date || null,
-          flight_time: flightData.flight_time,
-          duration: flightData.duration,
-          arrival_time: flightData.arrival_time,
-          flight_type: flightData.flight_type,
-          price_per_adult: flightData.price_per_adult,
-          baggage_allowance: flightData.baggage_allowance,
-          meals_seat_description: flightData.meals_seat_description,
-          refundable_status_description: flightData.refundable_status_description,
-          meals_included: flightData.meals_included,
-          booking_type: flightData.booking_type
-        },
-        bookingParams: {
-          adults: flightData.adults || 1,
-          children: flightData.children || 0,
-          infants: flightData.infants || 0,
-          totalAmount: paymentAmount,
-          tripType: flightData.booking_type === 'roundTrip' ? 'round-trip' : 'one-way'
-        },
-        passengerDetails: passengerDetailsForAPI,
-        contactDetails: contactDetails
-      };
-
-      // Step 1: Save booking to database (offlineflights table)
-      console.log('Saving booking to offlineflights table...');
-      const saveResponse = await axios.post(
-        `${BASE_URL}/api/offline-flights/save-booking`,
-        flightBookingData
+      const checkoutResponse = await axios.post(
+        `${BASE_URL}/api/checkout`,
+        {
+          tour_id: flightData.id?.toString() || '',
+          tour_code: flightData.flight_number || '',
+          tour_title: `${flightData.airline} - ${flightData.flight_number}`,
+          tour_duration: flightData.duration || '',
+          tour_locations: `${flightData.from_city} to ${flightData.to_city}`,
+          tour_image_url: flightData.image || '',
+          
+          total_tour_cost: totalFlightCost,
+          advance_percentage: paymentPercentage,
+          advance_amount: paymentAmount,
+          emi_price: 0,
+          
+          first_name: formData.firstName.trim(),
+          last_name: formData.lastName.trim(),
+          email: formData.email.trim(),
+          phone: formData.phone.trim(),
+          address: formData.address.trim(),
+          city: formData.city.trim(),
+          state: formData.state.trim(),
+          pincode: formData.pincode.trim(),
+          country: formData.country.trim(),
+          
+          payment_method: 'phonepe',
+          source_page: 'offline-flights',
+          source: 'flights',
+          terms_accepted: formData.termsAccepted,
+          notes: `${paymentDescription}\n\nPassenger Details:\n${passengerDetailsJSON}`
+        }
       );
 
-      if (!saveResponse.data.success) {
+      if (!checkoutResponse.data.success) {
         throw new Error('Failed to create booking record. Please try again.');
       }
 
-      const bookingId = saveResponse.data.bookingId;
-      console.log('Booking saved with ID:', bookingId);
+      const checkoutId = checkoutResponse.data.checkout_id;
 
-      // Step 2: Create PhonePe order with return URL
-      const merchantOrderId = `OFF_FLT_${bookingId}_${Date.now()}`;
+      const merchantOrderId = `FLT_${checkoutId}_${Date.now()}`;
       const baseUrl = window.location.origin;
-      const redirectUrl = `${baseUrl}/flight-payment-result`;
-
-      const payload = {
-        action: "create-order",
-        amount: paymentAmount,
-        currency: "INR",
-        environment: "test",
-        merchantOrderId: merchantOrderId,
-        redirectUrl: redirectUrl,
-        customerDetails: {
-          name: contactDetails.name,
-          email: contactDetails.email,
-          phone: contactDetails.phone,
-          booking_id: bookingId,
-          flight_number: flightData.flight_number,
-          payment_type: isFullPayment ? "full" : "partial",
-          payment_percentage: paymentPercentage,
-          passenger_count: passengerDetails.length,
-          booking_type: 'offline'
-        }
-      };
-
-      console.log(JSON.stringify(payload, null, 2));
+      const redirectUrl = `${baseUrl}/payment-result`;
 
       const paymentResponse = await axios.post(
-        `${BASE_URL}/api/flight/phonepe/orders`,
-        payload
+        `${BASE_URL}/api/phonepe/orders`,
+        {
+          action: 'create-order',
+          amount: paymentAmount,
+          currency: "INR",
+          environment: "test",
+          merchantOrderId: merchantOrderId,
+          redirectUrl: redirectUrl,
+          customerDetails: {
+            name: `${formData.firstName} ${formData.lastName}`,
+            email: formData.email,
+            phone: formData.phone,
+            checkout_id: checkoutId,
+            flight_number: flightData.flight_number || '',
+            payment_type: isFullPayment ? 'full' : 'partial',
+            payment_percentage: paymentPercentage,
+            source: 'flights',
+            passenger_count: passengerDetails.length,
+            flight_route: `${flightData.from_city} to ${flightData.to_city}`
+          }
+        }
       );
 
-      console.log("REFERENCE_ID:", paymentResponse.data.merchantOrderId);
-
       if (paymentResponse.data.success) {
-        // Step 3: Update booking with reference ID in offlineflights table
         await axios.put(
-          `${BASE_URL}/api/offline-flights/update-booking/${bookingId}`,
+          `${BASE_URL}/api/checkout/${checkoutId}/payment`,
           {
-            referenceId: paymentResponse.data.merchantOrderId,
-            bookingStatus: 'Processing',
-            paymentStatus: 'Processing',
-            apiResponse: paymentResponse.data
+            phonepe_order_id: paymentResponse.data.merchantOrderId,
+            payment_status: 'processing'
           }
         );
-
-        // Save booking details to localStorage
+        
         const bookingData = {
-          booking_id: bookingId,
-          flight: flightBookingData.flight,
-          customer: contactDetails,
-          passenger_details: passengerDetailsForAPI,
+          flight: flightData,
+          passenger_details: passengerDetails,
+          customer: formData,
+          checkout_id: checkoutId,
           timestamp: new Date().toISOString(),
           amount: paymentAmount,
           total_flight_cost: totalFlightCost,
@@ -521,28 +455,24 @@ const CheckoutPageOfflineFlights = () => {
           is_full_payment: isFullPayment,
           merchant_order_id: paymentResponse.data.merchantOrderId,
           payment_type: isFullPayment ? 'full' : 'partial',
-          booking_type: 'offline'
+          source: 'flights'
         };
-
-        localStorage.setItem('currentOfflineFlightBooking', JSON.stringify(bookingData));
+        
+        localStorage.setItem('currentFlightBooking', JSON.stringify(bookingData));
         localStorage.setItem('phonePeOrderId', paymentResponse.data.merchantOrderId);
-        localStorage.setItem('offlineFlightBookingId', bookingId);
-
-        console.log('Redirecting to PhonePe:', paymentResponse.data.checkoutPageUrl);
-
-        // Redirect to PhonePe payment page
+        localStorage.setItem('checkoutId', checkoutId.toString());
+        
         window.location.href = paymentResponse.data.checkoutPageUrl;
       } else {
-        throw new Error(paymentResponse.data.message || 'Failed to initialize payment. Please try again.');
+        throw new Error(paymentResponse.data.message || 'Failed to initialize payment.');
       }
     } catch (error) {
       console.error("Payment processing error:", error);
-      alert(`Payment failed: ${error.response?.data?.message || error.message || 'Please try again'}`);
+      alert(`Payment failed: ${(error as any).response?.data?.message || (error as Error).message}`);
       setSubmitting(false);
     }
   };
 
-  // Loading and no-flight handling
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -571,7 +501,6 @@ const CheckoutPageOfflineFlights = () => {
     );
   }
 
-  // Calculate amounts
   const totalFlightCost = getTotalFlightCost();
   const paymentAmount = getCurrentPaymentAmount();
   const paymentPercentage = calculatePercentage(paymentAmount);
@@ -595,7 +524,6 @@ const CheckoutPageOfflineFlights = () => {
           </button>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left Column - Booking Summary, Passenger Details & Form */}
             <div className="lg:col-span-2">
               <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
                 <div className="flex items-center justify-between mb-6">
@@ -638,7 +566,6 @@ const CheckoutPageOfflineFlights = () => {
                     </div>
                   </div>
                   
-                  {/* Flight Route */}
                   <div className="mt-4 pt-4 border-t border-blue-200">
                     <div className="flex items-center justify-between">
                       <div className="text-center">
@@ -658,26 +585,6 @@ const CheckoutPageOfflineFlights = () => {
                         <p className="text-sm text-gray-600">{flightData.to_city} ({flightData.to_airport_code})</p>
                       </div>
                     </div>
-                    {flightData.return_date && flightData.return_flight_time && (
-                      <div className="mt-3 pt-3 border-t border-blue-200">
-                        <p className="text-sm text-gray-500 mb-2">Return Flight:</p>
-                        <div className="flex items-center justify-between">
-                          <div className="text-center">
-                            <p className="text-lg font-bold">{formatTime(flightData.return_flight_time)}</p>
-                            <p className="text-xs text-gray-600">{flightData.to_city}</p>
-                          </div>
-                          <div className="flex-1 px-4">
-                            <div className="relative">
-                              <div className="border-t-2 border-blue-300"></div>
-                            </div>
-                          </div>
-                          <div className="text-center">
-                            <p className="text-lg font-bold">{formatTime(flightData.return_arrival_time)}</p>
-                            <p className="text-xs text-gray-600">{flightData.from_city}</p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </div>
 
@@ -691,7 +598,6 @@ const CheckoutPageOfflineFlights = () => {
                     Payment Amount
                   </h2>
 
-                  {/* Full Payment Option */}
                   <div className="mb-4">
                     <div className={`flex items-center justify-between p-4 border rounded-lg cursor-pointer transition-all ${paymentType === 'full' ? 'border-[#2E4D98] bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}
                       onClick={() => {
@@ -701,9 +607,7 @@ const CheckoutPageOfflineFlights = () => {
                       }}>
                       <div className="flex items-center gap-3">
                         <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentType === 'full' ? 'border-[#2E4D98] bg-[#2E4D98]' : 'border-gray-300'}`}>
-                          {paymentType === 'full' && (
-                            <div className="w-2 h-2 rounded-full bg-white"></div>
-                          )}
+                          {paymentType === 'full' && <div className="w-2 h-2 rounded-full bg-white"></div>}
                         </div>
                         <div>
                           <h3 className="font-medium text-gray-800">Full Payment</h3>
@@ -717,160 +621,118 @@ const CheckoutPageOfflineFlights = () => {
                     </div>
                   </div>
 
-                  {/* Custom Amount Option */}
-                  <div className="mb-4">
-                    <div className={`flex items-center justify-between p-4 border rounded-lg cursor-pointer transition-all ${paymentType === 'custom' || paymentType === 'partial' ? 'border-[#2E4D98] bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}
+                  <div>
+                    <div className={`p-4 border rounded-lg transition-all cursor-pointer ${paymentType === 'partial' || paymentType === 'custom' ? 'border-[#2E4D98] bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}
                       onClick={() => setShowCustomAmountModal(true)}>
                       <div className="flex items-center gap-3">
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentType === 'custom' || paymentType === 'partial' ? 'border-[#2E4D98] bg-[#2E4D98]' : 'border-gray-300'}`}>
-                          {(paymentType === 'custom' || paymentType === 'partial') && (
-                            <div className="w-2 h-2 rounded-full bg-white"></div>
-                          )}
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentType === 'partial' || paymentType === 'custom' ? 'border-[#2E4D98] bg-[#2E4D98]' : 'border-gray-300'}`}>
+                          {(paymentType === 'partial' || paymentType === 'custom') && <div className="w-2 h-2 rounded-full bg-white"></div>}
                         </div>
                         <div>
-                          <h3 className="font-medium text-gray-800">Custom Amount</h3>
-                          <p className="text-sm text-gray-600">Pay any amount you want</p>
+                          <h3 className="font-medium text-gray-800">Custom Payment Amount</h3>
+                          <p className="text-sm text-gray-600">Pay any amount you want (partial or full)</p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="text-lg font-bold text-gray-900">{formatPrice(paymentAmount)}</div>
-                        <div className="text-sm text-gray-600">{paymentPercentage}% of total</div>
-                      </div>
+                      
+                      {(paymentType === 'partial' || paymentType === 'custom') && customPaymentAmount && (
+                        <div className="mt-3 pl-8">
+                          <div className="bg-white p-3 rounded-lg border">
+                            <div className="flex justify-between items-center">
+                              <span className="text-gray-700">Selected Amount:</span>
+                              <span className="text-lg font-bold text-[#2E4D98]">{formatPrice(parseFloat(customPaymentAmount))}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm text-gray-600 mt-1">
+                              <span>Percentage:</span>
+                              <span>{paymentPercentage}% of total</span>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowCustomAmountModal(true);
+                            }}
+                            className="mt-2 text-sm text-[#2E4D98] hover:underline"
+                          >
+                            Change amount
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
+                  
+                  <p className="text-sm text-gray-500 mt-3">
+                    💡 <strong>Flexible Payment:</strong> Pay any amount you want. You can pay partial amount now and the rest later.
+                  </p>
                 </div>
 
                 {/* Passenger Details Section */}
                 <div className="bg-white border border-gray-200 rounded-xl p-5 mb-8">
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: '16px'
-                  }}>
-                    <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: '#1f2937' }}>
-                      Passenger Details ({passengerDetails.length} Passenger{passengerDetails.length > 1 ? 's' : ''})
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-semibold text-gray-800">
+                      Passenger Details ({passengerDetails.length} Passenger{passengerDetails.length !== 1 ? 's' : ''})
                     </h2>
                     <button
                       onClick={() => setShowPassengerDetails(!showPassengerDetails)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: '#3b82f6',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px'
-                      }}
+                      className="text-blue-600 hover:text-blue-800 text-sm"
                     >
                       {showPassengerDetails ? 'Hide Details' : 'Show Details'}
                     </button>
                   </div>
 
                   {showPassengerDetails && (
-                    <div style={{
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '8px',
-                      padding: '24px',
-                      marginTop: '16px',
-                      overflowX: 'auto'
-                    }}>
-                      <div style={{ marginBottom: '24px' }}>
-                        <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#374151' }}>
-                          Please fill in passenger details
-                        </h3>
-                        <p style={{ fontSize: '14px', color: '#6b7280', marginTop: '4px' }}>
-                          All fields are required for booking
-                        </p>
+                    <div className="border rounded-lg p-6 mt-4 overflow-x-auto">
+                      <div className="mb-4">
+                        <h3 className="font-semibold text-gray-700">Please fill in passenger details</h3>
+                        <p className="text-sm text-gray-500">All fields are required for booking</p>
                       </div>
 
-                      {/* Table Layout */}
-                      <div style={{ overflowX: 'auto' }}>
-                        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '1000px' }}>
+                      <div className="overflow-x-auto">
+                        <table className="w-full border-collapse min-w-[800px]">
                           <thead>
-                            <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
-                              <th style={{ padding: '16px 12px', color: '#374151', fontSize: '14px', fontWeight: '600', backgroundColor: '#f9fafb', textAlign: 'left', width: '120px' }}>Type</th>
-                              <th style={{ padding: '16px 12px', color: '#374151', fontSize: '14px', fontWeight: '600', backgroundColor: '#f9fafb', textAlign: 'left', width: '150px' }}>First Name</th>
-                              <th style={{ padding: '16px 12px', color: '#374151', fontSize: '14px', fontWeight: '600', backgroundColor: '#f9fafb', textAlign: 'left', width: '150px' }}>Last Name</th>
-                              <th style={{ padding: '16px 12px', color: '#374151', fontSize: '14px', fontWeight: '600', backgroundColor: '#f9fafb', textAlign: 'left', width: '100px' }}>Gender</th>
-                              <th style={{ padding: '16px 12px', color: '#374151', fontSize: '14px', fontWeight: '600', backgroundColor: '#f9fafb', textAlign: 'left', width: '80px' }}>Age</th>
-                              <th style={{ padding: '16px 12px', color: '#374151', fontSize: '14px', fontWeight: '600', backgroundColor: '#f9fafb', textAlign: 'left', width: '120px' }}>DOB</th>
+                            <tr className="border-b-2 border-gray-200">
+                              <th className="p-3 text-left bg-gray-50">Type</th>
+                              <th className="p-3 text-left bg-gray-50">First Name</th>
+                              <th className="p-3 text-left bg-gray-50">Last Name</th>
+                              <th className="p-3 text-left bg-gray-50">Gender</th>
+                              <th className="p-3 text-left bg-gray-50">Age</th>
+                              <th className="p-3 text-left bg-gray-50">DOB</th>
                             </tr>
                           </thead>
-
                           <tbody>
                             {passengerDetails.map((passenger) => (
-                              <tr key={passenger.id} style={{
-                                borderBottom: '1px solid #f3f4f6',
-                                backgroundColor: 'white'
-                              }}>
-                                <td style={{ padding: '16px 12px', verticalAlign: 'top' }}>
-                                  <span style={{
-                                    padding: '6px 12px',
-                                    borderRadius: '12px',
-                                    fontSize: '13px',
-                                    fontWeight: '600',
-                                    backgroundColor: passenger.type === 'adult' ? '#dbeafe' :
-                                      passenger.type === 'child' ? '#fef3c7' : '#dcfce7',
-                                    color: passenger.type === 'adult' ? '#1d4ed8' :
-                                      passenger.type === 'child' ? '#d97706' : '#059669',
-                                    display: 'inline-block',
-                                    textAlign: 'center'
-                                  }}>
+                              <tr key={passenger.id} className="border-b border-gray-100">
+                                <td className="p-3 align-top">
+                                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                                    passenger.type === 'adult' ? 'bg-blue-100 text-blue-700' :
+                                    passenger.type === 'child' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'
+                                  }`}>
                                     {passenger.type.charAt(0).toUpperCase() + passenger.type.slice(1)}
                                   </span>
                                 </td>
-
-                                <td style={{ padding: '16px 12px', verticalAlign: 'top' }}>
+                                <td className="p-3 align-top">
                                   <input
                                     type="text"
                                     value={passenger.firstName}
                                     onChange={(e) => handlePassengerInputChange(passenger.id, 'firstName', e.target.value)}
-                                    style={{
-                                      width: '100%',
-                                      padding: '10px 12px',
-                                      border: '1px solid #d1d5db',
-                                      borderRadius: '6px',
-                                      fontSize: '14px',
-                                      backgroundColor: 'white'
-                                    }}
-                                    placeholder="Enter first name"
-                                    className="focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="First name"
                                   />
                                 </td>
-
-                                <td style={{ padding: '16px 12px', verticalAlign: 'top' }}>
+                                <td className="p-3 align-top">
                                   <input
                                     type="text"
                                     value={passenger.lastName}
                                     onChange={(e) => handlePassengerInputChange(passenger.id, 'lastName', e.target.value)}
-                                    style={{
-                                      width: '100%',
-                                      padding: '10px 12px',
-                                      border: '1px solid #d1d5db',
-                                      borderRadius: '6px',
-                                      fontSize: '14px',
-                                      backgroundColor: 'white'
-                                    }}
-                                    placeholder="Enter last name"
-                                    className="focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="Last name"
                                   />
                                 </td>
-
-                                <td style={{ padding: '16px 12px', verticalAlign: 'top' }}>
+                                <td className="p-3 align-top">
                                   <select
                                     value={passenger.gender}
                                     onChange={(e) => handlePassengerInputChange(passenger.id, 'gender', e.target.value)}
-                                    style={{
-                                      width: '100%',
-                                      padding: '10px 12px',
-                                      border: '1px solid #d1d5db',
-                                      borderRadius: '6px',
-                                      fontSize: '14px',
-                                      backgroundColor: 'white'
-                                    }}
-                                    className="focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                   >
                                     <option value="Mr">Mr</option>
                                     <option value="Mrs">Mrs</option>
@@ -878,41 +740,23 @@ const CheckoutPageOfflineFlights = () => {
                                     <option value="Mstr">Mstr</option>
                                   </select>
                                 </td>
-
-                                <td style={{ padding: '16px 12px', verticalAlign: 'top' }}>
+                                <td className="p-3 align-top">
                                   <input
                                     type="number"
                                     value={passenger.age || ''}
                                     onChange={(e) => handlePassengerInputChange(passenger.id, 'age', parseInt(e.target.value) || 0)}
-                                    style={{
-                                      width: '100%',
-                                      padding: '10px 12px',
-                                      border: '1px solid #d1d5db',
-                                      borderRadius: '6px',
-                                      fontSize: '14px',
-                                      backgroundColor: 'white'
-                                    }}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     placeholder="Age"
                                     min="0"
                                     max="120"
-                                    className="focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                   />
                                 </td>
-
-                                <td style={{ padding: '16px 12px', verticalAlign: 'top' }}>
+                                <td className="p-3 align-top">
                                   <input
                                     type="date"
-                                    value={passenger.dob || ''}
+                                    value={passenger.dob}
                                     onChange={(e) => handlePassengerInputChange(passenger.id, 'dob', e.target.value)}
-                                    style={{
-                                      width: '100%',
-                                      padding: '10px 12px',
-                                      border: '1px solid #d1d5db',
-                                      borderRadius: '6px',
-                                      fontSize: '14px',
-                                      backgroundColor: 'white'
-                                    }}
-                                    className="focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                   />
                                 </td>
                               </tr>
@@ -921,46 +765,19 @@ const CheckoutPageOfflineFlights = () => {
                         </table>
                       </div>
 
-                      {/* Summary of passenger counts */}
-                      <div style={{
-                        marginTop: '20px',
-                        padding: '16px',
-                        backgroundColor: '#f9fafb',
-                        borderRadius: '8px',
-                        display: 'flex',
-                        gap: '24px',
-                        fontSize: '14px'
-                      }}>
-                        <div>
-                          <span style={{ color: '#6b7280' }}>Adults: </span>
-                          <span style={{ fontWeight: '600', color: '#1f2937' }}>
-                            {passengerDetails.filter(p => p.type === 'adult').length}
-                          </span>
-                        </div>
-                        <div>
-                          <span style={{ color: '#6b7280' }}>Children: </span>
-                          <span style={{ fontWeight: '600', color: '#1f2937' }}>
-                            {passengerDetails.filter(p => p.type === 'child').length}
-                          </span>
-                        </div>
-                        <div>
-                          <span style={{ color: '#6b7280' }}>Infants: </span>
-                          <span style={{ fontWeight: '600', color: '#1f2937' }}>
-                            {passengerDetails.filter(p => p.type === 'infant').length}
-                          </span>
-                        </div>
+                      <div className="mt-4 p-4 bg-gray-50 rounded-lg flex gap-6 text-sm">
+                        <div><span className="text-gray-600">Adults:</span> <strong>{passengerDetails.filter(p => p.type === 'adult').length}</strong></div>
+                        <div><span className="text-gray-600">Children:</span> <strong>{passengerDetails.filter(p => p.type === 'child').length}</strong></div>
+                        <div><span className="text-gray-600">Infants:</span> <strong>{passengerDetails.filter(p => p.type === 'infant').length}</strong></div>
                       </div>
                     </div>
                   )}
                 </div>
 
-                {/* Payment Information Notice */}
                 {isPartialPayment && (
                   <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8">
                     <div className="flex">
-                      <div className="flex-shrink-0">
-                        <AlertCircle className="h-5 w-5 text-yellow-400" />
-                      </div>
+                      <AlertCircle className="h-5 w-5 text-yellow-400" />
                       <div className="ml-3">
                         <p className="text-sm text-yellow-700">
                           <strong>Note:</strong> You are paying {paymentPercentage}% ({formatPrice(paymentAmount)}) now.
@@ -971,236 +788,100 @@ const CheckoutPageOfflineFlights = () => {
                   </div>
                 )}
 
-                {/* Booking Form */}
                 <form onSubmit={handlePhonePePayment} className="space-y-8">
-                  {/* Personal Details */}
                   <div>
                     <h2 className="text-xl font-semibold text-gray-800 mb-6 pb-3 border-b">Personal Details</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                        <Label htmlFor="firstName" className="text-gray-700 font-medium mb-2 block">
-                          First Name <span className="text-red-500">*</span>
-                        </Label>
-                        <Input
-                          id="firstName"
-                          name="firstName"
-                          value={formData.firstName}
-                          onChange={handleInputChange}
-                          required
-                          className="h-12"
-                          placeholder="Enter your first name"
-                        />
+                        <Label className="text-gray-700 font-medium mb-2 block">First Name <span className="text-red-500">*</span></Label>
+                        <Input name="firstName" value={formData.firstName} onChange={handleInputChange} required className="h-12" />
                       </div>
                       <div>
-                        <Label htmlFor="lastName" className="text-gray-700 font-medium mb-2 block">
-                          Last Name <span className="text-red-500">*</span>
-                        </Label>
-                        <Input
-                          id="lastName"
-                          name="lastName"
-                          value={formData.lastName}
-                          onChange={handleInputChange}
-                          required
-                          className="h-12"
-                          placeholder="Enter your last name"
-                        />
+                        <Label className="text-gray-700 font-medium mb-2 block">Last Name <span className="text-red-500">*</span></Label>
+                        <Input name="lastName" value={formData.lastName} onChange={handleInputChange} required className="h-12" />
                       </div>
                       <div>
-                        <Label htmlFor="email" className="text-gray-700 font-medium mb-2 block">
-                          Email Address <span className="text-red-500">*</span>
-                        </Label>
-                        <Input
-                          id="email"
-                          name="email"
-                          type="email"
-                          value={formData.email}
-                          onChange={handleInputChange}
-                          required
-                          className="h-12"
-                          placeholder="Enter your email"
-                        />
+                        <Label className="text-gray-700 font-medium mb-2 block">Email <span className="text-red-500">*</span></Label>
+                        <Input name="email" type="email" value={formData.email} onChange={handleInputChange} required className="h-12" />
                       </div>
                       <div>
-                        <Label htmlFor="phone" className="text-gray-700 font-medium mb-2 block">
-                          Phone Number <span className="text-red-500">*</span>
-                        </Label>
-                        <Input
-                          id="phone"
-                          name="phone"
-                          type="tel"
-                          value={formData.phone}
-                          onChange={handleInputChange}
-                          required
-                          className="h-12"
-                          placeholder="Enter 10-digit mobile number"
-                        />
+                        <Label className="text-gray-700 font-medium mb-2 block">Phone <span className="text-red-500">*</span></Label>
+                        <Input name="phone" type="tel" value={formData.phone} onChange={handleInputChange} required className="h-12" />
                       </div>
                     </div>
                   </div>
 
-                  {/* Terms and Conditions */}
+                  <div>
+                    <h2 className="text-xl font-semibold text-gray-800 mb-6 pb-3 border-b">Address Details</h2>
+                    <div className="space-y-6">
+                      <div>
+                        <Label className="text-gray-700 font-medium mb-2 block">Address <span className="text-red-500">*</span></Label>
+                        <Input name="address" value={formData.address} onChange={handleInputChange} required className="h-12" />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                          <Label className="text-gray-700 font-medium mb-2 block">City <span className="text-red-500">*</span></Label>
+                          <Input name="city" value={formData.city} onChange={handleInputChange} required className="h-12" />
+                        </div>
+                        <div>
+                          <Label className="text-gray-700 font-medium mb-2 block">State <span className="text-red-500">*</span></Label>
+                          <Input name="state" value={formData.state} onChange={handleInputChange} required className="h-12" />
+                        </div>
+                        <div>
+                          <Label className="text-gray-700 font-medium mb-2 block">Pincode <span className="text-red-500">*</span></Label>
+                          <Input name="pincode" value={formData.pincode} onChange={handleInputChange} required className="h-12" />
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="text-gray-700 font-medium mb-2 block">Country</Label>
+                        <Input name="country" value={formData.country} onChange={handleInputChange} className="h-12" />
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="flex items-start space-x-3 p-4 bg-gray-50 rounded-lg">
-                    <Checkbox
-                      id="terms"
-                      checked={formData.termsAccepted}
-                      onCheckedChange={(checked) =>
-                        setFormData(prev => ({ ...prev, termsAccepted: checked }))
-                      }
-                      className="mt-1"
-                    />
-                    <Label htmlFor="terms" className="cursor-pointer text-sm">
-                      I agree to the{' '}
-                      <a href="/terms" className="text-[#2E4D98] hover:underline font-medium">
-                        Terms & Conditions
-                      </a>{' '}
-                      and{' '}
-                      <a href="/privacy" className="text-[#2E4D98] hover:underline font-medium">
-                        Privacy Policy
-                      </a>
-                      . {isPartialPayment && `I understand that I'm paying ${paymentPercentage}% now and the remaining amount must be paid before the flight departure date.`} <span className="text-red-500">*</span>
+                    <Checkbox id="terms" checked={formData.termsAccepted} onCheckedChange={(checked) => setFormData(prev => ({ ...prev, termsAccepted: checked as boolean }))} />
+                    <Label htmlFor="terms" className="text-sm cursor-pointer">
+                      I agree to the <a href="/terms" className="text-[#2E4D98] hover:underline">Terms & Conditions</a> and <a href="/privacy" className="text-[#2E4D98] hover:underline">Privacy Policy</a>.
+                      <span className="text-red-500">*</span>
                     </Label>
                   </div>
 
-                  {/* Submit Button */}
-                  <div className="pt-4">
-                    <Button
-                      type="submit"
-                      disabled={submitting}
-                      className="w-full bg-[#E53C42] hover:bg-[#E53C42]/90 text-white py-7 text-lg font-semibold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
-                    >
-                      {submitting ? (
-                        <div className="flex items-center justify-center gap-3">
-                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                          Processing Payment...
-                        </div>
-                      ) : (
-                        `Pay ${isFullPayment ? 'Amount' : `${paymentPercentage}%`} - ${formatPrice(paymentAmount)}`
-                      )}
-                    </Button>
-                    <p className="text-center text-sm text-gray-500 mt-3">
-                      You will be redirected to PhonePe's secure payment page
-                    </p>
-                  </div>
+                  <Button type="submit" disabled={submitting || !formData.termsAccepted} className="w-full bg-[#E53C42] hover:bg-[#E53C42]/90 py-7 text-lg font-semibold rounded-xl">
+                    {submitting ? 'Processing Payment...' : `Pay ${isFullPayment ? 'Full Amount' : `${paymentPercentage}%`} - ${formatPrice(paymentAmount)}`}
+                  </Button>
+                  <p className="text-center text-sm text-gray-500">You will be redirected to PhonePe's secure payment page</p>
                 </form>
               </div>
             </div>
 
-            {/* Right Column - Price Breakdown */}
+            {/* Right Column */}
             <div className="lg:col-span-1">
               <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-24">
                 <h2 className="text-xl font-semibold text-gray-800 mb-6 pb-3 border-b">Price Breakdown</h2>
-
-                <div className="space-y-4 mb-8">
-                  <div className="flex justify-between items-center py-3 border-b">
-                    <div>
-                      <span className="text-gray-700 font-medium">Base Fare</span>
-                      <p className="text-sm text-gray-500">Per adult</p>
-                    </div>
-                    <span className="text-lg font-bold text-gray-900">{formatPrice(flightData.price_per_adult)}</span>
+                <div className="space-y-4">
+                  <div className="flex justify-between py-3 border-b">
+                    <span className="text-gray-700">Base Fare (per adult)</span>
+                    <span className="font-bold">{formatPrice(parsePrice(flightData.price_per_adult))}</span>
                   </div>
-
-                  {flightData.children > 0 && (
-                    <div className="flex justify-between items-center py-3 border-b">
-                      <div>
-                        <span className="text-gray-700 font-medium">Children Fare</span>
-                        <p className="text-sm text-gray-500">{flightData.children} child(ren)</p>
-                      </div>
-                      <span className="text-lg font-bold text-gray-900">{formatPrice(parsePrice(flightData.child_price) * flightData.children)}</span>
-                    </div>
-                  )}
-
-                  {flightData.infants > 0 && (
-                    <div className="flex justify-between items-center py-3 border-b">
-                      <div>
-                        <span className="text-gray-700 font-medium">Infants Fare</span>
-                        <p className="text-sm text-gray-500">{flightData.infants} infant(s)</p>
-                      </div>
-                      <span className="text-lg font-bold text-gray-900">{formatPrice(parsePrice(flightData.infant_price) * flightData.infants)}</span>
-                    </div>
-                  )}
-
-                  <div className="flex justify-between items-center py-3 border-b">
-                    <div>
-                      <span className="text-gray-700 font-medium">Total Fare</span>
-                      <p className="text-sm text-gray-500">For all passengers</p>
-                    </div>
-                    <span className="text-lg font-bold text-gray-900">{formatPrice(totalFlightCost)}</span>
+                  <div className="flex justify-between py-3 border-b">
+                    <span className="text-gray-700">Total Fare</span>
+                    <span className="font-bold">{formatPrice(totalFlightCost)}</span>
                   </div>
-
-                  <div className="flex justify-between items-center py-3 border-b">
-                    <div>
-                      <span className="text-blue-600 font-semibold">
-                        {isFullPayment ? 'Full Payment' : `Partial Payment (${paymentPercentage}%)`}
-                      </span>
-                      <p className="text-sm text-gray-500">Pay now to confirm your booking</p>
-                    </div>
+                  <div className="flex justify-between py-3 border-b">
+                    <span className="text-blue-600 font-semibold">Pay Now</span>
                     <span className="text-xl font-bold text-blue-600">{formatPrice(paymentAmount)}</span>
                   </div>
-
                   {!isFullPayment && (
-                    <div className="flex justify-between items-center py-3">
-                      <div>
-                        <span className="text-gray-600">Balance to Pay Later</span>
-                        <p className="text-sm text-gray-500">Payable before departure</p>
-                      </div>
-                      <span className="text-lg font-semibold text-gray-700">{formatPrice(balanceAmount)}</span>
+                    <div className="flex justify-between py-3">
+                      <span className="text-gray-600">Balance to Pay</span>
+                      <span className="font-semibold">{formatPrice(balanceAmount)}</span>
                     </div>
                   )}
-
-                  <div className="bg-blue-50 rounded-xl p-4 mt-6 border border-blue-100">
+                  <div className="bg-blue-50 rounded-xl p-4 mt-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-lg font-bold text-gray-800">Amount to Pay Now</span>
+                      <span className="font-bold">Total to Pay Now</span>
                       <span className="text-2xl font-bold text-[#E53C42]">{formatPrice(paymentAmount)}</span>
-                    </div>
-                    <p className="text-sm text-gray-600 mt-2 text-center">
-                      {isFullPayment ? '100% of total cost' : `${paymentPercentage}% of total cost`}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Passenger Summary */}
-                <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 mb-6">
-                  <h3 className="font-semibold text-purple-800 mb-3 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
-                    </svg>
-                    Passenger Summary
-                  </h3>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-purple-700">Adults:</span>
-                      <span className="font-semibold text-purple-900">{passengerDetails.filter(p => p.type === 'adult').length}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-purple-700">Children:</span>
-                      <span className="font-semibold text-purple-900">{passengerDetails.filter(p => p.type === 'child').length}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-purple-700">Infants:</span>
-                      <span className="font-semibold text-purple-900">{passengerDetails.filter(p => p.type === 'infant').length}</span>
-                    </div>
-                    <div className="flex justify-between pt-2 border-t border-purple-200">
-                      <span className="text-purple-700 font-medium">Total:</span>
-                      <span className="font-semibold text-purple-900">{passengerDetails.length}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Need Help Section */}
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                  <div className="flex items-start gap-3">
-                    <div className="bg-blue-100 p-2 rounded-lg">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-blue-800 mb-1">📞 Need Help?</h3>
-                      <p className="text-sm text-blue-700 mb-2">
-                        Our travel experts are available 24/7
-                      </p>
-                      <p className="text-lg font-bold text-blue-800">98208 70771</p>
-                      <p className="text-sm text-blue-700">salil@sktt.in</p>
                     </div>
                   </div>
                 </div>
@@ -1209,97 +890,32 @@ const CheckoutPageOfflineFlights = () => {
           </div>
         </div>
 
-        {/* Custom Amount Modal */}
         <Dialog open={showCustomAmountModal} onOpenChange={setShowCustomAmountModal}>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent>
             <DialogHeader>
               <DialogTitle>Enter Payment Amount</DialogTitle>
-              <DialogDescription>
-                Enter the amount you want to pay (any amount from ₹1 to full amount)
-              </DialogDescription>
+              <DialogDescription>Enter any amount from ₹1 to full amount</DialogDescription>
             </DialogHeader>
-
-            <div className="space-y-4 py-4">
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <div className="flex justify-between mb-2">
-                  <span className="text-gray-700">Total Flight Cost:</span>
+            <div className="py-4">
+              <div className="bg-blue-50 p-4 rounded-lg mb-4">
+                <div className="flex justify-between">
+                  <span>Total Flight Cost:</span>
                   <span className="font-bold">{formatPrice(totalFlightCost)}</span>
                 </div>
-                <div className="flex justify-between text-sm text-gray-600">
-                  <span>Minimum:</span>
-                  <span>₹1</span>
-                </div>
               </div>
-
-              <div>
-                <Label htmlFor="customAmount" className="text-gray-700 font-medium mb-2 block">
-                  Enter Payment Amount (₹)
-                </Label>
-                <Input
-                  id="customAmount"
-                  type="number"
-                  value={customPaymentAmount}
-                  onChange={(e) => handleCustomAmountChange(e.target.value)}
-                  placeholder={`Enter amount (max: ${formatPrice(totalFlightCost)})`}
-                  className="h-12 text-lg"
-                  min="1"
-                  max={totalFlightCost}
-                  step="100"
-                />
-                <div className="flex justify-between text-sm text-gray-500 mt-2">
-                  <span>Min: ₹1</span>
-                  <span>Max: {formatPrice(totalFlightCost)}</span>
-                </div>
-              </div>
-
-              {customPaymentAmount && !isNaN(parseFloat(customPaymentAmount)) && (
-                <div className="bg-gray-50 p-3 rounded-lg">
-                  <div className="grid grid-cols-2 gap-4 text-center">
-                    <div>
-                      <div className="text-sm text-gray-600">Your Payment</div>
-                      <div className="text-xl font-bold text-[#2E4D98]">
-                        {formatPrice(customPaymentAmount)}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-gray-600">Percentage</div>
-                      <div className="text-xl font-bold text-[#2E4D98]">
-                        {calculatePercentage(parseFloat(customPaymentAmount))}%
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mt-3">
-                    <div className={`text-sm ${parseFloat(customPaymentAmount) >= totalFlightCost ? 'text-green-600' : 'text-yellow-600'} font-medium`}>
-                      {parseFloat(customPaymentAmount) >= totalFlightCost ? '✅ Full Payment' : '⏳ Partial Payment'}
-                    </div>
-                    {parseFloat(customPaymentAmount) < totalFlightCost && (
-                      <div className="mt-2">
-                        <div className="text-sm text-gray-600">Balance to Pay Later:</div>
-                        <div className="text-lg font-bold text-gray-800">
-                          {formatPrice(totalFlightCost - parseFloat(customPaymentAmount))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
+              <Input
+                type="number"
+                value={customPaymentAmount}
+                onChange={(e) => handleCustomAmountChange(e.target.value)}
+                placeholder="Enter amount"
+                className="h-12 text-lg"
+                min="1"
+                max={totalFlightCost}
+              />
             </div>
-
             <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setShowCustomAmountModal(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="button"
-                onClick={handleConfirmCustomAmount}
-                disabled={!customPaymentAmount || parseFloat(customPaymentAmount) < 1}
-              >
-                Use This Amount
-              </Button>
+              <Button variant="outline" onClick={() => setShowCustomAmountModal(false)}>Cancel</Button>
+              <Button onClick={handleConfirmCustomAmount}>Use This Amount</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

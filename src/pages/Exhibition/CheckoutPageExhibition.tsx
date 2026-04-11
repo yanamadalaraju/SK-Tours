@@ -1,30 +1,30 @@
-// src/pages/CheckoutPage.jsx - Updated with source field
+// src/pages/CheckoutExhibition.jsx - Fixed with correct API endpoints
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { BASE_URL } from '@/ApiUrls';
 import axios from 'axios';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { AlertCircle } from "lucide-react";
 
-const CheckoutPage = () => {
+const CheckoutExhibition = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Get tour data from navigation state or localStorage
-  const [tourData, setTourData] = useState(null);
+  // Get exhibition data from navigation state or localStorage
+  const [exhibitionData, setExhibitionData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   
   // State for payment amount
   const [showCustomAmountModal, setShowCustomAmountModal] = useState(false);
   const [customPaymentAmount, setCustomPaymentAmount] = useState('');
-  const [paymentType, setPaymentType] = useState('full'); // 'full', 'custom', or 'partial'
+  const [paymentType, setPaymentType] = useState('full');
   const [isPartialPayment, setIsPartialPayment] = useState(false);
   
   // Form state
@@ -42,75 +42,69 @@ const CheckoutPage = () => {
     termsAccepted: false
   });
 
-  // Initialize tour data
+  // Initialize exhibition data
   useEffect(() => {
-    if (location.state?.tour) {
-      const tour = location.state.tour;
-      setTourData(tour);
+    if (location.state?.exhibition) {
+      const exhibition = location.state.exhibition;
+      setExhibitionData(exhibition);
       
-      // Initialize with full amount by default
-      const totalTourCost = tour.total_price_value || tour.priceValue || parsePrice(tour.price);
-      setCustomPaymentAmount(totalTourCost.toString());
+      const totalExhibitionCost = exhibition.total_price_value || exhibition.priceValue || parsePrice(exhibition.price);
+      setCustomPaymentAmount(totalExhibitionCost.toString());
       setPaymentType('full');
       
       setLoading(false);
     } else {
-      const savedTour = localStorage.getItem('selectedTour');
-      if (savedTour) {
-        const parsedTour = JSON.parse(savedTour);
-        setTourData(parsedTour);
+      const savedExhibition = localStorage.getItem('selectedExhibition');
+      if (savedExhibition) {
+        const parsedExhibition = JSON.parse(savedExhibition);
+        setExhibitionData(parsedExhibition);
         
-        const totalTourCost = parsedTour.total_price_value || parsedTour.priceValue || parsePrice(parsedTour.price);
-        setCustomPaymentAmount(totalTourCost.toString());
+        const totalExhibitionCost = parsedExhibition.total_price_value || parsedExhibition.priceValue || parsePrice(parsedExhibition.price);
+        setCustomPaymentAmount(totalExhibitionCost.toString());
         setPaymentType('full');
       }
       setLoading(false);
     }
   }, [location]);
 
-  // Handle custom amount input
   const handleCustomAmountChange = (value) => {
     setCustomPaymentAmount(value);
     
-    if (tourData) {
-      const totalTourCost = getTotalTourCost();
+    if (exhibitionData) {
+      const totalExhibitionCost = getTotalExhibitionCost();
       const enteredAmount = parseFloat(value) || 0;
       
-      // Determine payment type based on amount
-      if (enteredAmount >= totalTourCost) {
+      if (enteredAmount >= totalExhibitionCost) {
         setPaymentType('full');
         setIsPartialPayment(false);
-      } else if (enteredAmount > 0 && enteredAmount < totalTourCost) {
+      } else if (enteredAmount > 0 && enteredAmount < totalExhibitionCost) {
         setPaymentType('partial');
         setIsPartialPayment(true);
       }
     }
   };
 
-  // Get total tour cost
-  const getTotalTourCost = () => {
-    if (!tourData) return 0;
-    return tourData.total_price_value || tourData.priceValue || parsePrice(tourData.price);
+  const getTotalExhibitionCost = () => {
+    if (!exhibitionData) return 0;
+    return exhibitionData.total_price_value || exhibitionData.priceValue || parsePrice(exhibitionData.price);
   };
 
-  // Get current payment amount
   const getCurrentPaymentAmount = () => {
-    if (!tourData) return 0;
+    if (!exhibitionData) return 0;
     
     if (paymentType === 'custom' || paymentType === 'partial') {
       return Math.round(parseFloat(customPaymentAmount) || 0);
     }
     
-    return getTotalTourCost();
+    return getTotalExhibitionCost();
   };
 
-  // Validate custom amount
   const validateCustomAmount = () => {
-    if (!tourData) return false;
+    if (!exhibitionData) return false;
     
-    const totalTourCost = getTotalTourCost();
-    const minAmount = 1; // Minimum ₹1
-    const maxAmount = totalTourCost;
+    const totalExhibitionCost = getTotalExhibitionCost();
+    const minAmount = 1;
+    const maxAmount = totalExhibitionCost;
     const enteredAmount = parseFloat(customPaymentAmount);
     
     if (isNaN(enteredAmount)) {
@@ -124,20 +118,19 @@ const CheckoutPage = () => {
     }
     
     if (enteredAmount > maxAmount) {
-      alert(`Amount cannot exceed total tour cost of ${formatPrice(maxAmount)}`);
+      alert(`Amount cannot exceed total exhibition cost of ${formatPrice(maxAmount)}`);
       return false;
     }
     
     return true;
   };
 
-  // Handle confirm custom amount
   const handleConfirmCustomAmount = () => {
     if (validateCustomAmount()) {
-      const totalTourCost = getTotalTourCost();
+      const totalExhibitionCost = getTotalExhibitionCost();
       const enteredAmount = parseFloat(customPaymentAmount);
       
-      if (enteredAmount >= totalTourCost) {
+      if (enteredAmount >= totalExhibitionCost) {
         setPaymentType('full');
         setIsPartialPayment(false);
       } else {
@@ -157,44 +150,49 @@ const CheckoutPage = () => {
     }));
   };
 
-  const handleRadioChange = (value) => {
-    setFormData(prev => ({
-      ...prev,
-      paymentMethod: value
-    }));
-  };
-
-  // Parse price from string to number
   const parsePrice = (priceString) => {
     if (!priceString) return 0;
-    
-    // Remove currency symbols, commas, and spaces
     const numericString = priceString
       .toString()
       .replace(/[₹$,]/g, '')
       .replace(/\s+/g, '')
       .trim();
-    
     return parseFloat(numericString) || 0;
   };
 
-  // Format price to display
   const formatPrice = (price) => {
     return `₹${parseFloat(price).toLocaleString('en-IN')}`;
   };
 
-  // Calculate percentage
   const calculatePercentage = (amount) => {
-    const total = getTotalTourCost();
+    const total = getTotalExhibitionCost();
     return total > 0 ? Math.round((amount / total) * 100) : 0;
   };
 
-  // Handle payment
+  const getExhibitionDisplayName = () => {
+    if (!exhibitionData) return '';
+    if (exhibitionData.state_name) {
+      return `${exhibitionData.city_name} Exhibition`;
+    } else if (exhibitionData.country_name) {
+      return `${exhibitionData.country_name} Exhibition`;
+    }
+    return exhibitionData.title || exhibitionData.city_name || 'Exhibition Package';
+  };
+
+  const getDurationDisplay = () => {
+    if (!exhibitionData) return '';
+    const days = exhibitionData.duration_days;
+    if (days) {
+      return `${days - 1}N/${days}D`;
+    }
+    return exhibitionData.duration || 'N/A';
+  };
+
+  // Handle payment - FIXED: Use correct API endpoint
   const handlePhonePePayment = async (e) => {
     e.preventDefault();
     setSubmitting(true);
     
-    // Validate required fields
     const requiredFields = ['firstName', 'lastName', 'email', 'phone', 'address', 'city', 'state', 'pincode'];
     const missingFields = requiredFields.filter(field => !formData[field]);
     
@@ -210,7 +208,6 @@ const CheckoutPage = () => {
       return;
     }
 
-    // Validate phone number
     const phoneRegex = /^[6-9]\d{9}$/;
     if (!phoneRegex.test(formData.phone.replace(/\D/g, ''))) {
       alert('Please enter a valid 10-digit Indian phone number');
@@ -218,7 +215,6 @@ const CheckoutPage = () => {
       return;
     }
 
-    // Validate email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       alert('Please enter a valid email address');
@@ -226,11 +222,10 @@ const CheckoutPage = () => {
       return;
     }
 
-    // Get current payment amount
-    const totalTourCost = getTotalTourCost();
+    const totalExhibitionCost = getTotalExhibitionCost();
     let paymentAmount = getCurrentPaymentAmount();
     const paymentPercentage = calculatePercentage(paymentAmount);
-    const isFullPayment = paymentAmount >= totalTourCost;
+    const isFullPayment = paymentAmount >= totalExhibitionCost;
 
     if (paymentAmount <= 0) {
       alert('Please enter a valid payment amount');
@@ -240,34 +235,35 @@ const CheckoutPage = () => {
 
     try {
       const paymentDescription = isFullPayment 
-        ? `Full Payment for ${tourData.code || tourData.title}`
-        : `${paymentPercentage}% Partial Payment for ${tourData.code || tourData.title}`;
+        ? `Full Payment for ${getExhibitionDisplayName()}`
+        : `${paymentPercentage}% Partial Payment for ${getExhibitionDisplayName()}`;
       
       console.log('Payment processing:', {
         amount: paymentAmount,
-        totalTourCost: totalTourCost,
+        totalExhibitionCost: totalExhibitionCost,
         paymentPercentage: paymentPercentage,
         isFullPayment: isFullPayment,
         description: paymentDescription,
         paymentType: paymentType
       });
 
-      // Step 1: Save checkout record to database with source field
+      // Step 1: Save checkout record - Use the same /api/checkout endpoint
       const checkoutResponse = await axios.post(
-        `${BASE_URL}/api/checkout`,
+        `${BASE_URL}/api/checkout`,  // ✅ Fixed: Use existing endpoint
         {
-          tour_id: tourData.id || '',
-          tour_code: tourData.code || '',
-          tour_title: tourData.title || '',
-          tour_duration: tourData.duration || '',
-          tour_locations: tourData.locations || '',
-          tour_image_url: tourData.image || '',
+          // Map exhibition data to match the table structure
+          tour_id: exhibitionData.id || '',
+          tour_code: exhibitionData.code || exhibitionData.exhibition_code || `EXH_${exhibitionData.id}`,
+          tour_title: getExhibitionDisplayName(),
+          tour_duration: getDurationDisplay(),
+          tour_locations: exhibitionData.city_name || exhibitionData.country_name || '',
+          tour_image_url: exhibitionData.image || '',
           
           // Price details
-          total_tour_cost: totalTourCost,
+          total_tour_cost: totalExhibitionCost,
           advance_percentage: paymentPercentage,
           advance_amount: paymentAmount,
-          emi_price: tourData.emiPriceValue || 0,
+          emi_price: exhibitionData.emi_price || exhibitionData.emiPriceValue || 0,
           
           // Customer details from form
           first_name: formData.firstName.trim(),
@@ -281,21 +277,21 @@ const CheckoutPage = () => {
           country: formData.country.trim(),
           
           payment_method: formData.paymentMethod,
-          source_page: 'tour-packages',
-          source: 'tours', // Added source field
+          source_page: 'exhibition-packages',
+          source: 'exhibitions',  // ✅ Set source to 'exhibitions'
           terms_accepted: formData.termsAccepted,
           notes: paymentDescription
         }
       );
 
       if (!checkoutResponse.data.success) {
-        throw new Error('Failed to create booking record. Please try again.');
+        throw new Error(checkoutResponse.data.message || 'Failed to create booking record. Please try again.');
       }
 
       const checkoutId = checkoutResponse.data.checkout_id;
 
       // Step 2: Create PhonePe order
-      const merchantOrderId = `BOOK_${checkoutId}_${Date.now()}`;
+      const merchantOrderId = `EXH_${checkoutId}_${Date.now()}`;
       const baseUrl = window.location.origin;
       const redirectUrl = `${baseUrl}/payment-result`;
       
@@ -313,18 +309,18 @@ const CheckoutPage = () => {
             email: formData.email,
             phone: formData.phone,
             checkout_id: checkoutId,
-            tour_code: tourData.code || '',
+            tour_code: exhibitionData.code || exhibitionData.exhibition_code || `EXH_${exhibitionData.id}`,
             payment_type: isFullPayment ? 'full' : 'partial',
             payment_percentage: paymentPercentage,
-            source: 'tours' // Added source field
+            source: 'exhibitions'
           }
         }
       );
 
       if (paymentResponse.data.success) {
-        // Step 3: Update checkout with PhonePe order ID
+        // Step 3: Update checkout with PhonePe order ID - Use existing endpoint
         await axios.put(
-          `${BASE_URL}/api/checkout/${checkoutId}/payment`,
+          `${BASE_URL}/api/checkout/${checkoutId}/payment`,  // ✅ Fixed: Use existing endpoint
           {
             phonepe_order_id: paymentResponse.data.merchantOrderId,
             payment_status: 'processing'
@@ -333,26 +329,28 @@ const CheckoutPage = () => {
         
         // Save booking details to localStorage
         const bookingData = {
-          tour: {
-            ...tourData,
+          exhibition: {
+            ...exhibitionData,
             advance_percentage: paymentPercentage,
             advance_amount: paymentAmount,
-            is_full_payment: isFullPayment
+            is_full_payment: isFullPayment,
+            display_name: getExhibitionDisplayName(),
+            duration_display: getDurationDisplay()
           },
           customer: formData,
           checkout_id: checkoutId,
           timestamp: new Date().toISOString(),
           amount: paymentAmount,
-          total_tour_cost: totalTourCost,
+          total_exhibition_cost: totalExhibitionCost,
           payment_percentage: paymentPercentage,
           is_full_payment: isFullPayment,
           merchant_order_id: paymentResponse.data.merchantOrderId,
           payment_type: isFullPayment ? 'full' : 'partial',
           custom_amount: paymentType === 'custom' || paymentType === 'partial' ? customPaymentAmount : null,
-          source: 'tours' // Added source field
+          source: 'exhibitions'
         };
         
-        localStorage.setItem('currentBooking', JSON.stringify(bookingData));
+        localStorage.setItem('currentExhibitionBooking', JSON.stringify(bookingData));
         localStorage.setItem('phonePeOrderId', paymentResponse.data.merchantOrderId);
         localStorage.setItem('checkoutId', checkoutId.toString());
         
@@ -370,47 +368,56 @@ const CheckoutPage = () => {
     }
   };
 
-  // Loading and no-tour handling
+  // Loading and no-exhibition handling
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#E53C42] mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading booking details...</p>
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#E53C42] mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading booking details...</p>
+          </div>
         </div>
+        <Footer />
       </div>
     );
   }
 
-  if (!tourData) {
+  if (!exhibitionData) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
-        <div className="bg-white p-8 rounded-2xl shadow-lg text-center max-w-md">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">No Tour Selected</h2>
-          <p className="text-gray-600 mb-6">Please select a tour to proceed with booking.</p>
-          <Button 
-            onClick={() => navigate('/')} 
-            className="bg-[#2E4D98] hover:bg-[#2E4D98]/90 px-8 py-6 text-lg"
-          >
-            Browse Tours
-          </Button>
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <div className="flex-1 flex flex-col items-center justify-center bg-gray-50">
+          <div className="bg-white p-8 rounded-2xl shadow-lg text-center max-w-md">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">No Exhibition Selected</h2>
+            <p className="text-gray-600 mb-6">Please select an exhibition to proceed with booking.</p>
+            <Button 
+              onClick={() => navigate('/exhibition')} 
+              className="bg-[#2E4D98] hover:bg-[#2E4D98]/90 px-8 py-6 text-lg"
+            >
+              Browse Exhibitions
+            </Button>
+          </div>
         </div>
+        <Footer />
       </div>
     );
   }
 
   // Calculate amounts
-  const totalTourCost = getTotalTourCost();
+  const totalExhibitionCost = getTotalExhibitionCost();
   const paymentAmount = getCurrentPaymentAmount();
   const paymentPercentage = calculatePercentage(paymentAmount);
-  const balanceAmount = totalTourCost - paymentAmount;
-  const isFullPayment = paymentAmount >= totalTourCost;
+  const balanceAmount = totalExhibitionCost - paymentAmount;
+  const isFullPayment = paymentAmount >= totalExhibitionCost;
+  const isDomestic = exhibitionData.state_name !== undefined;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
       
-      <div className="container mx-auto px-4 py-8">
+      <div className="flex-1 container mx-auto px-4 py-8">
         <button 
           onClick={() => navigate(-1)}
           className="mb-6 text-[#2E4D98] hover:underline flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors"
@@ -418,7 +425,7 @@ const CheckoutPage = () => {
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
           </svg>
-          Back to Tour
+          Back to Exhibition
         </button>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -427,7 +434,7 @@ const CheckoutPage = () => {
             <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-800 mb-2">Complete Your Booking</h1>
+                  <h1 className="text-3xl font-bold text-gray-800 mb-2">Complete Your Exhibition Booking</h1>
                   <p className="text-gray-600">Pay any amount - from partial to full payment</p>
                 </div>
                 <div className="bg-blue-50 px-4 py-2 rounded-lg border border-blue-200">
@@ -435,33 +442,40 @@ const CheckoutPage = () => {
                 </div>
               </div>
               
-              {/* Tour Summary */}
+              {/* Exhibition Summary */}
               <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-5 mb-8 border border-blue-100">
                 <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd" />
+                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                    <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
                   </svg>
-                  Tour Summary
+                  Exhibition Summary
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <h3 className="font-bold text-lg text-gray-800 mb-2">{tourData.title}</h3>
-                    <p className="text-gray-600 mb-3">{tourData.locations}</p>
-                    <div className="flex items-center gap-4">
+                    <h3 className="font-bold text-lg text-gray-800 mb-2">{getExhibitionDisplayName()}</h3>
+                    <p className="text-gray-600 mb-3">
+                      {isDomestic 
+                        ? `${exhibitionData.city_name}, ${exhibitionData.state_name}`
+                        : exhibitionData.country_name}
+                    </p>
+                    <div className="flex items-center gap-4 flex-wrap">
                       <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                        {tourData.duration}
+                        {getDurationDisplay()}
                       </span>
                       <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-                        {tourData.code}
+                        {isDomestic ? 'Domestic Exhibition' : 'International Exhibition'}
                       </span>
                     </div>
                   </div>
                   <div className="text-right">
                     <div className="text-3xl font-bold text-gray-900 mb-1">
-                      {formatPrice(totalTourCost)}
+                      {formatPrice(totalExhibitionCost)}
                     </div>
-                    <p className="text-gray-600">Total Tour Cost</p>
-                    <p className="text-sm text-gray-500 mt-1">EMI: {tourData.emi || 'N/A'}/month</p>
+                    <p className="text-gray-600">Total Exhibition Cost</p>
+                    {exhibitionData.emi_price && (
+                      <p className="text-sm text-gray-500 mt-1">EMI: {formatPrice(exhibitionData.emi_price)}/month</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -481,7 +495,7 @@ const CheckoutPage = () => {
                   <div className={`flex items-center justify-between p-4 border rounded-lg cursor-pointer transition-all ${paymentType === 'full' ? 'border-[#2E4D98] bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}
                     onClick={() => {
                       setPaymentType('full');
-                      setCustomPaymentAmount(totalTourCost.toString());
+                      setCustomPaymentAmount(totalExhibitionCost.toString());
                       setIsPartialPayment(false);
                     }}>
                     <div className="flex items-center gap-3">
@@ -496,7 +510,7 @@ const CheckoutPage = () => {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-lg font-bold text-gray-900">{formatPrice(totalTourCost)}</div>
+                      <div className="text-lg font-bold text-gray-900">{formatPrice(totalExhibitionCost)}</div>
                       <div className="text-sm text-gray-600">100% of total</div>
                     </div>
                   </div>
@@ -566,7 +580,7 @@ const CheckoutPage = () => {
                     <div className="ml-3">
                       <p className="text-sm text-yellow-700">
                         <strong>Note:</strong> You are paying {paymentPercentage}% ({formatPrice(paymentAmount)}) now. 
-                        The remaining {formatPrice(balanceAmount)} ({100 - paymentPercentage}%) will be payable before the tour departure date.
+                        The remaining {formatPrice(balanceAmount)} ({100 - paymentPercentage}%) will be payable before the exhibition departure date.
                       </p>
                     </div>
                   </div>
@@ -737,7 +751,7 @@ const CheckoutPage = () => {
                     <a href="/privacy" className="text-[#2E4D98] hover:underline font-medium">
                       Privacy Policy
                     </a>
-                    . {isPartialPayment && `I understand that I'm paying ${paymentPercentage}% now and the remaining amount must be paid before the tour departure date.`} <span className="text-red-500">*</span>
+                    . {isPartialPayment && `I understand that I'm paying ${paymentPercentage}% now and the remaining amount must be paid before the exhibition departure date.`} <span className="text-red-500">*</span>
                   </Label>
                 </div>
                 
@@ -773,10 +787,10 @@ const CheckoutPage = () => {
               <div className="space-y-4 mb-8">
                 <div className="flex justify-between items-center py-3 border-b">
                   <div>
-                    <span className="text-gray-700 font-medium">Total Tour Cost</span>
+                    <span className="text-gray-700 font-medium">Total Exhibition Cost</span>
                     <p className="text-sm text-gray-500">Complete package including all services</p>
                   </div>
-                  <span className="text-lg font-bold text-gray-900">{formatPrice(totalTourCost)}</span>
+                  <span className="text-lg font-bold text-gray-900">{formatPrice(totalExhibitionCost)}</span>
                 </div>
                 
                 <div className="flex justify-between items-center py-3 border-b">
@@ -849,6 +863,8 @@ const CheckoutPage = () => {
         </div>
       </div>
 
+      <Footer />
+
       {/* Custom Amount Modal */}
       <Dialog open={showCustomAmountModal} onOpenChange={setShowCustomAmountModal}>
         <DialogContent className="sm:max-w-md">
@@ -862,8 +878,8 @@ const CheckoutPage = () => {
           <div className="space-y-4 py-4">
             <div className="bg-blue-50 p-4 rounded-lg">
               <div className="flex justify-between mb-2">
-                <span className="text-gray-700">Total Tour Cost:</span>
-                <span className="font-bold">{formatPrice(totalTourCost)}</span>
+                <span className="text-gray-700">Total Exhibition Cost:</span>
+                <span className="font-bold">{formatPrice(totalExhibitionCost)}</span>
               </div>
               <div className="flex justify-between text-sm text-gray-600">
                 <span>Minimum:</span>
@@ -880,15 +896,15 @@ const CheckoutPage = () => {
                 type="number"
                 value={customPaymentAmount}
                 onChange={(e) => handleCustomAmountChange(e.target.value)}
-                placeholder={`Enter amount (max: ${formatPrice(totalTourCost)})`}
+                placeholder={`Enter amount (max: ${formatPrice(totalExhibitionCost)})`}
                 className="h-12 text-lg"
                 min="1"
-                max={totalTourCost}
+                max={totalExhibitionCost}
                 step="100"
               />
               <div className="flex justify-between text-sm text-gray-500 mt-2">
                 <span>Min: ₹1</span>
-                <span>Max: {formatPrice(totalTourCost)}</span>
+                <span>Max: {formatPrice(totalExhibitionCost)}</span>
               </div>
             </div>
             
@@ -916,7 +932,7 @@ const CheckoutPage = () => {
                     <div className="mt-2">
                       <div className="text-sm text-gray-600">Balance to Pay Later:</div>
                       <div className="text-lg font-bold text-gray-800">
-                        {formatPrice(totalTourCost - parseFloat(customPaymentAmount))}
+                        {formatPrice(totalExhibitionCost - parseFloat(customPaymentAmount))}
                       </div>
                     </div>
                   )}
@@ -947,4 +963,4 @@ const CheckoutPage = () => {
   );
 };
 
-export default CheckoutPage;
+export default CheckoutExhibition;
