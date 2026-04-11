@@ -29,6 +29,8 @@ import {
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 // Types
 interface TravellerCount {
@@ -1233,19 +1235,8 @@ const HotelSearchMain = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-blue-50/70 to-white">
-      {/* Header */}
-      <header className="bg-white shadow-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.location.href = '/'}>
-            <Hotel className="h-6 w-6 text-orange-600" />
-            <span className="font-bold text-xl text-gray-800">Hotel<span className="text-orange-600">Booking</span></span>
-          </div>
-          <div className="hidden md:flex items-center gap-6">
-            <a href="#" className="text-gray-600 hover:text-orange-600">Help</a>
-            <button className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700">Sign In</button>
-          </div>
-        </div>
-      </header>
+ 
+      <Header />
 
       <div className="flex-grow">
         {/* Hero Section */}
@@ -1530,19 +1521,9 @@ const HotelSearchMain = () => {
           </div>
         )}
       </div>
+      <Footer />
 
-      {/* Footer */}
-      <footer className="bg-gray-800 text-white py-8 mt-12">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <p>&copy; 2024 HotelBooking. All rights reserved.</p>
-          <div className="flex justify-center gap-6 mt-4">
-            <a href="#" className="text-gray-400 hover:text-white">About Us</a>
-            <a href="#" className="text-gray-400 hover:text-white">Privacy Policy</a>
-            <a href="#" className="text-gray-400 hover:text-white">Terms of Service</a>
-            <a href="#" className="text-gray-400 hover:text-white">Contact Us</a>
-          </div>
-        </div>
-      </footer>
+   
     </div>
   );
 };
