@@ -428,6 +428,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight, MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "./WeekendGetawaysSection.css";
+import { BASE_URL } from "@/ApiUrls";
 
 interface WeekendGetaway {
   id: number;
@@ -450,7 +451,7 @@ const WeekendGetawaysSection: React.FC = () => {
     const fetchWeekendGetaways = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:5000/api/weekend-gateways/');
+        const response = await fetch(`${BASE_URL}/api/weekend-gateways/`);
         const data = await response.json();
 
         // Transform API data to component structure
@@ -459,7 +460,7 @@ const WeekendGetawaysSection: React.FC = () => {
           name: item.name,
           gateway_code: item.gateway_code,
           price: `₹${parseFloat(item.price).toLocaleString('en-IN')}`,
-          image: item.main_image ? `http://localhost:5000${item.main_image}` : "https://images.pexels.com/photos/1365425/pexels-photo-1365425.jpeg?auto=compress&cs=tinysrgb&w=1200",
+          image: item.main_image ? `BASE_URL${item.main_image}` : "https://images.pexels.com/photos/1365425/pexels-photo-1365425.jpeg?auto=compress&cs=tinysrgb&w=1200",
         }));
 
         setWeekendGetaways(transformedData);

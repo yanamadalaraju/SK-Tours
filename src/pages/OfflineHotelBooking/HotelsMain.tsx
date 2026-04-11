@@ -31,7 +31,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-
+import { BASE_URL } from "@/ApiUrls";
 // Types
 interface TravellerCount {
   rooms: number;
@@ -90,7 +90,7 @@ const cities = [
 ];
 
 // API base URL
-const API_BASE_URL = 'http://localhost:5000/api';
+// const BASE_URL = 'http://localhost:5000/api';
 
 // ==================== Location Dropdown Component ====================
 const LocationDropdown = ({ 
@@ -755,7 +755,7 @@ const HotelCard = ({ hotel, onBookNow, checkIn, checkOut, travellers }: {
   const getImageUrl = (imagePath: string | undefined) => {
     if (!imagePath || imageError) return null;
     if (imagePath.startsWith('http')) return imagePath;
-    const baseUrl = API_BASE_URL.replace('/api', '');
+    const baseUrl = BASE_URL.replace('/api', '');
     return `${baseUrl}${imagePath}`;
   };
 
@@ -1048,7 +1048,7 @@ const HotelSearchMain = () => {
     setLoading(true);
     setError('');
     try {
-      const response = await axios.get(`${API_BASE_URL}/offline-hotels`);
+      const response = await axios.get(`${BASE_URL}/offline-hotels`);
       if (response.data.success) {
         setHotels(response.data.data);
         setFilteredHotels(response.data.data);

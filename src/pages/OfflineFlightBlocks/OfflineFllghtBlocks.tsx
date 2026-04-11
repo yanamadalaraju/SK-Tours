@@ -16,9 +16,9 @@ import { cn } from "@/lib/utils";
 import Header from '@/components/Header';
 import Footer from "@/components/Footer";
 import { useNavigate } from 'react-router-dom';
-
+import { BASE_URL } from "@/ApiUrls";
 // API Base URL
-const API_BASE_URL = "http://localhost:5000/api";
+// const API_BASE_URL = "http://localhost:5000/api";
 
 // Indian airports data (from admin panel)
 const indianAirports = [
@@ -621,7 +621,7 @@ const FlightResults = ({ searchData, onBack, travellers }: { searchData: any; on
       setError(null);
       
       try {
-        const response = await fetch(`${API_BASE_URL}/offline-flights`);
+        const response = await fetch(`${BASE_URL}/offline-flights`);
         const result = await response.json();
         
         if (result.success && result.data) {
