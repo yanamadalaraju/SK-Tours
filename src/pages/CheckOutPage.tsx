@@ -1,4 +1,4 @@
-// src/pages/CheckoutPage.jsx - Updated version
+// src/pages/CheckoutPage.jsx - Updated with source field
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -11,8 +11,6 @@ import { BASE_URL } from '@/ApiUrls';
 import axios from 'axios';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { AlertCircle } from "lucide-react";
-
-
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
@@ -254,7 +252,7 @@ const CheckoutPage = () => {
         paymentType: paymentType
       });
 
-      // Step 1: Save checkout record to database
+      // Step 1: Save checkout record to database with source field
       const checkoutResponse = await axios.post(
         `${BASE_URL}/api/checkout`,
         {
@@ -284,6 +282,7 @@ const CheckoutPage = () => {
           
           payment_method: formData.paymentMethod,
           source_page: 'tour-packages',
+          source: 'tours', // Added source field
           terms_accepted: formData.termsAccepted,
           notes: paymentDescription
         }
@@ -298,7 +297,8 @@ const CheckoutPage = () => {
       // Step 2: Create PhonePe order
       const merchantOrderId = `BOOK_${checkoutId}_${Date.now()}`;
       const baseUrl = window.location.origin;
-const redirectUrl = `${baseUrl}/payment-result`;
+      const redirectUrl = `${baseUrl}/payment-result`;
+      
       const paymentResponse = await axios.post(
         `${BASE_URL}/api/phonepe/orders`,
         {
@@ -307,7 +307,7 @@ const redirectUrl = `${baseUrl}/payment-result`;
           currency: "INR",
           environment: "test",
           merchantOrderId: merchantOrderId,
-            redirectUrl: redirectUrl,
+          redirectUrl: redirectUrl,
           customerDetails: {
             name: `${formData.firstName} ${formData.lastName}`,
             email: formData.email,
@@ -315,7 +315,8 @@ const redirectUrl = `${baseUrl}/payment-result`;
             checkout_id: checkoutId,
             tour_code: tourData.code || '',
             payment_type: isFullPayment ? 'full' : 'partial',
-            payment_percentage: paymentPercentage
+            payment_percentage: paymentPercentage,
+            source: 'tours' // Added source field
           }
         }
       );
@@ -347,7 +348,8 @@ const redirectUrl = `${baseUrl}/payment-result`;
           is_full_payment: isFullPayment,
           merchant_order_id: paymentResponse.data.merchantOrderId,
           payment_type: isFullPayment ? 'full' : 'partial',
-          custom_amount: paymentType === 'custom' || paymentType === 'partial' ? customPaymentAmount : null
+          custom_amount: paymentType === 'custom' || paymentType === 'partial' ? customPaymentAmount : null,
+          source: 'tours' // Added source field
         };
         
         localStorage.setItem('currentBooking', JSON.stringify(bookingData));
@@ -515,7 +517,6 @@ const redirectUrl = `${baseUrl}/payment-result`;
                         <p className="text-sm text-gray-600">Pay any amount you want (partial or full)</p>
                       </div>
                     </div>
-                    
                     
                     {(paymentType === 'partial' || paymentType === 'custom') && customPaymentAmount && (
                       <div className="mt-3 pl-8">
@@ -716,47 +717,6 @@ const redirectUrl = `${baseUrl}/payment-result`;
                     </div>
                   </div>
                 </div>
-                
-                {/* Payment Method */}
-                {/* <div>
-                  <h2 className="text-xl font-semibold text-gray-800 mb-6 pb-3 border-b">Payment Method</h2>
-                  <RadioGroup 
-                    value={formData.paymentMethod} 
-                    onValueChange={handleRadioChange}
-                    className="space-y-4"
-                  >
-                    <div className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                      <RadioGroupItem value="upi" id="upi" />
-                      <Label htmlFor="upi" className="cursor-pointer flex-1">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <span className="font-medium">UPI</span>
-                            <p className="text-sm text-gray-500">Pay using PhonePe, Google Pay, Paytm, etc.</p>
-                          </div>
-                          <div className="flex space-x-2">
-                            <span className="text-xs bg-gray-100 px-2 py-1 rounded">Recommended</span>
-                          </div>
-                        </div>
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                      <RadioGroupItem value="card" id="card" />
-                      <Label htmlFor="card" className="cursor-pointer flex-1">
-                        <div>
-                          <span className="font-medium">Credit/Debit Card</span>
-                          <p className="text-sm text-gray-500">Visa, MasterCard, RuPay, American Express</p>
-                        </div>
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                      <RadioGroupItem value="netbanking" id="netbanking" />
-                      <Label htmlFor="netbanking" className="cursor-pointer">
-                        <span className="font-medium">Net Banking</span>
-                        <p className="text-sm text-gray-500">All major Indian banks</p>
-                      </Label>
-                    </div>
-                  </RadioGroup>
-                </div> */}
                 
                 {/* Terms and Conditions */}
                 <div className="flex items-start space-x-3 p-4 bg-gray-50 rounded-lg">

@@ -15,6 +15,7 @@ const PaymentResult = () => {
   const [paymentDetails, setPaymentDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [checkoutData, setCheckoutData] = useState(null);
+  const [bookingSource, setBookingSource] = useState(null);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -37,67 +38,79 @@ const PaymentResult = () => {
     checkPhonePeStatus(merchantOrderId, environment);
   }, [location]);
 
- // In PaymentResult.jsx, update the checkPhonePeStatus function:
-
-const checkPhonePeStatus = async (merchantOrderId, environment) => {
+  const checkPhonePeStatus = async (merchantOrderId, environment) => {
     try {
-        const res = await axios.post(`${BASE_URL}/api/phonepe/orders`, {
-            action: "check-status",
-            merchantOrderId,
-            environment,
-        });
+      const res = await axios.post(`${BASE_URL}/api/phonepe/orders`, {
+        action: "check-status",
+        merchantOrderId,
+        environment,
+      });
 
-        if (res.data.success) {
-            setStatus(res.data.status);
+      if (res.data.success) {
+        setStatus(res.data.status);
+        
+        // Get checkout ID from localStorage
+        const savedCheckoutId = localStorage.getItem('checkoutId');
+        
+        if (savedCheckoutId) {
+          try {
+            // Update checkout status in database
+            const checkoutStatus = res.data.status === 'SUCCESS' ? 'completed' : 'failed';
+            await axios.put(
+              `${BASE_URL}/api/checkout/${savedCheckoutId}/status`,
+              { payment_status: checkoutStatus }
+            );
             
-            // Get checkout ID from localStorage
-            const savedCheckoutId = localStorage.getItem('checkoutId');
-            
-            if (savedCheckoutId) {
-                try {
-                    // Update checkout status in database
-                    const checkoutStatus = res.data.status === 'SUCCESS' ? 'completed' : 'failed';
-                    await axios.put(
-                        `${BASE_URL}/api/checkout/${savedCheckoutId}/status`,
-                        { payment_status: checkoutStatus }
-                    );
-                    
-                    // Fetch checkout details for display
-                    const checkoutRes = await axios.get(`${BASE_URL}/api/checkout/${savedCheckoutId}`);
-                    if (checkoutRes.data.success) {
-                        setCheckoutData(checkoutRes.data.checkout);
-                    }
-                    
-                    // Save payment success to localStorage
-                    if (res.data.status === 'SUCCESS') {
-                        const bookingData = JSON.parse(localStorage.getItem('currentBooking') || '{}');
-                        bookingData.payment_status = 'success';
-                        localStorage.setItem('currentBooking', JSON.stringify(bookingData));
-                    }
-                    
-                } catch (updateError) {
-                    console.error("Failed to update checkout:", updateError);
-                }
+            // Fetch checkout details for display
+            const checkoutRes = await axios.get(`${BASE_URL}/api/checkout/${savedCheckoutId}`);
+            if (checkoutRes.data.success) {
+              setCheckoutData(checkoutRes.data.checkout);
+              // Determine booking source from checkout data
+              setBookingSource(checkoutRes.data.checkout.source || 'tours');
             }
             
-            // Set payment details
-            setPaymentDetails({
-                amount: res.data.amount,
-                currency: res.data.currency,
-                timestamp: new Date().toISOString(),
-                phonepeStatus: res.data.phonepeStatus
-            });
+            // Save payment success to localStorage based on source
+            if (res.data.status === 'SUCCESS') {
+              const source = checkoutRes.data?.checkout?.source || 'tours';
+              
+              if (source === 'tours') {
+                const bookingData = JSON.parse(localStorage.getItem('currentBooking') || '{}');
+                bookingData.payment_status = 'success';
+                localStorage.setItem('currentBooking', JSON.stringify(bookingData));
+              } else if (source === 'flights') {
+                const bookingData = JSON.parse(localStorage.getItem('currentFlightBooking') || '{}');
+                bookingData.payment_status = 'success';
+                localStorage.setItem('currentFlightBooking', JSON.stringify(bookingData));
+              } else if (source === 'hotels') {
+                const bookingData = JSON.parse(localStorage.getItem('currentHotelBooking') || '{}');
+                bookingData.payment_status = 'success';
+                localStorage.setItem('currentHotelBooking', JSON.stringify(bookingData));
+              }
+            }
             
-        } else {
-            setStatus("FAILED");
+          } catch (updateError) {
+            console.error("Failed to update checkout:", updateError);
+          }
         }
+        
+        // Set payment details
+        setPaymentDetails({
+          amount: res.data.amount,
+          currency: res.data.currency,
+          timestamp: new Date().toISOString(),
+          phonepeStatus: res.data.phonepeStatus
+        });
+        
+      } else {
+        setStatus("FAILED");
+      }
     } catch (err) {
-        console.error("Status check error:", err);
-        setStatus("ERROR");
+      console.error("Status check error:", err);
+      setStatus("ERROR");
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
-};
+  };
 
   const isSuccess = status === "SUCCESS";
   const isFailed = status === "FAILED" || status === "ERROR";
@@ -106,6 +119,170 @@ const checkPhonePeStatus = async (merchantOrderId, environment) => {
   const formatPrice = (price) => {
     if (!price) return '₹0';
     return `₹${parseFloat(price).toLocaleString('en-IN')}`;
+  };
+
+  // Get booking type display name
+  const getBookingTypeDisplay = () => {
+    switch(bookingSource) {
+      case 'flights': return 'Flight';
+      case 'hotels': return 'Hotel';
+      default: return 'Tour';
+    }
+  };
+
+  // Get navigation path based on source
+  const getMyBookingsPath = () => {
+    switch(bookingSource) {
+      case 'flights': return '/my-flight-bookings';
+      case 'hotels': return '/my-hotel-bookings';
+      default: return '/my-bookings';
+    }
+  };
+
+  // Get browse path based on source
+  const getBrowsePath = () => {
+    switch(bookingSource) {
+      case 'flights': return '/flights';
+      case 'hotels': return '/hotels';
+      default: return '/';
+    }
+  };
+
+  // Get browse button text based on source
+  const getBrowseButtonText = () => {
+    switch(bookingSource) {
+      case 'flights': return 'Browse More Flights';
+      case 'hotels': return 'Browse More Hotels';
+      default: return 'Browse More Tours';
+    }
+  };
+
+  // Get payment description based on source and percentage
+  const getPaymentDescription = () => {
+    if (!checkoutData) return '';
+    const percentage = checkoutData.advance_percentage;
+    if (percentage >= 100) return 'Full Payment';
+    return `${percentage}% Advance Payment`;
+  };
+
+  // Get what happens next content based on source
+  const getWhatsNextContent = () => {
+    switch(bookingSource) {
+      case 'flights':
+        return (
+          <ul className="space-y-2 text-green-700">
+            <li className="flex items-start gap-2">
+              <span className="mt-1">•</span>
+              <span>Your flight booking is now <strong>confirmed</strong> with advance payment</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="mt-1">•</span>
+              <span>You will receive a confirmation email with booking details and e-ticket</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="mt-1">•</span>
+              <span>Our travel coordinator will contact you within 24 hours</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="mt-1">•</span>
+              <span>The <strong>balance amount must be paid before the flight departure date</strong></span>
+            </li>
+          </ul>
+        );
+      case 'hotels':
+        return (
+          <ul className="space-y-2 text-green-700">
+            <li className="flex items-start gap-2">
+              <span className="mt-1">•</span>
+              <span>Your hotel booking is now <strong>confirmed</strong> with advance payment</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="mt-1">•</span>
+              <span>You will receive a confirmation email with hotel voucher</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="mt-1">•</span>
+              <span>Our travel coordinator will contact you within 24 hours</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="mt-1">•</span>
+              <span>The <strong>balance amount must be paid before check-in</strong></span>
+            </li>
+          </ul>
+        );
+      default:
+        return (
+          <ul className="space-y-2 text-green-700">
+            <li className="flex items-start gap-2">
+              <span className="mt-1">•</span>
+              <span>Your booking is now <strong>confirmed</strong> with advance payment</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="mt-1">•</span>
+              <span>You will receive a confirmation email with booking details</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="mt-1">•</span>
+              <span>Our travel coordinator will contact you within 24 hours</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="mt-1">•</span>
+              <span>The <strong>balance amount must be paid before the tour departure date</strong></span>
+            </li>
+          </ul>
+        );
+    }
+  };
+
+  // Get failure content based on source
+  const getFailureContent = () => {
+    switch(bookingSource) {
+      case 'flights':
+        return (
+          <div className="mt-8 p-6 bg-red-50 rounded-xl border border-red-200">
+            <h3 className="font-semibold text-red-800 mb-3">What Went Wrong?</h3>
+            <ul className="space-y-2 text-red-700">
+              <li>• Payment was declined by your bank or payment method</li>
+              <li>• Insufficient funds in your account</li>
+              <li>• Technical error during payment processing</li>
+              <li>• Payment timeout or cancellation</li>
+            </ul>
+            <p className="mt-4 text-red-700">
+              Your flight booking is <strong>not confirmed</strong>. Please try again or contact support.
+            </p>
+          </div>
+        );
+      case 'hotels':
+        return (
+          <div className="mt-8 p-6 bg-red-50 rounded-xl border border-red-200">
+            <h3 className="font-semibold text-red-800 mb-3">What Went Wrong?</h3>
+            <ul className="space-y-2 text-red-700">
+              <li>• Payment was declined by your bank or payment method</li>
+              <li>• Insufficient funds in your account</li>
+              <li>• Technical error during payment processing</li>
+              <li>• Payment timeout or cancellation</li>
+            </ul>
+            <p className="mt-4 text-red-700">
+              Your hotel booking is <strong>not confirmed</strong>. Please try again or contact support.
+            </p>
+          </div>
+        );
+      default:
+        return (
+          <div className="mt-8 p-6 bg-red-50 rounded-xl border border-red-200">
+            <h3 className="font-semibold text-red-800 mb-3">What Went Wrong?</h3>
+            <ul className="space-y-2 text-red-700">
+              <li>• Payment was declined by your bank or payment method</li>
+              <li>• Insufficient funds in your account</li>
+              <li>• Technical error during payment processing</li>
+              <li>• Payment timeout or cancellation</li>
+            </ul>
+            <p className="mt-4 text-red-700">
+              Your booking is <strong>not confirmed</strong>. Please try again or contact support.
+            </p>
+          </div>
+        );
+    }
   };
 
   if (loading) {
@@ -153,12 +330,12 @@ const checkPhonePeStatus = async (merchantOrderId, environment) => {
                 <div>
                   <h1 className="text-3xl font-bold">
                     {isProcessing && "Payment Processing"}
-                    {isSuccess && "Payment Successful!"}
-                    {isFailed && "Payment Failed"}
+                    {isSuccess && `${getBookingTypeDisplay()} Booking Confirmed!`}
+                    {isFailed && `${getBookingTypeDisplay()} Booking Failed`}
                   </h1>
                   <p className="opacity-90">
                     {isProcessing && "Your payment is being processed by PhonePe"}
-                    {isSuccess && "Your advance payment has been confirmed"}
+                    {isSuccess && `Your ${getPaymentDescription().toLowerCase()} has been confirmed`}
                     {isFailed && "We couldn't process your payment"}
                   </p>
                 </div>
@@ -177,7 +354,7 @@ const checkPhonePeStatus = async (merchantOrderId, environment) => {
                       <span className="font-mono text-gray-800">{orderId}</span>
                     </div>
                     <div className="flex justify-between py-3 border-b">
-                      <span className="text-gray-600">Checkout ID</span>
+                      <span className="text-gray-600">Booking ID</span>
                       <span className="font-mono text-gray-800">{checkoutId || 'N/A'}</span>
                     </div>
                     <div className="flex justify-between py-3 border-b">
@@ -200,66 +377,67 @@ const checkPhonePeStatus = async (merchantOrderId, environment) => {
                         </div>
                         <div className="flex justify-between py-3">
                           <span className="text-gray-600">Payment Type</span>
-                          <span className="text-blue-600 font-medium">20% Advance Payment</span>
+                          <span className="text-blue-600 font-medium">{getPaymentDescription()}</span>
                         </div>
                       </>
                     )}
                   </div>
                 </div>
                 
-<div>
-  <h2 className="text-xl font-semibold text-gray-800 mb-4">Booking Details</h2>
-  {checkoutData ? (
-    <div className="space-y-3">
-      <div className="flex justify-between py-3 border-b">
-        <span className="text-gray-600">Tour Code</span>
-        <span className="font-semibold text-gray-800">{checkoutData.tour_code}</span>
-      </div>
-      <div className="flex justify-between py-3 border-b">
-        <span className="text-gray-600">Tour</span>
-        <span className="font-semibold text-gray-800">{checkoutData.tour_title}</span>
-      </div>
-      <div className="flex justify-between py-3 border-b">
-        <span className="text-gray-600">Total Tour Cost</span>
-        <span className="font-bold text-gray-900">{formatPrice(checkoutData.total_tour_cost)}</span>
-      </div>
-      <div className="flex justify-between py-3 border-b">
-        <span className="text-gray-600">Advance Paid ({checkoutData.advance_percentage}%)</span>
-        <span className="font-bold text-green-600">{formatPrice(checkoutData.advance_amount)}</span>
-      </div>
-      <div className="flex justify-between py-3">
-        <span className="text-gray-600">Balance Due</span>
-        <span className="font-bold text-blue-600">
-          {formatPrice(checkoutData.total_tour_cost - checkoutData.advance_amount)}
-        </span>
-      </div>
-      
-      {/* Show payment type if custom */}
-      {checkoutData.advance_percentage > 20 && (
-        <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-          <div className="flex items-center gap-2 text-blue-700">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clipRule="evenodd" />
-            </svg>
-            <span className="text-sm font-medium">
-              Thank you for paying {checkoutData.advance_percentage}% advance!
-            </span>
-          </div>
-          <p className="text-xs text-blue-600 mt-1">
-            Your higher advance payment reduces the balance amount to be paid later.
-          </p>
-        </div>
-      )}
-    </div>
-  ) : (
-    <div className="text-center py-8">
-      <p className="text-gray-500">Loading booking details...</p>
-    </div>
-  )}
-</div>
+                {/* Booking Details */}
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-800 mb-4">Booking Details</h2>
+                  {checkoutData ? (
+                    <div className="space-y-3">
+                      <div className="flex justify-between py-3 border-b">
+                        <span className="text-gray-600">Booking ID</span>
+                        <span className="font-semibold text-gray-800">{checkoutData.tour_code}</span>
+                      </div>
+                      <div className="flex justify-between py-3 border-b">
+                        <span className="text-gray-600">{getBookingTypeDisplay()} Name</span>
+                        <span className="font-semibold text-gray-800">{checkoutData.tour_title}</span>
+                      </div>
+                      <div className="flex justify-between py-3 border-b">
+                        <span className="text-gray-600">Total Cost</span>
+                        <span className="font-bold text-gray-900">{formatPrice(checkoutData.total_tour_cost)}</span>
+                      </div>
+                      <div className="flex justify-between py-3 border-b">
+                        <span className="text-gray-600">Amount Paid ({checkoutData.advance_percentage}%)</span>
+                        <span className="font-bold text-green-600">{formatPrice(checkoutData.advance_amount)}</span>
+                      </div>
+                      <div className="flex justify-between py-3">
+                        <span className="text-gray-600">Balance Due</span>
+                        <span className="font-bold text-blue-600">
+                          {formatPrice(checkoutData.total_tour_cost - checkoutData.advance_amount)}
+                        </span>
+                      </div>
+                      
+                      {/* Show custom payment info if applicable */}
+                      {checkoutData.advance_percentage > 0 && checkoutData.advance_percentage < 100 && (
+                        <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                          <div className="flex items-center gap-2 text-blue-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clipRule="evenodd" />
+                            </svg>
+                            <span className="text-sm font-medium">
+                              Thank you for paying {checkoutData.advance_percentage}% advance!
+                            </span>
+                          </div>
+                          <p className="text-xs text-blue-600 mt-1">
+                            Your higher advance payment reduces the balance amount to be paid later.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-gray-500">Loading booking details...</p>
+                    </div>
+                  )}
+                </div>
               </div>
 
-              {/* Important Notes */}
+              {/* Important Notes - Success */}
               {isSuccess && (
                 <div className="mt-8 p-6 bg-green-50 rounded-xl border border-green-200">
                   <h3 className="font-semibold text-green-800 mb-3 flex items-center gap-2">
@@ -268,58 +446,29 @@ const checkPhonePeStatus = async (merchantOrderId, environment) => {
                     </svg>
                     What Happens Next?
                   </h3>
-                  <ul className="space-y-2 text-green-700">
-                    <li className="flex items-start gap-2">
-                      <span className="mt-1">•</span>
-                      <span>Your booking is now <strong>confirmed</strong> with advance payment</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="mt-1">•</span>
-                      <span>You will receive a confirmation email with booking details</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="mt-1">•</span>
-                      <span>Our travel coordinator will contact you within 24 hours</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="mt-1">•</span>
-                      <span>The <strong>balance amount must be paid before the tour departure date</strong></span>
-                    </li>
-                  </ul>
+                  {getWhatsNextContent()}
                 </div>
               )}
 
-              {isFailed && (
-                <div className="mt-8 p-6 bg-red-50 rounded-xl border border-red-200">
-                  <h3 className="font-semibold text-red-800 mb-3">What Went Wrong?</h3>
-                  <ul className="space-y-2 text-red-700">
-                    <li>• Payment was declined by your bank or payment method</li>
-                    <li>• Insufficient funds in your account</li>
-                    <li>• Technical error during payment processing</li>
-                    <li>• Payment timeout or cancellation</li>
-                  </ul>
-                  <p className="mt-4 text-red-700">
-                    Your booking is <strong>not confirmed</strong>. Please try again or contact support.
-                  </p>
-                </div>
-              )}
+              {/* Failure Content */}
+              {isFailed && getFailureContent()}
 
               {/* Actions */}
               <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
                 {isSuccess && (
                   <>
                     <Button
-                      onClick={() => navigate('/my-bookings')}
+                      onClick={() => navigate(getMyBookingsPath())}
                       className="bg-[#2E4D98] hover:bg-[#2E4D98]/90 px-8 py-6 text-lg"
                     >
                       View My Bookings
                     </Button>
                     <Button
-                      onClick={() => navigate('/')}
+                      onClick={() => navigate(getBrowsePath())}
                       variant="outline"
                       className="border-[#2E4D98] text-[#2E4D98] hover:bg-[#2E4D98]/10 px-8 py-6 text-lg"
                     >
-                      Browse More Tours
+                      {getBrowseButtonText()}
                     </Button>
                   </>
                 )}
@@ -327,17 +476,17 @@ const checkPhonePeStatus = async (merchantOrderId, environment) => {
                 {isFailed && (
                   <>
                     <Button
-                      onClick={() => navigate('/checkout')}
+                      onClick={() => navigate(-1)}
                       className="bg-[#E53C42] hover:bg-[#E53C42]/90 px-8 py-6 text-lg"
                     >
                       Try Payment Again
                     </Button>
                     <Button
-                      onClick={() => navigate('/')}
+                      onClick={() => navigate(getBrowsePath())}
                       variant="outline"
                       className="border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-6 text-lg"
                     >
-                      Back to Home
+                      Back to {getBookingTypeDisplay()}s
                     </Button>
                   </>
                 )}
