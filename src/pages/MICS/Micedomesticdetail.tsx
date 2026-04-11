@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { BASE_URL } from '@/ApiUrls';
 import Footer from '@/components/Footer';
 import { PDFDownloadLink } from '@react-pdf/renderer';
-import TourPdfDocument from '../TourPdfDocument';
+import Micedomesticpdf from './micedomesticpdf';
 import { Download } from 'lucide-react';
 import EmailModal from '../EmailModal';
 import { FaSearch } from "react-icons/fa";
@@ -221,10 +221,10 @@ const Micedomesticdetail = () => {
       setEmailLoading(true);
 
       const { pdf } = await import('@react-pdf/renderer');
-      const TourPdfDocument = (await import('../TourPdfDocument')).default;
+      const Micedomesticpdf = (await import('./micedomesticpdf')).default;
 
       const pdfInstance = (
-        <TourPdfDocument
+        <Micedomesticpdf
           tour={tour || {}}
           tourType="Individual"
           isGroupTour={false}
@@ -2098,7 +2098,7 @@ useEffect(() => {
                   <div className="w-[32%] lg:w-32 border border-green-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                     <PDFDownloadLink
                       document={
-                        <TourPdfDocument
+                        <Micedomesticpdf
                           tour={tour || {}}
                           tourType="Individual"
                           isGroupTour={false}

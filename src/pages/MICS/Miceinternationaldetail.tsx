@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight, Download } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { PDFDownloadLink } from '@react-pdf/renderer';
-import TourPdfDocumentinternational from '../TourPdfDocumentinternational';
+import Miceinternationalpdf from './Miceinternationalpdf';
 import { BASE_URL } from '@/ApiUrls';
 import EmailModal from '../EmailModal';
 import { Slider } from "@/components/ui/slider";
@@ -752,7 +752,7 @@ const fetchInternationalData = async () => {
       setEmailLoading(true);
       const { pdf } = await import('@react-pdf/renderer');
       const pdfInstance = (
-        <TourPdfDocumentinternational
+        <Miceinternationalpdf
           tour={tour || {}}
           tourType={tourType}
           isGroupTour={false}
@@ -1894,7 +1894,7 @@ const handleSearch = (e: React.FormEvent) => {
               <div className="flex justify-between lg:justify-end mt-1 gap-1 flex-nowrap">
                 <div className="w-[32%] lg:w-32 border border-green-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                   <PDFDownloadLink
-                    document={<TourPdfDocumentinternational tour={tour || {}} tourType={tourType} isGroupTour={false} selectedCostMonth={selectedCostMonth} selectedCostDate={selectedCostDate} selectedDeparture={null} currentImageIndex={currentImageIndex} tourImages={tour?.images || []} />}
+                    document={<Miceinternationalpdf tour={tour || {}} tourType={tourType} isGroupTour={false} selectedCostMonth={selectedCostMonth} selectedCostDate={selectedCostDate} selectedDeparture={null} currentImageIndex={currentImageIndex} tourImages={tour?.images || []} />}
                     fileName={`tour_${tour?.code || 'details'}_${new Date().toISOString().split('T')[0]}.pdf`}
                     className="w-full"
                   >

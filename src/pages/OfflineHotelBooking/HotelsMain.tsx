@@ -974,9 +974,9 @@ const HotelCard = ({ hotel, onBookNow, checkIn, checkOut, travellers }: {
             </div>
 
             <div className="text-right w-full sm:w-auto space-y-2">
-              <button className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-2.5 px-8 rounded-xl transition-all shadow-md hover:shadow-lg w-full sm:w-auto">
+              {/* <button className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-2.5 px-8 rounded-xl transition-all shadow-md hover:shadow-lg w-full sm:w-auto">
                 VIEW ALL
-              </button>
+              </button> */}
               <button
                 onClick={() => onBookNow(hotel)}
                 className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-2.5 px-8 rounded-xl transition-all shadow-md hover:shadow-lg w-full sm:w-auto"

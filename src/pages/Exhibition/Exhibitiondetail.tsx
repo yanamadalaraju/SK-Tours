@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { BASE_URL } from '@/ApiUrls';
 import Footer from '@/components/Footer';
 import { PDFDownloadLink } from '@react-pdf/renderer';
-import TourPdfDocument from '../TourPdfDocument';
+import Exhibitionpdf from './Exhibitionpdf';
 import { Download } from 'lucide-react';
 import EmailModal from '../EmailModal';
 import { FaSearch } from "react-icons/fa";
@@ -219,10 +219,10 @@ const [isSearchActive, setIsSearchActive] = useState(false);
       setEmailLoading(true);
 
       const { pdf } = await import('@react-pdf/renderer');
-      const TourPdfDocument = (await import('../TourPdfDocument')).default;
+      const Exhibitionpdf = (await import('./Exhibitionpdf')).default;
 
       const pdfInstance = (
-        <TourPdfDocument
+        <Exhibitionpdf
           tour={tour || {}}
           tourType="Individual"
           isGroupTour={false}
@@ -321,19 +321,95 @@ const processExhibitionData = (apiData: any, exhibitionImages: string[] = []) =>
   return `₹${numPrice.toLocaleString('en-IN')}`;
 };
 
-
-  const transformDeparturesToGroupFormat = (departures: any[]) => {
+const transformDeparturesToGroupFormat = (departures: any[]) => {
   if (!departures || departures.length === 0) return [];
   
   return departures.map((dep, index) => {
+    // Check if start_date exists and is valid
+    if (!dep.start_date || dep.start_date === null || dep.start_date === "null") {
+      return {
+        id: dep.departure_id || index,
+        month: "No Date Available",
+        fromDay: "N/A",
+        fromDate: "N/A",
+        toDay: "N/A",
+        toDate: "N/A",
+        status: dep.status || 'Available',
+        price: 0,
+        threeStar: {
+          twin: "NA",
+          triple: "NA",
+          childWithBed: "NA",
+          childWithoutBed: "NA",
+          infant: "NA",
+          single: "NA"
+        },
+        fourStar: {
+          twin: "NA",
+          triple: "NA",
+          childWithBed: "NA",
+          childWithoutBed: "NA",
+          infant: "NA",
+          single: "NA"
+        },
+        fiveStar: {
+          twin: "NA",
+          triple: "NA",
+          childWithBed: "NA",
+          childWithoutBed: "NA",
+          infant: "NA",
+          single: "NA"
+        }
+      };
+    }
+
     const startDate = new Date(dep.start_date);
-    const endDate = new Date(dep.end_date);
+    const endDate = dep.end_date && dep.end_date !== "null" ? new Date(dep.end_date) : startDate;
+
+    // Check if date is valid (not NaN and not 1970)
+    if (isNaN(startDate.getTime()) || startDate.getFullYear() === 1970) {
+      return {
+        id: dep.departure_id || index,
+        month: "Invalid Date",
+        fromDay: "N/A",
+        fromDate: "N/A",
+        toDay: "N/A",
+        toDate: "N/A",
+        status: dep.status || 'Available',
+        price: 0,
+        threeStar: {
+          twin: "NA",
+          triple: "NA",
+          childWithBed: "NA",
+          childWithoutBed: "NA",
+          infant: "NA",
+          single: "NA"
+        },
+        fourStar: {
+          twin: "NA",
+          triple: "NA",
+          childWithBed: "NA",
+          childWithoutBed: "NA",
+          infant: "NA",
+          single: "NA"
+        },
+        fiveStar: {
+          twin: "NA",
+          triple: "NA",
+          childWithBed: "NA",
+          childWithoutBed: "NA",
+          infant: "NA",
+          single: "NA"
+        }
+      };
+    }
     
     const month = startDate.toLocaleString('default', { month: 'short' }).toUpperCase();
     const year = startDate.getFullYear();
     const monthYear = `${month} ${year}`;
     
     const formatDate = (date: Date) => {
+      if (isNaN(date.getTime()) || date.getFullYear() === 1970) return "N/A";
       const day = date.getDate();
       const month = date.toLocaleString('default', { month: 'short' });
       const year = date.getFullYear();
@@ -341,7 +417,15 @@ const processExhibitionData = (apiData: any, exhibitionImages: string[] = []) =>
     };
     
     const getDayOfWeek = (date: Date) => {
+      if (isNaN(date.getTime()) || date.getFullYear() === 1970) return "N/A";
       return date.toLocaleString('default', { weekday: 'long' });
+    };
+    
+    const formatPriceValue = (value: string | null | undefined) => {
+      if (!value || value === '0' || value === '0.00' || value === 'null') return "NA";
+      const numValue = parseFloat(value);
+      if (isNaN(numValue)) return "NA";
+      return formatPriceExhibition(numValue);
     };
     
     return {
@@ -354,28 +438,28 @@ const processExhibitionData = (apiData: any, exhibitionImages: string[] = []) =>
       status: dep.status || 'Available',
       price: parseFloat(dep.standard_twin) || 0,
       threeStar: {
-        twin: formatPriceExhibition(dep.standard_twin),
-        triple: formatPriceExhibition(dep.standard_triple),
-        childWithBed: formatPriceExhibition(dep.child_with_bed) || "NA",
-        childWithoutBed: formatPriceExhibition(dep.child_without_bed) || "NA",
+        twin: formatPriceValue(dep.standard_twin),
+        triple: formatPriceValue(dep.standard_triple),
+        childWithBed: formatPriceValue(dep.child_with_bed),
+        childWithoutBed: formatPriceValue(dep.child_without_bed),
         infant: "NA",
-        single: formatPriceExhibition(dep.standard_single)
+        single: formatPriceValue(dep.standard_single)
       },
       fourStar: {
-        twin: formatPriceExhibition(dep.deluxe_twin),
-        triple: formatPriceExhibition(dep.deluxe_triple),
+        twin: formatPriceValue(dep.deluxe_twin),
+        triple: formatPriceValue(dep.deluxe_triple),
         childWithBed: "NA",
         childWithoutBed: "NA",
         infant: "NA",
-        single: formatPriceExhibition(dep.deluxe_single)
+        single: formatPriceValue(dep.deluxe_single)
       },
       fiveStar: {
-        twin: formatPriceExhibition(dep.luxury_twin),
-        triple: formatPriceExhibition(dep.luxury_triple),
+        twin: formatPriceValue(dep.luxury_twin),
+        triple: formatPriceValue(dep.luxury_triple),
         childWithBed: "NA",
         childWithoutBed: "NA",
         infant: "NA",
-        single: formatPriceExhibition(dep.luxury_single)
+        single: formatPriceValue(dep.luxury_single)
       }
     };
   });
@@ -391,7 +475,8 @@ const processExhibitionData = (apiData: any, exhibitionImages: string[] = []) =>
     };
   };
 
-  const processTourCost = () => {
+
+const processTourCost = () => {
     if (costs && costs.length > 0) {
       return {
         tableData: costs.map((cost: any) => ({
@@ -559,6 +644,8 @@ const calculateEMI = (price: string | number) => {
   const emiAmount = Math.round(numPrice / 6);
   return `EMI from ₹${emiAmount.toLocaleString('en-IN')}/month`;
 };
+
+
   const fetchExhibitionDetails = async () => {
     try {
       setLoading(true);
@@ -825,6 +912,13 @@ useEffect(() => {
   setIsSearchActive(false);
 };
 
+const hasValidDepartures = () => {
+  return tour?.departures?.data?.some(dep => 
+    dep.month !== "No Date Available" && 
+    dep.month !== "Invalid Date" && 
+    dep.fromDate !== "N/A"
+  ) || false;
+};
 const handleSearch = (e: React.FormEvent) => {
   e.preventDefault();
   if (searchQuery.trim() === "") return;
@@ -1346,7 +1440,7 @@ const handleSearch = (e: React.FormEvent) => {
 
       {/* Tour Itinerary Box - Second */}
       <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 rounded-t-lg flex-shrink-0 mt-1">
-        Tour Itinerary
+         Itinerary
       </div>
 
       <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg flex-1 min-h-0">
@@ -1381,178 +1475,190 @@ const handleSearch = (e: React.FormEvent) => {
       Departure Dates
     </div>
 
-    <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg w-full flex flex-col min-h-[400px] lg:min-h-[680px] max-h-[400px] lg:max-h-[780px] overflow-hidden">
+    <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg w-full flex flex-col min-h-[300px] lg:min-h-[400px] max-h-[400px] lg:max-h-[780px] overflow-hidden">
       <div className="flex-1 overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-        <div className="flex flex-wrap gap-1 lg:gap-2 mb-2 overflow-x-auto pb-2">
-          {(() => {
-            const availableMonths = tour.departures.data
-              .map((dep) => dep.month)
-              .filter((month, index, self) =>
-                self.indexOf(month) === index
-              )
-              .sort((a, b) => {
-                const monthOrder = [
-                  "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
-                  "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"
-                ];
-                const getMonthNum = (monthStr) => {
-                  const monthAbbr = monthStr.split(' ')[0];
-                  return monthOrder.indexOf(monthAbbr);
-                };
-                return getMonthNum(a) - getMonthNum(b);
-              });
+        {hasValidDepartures() ? (
+          <>
+            {/* Month filter buttons */}
+            <div className="flex flex-wrap gap-1 lg:gap-2 mb-2 overflow-x-auto pb-2">
+              {(() => {
+                const availableMonths = tour.departures.data
+                  .map((dep) => dep.month)
+                  .filter((month, index, self) =>
+                    self.indexOf(month) === index && 
+                    month !== "No Date Available" && 
+                    month !== "Invalid Date"
+                  )
+                  .sort((a, b) => {
+                    const monthOrder = [
+                      "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
+                      "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"
+                    ];
+                    const getMonthNum = (monthStr) => {
+                      const monthAbbr = monthStr.split(' ')[0];
+                      return monthOrder.indexOf(monthAbbr);
+                    };
+                    return getMonthNum(a) - getMonthNum(b);
+                  });
 
-            const allTabs = ["ALL", ...availableMonths];
+                const allTabs = ["ALL", ...availableMonths];
 
-            return (
-              <div className="flex flex-wrap gap-1 lg:gap-2 mb-1">
-                {allTabs.map((tab) => (
-                  <button
-                    key={tab}
-                    onClick={() => setSelectedMonth(tab)}
-                    className={`
-                      px-2 lg:px-3 py-1 lg:py-2 
-                      border-2 
-                      font-semibold
-                      text-center
-                      w-20 lg:w-32
-                      text-xs lg:text-sm
-                      transition-all
-                      duration-200
-                      flex-shrink-0
-                      ${selectedMonth === tab
-                        ? "bg-blue-100 border-blue-600 text-blue-800 shadow-md"
-                        : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400"
-                      }
-                    `}
-                  >
-                    {tab}
-                  </button>
-                ))}
-              </div>
-            );
-          })()}
-        </div>
-
-        {/* Table Header */}
-        <div className="border-2 border-[#2E3a8a] overflow-hidden mb-2">
-          <div className="grid grid-cols-5 bg-[#2E3a8a] text-white font-semibold text-center">
-            <div className="p-2 border-r-2 border-white text-xs lg:text-sm">From</div>
-            <div className="p-2 border-r-2 border-white text-xs lg:text-sm">To</div>
-            <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Status</div>
-            <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Price</div>
-            <div className="p-2 text-xs lg:text-sm">Action</div>
-          </div>
-        </div>
-
-        <div className="space-y-3 lg:space-y-4 w-full">
-          {filteredDepartureData.map((item, index) => (
-            <div key={item.id || index} className="w-full">
-              {/* Table Row */}
-              <div className="border-2 border-black bg-white">
-                <div className="grid grid-cols-5 items-center gap-0">
-                  <div className="p-2 border-r-2 border-black">
-                    <p className="font-semibold text-xs lg:text-base">{item.fromDate}</p>
-                    <p className="text-xs text-gray-500">{item.fromDay}</p>
-                  </div>
-
-                  <div className="p-2 border-r-2 border-black">
-                    <p className="font-semibold text-xs lg:text-base">{item.toDate}</p>
-                    <p className="text-xs text-gray-500">{item.toDay}</p>
-                  </div>
-
-                  <div className="p-2 border-r-2 border-black text-center">
-                    <span className={`font-semibold text-xs lg:text-base ${item.status === 'Sold Out'
-                      ? 'text-red-600'
-                      : item.status === 'Available'
-                        ? 'text-green-600'
-                        : 'text-blue-700'
-                      }`}>
-                      {item.status}
-                    </span>
-                  </div>
-
-                  <div className="p-2 border-r-2 border-black text-center">
-                    <span className="text-sm lg:text-lg font-bold text-gray-900">
-                      {formatPriceExhibition(item.price)}
-                    </span>
-                  </div>
-
-                  <div className="p-2 text-center">
-                    <button
-                      onClick={() => toggleTable(index)}
-                      disabled={item.status === 'Sold Out'}
-                      className={`px-2 lg:px-6 py-1 lg:py-2 transition-colors text-xs lg:text-sm w-full ${item.status === 'Sold Out'
-                        ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                        : 'bg-[#2E3a8a] text-white hover:bg-[#2E4D98]'
-                        } ${openIndex === index ? 'bg-[#2E3a8a]' : ''}`}
-                    >
-                      {item.status === 'Sold Out'
-                        ? 'Sold Out'
-                        : openIndex === index
-                          ? 'Hide Table'
-                          : 'Select'
-                      }
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Expanded Table */}
-              {openIndex === index && item.status !== 'Sold Out' && (
-                <div className="border-2 border-[#2E3a8a] border-t-0 overflow-hidden animate-fadeIn overflow-x-auto mt-1">
-                  <div className="min-w-[600px] lg:min-w-0">
-                    <div className="grid grid-cols-4 bg-[#2E3a8a] text-white font-semibold text-center">
-                      <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Particulars - Tour Cost</div>
-                      <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Standard</div>
-                      <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Deluxe</div>
-                      <div className="p-2 text-xs lg:text-sm">Luxury</div>
-                    </div>
-
-                    {[
-                      { particular: "Per pax on Twin Basis", star3: item.threeStar?.twin || "NA", star4: item.fourStar?.twin || "NA", star5: item.fiveStar?.twin || "NA" },
-                      { particular: "Per pax on Triple Basis", star3: item.threeStar?.triple || "NA", star4: item.fourStar?.triple || "NA", star5: item.fiveStar?.triple || "NA" },
-                      { particular: "Per pax Single Occupancy", star3: item.threeStar?.single || "NA", star4: item.fourStar?.single || "NA", star5: item.fiveStar?.single || "NA" },
-                    ].map((row, i) => (
-                      <div
-                        key={i}
-                        className={`grid grid-cols-4 text-center border-b-2 border-black ${i % 2 === 0 ? "bg-[#EEF1F7]" : "bg-white"
-                          } ${i === 2 ? 'border-b-0' : ''}`}
+                return (
+                  <div className="flex flex-wrap gap-1 lg:gap-2 mb-1">
+                    {allTabs.map((tab) => (
+                      <button
+                        key={tab}
+                        onClick={() => setSelectedMonth(tab)}
+                        className={`
+                          px-2 lg:px-3 py-1 lg:py-2 
+                          border-2 
+                          font-semibold
+                          text-center
+                          w-20 lg:w-32
+                          text-xs lg:text-sm
+                          transition-all
+                          duration-200
+                          flex-shrink-0
+                          ${selectedMonth === tab
+                            ? "bg-blue-100 border-blue-600 text-blue-800 shadow-md"
+                            : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400"
+                          }
+                        `}
                       >
-                        <div className="p-2 border-r-2 border-black font-medium text-xs lg:text-sm text-left">
-                          {row.particular}
-                        </div>
-                        <div className="p-2 border-r-2 border-black text-xs lg:text-sm">
-                          {row.star3}
-                        </div>
-                        <div className="p-2 border-r-2 border-black font-semibold text-green-700 text-xs lg:text-sm">
-                          {row.star4}
-                        </div>
-                        <div className="p-2 text-xs lg:text-sm">
-                          {row.star5}
-                        </div>
-                      </div>
+                        {tab}
+                      </button>
                     ))}
                   </div>
+                );
+              })()}
+            </div>
+
+            {/* Table Header */}
+            <div className="border-2 border-[#2E3a8a] overflow-hidden mb-2">
+              <div className="grid grid-cols-5 bg-[#2E3a8a] text-white font-semibold text-center">
+                <div className="p-2 border-r-2 border-white text-xs lg:text-sm">From</div>
+                <div className="p-2 border-r-2 border-white text-xs lg:text-sm">To</div>
+                <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Status</div>
+                <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Price</div>
+                <div className="p-2 text-xs lg:text-sm">Action</div>
+              </div>
+            </div>
+
+            <div className="space-y-3 lg:space-y-4 w-full">
+              {filteredDepartureData.map((item, index) => (
+                <div key={item.id || index} className="w-full">
+                  {/* Table Row */}
+                  <div className="border-2 border-black bg-white">
+                    <div className="grid grid-cols-5 items-center gap-0">
+                      <div className="p-2 border-r-2 border-black">
+                        <p className="font-semibold text-xs lg:text-base">{item.fromDate}</p>
+                        <p className="text-xs text-gray-500">{item.fromDay}</p>
+                      </div>
+
+                      <div className="p-2 border-r-2 border-black">
+                        <p className="font-semibold text-xs lg:text-base">{item.toDate}</p>
+                        <p className="text-xs text-gray-500">{item.toDay}</p>
+                      </div>
+
+                      <div className="p-2 border-r-2 border-black text-center">
+                        <span className={`font-semibold text-xs lg:text-base ${item.status === 'Sold Out'
+                          ? 'text-red-600'
+                          : item.status === 'Available'
+                            ? 'text-green-600'
+                            : 'text-blue-700'
+                          }`}>
+                          {item.status}
+                        </span>
+                      </div>
+
+                      <div className="p-2 border-r-2 border-black text-center">
+                        <span className="text-sm lg:text-lg font-bold text-gray-900">
+                          {formatPriceExhibition(item.price)}
+                        </span>
+                      </div>
+
+                      <div className="p-2 text-center">
+                        <button
+                          onClick={() => toggleTable(index)}
+                          disabled={item.status === 'Sold Out'}
+                          className={`px-2 lg:px-6 py-1 lg:py-2 transition-colors text-xs lg:text-sm w-full ${item.status === 'Sold Out'
+                            ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                            : 'bg-[#2E3a8a] text-white hover:bg-[#2E4D98]'
+                            } ${openIndex === index ? 'bg-[#2E3a8a]' : ''}`}
+                        >
+                          {item.status === 'Sold Out'
+                            ? 'Sold Out'
+                            : openIndex === index
+                              ? 'Hide Table'
+                              : 'Select'
+                          }
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Expanded Table */}
+                  {openIndex === index && item.status !== 'Sold Out' && (
+                    <div className="border-2 border-[#2E3a8a] border-t-0 overflow-hidden animate-fadeIn overflow-x-auto mt-1">
+                      <div className="min-w-[600px] lg:min-w-0">
+                        <div className="grid grid-cols-4 bg-[#2E3a8a] text-white font-semibold text-center">
+                          <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Particulars - Tour Cost</div>
+                          <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Standard</div>
+                          <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Deluxe</div>
+                          <div className="p-2 text-xs lg:text-sm">Luxury</div>
+                        </div>
+
+                        {[
+                          { particular: "Per pax on Twin Basis", star3: item.threeStar?.twin || "NA", star4: item.fourStar?.twin || "NA", star5: item.fiveStar?.twin || "NA" },
+                          { particular: "Per pax on Triple Basis", star3: item.threeStar?.triple || "NA", star4: item.fourStar?.triple || "NA", star5: item.fiveStar?.triple || "NA" },
+                          { particular: "Per pax Single Occupancy", star3: item.threeStar?.single || "NA", star4: item.fourStar?.single || "NA", star5: item.fiveStar?.single || "NA" },
+                        ].map((row, i) => (
+                          <div
+                            key={i}
+                            className={`grid grid-cols-4 text-center border-b-2 border-black ${i % 2 === 0 ? "bg-[#EEF1F7]" : "bg-white"
+                              } ${i === 2 ? 'border-b-0' : ''}`}
+                          >
+                            <div className="p-2 border-r-2 border-black font-medium text-xs lg:text-sm text-left">
+                              {row.particular}
+                            </div>
+                            <div className="p-2 border-r-2 border-black text-xs lg:text-sm">
+                              {row.star3}
+                            </div>
+                            <div className="p-2 border-r-2 border-black font-semibold text-green-700 text-xs lg:text-sm">
+                              {row.star4}
+                            </div>
+                            <div className="p-2 text-xs lg:text-sm">
+                              {row.star5}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+
+              {filteredDepartureData.length === 0 && (
+                <div className="text-center py-4 lg:py-8 bg-white border border-gray-300 rounded-lg">
+                  <p className="text-gray-600 text-sm lg:text-lg mb-2">
+                    {selectedMonth === "ALL"
+                      ? "No departure dates available for this tour"
+                      : `No departure dates available for ${selectedMonth}`
+                    }
+                  </p>
+                  <p className="text-gray-500 text-xs lg:text-sm">
+                    Please check back later or contact us for more information
+                  </p>
                 </div>
               )}
             </div>
-          ))}
-
-          {filteredDepartureData.length === 0 && (
-            <div className="text-center py-4 lg:py-8 bg-white border border-gray-300 rounded-lg">
-              <p className="text-gray-600 text-sm lg:text-lg mb-2">
-                {selectedMonth === "ALL"
-                  ? "No departure dates available for this tour"
-                  : `No departure dates available for ${selectedMonth}`
-                }
-              </p>
-              <p className="text-gray-500 text-xs lg:text-sm">
-                Please check back later or contact us for more information
-              </p>
-            </div>
-          )}
-        </div>
+          </>
+        ) : (
+          <div className="text-center py-8 lg:py-12 bg-white border border-gray-300 rounded-lg">
+            <p className="text-gray-600 text-sm lg:text-lg mb-2">No departure dates available for this tour</p>
+            <p className="text-gray-500 text-xs lg:text-sm">Please check back later or contact us for more information</p>
+          </div>
+        )}
       </div>
     </div>
 
@@ -1575,124 +1681,132 @@ const handleSearch = (e: React.FormEvent) => {
 
     <div className="mb-0">
       <div className="p-3 lg:p-4 border-2 border-black border-t-0 rounded-b-lg">
-        {/* Month and Date Selection - Table format */}
-        <div className="border-2 border-[#2E3a8a] overflow-hidden mb-4">
-          <div className="grid grid-cols-2 bg-[#2E3a8a] text-white font-semibold text-center">
-            <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Month</div>
-            <div className="p-2 text-xs lg:text-sm">Date</div>
-          </div>
-          
-          <div className="grid grid-cols-2 text-center">
-            <div className="p-2 border-r-2 border-black bg-[#EEF1F7]">
-              <select
-                className="w-full border-2 border-black rounded-md px-3 py-2 bg-white text-sm lg:text-base"
-                value={selectedCostMonth}
-                onChange={(e) => {
-                  setSelectedCostMonth(e.target.value);
-                  setSelectedCostDate("");
-                }}
-              >
-                <option value="">Select Month</option>
-                {availableMonths.map(month => {
-                  const monthDepartures = departuresByMonth[month] || [];
-                  const allSoldOut = monthDepartures.length > 0 && 
-                                    monthDepartures.every(dep => dep.status === 'Sold Out');
-                  
-                  return (
-                    <option 
-                      key={month} 
-                      value={month}
-                      disabled={allSoldOut}
-                      style={allSoldOut ? { color: '#999', fontStyle: 'italic' } : {}}
-                    >
-                      {month} {allSoldOut ? '(Sold Out)' : ''}
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
-            <div className="p-2 bg-white">
-              <select
-                className="w-full border-2 border-black rounded-md px-3 py-2 bg-white text-sm lg:text-base"
-                value={selectedCostDate}
-                onChange={(e) => setSelectedCostDate(e.target.value)}
-                disabled={!selectedCostMonth}
-              >
-                <option value="">Select Date</option>
-                {availableDates
-                  .filter(dep => dep.status !== 'Sold Out')
-                  .map(dep => (
-                    <option key={dep.id} value={dep.fromDate}>
-                      {dep.fromDate} – {dep.toDate}
-                    </option>
-                  ))
-                }
-              </select>
-            </div>
-          </div>
-        </div>
-
-        {selectedDeparture ? (
-          <div className="border-2 border-[#2E3a8a] overflow-hidden animate-fadeIn overflow-x-auto">
-            <div className="min-w-[600px] lg:min-w-0">
-              <div className="grid grid-cols-4 bg-[#2E3a8a] text-white font-semibold text-center">
-                <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Particulars - Tour Cost</div>
-                <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Standard</div>
-                <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Deluxe</div>
-                <div className="p-2 text-xs lg:text-sm">Luxury</div>
+        {hasValidDepartures() ? (
+          <>
+            {/* Month and Date Selection - Table format */}
+            <div className="border-2 border-[#0A1D4A] overflow-hidden mb-4">
+              <div className="grid grid-cols-2 bg-[#2E3a8a] text-white font-semibold text-center">
+                <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Month</div>
+                <div className="p-2 text-xs lg:text-sm">Date</div>
               </div>
-
-              {[
-                {
-                  particular: "Per pax on Twin Basis",
-                  star3: selectedDeparture.threeStar?.twin || "NA",
-                  star4: selectedDeparture.fourStar?.twin || "NA",
-                  star5: selectedDeparture.fiveStar?.twin || "NA"
-                },
-                {
-                  particular: "Per pax on Triple Basis",
-                  star3: selectedDeparture.threeStar?.triple || "NA",
-                  star4: selectedDeparture.fourStar?.triple || "NA",
-                  star5: selectedDeparture.fiveStar?.triple || "NA"
-                },
-                {
-                  particular: "Per pax Single Occupancy",
-                  star3: selectedDeparture.threeStar?.single || "NA",
-                  star4: selectedDeparture.fourStar?.single || "NA",
-                  star5: selectedDeparture.fiveStar?.single || "NA"
-                },
-              ].map((row, i) => (
-                <div
-                  key={i}
-                  className={`grid grid-cols-4 text-center border-b-2 border-black ${i % 2 === 0 ? "bg-[#EEF1F7]" : "bg-white"
-                    } ${i === 2 ? 'border-b-0' : ''}`}
-                >
-                  <div className="p-2 border-r-2 border-black font-medium text-xs lg:text-sm text-left">
-                    {row.particular}
-                  </div>
-                  <div className="p-2 border-r-2 border-black text-xs lg:text-sm">
-                    {row.star3}
-                  </div>
-                  <div className="p-2 border-r-2 border-black font-semibold text-green-700 text-xs lg:text-sm">
-                    {row.star4}
-                  </div>
-                  <div className="p-2 text-xs lg:text-sm">
-                    {row.star5}
-                  </div>
+              
+              <div className="grid grid-cols-2 text-center">
+                <div className="p-2 border-r-2 border-black bg-[#EEF1F7]">
+                  <select
+                    className="w-full border-2 border-black rounded-md px-3 py-2 bg-white text-sm lg:text-base"
+                    value={selectedCostMonth}
+                    onChange={(e) => {
+                      setSelectedCostMonth(e.target.value);
+                      setSelectedCostDate("");
+                    }}
+                  >
+                    <option value="">Select Month</option>
+                    {availableMonths.map(month => {
+                      const monthDepartures = departuresByMonth[month] || [];
+                      const allSoldOut = monthDepartures.length > 0 && 
+                                        monthDepartures.every(dep => dep.status === 'Sold Out');
+                      
+                      return (
+                        <option 
+                          key={month} 
+                          value={month}
+                          disabled={allSoldOut}
+                          style={allSoldOut ? { color: '#999', fontStyle: 'italic' } : {}}
+                        >
+                          {month} {allSoldOut ? '(Sold Out)' : ''}
+                        </option>
+                      );
+                    })}
+                  </select>
                 </div>
-              ))}
+                <div className="p-2 bg-white">
+                  <select
+                    className="w-full border-2 border-black rounded-md px-3 py-2 bg-white text-sm lg:text-base"
+                    value={selectedCostDate}
+                    onChange={(e) => setSelectedCostDate(e.target.value)}
+                    disabled={!selectedCostMonth}
+                  >
+                    <option value="">Select Date</option>
+                    {availableDates
+                      .filter(dep => dep.status !== 'Sold Out')
+                      .map(dep => (
+                        <option key={dep.id} value={dep.fromDate}>
+                          {dep.fromDate} – {dep.toDate}
+                        </option>
+                      ))
+                    }
+                  </select>
+                </div>
+              </div>
             </div>
-          </div>
+
+            {selectedDeparture ? (
+              <div className="border-2 border-black overflow-hidden animate-fadeIn overflow-x-auto">
+                <div className="min-w-[600px] lg:min-w-0">
+                  <div className="grid grid-cols-4 bg-[#2E3a8a] text-white font-semibold text-center">
+                    <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Particulars - Tour Cost</div>
+                    <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Standard</div>
+                    <div className="p-2 border-r-2 border-white text-xs lg:text-sm">Deluxe</div>
+                    <div className="p-2 text-xs lg:text-sm">Luxury</div>
+                  </div>
+
+                  {[
+                    {
+                      particular: "Per pax on Twin Basis",
+                      star3: selectedDeparture.threeStar?.twin || "NA",
+                      star4: selectedDeparture.fourStar?.twin || "NA",
+                      star5: selectedDeparture.fiveStar?.twin || "NA"
+                    },
+                    {
+                      particular: "Per pax on Triple Basis",
+                      star3: selectedDeparture.threeStar?.triple || "NA",
+                      star4: selectedDeparture.fourStar?.triple || "NA",
+                      star5: selectedDeparture.fiveStar?.triple || "NA"
+                    },
+                    {
+                      particular: "Per pax Single Occupancy",
+                      star3: selectedDeparture.threeStar?.single || "NA",
+                      star4: selectedDeparture.fourStar?.single || "NA",
+                      star5: selectedDeparture.fiveStar?.single || "NA"
+                    },
+                  ].map((row, i) => (
+                    <div
+                      key={i}
+                      className={`grid grid-cols-4 text-center border-b-2 border-black ${i % 2 === 0 ? "bg-[#EEF1F7]" : "bg-white"
+                        } ${i === 2 ? 'border-b-0' : ''}`}
+                    >
+                      <div className="p-2 border-r-2 border-black font-medium text-xs lg:text-sm text-left">
+                        {row.particular}
+                      </div>
+                      <div className="p-2 border-r-2 border-black text-xs lg:text-sm">
+                        {row.star3}
+                      </div>
+                      <div className="p-2 border-r-2 border-black font-semibold text-green-700 text-xs lg:text-sm">
+                        {row.star4}
+                      </div>
+                      <div className="p-2 text-xs lg:text-sm">
+                        {row.star5}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="text-center p-3 lg:p-4 border-2 border-dashed border-gray-300 rounded-lg">
+                <p className="text-gray-500 text-sm lg:text-base">Please select a month and date to view tour cost</p>
+                <p className="text-gray-400 text-xs lg:text-sm mt-2">Departure dates are available in the "Dep Date" tab</p>
+              </div>
+            )}
+          </>
         ) : (
-          <div className="text-center p-3 lg:p-4 border-2 border-dashed border-gray-300 rounded-lg">
-            <p className="text-gray-500 text-sm lg:text-base">Please select a month and date to view tour cost</p>
-            <p className="text-gray-400 text-xs lg:text-sm mt-2">Departure dates are available in the "Dep Date" tab</p>
+          <div className="text-center p-6 lg:p-8 border-2 border-dashed border-gray-300 rounded-lg">
+            <p className="text-gray-500 text-sm lg:text-base">No departure dates available for this tour</p>
+            <p className="text-gray-400 text-xs lg:text-sm mt-2">Tour cost information will be available once departure dates are added</p>
           </div>
         )}
       </div>
     </div>
 
-    {/* Rest of the code remains the same */}
     {/* Tour Cost Remarks */}
     <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-1">
       <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
@@ -1878,8 +1992,7 @@ const handleSearch = (e: React.FormEvent) => {
       </button>
     </div>
   </div>
-)}
-                    {/* Cost In/Cost Ex Tab */}
+)}              {/* Cost In/Cost Ex Tab */}
                     {activeTab === "cost-inc./cost-ex." && (
                       <div className="bg-[#E8F0FF] rounded-lg p-1 w-full overflow-x-hidden">
                         <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg mb-1 w-full">
@@ -2292,23 +2405,24 @@ const handleSearch = (e: React.FormEvent) => {
                   {/* Action Buttons */}
                   <div className="flex justify-between lg:justify-end mt-1 gap-1 lg:gap-0.5 flex-nowrap">
                     <div className="w-[32%] lg:w-32 border border-green-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                      <PDFDownloadLink
-                        document={
-                          <TourPdfDocument
-                            tour={tour || {}}
-                            tourType="Individual"
-                            isGroupTour={false}
-                            selectedCostMonth=""
-                            selectedCostDate=""
-                            selectedDeparture={null}
-                            currentImageIndex={currentImageIndex}
-                            tourImages={tour?.images || []}
-                          />
-                        }
-                        fileName={`tour_${tour?.code || 'details'}_${new Date().toISOString().split('T')[0]}.pdf`}
-                        onClick={handleDownloadPdf}
-                        className="w-full"
-                      >
+
+<PDFDownloadLink
+  document={
+    <Exhibitionpdf
+      tour={tour || {}}
+      tourType={tour?.departures?.type === 'Group' ? 'Group' : 'Individual'}
+      isGroupTour={tour?.departures?.type === 'Group'}
+      selectedCostMonth={selectedCostMonth}
+      selectedCostDate={selectedCostDate}
+      selectedDeparture={selectedDeparture}
+      currentImageIndex={currentImageIndex}
+      tourImages={tour?.images || []}
+    />
+  }
+  fileName={`tour_${tour?.code || 'details'}_${new Date().toISOString().split('T')[0]}.pdf`}
+  onClick={handleDownloadPdf}
+  className="w-full"
+>
                         {({ loading, error }) => (
                           <button
                             className={`w-full ${loading || isGeneratingPdf ? 'bg-green-900' : 'bg-green-700 hover:bg-green-800'} text-white font-bold py-2 lg:py-3 px-2 lg:px-3 flex items-center justify-center gap-1 lg:gap-2 transition-colors text-xs lg:text-sm`}

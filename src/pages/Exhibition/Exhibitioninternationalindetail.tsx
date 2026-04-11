@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight, Download } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { PDFDownloadLink } from '@react-pdf/renderer';
-import TourPdfDocumentinternational from '../../pages/TourPdfDocumentinternational';
+import Exhibitioninternatonalpdf from './Exhibitioninternatonalpdf';
 import { BASE_URL } from '@/ApiUrls';
 import EmailModal from '../../pages/EmailModal';
 import { Slider } from "@/components/ui/slider";
@@ -763,7 +763,7 @@ const Exhibitioninternationalindetail = () => {
       setEmailLoading(true);
       const { pdf } = await import('@react-pdf/renderer');
       const pdfInstance = (
-        <TourPdfDocumentinternational
+        <Exhibitioninternatonalpdf
           tour={tour || {}}
           tourType={tourType}
           isGroupTour={false}
@@ -1250,7 +1250,7 @@ const Exhibitioninternationalindetail = () => {
       Departure Dates
     </div>
 
-    <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg w-full flex flex-col min-h-[400px] lg:min-h-[680px] max-h-[400px] lg:max-h-[780px] overflow-hidden">
+    <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg w-full flex flex-col min-h-[300px] lg:min-h-[400px] max-h-[400px] lg:max-h-[780px] overflow-hidden">
       <div className="flex-1 overflow-y-auto p-2 bg-[#FFEBEE] w-full">
         {hasValidDepartures() ? (
           <>
@@ -2231,7 +2231,16 @@ const Exhibitioninternationalindetail = () => {
               <div className="flex justify-between lg:justify-end mt-1 gap-1 flex-nowrap">
                 <div className="w-[32%] lg:w-32 border border-green-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                   <PDFDownloadLink
-                    document={<TourPdfDocumentinternational tour={tour || {}} tourType={tourType} isGroupTour={false} selectedCostMonth={selectedCostMonth} selectedCostDate={selectedCostDate} selectedDeparture={null} currentImageIndex={currentImageIndex} tourImages={tour?.images || []} />}
+                    document={    <Exhibitioninternatonalpdf
+      tour={tour || {}}
+      tourType={tourType}
+      isGroupTour={false}
+      selectedCostMonth={selectedCostMonth}
+      selectedCostDate={selectedCostDate}
+      selectedDeparture={selectedDeparture}
+      currentImageIndex={currentImageIndex}
+      tourImages={tour?.images || []}
+    />}
                     fileName={`tour_${tour?.code || 'details'}_${new Date().toISOString().split('T')[0]}.pdf`}
                     className="w-full"
                   >
