@@ -1205,7 +1205,7 @@ const paymentResponse = await axios.post(
                 <div className="pt-4">
              <Button
   type="submit"
-  disabled={true}  
+  disabled={false}  
   className="w-full bg-[#E53C42] hover:bg-[#E53C42]/90 text-white py-7 text-lg font-semibold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
 >
   {submitting ? (
