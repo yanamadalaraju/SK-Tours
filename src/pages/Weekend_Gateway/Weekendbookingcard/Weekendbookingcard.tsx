@@ -1,13 +1,16 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import "./Weekendbookingcard.css";
-import Gatewaycheckbox from "../Gatewaycheckbox/Gatewaycheckbox";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { BASE_URL } from "@/ApiUrls";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Slider } from "@/components/ui/slider";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 
 // Type definitions based on API response
-interface Bungalow {
+interface WeekendGateway {
   gateway_id: number;
   gateway_code: string;
   name: string;
@@ -26,7 +29,15 @@ interface Bungalow {
   per_pax_single?: string;
 }
 
-interface BungalowImage {
+interface GatewayItem {
+  gateway_id: number;
+  gateway_code: string;
+  name: string;
+  price: string;
+  main_image: string;
+}
+
+interface WeekendGatewayImage {
   image_id: number;
   gateway_id: number;
   image_url: string;
@@ -34,41 +45,48 @@ interface BungalowImage {
   sort_order: number;
 }
 
-interface RelatedBungalow {
-  relation_id: number;
-  gateway_id: number;
-  related_gateway_id: number | null;
-  related_name: string;
-  related_price: string;
-  related_image: string;
-  sort_order: number;
-  name: string | null;
-  price: string | null;
-}
-
 type TabType = "overview" | "tour" | "inclusive" | "nearby" | "policy" | "cancellation";
 
 const Weekendbookingcard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
-  const [bungalowData, setBungalowData] = useState<Bungalow | null>(null);
-  const [images, setImages] = useState<BungalowImage[]>([]);
+  const [gateway, setGateway] = useState<WeekendGateway | null>(null);
+  const [images, setImages] = useState<WeekendGatewayImage[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Sidebar filter states
+  const [allGateways, setAllGateways] = useState<GatewayItem[]>([]);
+  const [priceRange, setPriceRange] = useState([0, 200000]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSearchBtn, setShowSearchBtn] = useState(false);
+  const [isSearchActive, setIsSearchActive] = useState(false);
+  const [selectedGatewayCodes, setSelectedGatewayCodes] = useState<string[]>([]);
+  const [showMoreGateways, setShowMoreGateways] = useState(false);
 
   const location = useLocation();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
-  const passedBungalow = location.state?.bungalow as Bungalow | undefined;
+  const passedGateway = location.state?.bungalow as WeekendGateway | undefined;
 
-  // Fetch data from API
+  // Fetch all gateways for sidebar
   useEffect(() => {
-    const fetchBungalowDetails = async () => {
+    fetch(`${BASE_URL}/api/weekend-gateways`)
+      .then((res) => res.json())
+      .then((data) => {
+        setAllGateways(data);
+      })
+      .catch((err) => console.error("Error fetching gateways:", err));
+  }, []);
+
+  // Fetch gateway details
+  useEffect(() => {
+    const fetchGatewayDetails = async () => {
       try {
         setLoading(true);
 
-        const gatewayId = id || passedBungalow?.gateway_id;
+        const gatewayId = id || passedGateway?.gateway_id;
 
         if (!gatewayId) {
           navigate("/weekend-gateway");
@@ -78,29 +96,71 @@ const Weekendbookingcard: React.FC = () => {
         const response = await fetch(`${BASE_URL}/api/weekend-gateways/${gatewayId}`);
 
         if (!response.ok) {
-          throw new Error('Failed to fetch bungalow details');
+          throw new Error('Failed to fetch gateway details');
         }
 
         const data = await response.json();
 
-        setBungalowData(data.gateway);
+        setGateway(data.gateway);
         setImages(data.images || []);
         setError(null);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
-        console.error('Error fetching bungalow details:', err);
+        console.error('Error fetching gateway details:', err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchBungalowDetails();
-  }, [id, passedBungalow, navigate]);
+    fetchGatewayDetails();
+  }, [id, passedGateway, navigate]);
 
   const handleBook = (): void => {
     navigate("/WeekendForm", {
-      state: { bungalow: bungalowData }
+      state: { bungalow: gateway }
     });
+  };
+
+  const handleGatewayCheckboxChange = (code: string, checked: boolean) => {
+    if (checked) {
+      setSelectedGatewayCodes(prev => [...prev, code]);
+      const selectedGateway = allGateways.find(g => g.gateway_code === code);
+      if (selectedGateway) {
+        navigate(`/weekendbookingcard/${selectedGateway.gateway_id}`);
+      }
+    } else {
+      setSelectedGatewayCodes(prev => prev.filter(c => c !== code));
+    }
+  };
+
+  const clearAllFilters = () => {
+    setPriceRange([0, 200000]);
+    setSearchQuery("");
+    setShowSearchBtn(false);
+    setIsSearchActive(false);
+    setSelectedGatewayCodes([]);
+  };
+
+  const clearSearch = () => {
+    setSearchQuery("");
+    setShowSearchBtn(false);
+    setIsSearchActive(false);
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim() === "") return;
+    
+    setIsSearchActive(true);
+    const query = searchQuery.trim().toLowerCase();
+    const foundGateway = allGateways.find(g => 
+      g.name.toLowerCase().includes(query) || 
+      g.gateway_code.toLowerCase().includes(query)
+    );
+    
+    if (foundGateway) {
+      navigate(`/weekendbookingcard/${foundGateway.gateway_id}`);
+    }
   };
 
   const getImageUrl = (imagePath: string) => {
@@ -111,9 +171,12 @@ const Weekendbookingcard: React.FC = () => {
   // Prepare carousel images
   const carouselImages: string[] = images.length > 0
     ? images.map(img => getImageUrl(img.image_url))
-    : bungalowData?.main_image
-      ? [getImageUrl(bungalowData.main_image)]
-      : [];
+    : gateway?.main_image
+      ? [getImageUrl(gateway.main_image)]
+      : [
+          "https://via.placeholder.com/800x400?text=No+Image",
+          "https://via.placeholder.com/800x400?text=No+Image"
+        ];
 
   const nextImage = (): void => {
     if (carouselImages.length > 0) {
@@ -131,6 +194,10 @@ const Weekendbookingcard: React.FC = () => {
     }
   };
 
+  const goToImage = (index: number): void => {
+    setCurrentImageIndex(index);
+  };
+
   const getTabDisplayName = (tab: TabType): string => {
     switch (tab) {
       case "overview":    return "Overview";
@@ -146,103 +213,147 @@ const Weekendbookingcard: React.FC = () => {
   const renderTabContent = (): JSX.Element => {
     switch (activeTab) {
       case "overview":
-        return <div className="wkbc-free-flow-textarea">{bungalowData?.overview || "No overview available"}</div>;
+        return (
+          <div className="bg-[#E8F0FF] rounded-lg p-1 w-full">
+            <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
+              Overview
+            </div>
+            <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
+              <div className="min-h-[150px] lg:min-h-[180px] max-h-[200px] lg:max-h-[250px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+                <div className="space-y-4 w-full">
+                  <div className="border-gray-200 rounded-lg w-full">
+                    <div className="flex items-start w-full">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-black break-words whitespace-pre-wrap text-justify w-full text-sm lg:text-base">
+                          {gateway?.overview || "No overview available"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
 
       case "tour":
         return (
-          <div className="wkbc-free-flow-textarea">
-            <table className="wkbc-tour-table">
-              <thead>
-                <tr>
-                  <th>Particulars - Cost in INR</th>
-                  <th>Rate</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Per pax on Twin Basis</td>
-                  <td>{bungalowData?.per_pax_twin ? `₹ ${parseInt(bungalowData.per_pax_twin).toLocaleString()}` : '-'}</td>
-                </tr>
-                <tr>
-                  <td>Per pax on Triple Basis</td>
-                  <td>{bungalowData?.per_pax_triple ? `₹ ${parseInt(bungalowData.per_pax_triple).toLocaleString()}` : '-'}</td>
-                </tr>
-                <tr>
-                  <td>Child with Bed</td>
-                  <td>{bungalowData?.child_with_bed ? `₹ ${parseInt(bungalowData.child_with_bed).toLocaleString()}` : '-'}</td>
-                </tr>
-                <tr>
-                  <td>Child without Bed</td>
-                  <td>{bungalowData?.child_without_bed ? `₹ ${parseInt(bungalowData.child_without_bed).toLocaleString()}` : '-'}</td>
-                </tr>
-                <tr>
-                  <td>Infant</td>
-                  <td>{bungalowData?.infant ? `₹ ${parseInt(bungalowData.infant).toLocaleString()}` : '-'}</td>
-                </tr>
-                <tr>
-                  <td>Per pax Single Occupancy</td>
-                  <td>{bungalowData?.per_pax_single ? `₹ ${parseInt(bungalowData.per_pax_single).toLocaleString()}` : '-'}</td>
-                </tr>
-              </tbody>
-            </table>
+          <div className="bg-[#E8F0FF] rounded-lg p-1 w-full">
+            <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
+              Tour Cost
+            </div>
+            <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-[#2E4D98]">
+                      <th className="border border-white px-4 py-3 text-left text-white font-semibold">Particulars - Cost in INR</th>
+                      <th className="border border-white px-4 py-3 text-left text-white font-semibold">Rate</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="bg-[#FFEBEE]">
+                      <td className="border-2 border-[#1e3a8a] px-4 py-2">Per pax on Twin Basis</td>
+                      <td className="border-2 border-[#1e3a8a] px-4 py-2 font-semibold text-blue-800">
+                        {gateway?.per_pax_twin ? `₹ ${parseInt(gateway.per_pax_twin).toLocaleString()}` : '-'}
+                      </td>
+                    </tr>
+                    <tr className="bg-[#FFEBEE]/80">
+                      <td className="border-2 border-[#1e3a8a] px-4 py-2">Per pax on Triple Basis</td>
+                      <td className="border-2 border-[#1e3a8a] px-4 py-2 font-semibold text-blue-800">
+                        {gateway?.per_pax_triple ? `₹ ${parseInt(gateway.per_pax_triple).toLocaleString()}` : '-'}
+                      </td>
+                    </tr>
+                    <tr className="bg-[#FFEBEE]">
+                      <td className="border-2 border-[#1e3a8a] px-4 py-2">Child with Bed</td>
+                      <td className="border-2 border-[#1e3a8a] px-4 py-2 font-semibold text-green-800">
+                        {gateway?.child_with_bed ? `₹ ${parseInt(gateway.child_with_bed).toLocaleString()}` : '-'}
+                      </td>
+                    </tr>
+                    <tr className="bg-[#FFEBEE]/80">
+                      <td className="border-2 border-[#1e3a8a] px-4 py-2">Child without Bed</td>
+                      <td className="border-2 border-[#1e3a8a] px-4 py-2 font-semibold text-green-800">
+                        {gateway?.child_without_bed ? `₹ ${parseInt(gateway.child_without_bed).toLocaleString()}` : '-'}
+                      </td>
+                    </tr>
+                    <tr className="bg-[#FFEBEE]">
+                      <td className="border-2 border-[#1e3a8a] px-4 py-2">Infant</td>
+                      <td className="border-2 border-[#1e3a8a] px-4 py-2 font-semibold text-[#A72703]">
+                        {gateway?.infant ? `₹ ${parseInt(gateway.infant).toLocaleString()}` : '-'}
+                      </td>
+                    </tr>
+                    <tr className="bg-[#FFEBEE]/80">
+                      <td className="border-2 border-[#1e3a8a] px-4 py-2">Per pax Single Occupancy</td>
+                      <td className="border-2 border-[#1e3a8a] px-4 py-2 font-semibold text-[#A72703]">
+                        {gateway?.per_pax_single ? `₹ ${parseInt(gateway.per_pax_single).toLocaleString()}` : '-'}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         );
 
       case "inclusive":
         return (
-          <div className="wkbc-free-flow-textareas">
-            <div className="wkbc-inclusion-exclusion-container">
-              <div className="wkbc-table-wrapper">
-                <table className="wkbc-table">
-                  <thead>
-                    <tr>
-                      <th className="wkbc-th">Inclusive</th>
-                    </tr>
-                  </thead>
-                </table>
-                <div className="wkbc-table-scroll">
-                  <table className="wkbc-table">
-                    <tbody>
-                      {bungalowData?.inclusive ? (
-                        bungalowData.inclusive.split('\n').map((item, idx) => (
-                          <tr key={idx}>
-                            <td className="wkbc-td">{item}</td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td className="wkbc-td">No inclusive items listed</td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
+          <div className="bg-[#E8F0FF] rounded-lg p-1 w-full overflow-x-hidden">
+            <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg mb-1 w-full">
+              Inclusive & Exclusive
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-1 w-full">
+              <div className="flex flex-col w-full min-h-[250px] lg:min-h-[280px] max-h-[250px] lg:max-h-[320px]">
+                <div className="bg-[#2E4D98] text-white text-center py-2 lg:py-3 rounded-t-lg w-full">
+                  <h3 className="text-lg lg:text-xl font-bold">Inclusive</h3>
+                </div>
+                <div className="flex-1 border-2 border-[#1e3a8a] rounded-b-lg bg-[#FFEBEE] w-full overflow-hidden min-h-0">
+                  <div className="h-full overflow-y-auto p-2">
+                    {gateway?.inclusive ? (
+                      <ul className="space-y-2 w-full">
+                        {gateway.inclusive.split('\n').map((item, idx) => (
+                          <li key={idx} className="w-full">
+                            <div className="flex items-start gap-0 w-full">
+                              <div className="text-black flex-1 min-w-0 text-justify break-words ml-2 text-sm lg:text-base">
+                                {item}
+                              </div>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <div className="flex items-center justify-center h-full">
+                        <span className="text-gray-500 italic text-sm lg:text-base">No inclusive items listed</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              <div className="wkbc-table-wrapper">
-                <table className="wkbc-table">
-                  <thead>
-                    <tr>
-                      <th className="wkbc-th">Exclusive</th>
-                    </tr>
-                  </thead>
-                </table>
-                <div className="wkbc-table-scroll">
-                  <table className="wkbc-table">
-                    <tbody>
-                      {bungalowData?.exclusive ? (
-                        bungalowData.exclusive.split('\n').map((item, idx) => (
-                          <tr key={idx}>
-                            <td className="wkbc-td">{item}</td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td className="wkbc-td">No exclusive items listed</td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
+              <div className="flex flex-col w-full min-h-[250px] lg:min-h-[280px] max-h-[250px] lg:max-h-[320px]">
+                <div className="bg-[#2E4D98] text-white text-center py-2 lg:py-3 rounded-t-lg w-full">
+                  <h3 className="text-lg lg:text-xl font-bold">Exclusive</h3>
+                </div>
+                <div className="flex-1 border-2 border-[#1e3a8a] rounded-b-lg bg-[#FFEBEE] w-full overflow-hidden min-h-0">
+                  <div className="h-full overflow-y-auto p-2">
+                    {gateway?.exclusive ? (
+                      <ul className="space-y-2 w-full">
+                        {gateway.exclusive.split('\n').map((item, idx) => (
+                          <li key={idx} className="w-full">
+                            <div className="flex items-start gap-0 w-full">
+                              <div className="text-black flex-1 min-w-0 text-justify break-words ml-2 text-sm lg:text-base">
+                                {item}
+                              </div>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <div className="flex items-center justify-center h-full">
+                        <span className="text-gray-500 italic text-sm lg:text-base">No exclusive items listed</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -250,15 +361,56 @@ const Weekendbookingcard: React.FC = () => {
         );
 
       case "nearby":
-        return <div className="wkbc-free-flow-textarea">{bungalowData?.places_nearby || "No nearby places listed"}</div>;
+        return (
+          <div className="bg-[#E8F0FF] rounded-lg p-1 w-full">
+            <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
+              Places Near By
+            </div>
+            <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
+              <div className="min-h-[150px] lg:min-h-[180px] max-h-[200px] lg:max-h-[250px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+                <div className="space-y-4 w-full">
+                  <div className="border-gray-200 rounded-lg w-full">
+                    <div className="flex items-start w-full">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-black break-words whitespace-pre-wrap text-justify w-full text-sm lg:text-base">
+                          {gateway?.places_nearby || "No nearby places listed"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
 
       case "policy":
         return (
-          <div className="wkbc-free-flow-textarea-container">
-            <div className="wkbc-free-flow-textarea">{bungalowData?.booking_policy || "No booking policy available"}</div>
-            <div className="wkbc-book-button-container">
-              <button className="wkbc-book-btn" onClick={handleBook}>
-                Book
+          <div className="bg-[#E8F0FF] rounded-lg p-1 w-full">
+            <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg mb-1 w-full">
+              Booking Policy
+            </div>
+            <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
+              <div className="min-h-[150px] lg:min-h-[180px] max-h-[150px] lg:max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+                <div className="space-y-4 w-full">
+                  <div className="border-gray-200 rounded-lg w-full">
+                    <div className="flex items-start w-full">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-black break-words whitespace-pre-wrap text-justify w-full text-sm lg:text-base">
+                          {gateway?.booking_policy || "No booking policy available"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="mt-3">
+              <button
+                onClick={handleBook}
+                className="w-full font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90 text-sm lg:text-base"
+              >
+                Book Now
               </button>
             </div>
           </div>
@@ -266,24 +418,53 @@ const Weekendbookingcard: React.FC = () => {
 
       case "cancellation":
         return (
-          <div className="wkbc-free-flow-textarea-container">
-            <div className="wkbc-free-flow-textarea">
-              {bungalowData?.booking_policy || "No cancellation policy available"}
+          <div className="bg-[#E8F0FF] rounded-lg p-1 w-full">
+            <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg mb-1 w-full">
+              Cancellation Policy
+            </div>
+            <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
+              <div className="min-h-[150px] lg:min-h-[180px] max-h-[150px] lg:max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+                <div className="space-y-4 w-full">
+                  <div className="border-gray-200 rounded-lg w-full">
+                    <div className="flex items-start w-full">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-black break-words whitespace-pre-wrap text-justify w-full text-sm lg:text-base">
+                          {gateway?.booking_policy || "No cancellation policy available"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         );
 
       default:
-        return <div className="wkbc-free-flow-textarea">Free Flow Entry</div>;
+        return (
+          <div className="bg-[#E8F0FF] rounded-lg p-1 w-full">
+            <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
+              Information
+            </div>
+            <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
+              <div className="min-h-[150px] p-2 bg-[#FFEBEE] w-full">
+                <p className="text-black">No information available</p>
+              </div>
+            </div>
+          </div>
+        );
     }
   };
 
-  if (loading || !bungalowData) {
+  if (loading || !gateway) {
     return (
       <>
         <Header />
-        <div className="wkbc-bungalow-details-page">
-          <div className="loading-spinner">Loading...</div>
+        <div className="min-h-screen bg-[#FFEBEE]">
+          <div className="container mx-auto px-4 py-20 text-center flex flex-col items-center justify-center gap-4">
+            <span className="animate-spin h-12 w-12 border-4 border-blue-200 border-t-blue-600 rounded-full" />
+            <div className="text-2xl font-bold text-[#2E4D98]">Loading gateway details...</div>
+          </div>
         </div>
         <Footer />
       </>
@@ -294,107 +475,282 @@ const Weekendbookingcard: React.FC = () => {
     return (
       <>
         <Header />
-        <div className="wkbc-bungalow-details-page">
-          <div className="error-message">{error}</div>
+        <div className="min-h-screen bg-[#FFEBEE]">
+          <div className="container mx-auto px-4 py-20 text-center">
+            <div className="text-2xl font-bold text-red-600">Error</div>
+            <p className="mt-4 text-gray-600">{error}</p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="mt-6 bg-[#2E4D98] text-white px-6 py-2 rounded-lg hover:opacity-90"
+            >
+              Retry
+            </button>
+          </div>
         </div>
         <Footer />
       </>
     );
   }
 
+  const tabs: TabType[] = ["overview", "tour", "inclusive", "nearby", "policy", "cancellation"];
+
   return (
     <>
       <Header />
-      <div className="wkbc-bungalow-details-page">
+      <div className="min-h-screen bg-[#FFEBEE]">
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex flex-col lg:flex-row gap-6">
+            {/* Sidebar with Filters */}
+            <aside className="lg:w-80">
+              <div className="bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl shadow-lg p-6 border border-blue-200 sticky top-24">
+                <div className="flex justify-between items-center mb-6 bg-[#2E4D98] p-2 rounded-lg border border-black">
+                  <h2 className="text-2xl font-bold text-white">Weekend Gateways</h2>
+                  <button onClick={clearAllFilters} className="text-sm text-white hover:underline">
+                    Clear All
+                  </button>
+                </div>
 
-        {/* Header */}
-        <div className="wkbc-details-page-header">
-          <div className="wkbc-bungalow-details-header">Weekend Gateway</div>
-        </div>
+                {/* Price Filter */}
+                <div className="mb-6">
+                  <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Price Range</h3>
+                  <div className="flex justify-between text-sm text-gray-600 mb-3">
+                    <span>₹{priceRange[0].toLocaleString()}</span>
+                    <span>₹{priceRange[1].toLocaleString()}</span>
+                  </div>
+                  <Slider 
+                    value={priceRange} 
+                    onValueChange={setPriceRange} 
+                    min={0} 
+                    max={200000} 
+                    step={1000} 
+                    className="w-full" 
+                  />
+                </div>
 
-        <div className="wkbc-details-page-header-text">
-          <div className="wkbc-bungalow-details-header-text">
-            Weekend Gateway - {bungalowData.name} ({bungalowData.gateway_code})
-          </div>
-        </div>
-
-        {/* Horizontal Filter Section for Tablet/Mobile */}
-        <div className="wkbc-horizontal-filter-section">
-          <Gatewaycheckbox />
-        </div>
-
-        {/* Main Content */}
-        <div className="wkbc-details-content">
-
-          {/* Left Sidebar - Desktop only */}
-          <div className="wkbc-left-sidebar">
-            <Gatewaycheckbox />
-          </div>
-
-          {/* Main Content Area - full width, no right sidebar */}
-          <div className="wkbc-main-content-area">
-
-            {/* Carousel */}
-            <div className="wkbc-carousel-section">
-              <div className="wkbc-carousel-wrapper">
-                {carouselImages.length > 0 ? (
-                  <>
-                    <img
-                      src={carouselImages[currentImageIndex]}
-                      alt={bungalowData.name}
-                      className="wkbc-main-carousel-image"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = 'https://via.placeholder.com/800x400?text=No+Image';
-                      }}
-                    />
-                    <button className="wkbc-carousel-control wkbc-prev" onClick={prevImage}>‹</button>
-                    <button className="wkbc-carousel-control wkbc-next" onClick={nextImage}>›</button>
-                    <div className="wkbc-thumbnail-section">
-                      <div className="wkbc-thumbnail-container">
-                        {carouselImages.map((image, index) => (
-                          <img
-                            key={index}
-                            src={image}
-                            alt={`${bungalowData.name} ${index + 1}`}
-                            className={`wkbc-thumbnail ${index === currentImageIndex ? "wkbc-active" : ""}`}
-                            onClick={() => setCurrentImageIndex(index)}
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.src = 'https://via.placeholder.com/100x80?text=No+Image';
-                            }}
-                          />
-                        ))}
-                      </div>
+                {/* Search */}
+                <div className="mb-4">
+                  <form onSubmit={handleSearch} className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Input
+                        type="text"
+                        placeholder="Search by name or code"
+                        value={searchQuery}
+                        onChange={(e) => { 
+                          setSearchQuery(e.target.value); 
+                          setShowSearchBtn(e.target.value.trim() !== ""); 
+                        }}
+                        onFocus={() => setShowSearchBtn(true)}
+                        className="border-[#2E4D98] focus:border-[#2E4D98] focus:ring-[#2E4D98] pr-8 placeholder:text-sm"
+                      />
+                      {searchQuery && (
+                        <button 
+                          type="button" 
+                          onClick={() => { clearSearch(); setShowSearchBtn(false); }}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        >
+                          ✕
+                        </button>
+                      )}
                     </div>
-                  </>
-                ) : (
-                  <div className="wkbc-no-image">No images available</div>
+                    {showSearchBtn && (
+                      <Button type="submit" className="bg-red-600 hover:bg-red-700 text-white px-6">
+                        Search
+                      </Button>
+                    )}
+                  </form>
+                </div>
+
+                {/* Gateway Checkboxes */}
+                <div className="mb-4">
+                  <div className="flex justify-between items-center mb-3 bg-white p-2 rounded-lg border border-black">
+                    <h2 className="text-xl font-bold text-[#2E4D98]">Gateway Types</h2>
+                  </div>
+                  <div className="space-y-3">
+                    {allGateways.length > 0 ? (
+                      Array.from(new Map(allGateways.map(g => [g.gateway_code, g])).values())
+                        .slice(0, showMoreGateways ? undefined : 6)
+                        .map((gatewayItem) => (
+                          <div key={gatewayItem.gateway_code} className="flex items-center gap-3 cursor-pointer">
+                            <Checkbox
+                              checked={selectedGatewayCodes.includes(gatewayItem.gateway_code) || gatewayItem.gateway_code === gateway.gateway_code}
+                              onCheckedChange={(checked) => handleGatewayCheckboxChange(gatewayItem.gateway_code, checked as boolean)}
+                              className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
+                            />
+                            <span
+                              className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${(selectedGatewayCodes.includes(gatewayItem.gateway_code) || gatewayItem.gateway_code === gateway.gateway_code) ? 'font-bold text-[#2E4D98]' : ''}`}
+                              onClick={() => handleGatewayCheckboxChange(gatewayItem.gateway_code, !selectedGatewayCodes.includes(gatewayItem.gateway_code))}
+                            >
+                              {gatewayItem.name} ({gatewayItem.gateway_code})
+                            </span>
+                          </div>
+                        ))
+                    ) : (
+                      <div className="text-sm text-gray-400">Loading gateways...</div>
+                    )}
+                  </div>
+                  {allGateways.length > 6 && (
+                    <button 
+                      onClick={() => setShowMoreGateways(!showMoreGateways)} 
+                      className="mt-4 text-[#2E4D98] text-sm font-semibold hover:underline"
+                    >
+                      {showMoreGateways ? "Show Less" : `Show ${allGateways.length - 6} More`}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </aside>
+
+            {/* Main Content */}
+            <main className="flex-1">
+              {/* Header */}
+              <div className="bg-[#2E3A8A] text-white text-center py-3 font-semibold text-md mb-2">
+                Weekend Gateway - {gateway.name} ({gateway.gateway_code})
+              </div>
+
+              {/* Two-column header UI for Gateway Code and Name - OUTSIDE */}
+              {/* <div className="bg-white border-2 border-gray-300 rounded-lg p-3 mb-3 shadow-sm">
+                <div className="grid grid-cols-2 gap-0 border border-gray-400 rounded overflow-hidden">
+                  <div className="bg-[#2E4D98] border-r border-gray-400 p-2 flex items-center justify-center">
+                    <div className="text-sm font-bold text-white text-center">GATEWAY CODE</div>
+                  </div>
+                  <div className="bg-gradient-to-br from-blue-100 to-blue-50 p-2 flex items-center justify-center">
+                    <div className="text-sm font-bold text-gray-900 text-center">
+                      {gateway.gateway_code}
+                    </div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-0 border border-gray-400 rounded overflow-hidden mt-0 border-t-0 rounded-t-none">
+                  <div className="bg-[#2E4D98] border-r border-gray-400 p-2 flex items-center justify-center">
+                    <div className="text-sm font-bold text-white text-center">NAME</div>
+                  </div>
+                  <div className="bg-gradient-to-br from-blue-100 to-blue-50 p-2 flex items-center justify-center">
+                    <div className="text-sm font-bold text-gray-900 text-center">
+                      {gateway.name}
+                    </div>
+                  </div>
+                </div>
+              </div> */}
+
+              {/* Image Carousel */}
+              <div className="relative rounded-2xl overflow-hidden mb-4">
+                <div className="relative h-64 sm:h-80 lg:h-[500px] overflow-hidden">
+                  <img
+                    src={carouselImages[currentImageIndex]}
+                    alt={gateway.name}
+                    className="w-full h-full object-cover transition-transform duration-500 ease-in-out"
+                    onError={(e) => {
+                      e.currentTarget.src = 'https://via.placeholder.com/800x400?text=No+Image';
+                    }}
+                  />
+
+                  {carouselImages.length > 1 && (
+                    <>
+                      <button
+                        onClick={prevImage}
+                        className="absolute left-2 lg:left-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-1 lg:p-2 rounded-full transition-all duration-200"
+                      >
+                        <ChevronLeft className="w-4 h-4 lg:w-6 lg:h-6" />
+                      </button>
+                      <button
+                        onClick={nextImage}
+                        className="absolute right-2 lg:right-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-1 lg:p-2 rounded-full transition-all duration-200"
+                      >
+                        <ChevronRight className="w-4 h-4 lg:w-6 lg:h-6" />
+                      </button>
+                    </>
+                  )}
+
+                  {carouselImages.length > 1 && (
+                    <div className="absolute top-2 lg:top-4 right-2 lg:right-4 bg-black/50 text-white px-2 lg:px-3 py-0.5 lg:py-1 rounded-full text-xs lg:text-sm">
+                      {currentImageIndex + 1} / {carouselImages.length}
+                    </div>
+                  )}
+                </div>
+
+                {carouselImages.length > 1 && (
+                  <div className="bg-gradient-to-r from-blue-100 to-blue-100 p-2 lg:p-4 border-t">
+                    <div className="flex justify-center gap-1 lg:gap-2 overflow-x-auto pb-2">
+                      {carouselImages.map((image: string, index: number) => (
+                        <button
+                          key={index}
+                          onClick={() => goToImage(index)}
+                          className={`flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 lg:w-20 lg:h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 ${index === currentImageIndex
+                            ? 'border-[#2E4D98] ring-1 lg:ring-2 ring-[#2E4D98] ring-opacity-50 scale-105'
+                            : 'border-transparent hover:border-gray-300'
+                            }`}
+                        >
+                          <img
+                            src={image}
+                            alt={`Thumbnail ${index + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 )}
               </div>
-            </div>
 
-            {/* Tabs + Content */}
-            <div className="wkbc-inner-card-container">
-              <div className="wkbc-tab-header">
-                {(["overview", "tour", "inclusive", "nearby", "policy", "cancellation"] as TabType[]).map((tab) => (
-                  <div
-                    key={tab}
-                    className={`wkbc-tab ${activeTab === tab ? "wkbc-active-tab" : ""}`}
-                    onClick={() => setActiveTab(tab)}
-                  >
-                    {getTabDisplayName(tab)}
+              {/* Excel-like Table Layout */}
+              <div className="bg-white rounded-xl shadow-sm mb-1.5 overflow-hidden border border-black overflow-x-auto">
+                <div className="min-w-[800px] lg:min-w-0">
+                  <div className="grid grid-cols-8 bg-[#E8F0FF] border-b border-black">
+                    <div className="border-r border-white bg-[#2E3a8a] px-2 lg:px-4 py-2 lg:py-3">
+                      <h3 className="font-bold text-white text-left text-sm lg:text-lg">Gateway</h3>
+                    </div>
+                    <div className="col-span-6 border-r border-white bg-[#2E3a8a] px-2 lg:px-4 py-2 lg:py-3">
+                      <h3 className="font-bold text-white text-left text-sm lg:text-lg">Name</h3>
+                    </div>
+                    <div className="px-2 lg:px-4 py-2 lg:py-3 bg-[#2E3a8a]">
+                      <h3 className="font-bold text-white text-start text-sm lg:text-lg">Price</h3>
+                    </div>
                   </div>
-                ))}
+
+                  <div className="grid grid-cols-8 border-black">
+                    <div className="border-r border-black px-1 lg:px-4 py-2 lg:py-3 bg-blue-50">
+                      <p className="text-sm lg:text-lg font-bold text-[#2E4D98] text-left tracking-wide">
+                        {gateway.gateway_code}
+                      </p>
+                    </div>
+                    <div className="col-span-6 border-r border-black px-2 lg:px-4 py-2 lg:py-3 bg-blue-50">
+                      <p className="text-sm lg:text-lg font-semibold text-gray-900 text-left break-words">
+                        {gateway.name}
+                      </p>
+                    </div>
+                    <div className="px-2 lg:px-4 py-2 lg:py-3 bg-red-50">
+                      <p className="text-sm lg:text-lg font-bold text-[#E53C42] text-left">
+                        ₹{parseFloat(gateway.price).toLocaleString('en-IN')}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Tab Buttons */}
+                  <div className="grid grid-cols-6 bg-white border-t border-black">
+                    {tabs.map((tab, idx) => (
+                      <button
+                        key={tab}
+                        onClick={() => setActiveTab(tab)}
+                        className={`px-1 lg:px-3 py-2 lg:py-4 text-[10px] xs:text-xs sm:text-sm font-semibold text-center whitespace-nowrap
+                          ${idx < 5 ? "border-r border-black" : ""} transition 
+                          ${activeTab === tab
+                            ? "bg-[#A72703] text-white"
+                            : "bg-[#FFE797] text-gray-800"
+                          }
+                        `}
+                      >
+                        {getTabDisplayName(tab)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
-              <div className="wkbc-free-flow-container">
+
+              {/* Tab Content */}
+              <div className="bg-[#2E4D98] rounded-md shadow-sm p-2 lg:p-4">
                 {renderTabContent()}
               </div>
-            </div>
-
+            </main>
           </div>
-          {/* RIGHT SIDEBAR REMOVED */}
-
         </div>
       </div>
       <Footer />

@@ -4,8 +4,12 @@ import Gatewaycheckbox from "../Gatewaycheckbox/Gatewaycheckbox";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { BASE_URL } from "@/ApiUrls";
-// Define TypeScript interfaces based on API response
-interface Bungalow {
+import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+
+interface WeekendGateway {
   gateway_id: number;
   gateway_code: string;
   name: string;
@@ -14,19 +18,27 @@ interface Bungalow {
 }
 
 interface WeekendBookingCardState {
-  bungalow: Bungalow;
+  bungalow: WeekendGateway;
 }
-
 
 const Weekendcard: React.FC = () => {
   const navigate = useNavigate();
-  const [bungalowData, setBungalowData] = useState<Bungalow[]>([]);
+  const [weekendGateways, setWeekendGateways] = useState<WeekendGateway[]>([]);
+  const [filteredGateways, setFilteredGateways] = useState<WeekendGateway[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Filter states
+  const [priceRange, setPriceRange] = useState([0, 200000]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSearchBtn, setShowSearchBtn] = useState(false);
+  const [isSearchActive, setIsSearchActive] = useState(false);
+  const [selectedGatewayCodes, setSelectedGatewayCodes] = useState<string[]>([]);
+  const [showMoreGateways, setShowMoreGateways] = useState(false);
 
   // Fetch data from API
   useEffect(() => {
-    const fetchBungalows = async () => {
+    const fetchWeekendGateways = async () => {
       try {
         setLoading(true);
         const response = await fetch(`${BASE_URL}/api/weekend-gateways`);
@@ -36,43 +48,103 @@ const Weekendcard: React.FC = () => {
         }
         
         const data = await response.json();
-        setBungalowData(data);
+        setWeekendGateways(data);
+        setFilteredGateways(data);
         setError(null);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
-        console.error('Error fetching bungalows:', err);
+        console.error('Error fetching weekend gateways:', err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchBungalows();
+    fetchWeekendGateways();
   }, []);
 
-  const handleCardClick = (bungalow: Bungalow): void => {
+  // Filter gateways based on selections
+  useEffect(() => {
+    let result: WeekendGateway[] = [];
+
+    // Add selected gateways by code
+    if (selectedGatewayCodes.length > 0) {
+      selectedGatewayCodes.forEach(code => {
+        const foundGateway = weekendGateways.find(g => g.gateway_code === code);
+        if (foundGateway) {
+          result.push(foundGateway);
+        }
+      });
+    } else {
+      result = [...weekendGateways];
+    }
+
+    // Filter by price
+    result = result.filter(gateway =>
+      parseFloat(gateway.price) >= priceRange[0] &&
+      parseFloat(gateway.price) <= priceRange[1]
+    );
+
+    // Filter by search query
+    if (isSearchActive && searchQuery.trim() !== "") {
+      const query = searchQuery.trim().toLowerCase();
+      result = result.filter(gateway =>
+        gateway.name.toLowerCase().includes(query) ||
+        gateway.gateway_code.toLowerCase().includes(query)
+      );
+    }
+
+    setFilteredGateways(result);
+  }, [selectedGatewayCodes, weekendGateways, priceRange, searchQuery, isSearchActive]);
+
+  const handleCardClick = (gateway: WeekendGateway): void => {
     navigate('/Weekendbookingcard', { 
-      state: { bungalow } as WeekendBookingCardState 
+      state: { bungalow: gateway } as WeekendBookingCardState 
     });
   };
 
-  const handleBookClick = (e: React.MouseEvent, bungalow: Bungalow): void => {
+  const handleBookClick = (e: React.MouseEvent, gateway: WeekendGateway): void => {
     e.stopPropagation();
     navigate('/WeekendForm', { 
-      state: { bungalow } 
+      state: { bungalow: gateway } 
     });
   };
 
-  const handleViewClick = (e: React.MouseEvent, bungalow: Bungalow): void => {
+  const handleViewClick = (e: React.MouseEvent, gateway: WeekendGateway): void => {
     e.stopPropagation();
     navigate('/Weekendbookingcard', { 
-      state: { bungalow } as WeekendBookingCardState 
+      state: { bungalow: gateway } as WeekendBookingCardState 
     });
   };
 
-  // Get full image URL
+  const handleGatewayCheckboxChange = (code: string, checked: boolean) => {
+    if (checked) {
+      setSelectedGatewayCodes(prev => [...prev, code]);
+    } else {
+      setSelectedGatewayCodes(prev => prev.filter(c => c !== code));
+    }
+  };
+
+  const clearAllFilters = () => {
+    setPriceRange([0, 200000]);
+    setSearchQuery("");
+    setShowSearchBtn(false);
+    setIsSearchActive(false);
+    setSelectedGatewayCodes([]);
+  };
+
+  const clearSearch = () => {
+    setSearchQuery("");
+    setShowSearchBtn(false);
+    setIsSearchActive(false);
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSearchActive(searchQuery.trim() !== "");
+  };
+
   const getImageUrl = (imagePath: string) => {
     if (!imagePath) return '';
-    // If it's a full URL, return as is, otherwise prepend API base URL
     return imagePath.startsWith('http') ? imagePath : `${BASE_URL}${imagePath}`;
   };
 
@@ -81,10 +153,10 @@ const Weekendcard: React.FC = () => {
     return (
       <>
         <Header />
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-[#001f54] border-r-transparent"></div>
-            <p className="mt-4 text-gray-600">Loading bungalows...</p>
+        <div className="min-h-screen bg-[#FFEBEE]">
+          <div className="container mx-auto px-4 py-20 text-center flex flex-col items-center justify-center gap-4">
+            <span className="animate-spin h-12 w-12 border-4 border-blue-200 border-t-blue-600 rounded-full" />
+            <div className="text-2xl font-bold text-[#2E4D98]">Loading weekend gateways...</div>
           </div>
         </div>
         <Footer />
@@ -97,13 +169,13 @@ const Weekendcard: React.FC = () => {
     return (
       <>
         <Header />
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center text-red-600">
-            <p className="text-xl font-semibold">Error loading data</p>
-            <p className="mt-2">{error}</p>
+        <div className="min-h-screen bg-[#FFEBEE]">
+          <div className="container mx-auto px-4 py-20 text-center">
+            <div className="text-2xl font-bold text-red-600">Error loading data</div>
+            <p className="mt-4 text-gray-600">{error}</p>
             <button 
               onClick={() => window.location.reload()} 
-              className="mt-4 bg-[#001f54] text-white px-6 py-2 rounded-lg hover:opacity-80"
+              className="mt-6 bg-[#2E4D98] text-white px-6 py-2 rounded-lg hover:opacity-90"
             >
               Retry
             </button>
@@ -117,66 +189,232 @@ const Weekendcard: React.FC = () => {
   return (
     <>
       <Header />
-      <div className="min-h-screen">
-        {/* Header */}
-        <div className="bg-[#001f54] text-white font-bold text-[28px] py-5 px-4 text-center mb-5 w-full max-[767px]:text-[20px] max-[767px]:py-4 max-[767px]:px-2.5 max-[767px]:mb-2.5 md:max-[1024px]:text-2xl md:max-[1024px]:py-[18px] md:max-[1024px]:px-3 md:max-[1024px]:mb-4">
-          Weekend Gateway
-        </div>
+      <div className="min-h-screen bg-[#E53C42] bg-opacity-10">
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex flex-col lg:flex-row gap-6">
+            {/* Filters Sidebar */}
+            <aside className="lg:w-80">
+              <div className="bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl shadow-lg p-6 border border-blue-200 sticky top-24">
+                <div className="flex justify-between items-center mb-6 bg-[#2E4D98] p-2 rounded-lg border border-black">
+                  <h2 className="text-2xl font-bold text-white">Weekend Gateways</h2>
+                  <button onClick={clearAllFilters} className="text-sm text-white hover:underline">
+                    Clear All
+                  </button>
+                </div>
 
-        {/* Horizontal checkbox section - for tablet/mobile */}
-        <div className="hidden w-full px-5 mb-5 max-[767px]:block max-[767px]:px-2.5 max-[767px]:mb-4 md:max-[1024px]:block md:max-[1024px]:px-4 lg:hidden">
-          <Gatewaycheckbox />
-        </div>
+                {/* Price Filter */}
+                <div className="mb-6">
+                  <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Price Range</h3>
+                  <div className="flex justify-between text-sm text-gray-600 mb-3">
+                    <span>₹{priceRange[0].toLocaleString()}</span>
+                    <span>₹{priceRange[1].toLocaleString()}</span>
+                  </div>
+                  <Slider 
+                    value={priceRange} 
+                    onValueChange={setPriceRange} 
+                    min={0} 
+                    max={200000} 
+                    step={1000} 
+                    className="w-full" 
+                  />
+                </div>
 
-        <div className="flex gap-5 p-5 max-[767px]:flex-col max-[767px]:p-2.5 max-[767px]:gap-0 md:max-[1024px]:flex-col md:max-[1024px]:p-0 md:max-[1024px]:px-4 md:max-[1024px]:pb-5 md:max-[1024px]:gap-0 lg:flex-row">
-          
-          {/* Sidebar checkbox section - for desktop */}
-          <div className="min-w-[250px] flex-shrink-0 max-[767px]:hidden md:max-[1024px]:hidden lg:block">
-            <Gatewaycheckbox />
-          </div>
-          
-          {/* Cards Container */}
-          <div className="grid grid-cols-3 gap-6 flex-1 w-full max-[767px]:grid-cols-1 max-[767px]:gap-4 md:max-[1024px]:grid-cols-2 md:max-[1024px]:gap-[18px] md:max-[1024px]:mt-0 lg:grid-cols-3">
-            {bungalowData.map((item: Bungalow) => (
-              <div 
-                className="relative border border-[#d9d9d9] bg-white rounded-[5px] transition duration-300 overflow-hidden h-[300px] flex flex-col cursor-pointer max-[767px]:h-[250px] md:max-[1024px]:h-[280px]"
-                key={item.gateway_id}
-                onClick={() => handleCardClick(item)}
+                {/* Search */}
+                <div className="mb-4">
+                  <form onSubmit={handleSearch} className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Input
+                        type="text"
+                        placeholder="Search by name or code"
+                        value={searchQuery}
+                        onChange={(e) => { 
+                          setSearchQuery(e.target.value); 
+                          setShowSearchBtn(e.target.value.trim() !== ""); 
+                        }}
+                        onFocus={() => setShowSearchBtn(true)}
+                        className="border-[#2E4D98] focus:border-[#2E4D98] focus:ring-[#2E4D98] pr-8 placeholder:text-sm"
+                      />
+                      {searchQuery && (
+                        <button 
+                          type="button" 
+                          onClick={() => { clearSearch(); setShowSearchBtn(false); }}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                    {showSearchBtn && (
+                      <Button type="submit" className="bg-red-600 hover:bg-red-700 text-white px-6">
+                        Search
+                      </Button>
+                    )}
+                  </form>
+                </div>
+
+                {/* Gateway Checkboxes */}
+                <div className="mb-4">
+                  <div className="flex justify-between items-center mb-3 bg-white p-2 rounded-lg border border-black">
+                    <h2 className="text-xl font-bold text-[#2E4D98]">Gateway Types</h2>
+                  </div>
+                  <div className="space-y-3">
+                    {weekendGateways.length > 0 ? (
+                      Array.from(new Map(weekendGateways.map(g => [g.gateway_code, g])).values())
+                        .slice(0, showMoreGateways ? undefined : 6)
+                        .map((gateway) => (
+                          <div key={gateway.gateway_code} className="flex items-center gap-3 cursor-pointer">
+                            <Checkbox
+                              checked={selectedGatewayCodes.includes(gateway.gateway_code)}
+                              onCheckedChange={(checked) => handleGatewayCheckboxChange(gateway.gateway_code, checked as boolean)}
+                              className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
+                            />
+                            <span
+                              className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${selectedGatewayCodes.includes(gateway.gateway_code) ? 'font-bold text-[#2E4D98]' : ''}`}
+                              onClick={() => handleGatewayCheckboxChange(gateway.gateway_code, !selectedGatewayCodes.includes(gateway.gateway_code))}
+                            >
+                              {gateway.name} ({gateway.gateway_code})
+                            </span>
+                          </div>
+                        ))
+                    ) : (
+                      <div className="text-sm text-gray-400">Loading gateways...</div>
+                    )}
+                  </div>
+                  {weekendGateways.length > 6 && (
+                    <button 
+                      onClick={() => setShowMoreGateways(!showMoreGateways)} 
+                      className="mt-4 text-[#2E4D98] text-sm font-semibold hover:underline"
+                    >
+                      {showMoreGateways ? "Show Less" : `Show ${weekendGateways.length - 6} More`}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </aside>
+
+            {/* Main Content */}
+            <main className="flex-1">
+              {/* Header banner */}
+              <div
+                className="relative rounded-2xl overflow-hidden mb-6 bg-cover bg-center bg-no-repeat"
+                style={{ backgroundImage: `url('https://360biznus.com/wp-content/uploads/2025/08/360-virtual-tour-of-shiva-carpets1.jpg')` }}
               >
-                <img 
-                  src={getImageUrl(item.main_image)} 
-                  alt={item.name} 
-                  className="absolute top-0 left-0 w-full h-full object-cover z-[1]" 
-                  onError={(e) => {
-                    // Fallback image if the main image fails to load
-                    const target = e.target as HTMLImageElement;
-                    target.src = 'https://via.placeholder.com/300x200?text=No+Image';
-                  }}
-                />
-                <div className="relative z-[2] flex flex-col justify-between h-full p-5 max-[767px]:p-3 md:max-[1024px]:p-4">
-                  <h3 className="text-white font-semibold text-lg m-0 [text-shadow:2px_2px_4px_rgba(0,0,0,0.7)] py-0.5 px-[1px] rounded-[20px] inline-block self-start max-[767px]:text-[15px] max-[767px]:py-1.5 max-[767px]:px-2.5 md:max-[1024px]:text-base md:max-[1024px]:py-2 md:max-[1024px]:px-3">
-                    {item.name} {item.gateway_code}
-                  </h3>
-                  <div className="flex justify-center gap-2.5 self-end w-full max-[767px]:gap-2 md:max-[1024px]:gap-2">
-                    <button 
-                      className="bg-[#001f54] text-white border-none rounded-[20px] text-sm w-[100px] h-[35px] flex items-center justify-center text-center p-0 font-semibold transition duration-300 hover:opacity-80 max-[767px]:w-[80px] max-[767px]:h-8 max-[767px]:text-xs md:max-[1024px]:w-[90px] md:max-[1024px]:h-9 md:max-[1024px]:text-[13px]"
-                      onClick={(e) => handleViewClick(e, item)}
-                    >
-                      View
-                    </button>
-                    <button className="bg-[#001f54] text-white border-none rounded-[20px] text-sm w-[100px] h-[35px] flex items-center justify-center text-center p-0 font-semibold transition duration-300 hover:opacity-80 max-[767px]:w-[80px] max-[767px]:h-8 max-[767px]:text-xs md:max-[1024px]:w-[90px] md:max-[1024px]:h-9 md:max-[1024px]:text-[13px]">
-                      Rs {parseInt(item.price).toLocaleString()}
-                    </button>
-                    <button 
-                      className="bg-[#001f54] text-white border-none rounded-[20px] text-sm w-[100px] h-[35px] flex items-center justify-center text-center p-0 font-semibold transition duration-300 hover:opacity-80 max-[767px]:w-[80px] max-[767px]:h-8 max-[767px]:text-xs md:max-[1024px]:w-[90px] md:max-[1024px]:h-9 md:max-[1024px]:text-[13px]"
-                      onClick={(e) => handleBookClick(e, item)}
-                    >
-                      Book
-                    </button>
+                <div className="p-8 min-h-[180px] flex items-center">
+                  <div className="text-white">
+                    <h1 className="text-3xl font-bold mb-2" style={{ textShadow: "2px 2px 4px rgb(0,0,0)" }}>
+                      Weekend Gateway
+                    </h1>
+                    <p className="text-base opacity-90 max-w-2xl" style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.5)" }}>
+                      Perfect weekend getaways for a refreshing break
+                    </p>
+                    <p className="text-sm opacity-80 mt-2" style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.5)" }}>
+                      Showing {filteredGateways.length} gateways
+                    </p>
                   </div>
                 </div>
               </div>
-            ))}
+
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                <div>
+                  <h2 className="text-3xl font-bold text-gray-800">Available Gateways</h2>
+                  <p className="text-gray-600 mt-1">Showing {filteredGateways.length} gateways • Best prices guaranteed</p>
+                </div>
+              </div>
+
+              {/* Gateway Cards */}
+              {filteredGateways.length === 0 ? (
+                <div className="text-center py-12">
+                  <h3 className="text-xl font-semibold text-gray-600">No gateways found for the selected filters</h3>
+                  <p className="text-gray-500 mt-2">Try adjusting your filters or search criteria</p>
+                  <Button onClick={clearAllFilters} className="mt-4 bg-[#2E4D98] hover:bg-[#2E4D98] hover:opacity-90 text-white">
+                    Clear All Filters
+                  </Button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredGateways.map((item) => (
+                    <div key={item.gateway_id} className="flex flex-col">
+                      {/* Two-column header UI - OUTSIDE the card */}
+                      <div className="bg-white border-2 border-gray-300 rounded-lg p-3 mb-3 shadow-sm">
+                        <div className="grid grid-cols-2 gap-0 border border-gray-400 rounded overflow-hidden">
+                          <div className="bg-[#2E4D98] border-r border-gray-400 p-2 flex items-center justify-center">
+                            <div className="text-sm font-bold text-white text-center"> {item.name}</div>
+                          </div>
+                          <div className="bg-gradient-to-br from-blue-100 to-blue-50 p-2 flex items-center justify-center">
+                            <div className="text-sm font-bold text-gray-900 text-center">
+                              {item.gateway_code}
+                            </div>
+                          </div>
+                        </div>
+                        {/* <div className="grid grid-cols-2 gap-0 border border-gray-400 rounded overflow-hidden mt-0 border-t-0 rounded-t-none">
+                          <div className="bg-[#2E4D98] border-r border-gray-400 p-2 flex items-center justify-center">
+                            <div className="text-sm font-bold text-white text-center">NAME</div>
+                          </div>
+                          <div className="bg-gradient-to-br from-blue-100 to-blue-50 p-2 flex items-center justify-center">
+                            <div className="text-sm font-bold text-gray-900 text-center">
+                              {item.name}
+                            </div>
+                          </div>
+                        </div> */}
+                      </div>
+
+                      {/* Card Content */}
+                      <div
+                        onClick={() => handleCardClick(item)}
+                        className="group bg-blue-50 rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer border border-blue-100 flex flex-col"
+                      >
+                        <div className="relative h-56 overflow-hidden">
+                          <img
+                            src={getImageUrl(item.main_image)}
+                            alt={item.name}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                            onError={(e) => {
+                              e.currentTarget.style.display = "none";
+                              const parent = e.currentTarget.parentElement;
+                              if (parent) {
+                                const errorDiv = document.createElement('div');
+                                errorDiv.className = "flex flex-col items-center justify-center w-full h-full text-gray-700 p-4 bg-blue-50";
+                                errorDiv.innerHTML = `<span class="text-center text-sm">${item.name}</span><span class="text-center text-xs text-gray-600 mt-2">Image not available</span>`;
+                                parent.appendChild(errorDiv);
+                              }
+                            }}
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                        </div>
+
+                        <div className="p-5 flex-1 flex flex-col">
+                          <div className="mb-3 flex items-center">
+                            <span className="w-[150px] text-sm text-[#2E4D98] font-bold">Price</span>
+                            <p className="text-2lg font-bold text-gray-900 ml-auto text-right">
+                              ₹{parseFloat(item.price).toLocaleString('en-IN')}
+                            </p>
+                          </div>
+
+                          <div className="flex gap-2 mt-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="flex-1 border-[#2E4D98] text-[#2E4D98] hover:bg-[#2E4D98] hover:text-white"
+                              onClick={(e) => handleViewClick(e, item)}
+                            >
+                              View
+                            </Button>
+
+                            <Button
+                              size="sm"
+                              className="flex-1 bg-[#E53C42] hover:bg-[#E53C42] hover:opacity-90 text-white"
+                              onClick={(e) => handleBookClick(e, item)}
+                            >
+                              Book Now
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </main>
           </div>
         </div>
       </div>
