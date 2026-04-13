@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import "./Bunglowbookingcard.css";
 import Villaimg1 from "../Images/villa1.png";
 import Villaimg2 from "../Images/villa2.png";
 import Villaimg3 from "../Images/villa3.png";
@@ -8,15 +7,17 @@ import Villaimg4 from "../Images/villa4.png";
 import Villaimg5 from "../Images/villa5.png";
 import Villaimg6 from "../Images/villa6.png";
 import villaimg7 from "../Images/villa7.png";
-import Bunglowcheckbox from "../Bungalow_checkbox/Bungalowcheckbox";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { BASE_URL } from "@/ApiUrls";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import EmailModal from '../../EmailModal';
+import Bungalowpdf from './Bungalowpdf';
 
 interface Bungalow {
   bungalow_id: number;
@@ -57,6 +58,13 @@ interface RelatedBungalow {
   price?: string;
 }
 
+interface EmailFormData {
+  from: string;
+  to: string;
+  subject: string;
+  message: string;
+}
+
 type TabType = "overview" | "rent" | "inclusive" | "nearby" | "policy" | "cancellation";
 
 const Bunglowbookingcard: React.FC = () => {
@@ -69,6 +77,11 @@ const Bunglowbookingcard: React.FC = () => {
   const [images, setImages] = useState<BungalowImage[]>([]);
   const [relatedBungalows, setRelatedBungalows] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  
+  // Email modal state
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailLoading, setEmailLoading] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   
   // Sidebar filter states
   const [allBungalows, setAllBungalows] = useState<BungalowItem[]>([]);
@@ -144,10 +157,75 @@ const Bunglowbookingcard: React.FC = () => {
     navigate("/bookingform");
   };
 
+const handleEmailSubmit = async (emailData: EmailFormData) => {
+  try {
+    setEmailLoading(true);
+    
+    // Import pdf dynamically
+    const { pdf } = await import('@react-pdf/renderer');
+    
+    const pdfInstance = (
+      <Bungalowpdf
+        bungalow={bungalow || {}}
+        images={images}
+        currentImageIndex={currentImageIndex}
+      />
+    );
+
+    const pdfBlob = await pdf(pdfInstance).toBlob();
+
+    const formData = new FormData();
+    formData.append('to', emailData.to);
+    formData.append('subject', emailData.subject);
+    formData.append('message', emailData.message);
+    // Use the field names that the backend expects (from working MICE example)
+    formData.append('tourTitle', bungalow?.name || '');
+    formData.append('tourCode', bungalow?.bungalow_code || '');
+    formData.append('pdf', pdfBlob, `bungalow_${bungalow?.bungalow_code || 'details'}.pdf`);
+
+    // Use the existing working endpoint instead of send-bungalow-pdf
+    const response = await fetch(`${BASE_URL}/api/send-tour-pdf`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    // Add better error handling for non-JSON responses
+    let result;
+    const contentType = response.headers.get('content-type');
+    
+    if (contentType && contentType.includes('application/json')) {
+      result = await response.json();
+    } else {
+      const textResponse = await response.text();
+      console.error('Non-JSON response:', textResponse);
+      throw new Error(`Server error: ${response.status} ${response.statusText}`);
+    }
+
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || 'Failed to send email');
+    }
+
+    setShowEmailModal(false);
+    alert('Email sent successfully!');
+
+  } catch (error: any) {
+    console.error('Error sending email:', error);
+    alert(`Failed to send email: ${error.message || 'Unknown error'}`);
+  } finally {
+    setEmailLoading(false);
+  }
+};
+
+  const handleDownloadPdf = () => {
+    setIsGeneratingPdf(true);
+    setTimeout(() => {
+      setIsGeneratingPdf(false);
+    }, 1000);
+  };
+
   const handleBungalowCheckboxChange = (code: string, checked: boolean) => {
     if (checked) {
       setSelectedBungalowCodes(prev => [...prev, code]);
-      // Navigate to the selected bungalow
       const selectedBungalow = allBungalows.find(b => b.bungalow_code === code);
       if (selectedBungalow) {
         navigate(`/bunglowbookingcard/${selectedBungalow.bungalow_id}`);
@@ -233,7 +311,7 @@ const Bunglowbookingcard: React.FC = () => {
   const tabs: { key: TabType; label: string }[] = [
     { key: "overview", label: "Overview" },
     { key: "rent", label: "Bungalow Rent" },
-    { key: "inclusive", label: "Inclusive & Exclusive" },
+    { key: "inclusive", label: "Inclusive & Excludes" },
     { key: "nearby", label: "Place Near By" },
     { key: "policy", label: "Booking Policy" },
     { key: "cancellation", label: "Cancellation Policy" }
@@ -262,6 +340,14 @@ const Bunglowbookingcard: React.FC = () => {
                 </div>
               </div>
             </div>
+            <div className="mt-1">
+              <button
+                onClick={() => navigate("/alert")}
+                className="w-full font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90 text-sm lg:text-base"
+              >
+                Customize your booking on chargeable basis
+              </button>
+            </div>
           </div>
         );
 
@@ -286,6 +372,14 @@ const Bunglowbookingcard: React.FC = () => {
                 </div>
               </div>
             </div>
+            <div className="mt-1">
+              <button
+                onClick={() => navigate("/alert")}
+                className="w-full font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90 text-sm lg:text-base"
+              >
+                Customize your booking on chargeable basis
+              </button>
+            </div>
           </div>
         );
 
@@ -293,7 +387,7 @@ const Bunglowbookingcard: React.FC = () => {
         return (
           <div className="bg-[#E8F0FF] rounded-lg p-1 w-full overflow-x-hidden">
             <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg mb-1 w-full">
-              Inclusive & Exclusive
+              Inclusive & Excludes
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-1 w-full">
@@ -326,7 +420,7 @@ const Bunglowbookingcard: React.FC = () => {
 
               <div className="flex flex-col w-full min-h-[250px] lg:min-h-[280px] max-h-[250px] lg:max-h-[320px]">
                 <div className="bg-[#2E4D98] text-white text-center py-2 lg:py-3 rounded-t-lg w-full">
-                  <h3 className="text-lg lg:text-xl font-bold">Exclusive</h3>
+                  <h3 className="text-lg lg:text-xl font-bold">Excludes</h3>
                 </div>
                 <div className="flex-1 border-2 border-[#1e3a8a] rounded-b-lg bg-[#FFEBEE] w-full overflow-hidden min-h-0">
                   <div className="h-full overflow-y-auto p-2">
@@ -351,6 +445,14 @@ const Bunglowbookingcard: React.FC = () => {
                 </div>
               </div>
             </div>
+            <div className="mt-1">
+              <button
+                onClick={() => navigate("/alert")}
+                className="w-full font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90 text-sm lg:text-base"
+              >
+                Customize your booking on chargeable basis
+              </button>
+            </div>
           </div>
         );
 
@@ -374,6 +476,14 @@ const Bunglowbookingcard: React.FC = () => {
                   </div>
                 </div>
               </div>
+            </div>
+            <div className="mt-1">
+              <button
+                onClick={() => navigate("/alert")}
+                className="w-full font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90 text-sm lg:text-base"
+              >
+                Customize your booking on chargeable basis
+              </button>
             </div>
           </div>
         );
@@ -401,10 +511,10 @@ const Bunglowbookingcard: React.FC = () => {
             </div>
             <div className="mt-1">
               <button
-                onClick={handleBook}
+                onClick={() => navigate("/alert")}
                 className="w-full font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90 text-sm lg:text-base"
               >
-                Book Now
+                Customize your booking on chargeable basis
               </button>
             </div>
           </div>
@@ -431,6 +541,14 @@ const Bunglowbookingcard: React.FC = () => {
                 </div>
               </div>
             </div>
+            <div className="mt-1">
+              <button
+                onClick={() => navigate("/alert")}
+                className="w-full font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90 text-sm lg:text-base"
+              >
+                Customize your booking on chargeable basis
+              </button>
+            </div>
           </div>
         );
 
@@ -444,6 +562,14 @@ const Bunglowbookingcard: React.FC = () => {
               <div className="min-h-[150px] p-2 bg-[#FFEBEE] w-full">
                 <p className="text-black">No information available</p>
               </div>
+            </div>
+            <div className="mt-1">
+              <button
+                onClick={() => navigate("/alert")}
+                className="w-full font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90 text-sm lg:text-base"
+              >
+                Customize your booking on chargeable basis
+              </button>
             </div>
           </div>
         );
@@ -558,37 +684,24 @@ const Bunglowbookingcard: React.FC = () => {
 
             {/* Main Content */}
             <main className="flex-1">
-              {/* Header */}
-              <div className="bg-[#2E3A8A] text-white text-center py-3 font-semibold text-md mb-2">
-                Bungalow Booking - {bungalow.name} ({bungalow.bungalow_code})
-              </div>
+          
 
-              {/* Two-column header UI for Bungalow Code and Name */}
-              {/* <div className="bg-white border-2 border-gray-300 rounded-lg p-3 mb-3 shadow-sm">
-                <div className="grid grid-cols-2 gap-0 border border-gray-400 rounded overflow-hidden">
-                  <div className="bg-[#2E4D98] border-r border-gray-400 p-2 flex items-center justify-center">
-                    <div className="text-sm font-bold text-white text-center">BUNGALOW CODE</div>
-                  </div>
-                  <div className="bg-gradient-to-br from-blue-100 to-blue-50 p-2 flex items-center justify-center">
-                    <div className="text-sm font-bold text-gray-900 text-center">
-                      {bungalow.bungalow_code}
-                    </div>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-0 border border-gray-400 rounded overflow-hidden mt-0 border-t-0 rounded-t-none">
-                  <div className="bg-[#2E4D98] border-r border-gray-400 p-2 flex items-center justify-center">
-                    <div className="text-sm font-bold text-white text-center">NAME</div>
-                  </div>
-                  <div className="bg-gradient-to-br from-blue-100 to-blue-50 p-2 flex items-center justify-center">
-                    <div className="text-sm font-bold text-gray-900 text-center">
-                      {bungalow.name}
-                    </div>
-                  </div>
-                </div>
-              </div> */}
+           <div className="w-full overflow-hidden border mb-2">
+          <div className="flex w-full items-stretch gap-1">
+            {/* City Label */}
+            <div className="flex-1 flex items-center justify-center p-3 bg-[#2E3A8A] border border-black">
+              <span className="font-bold text-white"> Bungalow Booking:</span>
+            </div>
+        
+            {/* City Value */}
+            <div className="flex-1 flex items-center justify-center p-3 bg-blue-100 border border-black">
+              <span className="text-[#2E3A8A] font-bold">{bungalow.name} </span>
+            </div>
+            </div>
+            </div>
 
               {/* Image Carousel */}
-              <div className="relative rounded-2xl overflow-hidden mb-4">
+              <div className="relative rounded-2xl overflow-hidden mb-2">
                 <div className="relative h-64 sm:h-80 lg:h-[500px] overflow-hidden">
                   <img
                     src={carouselImages[currentImageIndex]}
@@ -645,71 +758,149 @@ const Bunglowbookingcard: React.FC = () => {
               </div>
 
               {/* Excel-like Table Layout */}
-              <div className="bg-white rounded-xl shadow-sm mb-1.5 overflow-hidden border border-black overflow-x-auto">
-                <div className="min-w-[800px] lg:min-w-0">
-                  <div className="grid grid-cols-8 bg-[#E8F0FF] border-b border-black">
-                    <div className="border-r border-white bg-[#2E3a8a] px-9 lg:px-4 py-2 lg:py-3">
-                      <h3 className="font-bold text-white text-left text-sm lg:text-lg">Bungalow</h3>
-                    </div>
-                    <div className="col-span-6 border-r border-white bg-[#2E3a8a] px-6 lg:px-4 py-2 lg:py-3">
-                      <h3 className="font-bold text-white text-left text-sm lg:text-lg">Name</h3>
-                    </div>
-                    <div className="px-2 lg:px-4 py-2 lg:py-3 bg-[#2E3a8a]">
-                      <h3 className="font-bold text-white text-start text-sm lg:text-lg">Price</h3>
-                    </div>
-                  </div>
+        <div className="bg-white rounded-xl shadow-sm mb-1.5 overflow-hidden border border-black overflow-x-auto">
+  <div className="min-w-[800px] lg:min-w-0">
 
-                  <div className="grid grid-cols-8 border-black">
-                    <div className="border-r border-black px-1 lg:px-4 py-2 lg:py-3 bg-blue-50">
-                      <p className="text-sm lg:text-lg font-bold text-[#2E4D98] text-left tracking-wide">
-                        {bungalow.bungalow_code}
-                      </p>
-                    </div>
-                    <div className="col-span-6 border-r border-black px-2 lg:px-4 py-2 lg:py-3 bg-blue-50">
-                      <p className="text-sm lg:text-lg font-semibold text-gray-900 text-left break-words">
-                        {bungalow.name}
-                      </p>
-                    </div>
-                    <div className="px-2 lg:px-4 py-2 lg:py-3 bg-red-50">
-                      <p className="text-sm lg:text-lg font-bold text-[#E53C42] text-left">
-                        ₹{parseFloat(bungalow.price).toLocaleString('en-IN')}
-                      </p>
-                    </div>
-                  </div>
-<div className="grid grid-cols-6 bg-white border-t border-black">
-  {tabs.map((tab, idx) => (
-    <button
-      key={tab.key}
-      onClick={() => handleTabClick(tab.key)}
-      className={`col-span-1 sm:col-span-1 md:col-span-1 
-        lg:col-span-1 
-        px-2 py-4 text-xs sm:text-sm font-semibold text-center
-        ${idx < 5 ? "border-r border-black" : ""}
-        ${activeTab === tab.key
-          ? "bg-[#A72703] text-white"
-          : "bg-[#FFE797] text-gray-800"
-        }
-      `}
-    >
-      {tab.label}
-    </button>
-  ))}
+    {/* Header */}
+    <div className="grid grid-cols-6 bg-[#E8F0FF] border-b border-black">
+      <div className="border-r border-white bg-[#2E3a8a] px-2 lg:px-4 py-2 lg:py-3">
+        <h3 className="font-bold text-white text-left text-sm lg:text-lg">Bungalow</h3>
+      </div>
+
+      <div className="col-span-4 border-r border-white bg-[#2E3a8a] px-2 lg:px-4 py-2 lg:py-3">
+        <h3 className="font-bold text-white text-left text-sm lg:text-lg">Name</h3>
+      </div>
+
+      <div className="px-2 lg:px-4 py-2 lg:py-3 bg-[#2E3a8a]">
+        <h3 className="font-bold text-white text-start text-sm lg:text-lg">Price</h3>
+      </div>
+    </div>
+
+    {/* Data Row */}
+    <div className="grid grid-cols-6 border-black">
+      <div className="border-r border-black px-1 lg:px-4 py-2 lg:py-3 bg-blue-50">
+        <p className="text-sm lg:text-lg font-bold text-[#2E4D98] text-left tracking-wide">
+          {bungalow.bungalow_code}
+        </p>
+      </div>
+
+      <div className="col-span-4 border-r border-black px-2 lg:px-4 py-2 lg:py-3 bg-blue-50">
+        <p className="text-sm lg:text-lg font-semibold text-gray-900 text-left break-words">
+          {bungalow.name}
+        </p>
+      </div>
+
+      <div className="px-2 lg:px-4 py-2 lg:py-3 bg-red-50">
+        <p className="text-sm lg:text-lg font-bold text-[#E53C42] text-left">
+          ₹{parseFloat(bungalow.price).toLocaleString('en-IN')}
+        </p>
+      </div>
+    </div>
+
+    {/* Tabs (UNCHANGED) */}
+    <div className="grid grid-cols-6 bg-white border-t border-black">
+      {tabs.map((tab, idx) => (
+        <button
+          key={tab.key}
+          onClick={() => handleTabClick(tab.key)}
+          className={`col-span-1 px-2 py-4 text-xs sm:text-sm font-semibold text-center
+            ${idx < 5 ? "border-r border-black" : ""}
+            ${activeTab === tab.key
+              ? "bg-[#A72703] text-white"
+              : "bg-[#FFE797] text-gray-800"
+            }
+          `}
+        >
+          {tab.label}
+        </button>
+      ))}
+    </div>
+
+  </div>
 </div>
-                </div>
-              </div>
 
               {/* Tab Content */}
               <div className="bg-[#2E4D98] rounded-md shadow-sm p-2 lg:p-4">
                 {renderTabContent()}
               </div>
 
-              {/* Related Bungalows Section */}
+              {/* Action Buttons */}
+              <div className="flex justify-between lg:justify-end mt-1 gap-1 lg:gap-1 flex-nowrap">
+                <div className="w-[32%] lg:w-32 border border-green-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                  <PDFDownloadLink
+                    document={
+                      <Bungalowpdf
+                        bungalow={bungalow || {}}
+                        images={images}
+                        currentImageIndex={currentImageIndex}
+                      />
+                    }
+                    fileName={`bungalow_${bungalow?.bungalow_code || 'details'}_${new Date().toISOString().split('T')[0]}.pdf`}
+                    onClick={handleDownloadPdf}
+                    className="w-full"
+                  >
+                    {({ loading, error }) => (
+                      <button
+                        className={`w-full ${loading || isGeneratingPdf ? 'bg-green-900' : 'bg-green-700 hover:bg-green-800'} text-white font-bold py-2 lg:py-3 px-2 lg:px-3 flex items-center justify-center gap-1 lg:gap-2 transition-colors text-xs lg:text-sm`}
+                        disabled={loading || isGeneratingPdf}
+                      >
+                        {loading || isGeneratingPdf ? (
+                          <>
+                            <svg className="animate-spin h-3 w-3 lg:h-4 lg:w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Generating...
+                          </>
+                        ) : (
+                          <>
+                            <Download className="h-3 w-3 lg:h-4 lg:w-4" />
+                            Download
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </PDFDownloadLink>
+                </div>
+
+                <div className="w-[32%] lg:w-32 border border-blue-700 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                  <button
+                    onClick={() => setShowEmailModal(true)}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 lg:py-3 px-2 lg:px-3 flex items-center justify-center gap-1 lg:gap-2 transition-colors text-xs lg:text-sm"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 lg:h-4 lg:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    Email
+                  </button>
+                </div>
+
+                <EmailModal
+                  isOpen={showEmailModal}
+                  onClose={() => setShowEmailModal(false)}
+                  onSubmit={handleEmailSubmit}
+                  tour={bungalow}
+                />
+
+                <div className="w-[32%] lg:w-32 border border-red-700 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                  <button
+                    className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 lg:py-3 px-2 lg:px-3 flex items-center justify-center gap-1 lg:gap-2 transition-colors text-xs lg:text-sm"
+                    onClick={handleBook}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 lg:h-4 lg:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Book Now
+                  </button>
+                </div>
+              </div>
+
               {/* {relatedBungalows.length > 0 && (
                 <div className="mt-6">
                   <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg">
                     Related Bungalows
                   </div>
-                  <div className="border-2 border-[#1e3a8a] border-t-0 rounded-b-lg p-4 bg-[#FFEBEE]">
+                  <div className="border-2 border-[#1e3a8a] border-t-0 rounded-b-lg p- bg-[#FFEBEE]">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {relatedBungalows.map((related) => (
                         <div

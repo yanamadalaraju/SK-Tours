@@ -13,6 +13,7 @@ interface PersonData {
 
 const BookingForm: React.FC = () => {
   const [numPeople, setNumPeople] = useState<number>(1);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [peopleData, setPeopleData] = useState<PersonData[]>([
     { name: "", age: "", cell: "", email: "" },
@@ -112,21 +113,21 @@ const BookingForm: React.FC = () => {
     <>
       <Header />
       <div className="font-sans min-h-screen">
-        <div className="bg-[#001f54] text-white font-bold text-2xl md:text-3xl lg:text-4xl py-5 px-4 text-center mb-5 w-full">
+        <div className="bg-[#001f54] text-white font-bold text-2xl md:text-3xl lg:text-4xl py-5 px-4 text-center mb-4 w-full">
           Bungalow Booking
         </div>
 
         <div className="block md:hidden lg:hidden w-full px-4 md:px-5 mb-5 box-border">
-          <Bunglowcheckbox />
+          <Bunglowcheckbox sidebarOpen={sidebarOpen} closeSidebar={() => setSidebarOpen(false)}/>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-4 lg:gap-5 p-4 lg:p-5 mx-auto">
-          <div className="hidden lg:block min-w-[250px]">
-            <Bunglowcheckbox />
+        <div className="flex flex-col lg:flex-row gap-4 lg:gap-1 p-3 lg:p-3 mx-auto">
+          <div className="hidden lg:block min-w-[80px]">
+            <Bunglowcheckbox  sidebarOpen={sidebarOpen} closeSidebar={() => setSidebarOpen(false)}/>
           </div>
 
           <div className="flex-1 min-w-0">
-            <div className="bg-[#f5d38c] p-4 md:p-3 w-full lg:w-[1100px] mx-0 lg:mx-5 h-auto">
+            <div className="bg-[#f5d38c] p-4 md:p-3 w-full lg:w-[1140px] mx-0 lg:mx-5 h-auto">
               <h2 className="bg-[#b80000] text-white text-center p-2.5 mb-1 w-full text-xl md:text-2xl">
                 Booking Form
               </h2>
@@ -354,23 +355,35 @@ const BookingForm: React.FC = () => {
                   ))}
                 </div>
 
-                {/* Buttons */}
-                <div className="flex flex-col md:flex-row justify-center gap-2.5 mt-4">
-                  <button
-                    type="button"
-                    onClick={handleReset}
-                    className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 w-full md:w-auto"
-                  >
-                    Reset
-                  </button>
-                  <button
-                    type="submit"
-                    className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 w-full md:w-auto"
-                  >
-                    Submit
-                  </button>
-                </div>
+            {/* Buttons */}
+<div className="flex flex-col md:flex-row justify-center gap-2.5 mt-4">
+  
+  {/* Reset - Blue */}
+  <button
+    type="button"
+    onClick={handleReset}
+    className="bg-blue-600 hover:bg-blue-700 text-white px-7 py-2 w-full md:w-auto"
+  >
+    Reset
+  </button>
 
+  {/* Submit - Green */}
+  <button
+    type="submit"
+    className="bg-green-600 hover:bg-green-700 text-white px-7 py-2 w-full md:w-auto"
+  >
+    Submit
+  </button>
+
+  {/* Book - Red */}
+  <button
+    type="button"
+    className="bg-red-600 hover:bg-red-700 text-white px-7 py-2 w-full md:w-auto"
+  >
+    Book
+  </button>
+
+</div>
               </form>
             </div>
           </div>

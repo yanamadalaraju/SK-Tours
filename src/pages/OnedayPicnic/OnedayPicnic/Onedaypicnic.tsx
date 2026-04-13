@@ -133,13 +133,13 @@ const Onedaypicnic: React.FC = () => {
           <Bunglowcheckbox />
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-4 lg:gap-5 p-4 lg:p-5 mx-auto">
+        <div className="flex flex-col lg:flex-row gap-1 lg:gap-5 p-4 lg:p-5 mx-auto">
           <div className="hidden lg:block min-w-[250px]">
             <Bunglowcheckbox />
           </div>
 
           <div className="flex-1 min-w-0">
-            <div className="bg-[#f5d38c] p-4 md:p-3 w-full lg:w-[1100px] mx-0 lg:mx-5 h-auto">
+            <div className="bg-[#f5d38c] p-4 md:p-3 w-full lg:w-[1160px] mx-0 lg:mx-5 h-auto">
               <h2 className="bg-[#b80000] text-white text-center p-2.5 mb-1 w-full text-xl md:text-2xl">
                 One Day Picnic Form
               </h2>
@@ -378,23 +378,35 @@ const Onedaypicnic: React.FC = () => {
                   ))}
                 </div>
 
-                {/* Buttons */}
-                <div className="flex flex-col md:flex-row justify-center gap-2.5 mt-4">
-                  <button
-                    type="button"
-                    onClick={handleReset}
-                    className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded cursor-pointer w-full md:w-auto"
-                  >
-                    Reset
-                  </button>
-                  <button
-                    type="submit"
-                    className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded cursor-pointer w-full md:w-auto"
-                  >
-                    Submit
-                  </button>
-                </div>
+             {/* Buttons */}
+<div className="flex flex-col md:flex-row justify-center gap-2.5 mt-4">
+  
+  {/* Reset → Blue (changed from green) */}
+  <button
+    type="button"
+    onClick={handleReset}
+    className="bg-blue-600 hover:bg-blue-700 text-white px-7 py-2 w-full md:w-auto"
+  >
+    Reset
+  </button>
 
+  {/* Submit → Green (changed from red) */}
+  <button
+    type="submit"
+    className="bg-green-600 hover:bg-green-700 text-white px-7 py-2 w-full md:w-auto"
+  >
+    Submit
+  </button>
+
+  {/* Book → Red (new button added) */}
+  <button
+    type="button"
+    className="bg-red-600 hover:bg-red-700 text-white px-7 py-2 w-full md:w-auto"
+  >
+    Book
+  </button>
+
+</div>
               </form>
             </div>
           </div>

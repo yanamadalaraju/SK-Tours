@@ -1506,7 +1506,7 @@ const handleSearch = (e: React.FormEvent) => {
                 {/* Cost Inc/Ex Tab */}
                 {activeTab === "cost-inc./cost-ex." && (
                   <div className="bg-[#E8F0FF] rounded-lg p-1 w-full overflow-x-hidden">
-                    <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg mb-1 w-full">Cost Includes & Cost Excludes</div>
+                    <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg mb-1 w-full">Cost Inclusive & Cost Excludes</div>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-1 w-full">
                       {[
                         { label: "Cost Includes", items: tour.inclusionExclusion.inclusions },

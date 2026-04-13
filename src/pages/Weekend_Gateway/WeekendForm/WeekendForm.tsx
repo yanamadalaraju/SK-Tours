@@ -32,10 +32,13 @@ interface WeekendFormData {
 
 const WeekendForm: React.FC = () => {
   const [numChildren, setNumChildren] = useState<number>(0);
-  const [numAdults, setNumAdults] = useState<number>(0);
+  const [numAdults, setNumAdults] = useState<number>(1);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+  
   const [childrenData, setChildrenData] = useState<PersonData[]>([]);
-  const [adultsData, setAdultsData] = useState<PersonData[]>([]);
-
+const [adultsData, setAdultsData] = useState<PersonData[]>([
+  { name: "", age: "", cell: "", email: "" }
+]);
   const [formData, setFormData] = useState<WeekendFormData>({
     property_name: "",
     city: "",
@@ -117,8 +120,8 @@ const WeekendForm: React.FC = () => {
 
   const handleReset = () => {
     setNumChildren(0);
-    setNumAdults(0);
-    setChildrenData([]);
+setNumAdults(1);
+setAdultsData([{ name: "", age: "", cell: "", email: "" }]);
     setAdultsData([]);
     setFormData({
       property_name: "",
@@ -142,23 +145,21 @@ const WeekendForm: React.FC = () => {
   e.preventDefault();
 
   try {    
-    // Prepare payload with correct field mapping for backend
     const payload = {
-      // Map frontend fields to backend expected fields
-      bungalow_code: formData.property_name,  // Map property_name to bungalow_code
+      bungalow_code: formData.property_name,  
       city: formData.city,
-      contact_person: formData.person_name,   // Map person_name to contact_person
+      contact_person: formData.person_name,   
       cell_no: formData.cell_no,
       email_id: formData.email_id,
       address: formData.address,
       pin_code: formData.pin_code,
       state: formData.state,
       country: formData.country,
-      no_of_adults: numAdults.toString(), // Send individual adult count
-      no_of_child: numChildren.toString(), // Send individual child count
-      no_of_rooms: formData.no_of_rooms, // Number of rooms
+      no_of_adults: numAdults.toString(), 
+      no_of_child: numChildren.toString(), 
+      no_of_rooms: formData.no_of_rooms, 
       city_location: formData.city_location,
-      type: formData.type,  // Include type field
+      type: formData.type,  
       guests: [
         ...adultsData.map((person) => ({
           name: person.name,
@@ -196,32 +197,29 @@ const WeekendForm: React.FC = () => {
       <Header />
       <div className="min-h-screen">
         {/* Header */}
-        <div className="bg-[#001f54] text-white font-bold text-2xl md:text-3xl lg:text-4xl p-4 md:p-5 text-center w-full">
+        <div className="bg-[#001f54] text-white font-bold text-2xl md:text-3xl lg:text-4xl p-1 md:p-5 text-center w-full">
           Weekend Gateway
         </div>
 
         {/* Horizontal Checkbox Section for Tablet/Mobile */}
-        <div className="block md:hidden w-full px-4 md:px-5 mb-5 box-border">
-          <Gatewaycheckbox />
+        <div className="block md:hidden w-full px-1 md:px-5 mb-5 box-border">
+         <Gatewaycheckbox sidebarOpen={sidebarOpen} closeSidebar={() => setSidebarOpen(false)} />
+
         </div>
 
         <div className="flex flex-col md:flex-row gap-4 md:gap-5 p-4 md:p-5 mx-auto">
-          {/* Left Side - Checkbox Section for Desktop */}
           <div className="hidden md:block flex-none w-[200px] lg:w-[250px] min-w-[200px]">
-            <Gatewaycheckbox />
+          <Gatewaycheckbox sidebarOpen={sidebarOpen} closeSidebar={() => setSidebarOpen(false)} />
           </div>
 
-          {/* Right Side - Form Section */}
-          <div className="flex-1 min-w-0">
-            <div className="bg-[#f5d38c] p-4 md:p-5 h-auto w-full md:w-[1100px] mx-0 md:mx-2.5 font-sans">
+          <div className="flex-1 min-w-0 md:ml-[60px]">
+            <div className="bg-[#f5d38c] p-1 md:p-5 h-auto w-full md:w-[1140px] mx-0 md:mx-2.5 font-sans">
               <h2 className="bg-[#b80000] text-white text-center p-2.5 mb-5 w-full text-xl md:text-2xl">
                 Booking Form
               </h2>
-              <form onSubmit={handleSubmit} className="space-y-2.5">
-                {/* Hidden type field */}
+              <form onSubmit={handleSubmit} className="space-y-1">
                 <input type="hidden" name="type" value={formData.type} />
                 
-                {/* Property Name and City */}
                 <div className="flex flex-col md:flex-row items-start md:items-center gap-2.5 flex-wrap">
                   <label className="bg-[#593c26] text-white px-2.5 py-1.5 min-w-[120px]">
                     Name of the Property
@@ -625,20 +623,32 @@ const WeekendForm: React.FC = () => {
 
                 {/* Action Buttons */}
                 <div className="flex flex-col md:flex-row justify-center gap-2.5 mt-4">
-                  <button
-                    type="button"
-                    onClick={handleReset}
-                    className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded cursor-pointer w-full md:w-auto"
-                  >
-                    Reset
-                  </button>
-                  <button
-                    type="submit"
-                    className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded cursor-pointer w-full md:w-auto"
-                  >
-                    Submit
-                  </button>
-                </div>
+  
+  {/* Reset → Blue (changed from green) */}
+  <button
+    type="button"
+    onClick={handleReset}
+    className="bg-blue-600 hover:bg-blue-700 text-white px-7 py-2 w-full md:w-auto"
+  >
+    Reset
+  </button>
+
+  {/* Submit → Green (changed from red) */}
+  <button
+    type="submit"
+    className="bg-green-600 hover:bg-green-700 text-white px-7 py-2 w-full md:w-auto"
+  >
+    Submit
+  </button>
+
+  {/* Book → Red (new button added) */}
+  <button
+    type="button"
+    className="bg-red-600 hover:bg-red-700 text-white px-7 py-2 w-full md:w-auto"
+  >
+    Book
+  </button>
+</div>
               </form>
             </div>
           </div>

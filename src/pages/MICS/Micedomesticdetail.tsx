@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { BASE_URL } from '@/ApiUrls';
 import Footer from '@/components/Footer';
 import { PDFDownloadLink } from '@react-pdf/renderer';
-import Micedomesticpdf from './micedomesticpdf';
+import Micedomesticpdf from './Micedomesticpdf';
 import { Download } from 'lucide-react';
 import EmailModal from '../EmailModal';
 import { FaSearch } from "react-icons/fa";
