@@ -195,25 +195,25 @@ setAdultsData([{ name: "", age: "", cell: "", email: "" }]);
   return (
     <>
       <Header />
-      <div className="min-h-screen">
-        {/* Header */}
         <div className="bg-[#001f54] text-white font-bold text-2xl md:text-3xl lg:text-4xl p-1 md:p-5 text-center w-full">
           Weekend Gateway
         </div>
+      <div className="min-h-screen p-4">
+    
+      
 
-        {/* Horizontal Checkbox Section for Tablet/Mobile */}
-        <div className="block md:hidden w-full px-1 md:px-5 mb-5 box-border">
-         <Gatewaycheckbox sidebarOpen={sidebarOpen} closeSidebar={() => setSidebarOpen(false)} />
-
+   
+        <div className="block md:hidden lg:hidden w-full px-4 md:px-5 mb-5 box-border">
+          <Gatewaycheckbox   sidebarOpen={sidebarOpen} closeSidebar={() => setSidebarOpen(false)}/>
         </div>
 
-        <div className="flex flex-col md:flex-row gap-4 md:gap-5 p-4 md:p-5 mx-auto">
-          <div className="hidden md:block flex-none w-[200px] lg:w-[250px] min-w-[200px]">
-          <Gatewaycheckbox sidebarOpen={sidebarOpen} closeSidebar={() => setSidebarOpen(false)} />
+        <div className="flex flex-col lg:flex-row gap-1 lg:gap-1 p-4 lg:p-5 mx-auto">
+          <div className="hidden lg:block min-w-[250px]">
+            <Gatewaycheckbox    sidebarOpen={sidebarOpen} closeSidebar={() => setSidebarOpen(false)}/>
           </div>
 
-          <div className="flex-1 min-w-0 md:ml-[60px]">
-            <div className="bg-[#f5d38c] p-1 md:p-5 h-auto w-full md:w-[1140px] mx-0 md:mx-2.5 font-sans">
+          <div className="flex-1 min-w-0 md:ml-[10px]">
+            <div className="bg-[#f5d38c] p-1 md:p-5 h-auto w-full md:w-[1120px] mx-0 md:mx-2.5 font-sans">
               <h2 className="bg-[#b80000] text-white text-center p-2.5 mb-5 w-full text-xl md:text-2xl">
                 Booking Form
               </h2>
