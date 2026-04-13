@@ -169,7 +169,7 @@ const Onedaypicnic: React.FC = () => {
                     Bungalow No
                   </label>
                   <input
-                    type="number"
+                    type="text"
                     name="bungalow_code"
                     value={formData.bungalow_code}
                     onChange={handleMainChange}

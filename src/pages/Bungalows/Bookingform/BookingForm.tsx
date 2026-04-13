@@ -152,8 +152,8 @@ const BookingForm: React.FC = () => {
                     Bungalow No
                   </label>
                 <input
-  type="number"
-  name="bungalow_code"   // ✅ THIS WAS MISSING
+  type="text"
+  name="bungalow_code"  
   value={formData.bungalow_code}
   onChange={handleMainChange}
   className="flex-1 px-2.5 py-1.5 border border-gray-400 h-[35px]"
