@@ -32,37 +32,36 @@ const BankGallery: React.FC = () => {
   }
 
   return (
-    <>
-      <div className="min-h-screen  bg-[#FFEBEE]">
-        <Header />
+    <div className="min-h-screen bg-[#FFEBEE]">
+      <Header />
 
-        <div className="flex flex-col lg:flex-row w-full gap-5 p-9">
-          <div className="w-full lg:w-auto ">
-            <Sidebar sidebarOpen={sidebarOpen} closeSidebar={() => setSidebarOpen(false)} />
-          </div>
-
-          {/* Main Gallery Section */}
-          <div className="flex-1 w-full lg:w-[90%] mx-auto p-5 lg:p-[30px] bg-gradient-to-br from-[#e6d29b] to-[#d8b56f]">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 lg:gap-[25px]">
-              {clients.map((client) => (
-                <div
-                  key={client.id}
-                  className="bg-white border border-[#b7b7b7] h-[150px] flex justify-center items-center shadow-md"
-                >
-                  <img
-                    src={`${BASE_URL}/uploads/mice/clients/${client.image_path}`}
-                    alt="Client"
-                    className="max-w-full max-h-[80%] object-contain"
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
+      <div className="flex flex-col lg:flex-row w-full gap-5 p-9">
+        {/* Sidebar */}
+        <div className="w-full lg:w-auto">
+          <Sidebar sidebarOpen={sidebarOpen} closeSidebar={() => setSidebarOpen(false)} />
         </div>
 
-        <Footer />
+        {/* Gallery */}
+        <div className="flex-1 p-5 bg-gradient-to-br from-[#e6d29b] to-[#d8b56f]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+            {clients.map((client) => (
+              <div
+                key={client.id}
+                className="bg-white rounded shadow-md hover:shadow-lg transition-shadow overflow-hidden"
+              >
+                <img
+                  src={`${BASE_URL}/uploads/mice/clients/${client.image_path}`}
+                  alt="Client"
+                  className="w-full h-64 object-cover"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
-    </>
+
+      <Footer />
+    </div>
   );
 };
 
