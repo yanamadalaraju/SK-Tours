@@ -11,7 +11,7 @@ import {
   MapPin,
   Loader2
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isBefore, startOfToday } from "date-fns";
 import { cn } from "@/lib/utils";
 import Header from '@/components/Header';
 import Footer from "@/components/Footer";
@@ -330,7 +330,7 @@ const TravellerSelector = ({
   );
 };
 
-// Date Selector
+// Date Selector - Single Month Calendar
 const DateSelector = ({ 
   label, 
   selectedDate, 
@@ -351,6 +351,7 @@ const DateSelector = ({
   onSelect?: () => void;
 }) => {
   const [open, setOpen] = useState(false);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -360,14 +361,36 @@ const DateSelector = ({
   }, [autoOpen, disabled]);
 
   const getCalendarDays = () => {
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    const firstDayOfMonth = new Date(year, month, 1);
+    const lastDayOfMonth = new Date(year, month + 1, 0);
+    const startingDayOfWeek = firstDayOfMonth.getDay();
+    
     const days = [];
-    const today = new Date();
-    for (let i = 0; i < 35; i++) {
-      const date = new Date(today);
-      date.setDate(today.getDate() + i);
-      days.push(date);
+    // Add padding for previous month days
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      days.push(null);
+    }
+    // Add current month days
+    for (let i = 1; i <= lastDayOfMonth.getDate(); i++) {
+      days.push(new Date(year, month, i));
     }
     return days;
+  };
+
+  const handlePrevMonth = () => {
+    setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+  };
+
+  const handleNextMonth = () => {
+    setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+  };
+
+  const isDateDisabled = (date: Date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return date < today || (minDate && date < minDate);
   };
 
   useEffect(() => {
@@ -380,6 +403,9 @@ const DateSelector = ({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [onClose]);
+
+  const calendarDays = getCalendarDays();
+  const weekDays = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
   return (
     <div className="relative h-full" ref={dropdownRef}>
@@ -419,41 +445,63 @@ const DateSelector = ({
 
       {open && (
         <div className="fixed md:absolute top-full left-0 mt-2 bg-white border border-gray-200 shadow-xl rounded-lg z-[100] p-4 min-w-[300px]">
-          <div className="grid grid-cols-7 gap-1 text-center mb-2">
-            {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map(day => (
+          {/* Month Navigation */}
+          <div className="flex items-center justify-between mb-4 px-2">
+            <button
+              onClick={handlePrevMonth}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            >
+              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <span className="font-semibold text-gray-900">
+              {format(currentMonth, "MMMM yyyy")}
+            </span>
+            <button
+              onClick={handleNextMonth}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            >
+              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Calendar Grid */}
+          <div className="grid grid-cols-7 gap-1 text-center">
+            {weekDays.map(day => (
               <div key={day} className="text-xs text-gray-500 py-1">{day}</div>
             ))}
-            {getCalendarDays().map((date, i) => {
-              const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString();
-              const isPast = date < new Date(new Date().setHours(0,0,0,0));
-              return (
-                <button
-                  key={i}
-                  onClick={() => {
+            {calendarDays.map((date, i) => (
+              <button
+                key={i}
+                onClick={() => {
+                  if (date && !isDateDisabled(date)) {
                     onDateSelect(date);
                     setOpen(false);
                     if (onSelect) onSelect();
                     if (onClose) onClose();
-                  }}
-                  disabled={isPast || (minDate && date < minDate)}
-                  className={cn(
-                    "w-9 h-9 rounded-full text-sm transition-colors",
-                    isSelected && "bg-blue-600 text-white font-medium",
-                    !isSelected && "hover:bg-gray-100",
-                    (isPast || (minDate && date < minDate)) && "opacity-40 cursor-not-allowed"
-                  )}
-                >
-                  {date.getDate()}
-                </button>
-              );
-            })}
+                  }
+                }}
+                disabled={!date || isDateDisabled(date)}
+                className={cn(
+                  "w-9 h-9 rounded-full text-sm transition-colors",
+                  !date && "invisible",
+                  date && selectedDate && date.toDateString() === selectedDate.toDateString() && "bg-blue-600 text-white font-medium",
+                  date && !selectedDate?.toDateString() && !isDateDisabled(date) && "hover:bg-gray-100",
+                  date && isDateDisabled(date) && "opacity-40 cursor-not-allowed"
+                )}
+              >
+                {date ? format(date, "d") : ""}
+              </button>
+            ))}
           </div>
         </div>
       )}
     </div>
   );
 };
-
 // City Selector
 const CitySelector = ({ 
   label, 
