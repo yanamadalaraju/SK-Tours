@@ -660,77 +660,87 @@ const FlightResults = ({ searchData, onBack, travellers }: { searchData: any; on
     mealsIncluded: false
   });
 
-  // Fetch flights from API
-  useEffect(() => {
-    const fetchFlights = async () => {
-      if (!searchData) return;
+useEffect(() => {
+  const fetchFlights = async () => {
+    if (!searchData) return;
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const response = await fetch(`${BASE_URL}/api/offline-flights`);
+      const result = await response.json();
       
-      setLoading(true);
-      setError(null);
-      
-      try {
-        const response = await fetch(`${BASE_URL}/offline-flights`);
-        const result = await response.json();
+      if (result.success && result.data) {
+        // FIX: Convert searchData tripType to match API format
+        const searchTripType = searchData.tripType === 'one-way' ? 'oneWay' : 'roundTrip';
         
-        if (result.success && result.data) {
-          const filteredFlights = result.data.filter((flight: Flight) => {
-            const fromCityMatch = !searchData.fromCity || 
-              flight.from_city?.toLowerCase() === searchData.fromCity?.name?.toLowerCase();
-            const toCityMatch = !searchData.toCity || 
-              flight.to_city?.toLowerCase() === searchData.toCity?.name?.toLowerCase();
-            
-            const flightDepartureDate = flight.departure_date ? new Date(flight.departure_date) : null;
-            const searchDepartureDate = searchData.departureDate;
-            
-            let dateMatch = true;
-            if (flightDepartureDate && searchDepartureDate) {
-              const flightDateStr = format(flightDepartureDate, 'yyyy-MM-dd');
-              const searchDateStr = format(searchDepartureDate, 'yyyy-MM-dd');
-              dateMatch = flightDateStr === searchDateStr;
-            }
-
-            const searchTripType = searchData.tripType === 'one-way' ? 'oneWay' : 'roundTrip';
-            const bookingTypeMatch = flight.booking_type === searchTripType;
-
-            if (searchTripType === 'roundTrip' && searchData.returnDate && flight.return_date) {
+        const filteredFlights = result.data.filter((flight: Flight) => {
+          // City matches - FIX: Use direct comparison
+          const fromCityMatch = flight.from_city?.toLowerCase() === searchData.fromCity?.name?.toLowerCase();
+          const toCityMatch = flight.to_city?.toLowerCase() === searchData.toCity?.name?.toLowerCase();
+          
+          // Date match for departure
+          const flightDepartureDate = flight.departure_date ? new Date(flight.departure_date) : null;
+          const searchDepartureDate = searchData.departureDate;
+          
+          let dateMatch = false;
+          if (flightDepartureDate && searchDepartureDate) {
+            const flightDateStr = format(flightDepartureDate, 'yyyy-MM-dd');
+            const searchDateStr = format(searchDepartureDate, 'yyyy-MM-dd');
+            dateMatch = flightDateStr === searchDateStr;
+          }
+          
+          // FIX: Booking type match - compare with API format
+          const bookingTypeMatch = flight.booking_type === searchTripType;
+          
+          // For round trip, also check return date
+          let returnDateMatch = true;
+          if (searchTripType === 'roundTrip' && searchData.returnDate) {
+            if (flight.return_date) {
               const flightReturnDate = new Date(flight.return_date);
               const searchReturnDate = searchData.returnDate;
               const flightReturnDateStr = format(flightReturnDate, 'yyyy-MM-dd');
               const searchReturnDateStr = format(searchReturnDate, 'yyyy-MM-dd');
-              return fromCityMatch && toCityMatch && dateMatch && bookingTypeMatch && flightReturnDateStr === searchReturnDateStr;
+              returnDateMatch = flightReturnDateStr === searchReturnDateStr;
+            } else {
+              returnDateMatch = false;
             }
-            
-            return fromCityMatch && toCityMatch && dateMatch && bookingTypeMatch;
-          });
+          }
           
-          setFlights(filteredFlights);
-          setFilteredFlights(filteredFlights);
-          
-          // Initialize airline filters
-          const airlineFilters: Record<string, boolean> = {};
-          filteredFlights.forEach((flight: Flight) => {
-            if (!airlineFilters[flight.airline]) {
-              airlineFilters[flight.airline] = true;
-            }
-          });
-          setFilters(prev => ({ ...prev, airlines: airlineFilters }));
-          
-          // Set max price range
+          return fromCityMatch && toCityMatch && dateMatch && bookingTypeMatch && returnDateMatch;
+        });
+        
+        setFlights(filteredFlights);
+        setFilteredFlights(filteredFlights);
+        
+        // Initialize airline filters
+        const airlineFilters: Record<string, boolean> = {};
+        filteredFlights.forEach((flight: Flight) => {
+          if (flight.airline && !airlineFilters[flight.airline]) {
+            airlineFilters[flight.airline] = true;
+          }
+        });
+        setFilters(prev => ({ ...prev, airlines: airlineFilters }));
+        
+        // Set max price range
+        if (filteredFlights.length > 0) {
           const maxPrice = Math.max(...filteredFlights.map(f => parseFloat(f.price_per_adult)));
           setFilters(prev => ({ ...prev, priceRange: { ...prev.priceRange, max: maxPrice } }));
-        } else {
-          setError('No flights found');
         }
-      } catch (err) {
-        console.error('Error fetching flights:', err);
-        setError('Failed to fetch flights. Please try again.');
-      } finally {
-        setLoading(false);
+      } else {
+        setError('No flights found');
       }
-    };
+    } catch (err) {
+      console.error('Error fetching flights:', err);
+      setError('Failed to fetch flights. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchFlights();
-  }, [searchData]);
+  fetchFlights();
+}, [searchData]);;
 
   // Apply filters and sorting
   useEffect(() => {

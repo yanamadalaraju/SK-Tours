@@ -1037,7 +1037,7 @@ const HotelSearchMain = () => {
     setLoading(true);
     setError('');
     try {
-      const response = await axios.get(`${BASE_URL}/offline-hotels`);
+      const response = await axios.get(`${BASE_URL}/api/offline-hotels`);
       if (response.data.success) {
         setHotels(response.data.data);
         setFilteredHotels(response.data.data);
