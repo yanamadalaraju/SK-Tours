@@ -1,4 +1,5 @@
 import { useState, ChangeEvent, FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import Gatewaycheckbox from "../Gatewaycheckbox/Gatewaycheckbox";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -27,18 +28,20 @@ interface WeekendFormData {
   no_of_adults: string;
   no_of_rooms: string;
   no_of_child: string;
-  type: string;  // Added type field
+  type: string;
 }
 
 const WeekendForm: React.FC = () => {
+  const navigate = useNavigate();
   const [numChildren, setNumChildren] = useState<number>(0);
   const [numAdults, setNumAdults] = useState<number>(1);
-    const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   
   const [childrenData, setChildrenData] = useState<PersonData[]>([]);
-const [adultsData, setAdultsData] = useState<PersonData[]>([
-  { name: "", age: "", cell: "", email: "" }
-]);
+  const [adultsData, setAdultsData] = useState<PersonData[]>([
+    { name: "", age: "", cell: "", email: "" }
+  ]);
+  
   const [formData, setFormData] = useState<WeekendFormData>({
     property_name: "",
     city: "",
@@ -53,7 +56,7 @@ const [adultsData, setAdultsData] = useState<PersonData[]>([
     no_of_adults: "",
     no_of_rooms: "",
     no_of_child: "",
-    type: "weekend",  // Set default type as "weekend"
+    type: "weekend",
   });
 
   const handleMainChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -74,7 +77,6 @@ const [adultsData, setAdultsData] = useState<PersonData[]>([
     while (data.length > value) data.pop();
     setChildrenData(data);
     
-    // Update form data
     setFormData((prev) => ({
       ...prev,
       no_of_child: value.toString()
@@ -91,7 +93,6 @@ const [adultsData, setAdultsData] = useState<PersonData[]>([
     while (data.length > value) data.pop();
     setAdultsData(data);
     
-    // Update form data
     setFormData((prev) => ({
       ...prev,
       no_of_adults: value.toString()
@@ -120,9 +121,9 @@ const [adultsData, setAdultsData] = useState<PersonData[]>([
 
   const handleReset = () => {
     setNumChildren(0);
-setNumAdults(1);
-setAdultsData([{ name: "", age: "", cell: "", email: "" }]);
-    setAdultsData([]);
+    setNumAdults(1);
+    setAdultsData([{ name: "", age: "", cell: "", email: "" }]);
+    setChildrenData([]);
     setFormData({
       property_name: "",
       city: "",
@@ -141,57 +142,146 @@ setAdultsData([{ name: "", age: "", cell: "", email: "" }]);
     });
   };
 
- const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
+  // Handle Book button click - navigate to checkout
+  const handleBookClick = () => {
+    // Validate required fields before proceeding to checkout
+    if (!formData.property_name) {
+      alert("Please enter the property name");
+      return;
+    }
+    if (!formData.city) {
+      alert("Please enter the city");
+      return;
+    }
+    if (!formData.person_name) {
+      alert("Please enter person name");
+      return;
+    }
+    if (!formData.cell_no) {
+      alert("Please enter cell number");
+      return;
+    }
+    if (!formData.no_of_rooms) {
+      alert("Please enter number of rooms");
+      return;
+    }
+    
+    // Validate at least one adult has name and age
+    const hasValidAdult = adultsData.some(person => person.name && person.age);
+    if (!hasValidAdult) {
+      alert("Please enter at least one adult with name and age");
+      return;
+    }
 
-  try {    
-    const payload = {
-      bungalow_code: formData.property_name,  
+    // Calculate total number of people
+    const totalPeople = numAdults + numChildren;
+    
+    // Combine all guests
+    const allGuests = [
+      ...adultsData.map((person, idx) => ({
+        name: person.name,
+        age: person.age,
+        cell: person.cell,
+        email: person.email,
+        type: 'adult'
+      })),
+      ...childrenData.map((person, idx) => ({
+        name: person.name,
+        age: person.age,
+        cell: person.cell,
+        email: person.email,
+        type: 'child'
+      }))
+    ];
+
+    // Calculate price based on number of rooms and adults
+    // Base price per room per night (example pricing)
+    const basePricePerRoom = 3500;
+    const totalPrice = parseInt(formData.no_of_rooms) * basePricePerRoom;
+
+    // Prepare Weekend Gateway data for checkout
+    const weekendData = {
+      id: formData.property_name.replace(/\s/g, '_').toLowerCase(),
+      code: `WG${Date.now()}`,
+      title: `Weekend Gateway at ${formData.property_name}`,
+      property_name: formData.property_name,
       city: formData.city,
-      contact_person: formData.person_name,   
+      address: formData.address,
+      city_location: formData.city_location,
+      state: formData.state,
+      country: formData.country || "India",
+      pin_code: formData.pin_code,
+      contact_person: formData.person_name,
       cell_no: formData.cell_no,
       email_id: formData.email_id,
-      address: formData.address,
-      pin_code: formData.pin_code,
-      state: formData.state,
-      country: formData.country,
-      no_of_adults: numAdults.toString(), 
-      no_of_child: numChildren.toString(), 
-      no_of_rooms: formData.no_of_rooms, 
-      city_location: formData.city_location,
-      type: formData.type,  
-      guests: [
-        ...adultsData.map((person) => ({
-          name: person.name,
-          age: person.age,
-          cell_no: person.cell || null,
-          email_id: person.email || null,
-          guest_type: 'adult'
-        })),
-        ...childrenData.map((person) => ({
-          name: person.name,
-          age: person.age,
-          cell_no: person.cell || null,
-          email_id: person.email || null,
-          guest_type: 'child'
-        }))
-      ]
+      no_of_adults: numAdults,
+      no_of_children: numChildren,
+      no_of_rooms: parseInt(formData.no_of_rooms),
+      total_people: totalPeople,
+      guests: allGuests,
+      type: "weekend",
+      total_price_value: totalPrice,
+      price_per_room: basePricePerRoom
     };
 
+    // Save to localStorage for checkout page to access
+    localStorage.setItem("selectedWeekend", JSON.stringify(weekendData));
+    
+    // Navigate to checkout page
+    navigate("/checkout-weekend", { state: { weekend: weekendData } });
+  };
 
-    const response = await axios.post(
-      `${BASE_URL}/api/bungalows/weekend-gateways/bookings`,
-      payload
-    );
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
-    alert("Weekend booking submitted successfully!");
-    console.log(response.data);
-    handleReset();
-  } catch (error: any) {
-    console.error("Error submitting form:", error);
-    alert(error.response?.data?.error || "Something went wrong");
-  }
-};
+    try {    
+      const payload = {
+        bungalow_code: formData.property_name,  
+        city: formData.city,
+        contact_person: formData.person_name,   
+        cell_no: formData.cell_no,
+        email_id: formData.email_id,
+        address: formData.address,
+        pin_code: formData.pin_code,
+        state: formData.state,
+        country: formData.country,
+        no_of_adults: numAdults.toString(), 
+        no_of_child: numChildren.toString(), 
+        no_of_rooms: formData.no_of_rooms, 
+        city_location: formData.city_location,
+        type: formData.type,  
+        guests: [
+          ...adultsData.map((person) => ({
+            name: person.name,
+            age: person.age,
+            cell_no: person.cell || null,
+            email_id: person.email || null,
+            guest_type: 'adult'
+          })),
+          ...childrenData.map((person) => ({
+            name: person.name,
+            age: person.age,
+            cell_no: person.cell || null,
+            email_id: person.email || null,
+            guest_type: 'child'
+          }))
+        ]
+      };
+
+      const response = await axios.post(
+        `${BASE_URL}/api/bungalows/weekend-gateways/bookings`,
+        payload
+      );
+
+      alert("Weekend booking submitted successfully!");
+      console.log(response.data);
+      handleReset();
+    } catch (error: any) {
+      console.error("Error submitting form:", error);
+      alert(error.response?.data?.error || "Something went wrong");
+    }
+  };
+  
   return (
     <>
       <Header />
@@ -204,7 +294,6 @@ setAdultsData([{ name: "", age: "", cell: "", email: "" }]);
         {/* Horizontal Checkbox Section for Tablet/Mobile */}
         <div className="block md:hidden w-full px-1 md:px-5 mb-5 box-border">
          <Gatewaycheckbox sidebarOpen={sidebarOpen} closeSidebar={() => setSidebarOpen(false)} />
-
         </div>
 
         <div className="flex flex-col md:flex-row gap-4 md:gap-5 p-4 md:p-5 mx-auto">
@@ -623,32 +712,32 @@ setAdultsData([{ name: "", age: "", cell: "", email: "" }]);
 
                 {/* Action Buttons */}
                 <div className="flex flex-col md:flex-row justify-center gap-2.5 mt-4">
-  
-  {/* Reset → Blue (changed from green) */}
-  <button
-    type="button"
-    onClick={handleReset}
-    className="bg-blue-600 hover:bg-blue-700 text-white px-7 py-2 w-full md:w-auto"
-  >
-    Reset
-  </button>
+                  {/* Reset - Blue */}
+                  <button
+                    type="button"
+                    onClick={handleReset}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-7 py-2 w-full md:w-auto"
+                  >
+                    Reset
+                  </button>
 
-  {/* Submit → Green (changed from red) */}
-  <button
-    type="submit"
-    className="bg-green-600 hover:bg-green-700 text-white px-7 py-2 w-full md:w-auto"
-  >
-    Submit
-  </button>
+                  {/* Submit - Green (Save to database) */}
+                  <button
+                    type="submit"
+                    className="bg-green-600 hover:bg-green-700 text-white px-7 py-2 w-full md:w-auto"
+                  >
+                    Submit
+                  </button>
 
-  {/* Book → Red (new button added) */}
-  <button
-    type="button"
-    className="bg-red-600 hover:bg-red-700 text-white px-7 py-2 w-full md:w-auto"
-  >
-    Book
-  </button>
-</div>
+                  {/* Book - Red (Navigate to Checkout) */}
+                  <button
+                    type="button"
+                    onClick={handleBookClick}
+                    className="bg-red-600 hover:bg-red-700 text-white px-7 py-2 w-full md:w-auto"
+                  >
+                    Book
+                  </button>
+                </div>
               </form>
             </div>
           </div>

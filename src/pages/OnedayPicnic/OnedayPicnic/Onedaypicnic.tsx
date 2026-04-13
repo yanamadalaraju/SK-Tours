@@ -1,4 +1,5 @@
 import { useState, ChangeEvent, FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import Bunglowcheckbox from "../Onedaypicnic_checkbox/Onedaypicnic_checkbox";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
@@ -13,6 +14,7 @@ interface PersonData {
 }
 
 const Onedaypicnic: React.FC = () => {
+  const navigate = useNavigate();
   const [numPeople, setNumPeople] = useState<number>(1);
 
   const [peopleData, setPeopleData] = useState<PersonData[]>([
@@ -29,7 +31,7 @@ const Onedaypicnic: React.FC = () => {
     pin_code: "",
     state: "",
     country: "",
-    type: "onedaypicnic", // Added type field with default value
+    type: "onedaypicnic",
   });
 
   const handleMainChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -81,6 +83,60 @@ const Onedaypicnic: React.FC = () => {
     });
   };
 
+  // Handle Book button click - navigate to checkout
+  const handleBookClick = () => {
+    // Validate required fields before proceeding to checkout
+    if (!formData.city) {
+      alert("Please enter the city name");
+      return;
+    }
+    if (!formData.bungalow_code) {
+      alert("Please enter the bungalow number");
+      return;
+    }
+    if (!formData.contact_person) {
+      alert("Please enter contact person name");
+      return;
+    }
+    if (!formData.cell_no) {
+      alert("Please enter cell number");
+      return;
+    }
+    
+    // Validate at least one guest has name and age
+    const hasValidGuest = peopleData.some(person => person.name && person.age);
+    if (!hasValidGuest) {
+      alert("Please enter at least one guest with name and age");
+      return;
+    }
+
+    // Prepare One Day Picnic data for checkout
+    const picnicData = {
+      id: formData.bungalow_code,
+      code: formData.bungalow_code,
+      title: `One Day Picnic at ${formData.city} - Bungalow ${formData.bungalow_code}`,
+      city: formData.city,
+      address: formData.address,
+      state: formData.state,
+      country: formData.country || "India",
+      pin_code: formData.pin_code,
+      contact_person: formData.contact_person,
+      cell_no: formData.cell_no,
+      email_id: formData.email_id,
+      no_of_people: numPeople,
+      guests: peopleData,
+      type: "onedaypicnic",
+      // Price for One Day Picnic (you can adjust this based on your pricing logic)
+      total_price_value: 2500, // Example price - replace with actual pricing logic
+    };
+
+    // Save to localStorage for checkout page to access
+    localStorage.setItem("selectedPicnic", JSON.stringify(picnicData));
+    
+    // Navigate to checkout page
+    navigate("/checkout-picnic", { state: { picnic: picnicData } });
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
@@ -96,7 +152,7 @@ const Onedaypicnic: React.FC = () => {
         state: formData.state,
         country: formData.country || "India",
         no_of_people: numPeople,
-        type: formData.type, // Include type field
+        type: formData.type,
         guests: peopleData.map((person) => ({
           name: person.name,
           age: person.age,
@@ -105,7 +161,7 @@ const Onedaypicnic: React.FC = () => {
         })),
       };
 
-      console.log("Submitting payload:", payload); // For debugging
+      console.log("Submitting payload:", payload);
 
       const response = await axios.post(
         `${BASE_URL}/api/bungalows/bookings`,
@@ -303,7 +359,7 @@ const Onedaypicnic: React.FC = () => {
                               handlePersonChange(idx, "name", e.target.value)
                             }
                             className="w-full px-3 py-2 h-[35px] border border-gray-400 rounded"
-                            required={idx === 0} // First person required
+                            required={idx === 0}
                           />
                         </td>
                         <td className="p-2 border-b border-gray-300">
@@ -314,7 +370,7 @@ const Onedaypicnic: React.FC = () => {
                               handlePersonChange(idx, "age", e.target.value)
                             }
                             className="w-full px-3 py-2 h-[35px] border border-gray-400 rounded"
-                            required={idx === 0} // First person required
+                            required={idx === 0}
                           />
                         </td>
                         <td className="p-2 border-b border-gray-300">
@@ -378,35 +434,34 @@ const Onedaypicnic: React.FC = () => {
                   ))}
                 </div>
 
-             {/* Buttons */}
-<div className="flex flex-col md:flex-row justify-center gap-2.5 mt-4">
-  
-  {/* Reset → Blue (changed from green) */}
-  <button
-    type="button"
-    onClick={handleReset}
-    className="bg-blue-600 hover:bg-blue-700 text-white px-7 py-2 w-full md:w-auto"
-  >
-    Reset
-  </button>
+                {/* Buttons */}
+                <div className="flex flex-col md:flex-row justify-center gap-2.5 mt-4">
+                  {/* Reset - Blue */}
+                  <button
+                    type="button"
+                    onClick={handleReset}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-7 py-2 w-full md:w-auto"
+                  >
+                    Reset
+                  </button>
 
-  {/* Submit → Green (changed from red) */}
-  <button
-    type="submit"
-    className="bg-green-600 hover:bg-green-700 text-white px-7 py-2 w-full md:w-auto"
-  >
-    Submit
-  </button>
+                  {/* Submit - Green (Save to database) */}
+                  <button
+                    type="submit"
+                    className="bg-green-600 hover:bg-green-700 text-white px-7 py-2 w-full md:w-auto"
+                  >
+                    Submit
+                  </button>
 
-  {/* Book → Red (new button added) */}
-  <button
-    type="button"
-    className="bg-red-600 hover:bg-red-700 text-white px-7 py-2 w-full md:w-auto"
-  >
-    Book
-  </button>
-
-</div>
+                  {/* Book - Red (Navigate to Checkout) */}
+                  <button
+                    type="button"
+                    onClick={handleBookClick}
+                    className="bg-red-600 hover:bg-red-700 text-white px-7 py-2 w-full md:w-auto"
+                  >
+                    Book
+                  </button>
+                </div>
               </form>
             </div>
           </div>
