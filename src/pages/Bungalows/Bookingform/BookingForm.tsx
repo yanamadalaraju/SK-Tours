@@ -1,9 +1,11 @@
 import { useState, ChangeEvent, FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import Bunglowcheckbox from "../Bungalow_checkbox/Bungalowcheckbox";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import axios from "axios";
 import { BASE_URL } from "@/ApiUrls";
+
 interface PersonData {
   name: string;
   age: string;
@@ -12,8 +14,9 @@ interface PersonData {
 }
 
 const BookingForm: React.FC = () => {
+  const navigate = useNavigate();
   const [numPeople, setNumPeople] = useState<number>(1);
-    const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [peopleData, setPeopleData] = useState<PersonData[]>([
     { name: "", age: "", cell: "", email: "" },
@@ -79,6 +82,57 @@ const BookingForm: React.FC = () => {
     });
   };
 
+  // Handle Book button click - navigate to checkout
+  const handleBookClick = () => {
+    // Validate required fields before proceeding to checkout
+    if (!formData.city) {
+      alert("Please enter the city name");
+      return;
+    }
+    if (!formData.bungalow_code) {
+      alert("Please enter the bungalow number");
+      return;
+    }
+    if (!formData.contact_person) {
+      alert("Please enter contact person name");
+      return;
+    }
+    if (!formData.cell_no) {
+      alert("Please enter cell number");
+      return;
+    }
+    if (!formData.email_id) {
+      alert("Please enter email ID");
+      return;
+    }
+
+    // Prepare bungalow data for checkout
+    const bungalowData = {
+      id: formData.bungalow_code,
+      code: formData.bungalow_code,
+      title: `Bungalow ${formData.bungalow_code}`,
+      city: formData.city,
+      address: formData.address,
+      state: formData.state,
+      country: formData.country,
+      pin_code: formData.pin_code,
+      contact_person: formData.contact_person,
+      cell_no: formData.cell_no,
+      email_id: formData.email_id,
+      no_of_people: numPeople,
+      guests: peopleData,
+      type: "bungalow",
+      // You can add a price field here if you have pricing logic
+      total_price_value: 5000, // Example price - replace with actual pricing logic
+    };
+
+    // Save to localStorage for checkout page to access
+    localStorage.setItem("selectedBungalow", JSON.stringify(bungalowData));
+    
+    // Navigate to checkout page
+    navigate("/checkout-bungalow", { state: { bungalow: bungalowData } });
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
@@ -86,7 +140,7 @@ const BookingForm: React.FC = () => {
       const payload = {
         ...formData,
         no_of_people: numPeople,
-           type: "bungalow", 
+        type: "bungalow",
         guests: peopleData.map((person) => ({
           name: person.name,
           age: person.age,
@@ -152,8 +206,13 @@ const BookingForm: React.FC = () => {
                     Bungalow No
                   </label>
                 <input
+<<<<<<< HEAD
   type="text"
   name="bungalow_code"  
+=======
+  type="number"
+  name="bungalow_code"
+>>>>>>> 8f5ac0aa4b8e888e7b8418e1abde98a9c1f5a4e4
   value={formData.bungalow_code}
   onChange={handleMainChange}
   className="flex-1 px-2.5 py-1.5 border border-gray-400 h-[35px]"
@@ -285,7 +344,7 @@ const BookingForm: React.FC = () => {
                             }
                             className="w-full px-3 py-2 h-[35px] border border-gray-400 rounded"
                           />
-                        </td>
+                         </td>
                         <td className="p-2 border-b border-gray-300">
                           <input
                             type="number"
@@ -295,7 +354,7 @@ const BookingForm: React.FC = () => {
                             }
                             className="w-full px-3 py-2 h-[35px] border border-gray-400 rounded"
                           />
-                        </td>
+                         </td>
                         <td className="p-2 border-b border-gray-300">
                           <input
                             type="number"
@@ -305,7 +364,7 @@ const BookingForm: React.FC = () => {
                             }
                             className="w-full px-3 py-2 h-[35px] border border-gray-400 rounded"
                           />
-                        </td>
+                         </td>
                         <td className="p-2 border-b border-gray-300">
                           <input
                             type="email"
@@ -315,8 +374,8 @@ const BookingForm: React.FC = () => {
                             }
                             className="w-full px-3 py-2 h-[35px] border border-gray-400 rounded"
                           />
-                        </td>
-                      </tr>
+                         </td>
+                       </tr>
                     ))}
                   </tbody>
                 </table>
@@ -356,35 +415,34 @@ const BookingForm: React.FC = () => {
                   ))}
                 </div>
 
-            {/* Buttons */}
-<div className="flex flex-col md:flex-row justify-center gap-2.5 mt-4">
-  
-  {/* Reset - Blue */}
-  <button
-    type="button"
-    onClick={handleReset}
-    className="bg-blue-600 hover:bg-blue-700 text-white px-7 py-2 w-full md:w-auto"
-  >
-    Reset
-  </button>
+                {/* Buttons */}
+                <div className="flex flex-col md:flex-row justify-center gap-2.5 mt-4">
+                  {/* Reset - Blue */}
+                  <button
+                    type="button"
+                    onClick={handleReset}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-7 py-2 w-full md:w-auto"
+                  >
+                    Reset
+                  </button>
 
-  {/* Submit - Green */}
-  <button
-    type="submit"
-    className="bg-green-600 hover:bg-green-700 text-white px-7 py-2 w-full md:w-auto"
-  >
-    Submit
-  </button>
+                  {/* Submit - Green (Save to database) */}
+                  <button
+                    type="submit"
+                    className="bg-green-600 hover:bg-green-700 text-white px-7 py-2 w-full md:w-auto"
+                  >
+                    Submit
+                  </button>
 
-  {/* Book - Red */}
-  <button
-    type="button"
-    className="bg-red-600 hover:bg-red-700 text-white px-7 py-2 w-full md:w-auto"
-  >
-    Book
-  </button>
-
-</div>
+                  {/* Book - Red (Navigate to Checkout) */}
+                  <button
+                    type="button"
+                    onClick={handleBookClick}
+                    className="bg-red-600 hover:bg-red-700 text-white px-7 py-2 w-full md:w-auto"
+                  >
+                    Book
+                  </button>
+                </div>
               </form>
             </div>
           </div>

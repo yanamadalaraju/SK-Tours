@@ -114,6 +114,9 @@ import Agentlogin from "./pages/Agent/Agentlogin";
 import Agentsignup from "./pages/Agent/Agentsignup";
 import CheckoutExhibition from "./pages/Exhibition/CheckoutPageExhibition";
 import CheckoutMice from './pages/MICS/CheckoutMice';
+import CheckoutPageBungalow from "./pages/Bungalows/Bookingform/CheckoutPageBungalow";
+import CheckoutPagePicnic from "./pages/OnedayPicnic/OnedayPicnic/CheckoutPagePicnic";
+import CheckoutPageWeekend from "./pages/Weekend_Gateway/WeekendForm/CheckoutPageWeekend";
 
 
 const queryClient = new QueryClient();
@@ -139,6 +142,10 @@ const App = () => (
 
             <Route path="/checkout-exhibition" element={<CheckoutExhibition />} />
             <Route path="/checkout-mice" element={<CheckoutMice />} />
+
+            <Route path="/checkout-bungalow" element={<CheckoutPageBungalow />} />
+            <Route path="/checkout-picnic" element={<CheckoutPagePicnic />} />
+            <Route path="/checkout-weekend" element={<CheckoutPageWeekend />} />
 
           <Route path="/payment-result" element={<PaymentResult />} />
           <Route path="/about" element={<AboutPage />} />

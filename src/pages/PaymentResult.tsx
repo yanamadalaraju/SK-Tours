@@ -66,13 +66,15 @@ const PaymentResult = () => {
             if (checkoutRes.data.success) {
               setCheckoutData(checkoutRes.data.checkout);
               // Determine booking source from checkout data
-              setBookingSource(checkoutRes.data.checkout.source || 'tours');
+              const source = checkoutRes.data.checkout.source || 'tours';
+              setBookingSource(source);
             }
             
             // Save payment success to localStorage based on source
             if (res.data.status === 'SUCCESS') {
               const source = checkoutRes.data?.checkout?.source || 'tours';
               
+              // Handle all booking sources
               if (source === 'tours') {
                 const bookingData = JSON.parse(localStorage.getItem('currentBooking') || '{}');
                 bookingData.payment_status = 'success';
@@ -85,6 +87,18 @@ const PaymentResult = () => {
                 const bookingData = JSON.parse(localStorage.getItem('currentHotelBooking') || '{}');
                 bookingData.payment_status = 'success';
                 localStorage.setItem('currentHotelBooking', JSON.stringify(bookingData));
+              } else if (source === 'bungalows') {
+                const bookingData = JSON.parse(localStorage.getItem('currentBungalowBooking') || '{}');
+                bookingData.payment_status = 'success';
+                localStorage.setItem('currentBungalowBooking', JSON.stringify(bookingData));
+              } else if (source === 'onedaypicnic') {
+                const bookingData = JSON.parse(localStorage.getItem('currentPicnicBooking') || '{}');
+                bookingData.payment_status = 'success';
+                localStorage.setItem('currentPicnicBooking', JSON.stringify(bookingData));
+              } else if (source === 'weekend') {
+                const bookingData = JSON.parse(localStorage.getItem('currentWeekendBooking') || '{}');
+                bookingData.payment_status = 'success';
+                localStorage.setItem('currentWeekendBooking', JSON.stringify(bookingData));
               }
             }
             
@@ -121,12 +135,35 @@ const PaymentResult = () => {
     return `₹${parseFloat(price).toLocaleString('en-IN')}`;
   };
 
-  // Get booking type display name
+  // Get booking type display name based on source
   const getBookingTypeDisplay = () => {
     switch(bookingSource) {
       case 'flights': return 'Flight';
       case 'hotels': return 'Hotel';
+      case 'bungalows': return 'Bungalow';
+      case 'onedaypicnic': return 'One Day Picnic';
+      case 'weekend': return 'Weekend Gateway';
       default: return 'Tour';
+    }
+  };
+
+  // Get title field name based on source
+  const getTitleField = () => {
+    switch(bookingSource) {
+      case 'bungalows': return checkoutData?.bungalow_title || checkoutData?.tour_title;
+      case 'onedaypicnic': return checkoutData?.picnic_title || checkoutData?.tour_title;
+      case 'weekend': return checkoutData?.property_name || checkoutData?.weekend_title || checkoutData?.tour_title;
+      default: return checkoutData?.tour_title;
+    }
+  };
+
+  // Get code field name based on source
+  const getCodeField = () => {
+    switch(bookingSource) {
+      case 'bungalows': return checkoutData?.bungalow_code || checkoutData?.tour_code;
+      case 'onedaypicnic': return checkoutData?.picnic_code || checkoutData?.tour_code;
+      case 'weekend': return checkoutData?.weekend_code || checkoutData?.tour_code;
+      default: return checkoutData?.tour_code;
     }
   };
 
@@ -135,6 +172,9 @@ const PaymentResult = () => {
     switch(bookingSource) {
       case 'flights': return '/my-flight-bookings';
       case 'hotels': return '/my-hotel-bookings';
+      case 'bungalows': return '/my-bungalow-bookings';
+      case 'onedaypicnic': return '/my-picnic-bookings';
+      case 'weekend': return '/my-weekend-bookings';
       default: return '/my-bookings';
     }
   };
@@ -144,6 +184,9 @@ const PaymentResult = () => {
     switch(bookingSource) {
       case 'flights': return '/flights';
       case 'hotels': return '/hotels';
+      case 'bungalows': return '/bungalows';
+      case 'onedaypicnic': return '/oneday-picnic';
+      case 'weekend': return '/weekend-gateway';
       default: return '/';
     }
   };
@@ -153,6 +196,9 @@ const PaymentResult = () => {
     switch(bookingSource) {
       case 'flights': return 'Browse More Flights';
       case 'hotels': return 'Browse More Hotels';
+      case 'bungalows': return 'Browse More Bungalows';
+      case 'onedaypicnic': return 'Browse More Picnics';
+      case 'weekend': return 'Browse More Weekend Gateways';
       default: return 'Browse More Tours';
     }
   };
@@ -210,6 +256,69 @@ const PaymentResult = () => {
             </li>
           </ul>
         );
+      case 'bungalows':
+        return (
+          <ul className="space-y-2 text-green-700">
+            <li className="flex items-start gap-2">
+              <span className="mt-1">•</span>
+              <span>Your bungalow booking is now <strong>confirmed</strong> with advance payment</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="mt-1">•</span>
+              <span>You will receive a confirmation email with booking details</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="mt-1">•</span>
+              <span>Our property manager will contact you within 24 hours</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="mt-1">•</span>
+              <span>The <strong>balance amount must be paid before check-in</strong></span>
+            </li>
+          </ul>
+        );
+      case 'onedaypicnic':
+        return (
+          <ul className="space-y-2 text-green-700">
+            <li className="flex items-start gap-2">
+              <span className="mt-1">•</span>
+              <span>Your picnic booking is now <strong>confirmed</strong> with advance payment</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="mt-1">•</span>
+              <span>You will receive a confirmation email with picnic details</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="mt-1">•</span>
+              <span>Our picnic coordinator will contact you within 24 hours</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="mt-1">•</span>
+              <span>The <strong>balance amount must be paid before the picnic date</strong></span>
+            </li>
+          </ul>
+        );
+      case 'weekend':
+        return (
+          <ul className="space-y-2 text-green-700">
+            <li className="flex items-start gap-2">
+              <span className="mt-1">•</span>
+              <span>Your weekend gateway booking is now <strong>confirmed</strong> with advance payment</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="mt-1">•</span>
+              <span>You will receive a confirmation email with property details</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="mt-1">•</span>
+              <span>Our property manager will contact you within 24 hours</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="mt-1">•</span>
+              <span>The <strong>balance amount must be paid before check-in</strong></span>
+            </li>
+          </ul>
+        );
       default:
         return (
           <ul className="space-y-2 text-green-700">
@@ -236,53 +345,21 @@ const PaymentResult = () => {
 
   // Get failure content based on source
   const getFailureContent = () => {
-    switch(bookingSource) {
-      case 'flights':
-        return (
-          <div className="mt-8 p-6 bg-red-50 rounded-xl border border-red-200">
-            <h3 className="font-semibold text-red-800 mb-3">What Went Wrong?</h3>
-            <ul className="space-y-2 text-red-700">
-              <li>• Payment was declined by your bank or payment method</li>
-              <li>• Insufficient funds in your account</li>
-              <li>• Technical error during payment processing</li>
-              <li>• Payment timeout or cancellation</li>
-            </ul>
-            <p className="mt-4 text-red-700">
-              Your flight booking is <strong>not confirmed</strong>. Please try again or contact support.
-            </p>
-          </div>
-        );
-      case 'hotels':
-        return (
-          <div className="mt-8 p-6 bg-red-50 rounded-xl border border-red-200">
-            <h3 className="font-semibold text-red-800 mb-3">What Went Wrong?</h3>
-            <ul className="space-y-2 text-red-700">
-              <li>• Payment was declined by your bank or payment method</li>
-              <li>• Insufficient funds in your account</li>
-              <li>• Technical error during payment processing</li>
-              <li>• Payment timeout or cancellation</li>
-            </ul>
-            <p className="mt-4 text-red-700">
-              Your hotel booking is <strong>not confirmed</strong>. Please try again or contact support.
-            </p>
-          </div>
-        );
-      default:
-        return (
-          <div className="mt-8 p-6 bg-red-50 rounded-xl border border-red-200">
-            <h3 className="font-semibold text-red-800 mb-3">What Went Wrong?</h3>
-            <ul className="space-y-2 text-red-700">
-              <li>• Payment was declined by your bank or payment method</li>
-              <li>• Insufficient funds in your account</li>
-              <li>• Technical error during payment processing</li>
-              <li>• Payment timeout or cancellation</li>
-            </ul>
-            <p className="mt-4 text-red-700">
-              Your booking is <strong>not confirmed</strong>. Please try again or contact support.
-            </p>
-          </div>
-        );
-    }
+    const bookingType = getBookingTypeDisplay();
+    return (
+      <div className="mt-8 p-6 bg-red-50 rounded-xl border border-red-200">
+        <h3 className="font-semibold text-red-800 mb-3">What Went Wrong?</h3>
+        <ul className="space-y-2 text-red-700">
+          <li>• Payment was declined by your bank or payment method</li>
+          <li>• Insufficient funds in your account</li>
+          <li>• Technical error during payment processing</li>
+          <li>• Payment timeout or cancellation</li>
+        </ul>
+        <p className="mt-4 text-red-700">
+          Your {bookingType.toLowerCase()} booking is <strong>not confirmed</strong>. Please try again or contact support.
+        </p>
+      </div>
+    );
   };
 
   if (loading) {
@@ -391,11 +468,17 @@ const PaymentResult = () => {
                     <div className="space-y-3">
                       <div className="flex justify-between py-3 border-b">
                         <span className="text-gray-600">Booking ID</span>
-                        <span className="font-semibold text-gray-800">{checkoutData.tour_code}</span>
+                        <span className="font-semibold text-gray-800">{getCodeField() || 'N/A'}</span>
                       </div>
                       <div className="flex justify-between py-3 border-b">
                         <span className="text-gray-600">{getBookingTypeDisplay()} Name</span>
-                        <span className="font-semibold text-gray-800">{checkoutData.tour_title}</span>
+                        <span className="font-semibold text-gray-800">{getTitleField() || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between py-3 border-b">
+                        <span className="text-gray-600">Customer Name</span>
+                        <span className="font-semibold text-gray-800">
+                          {checkoutData.first_name} {checkoutData.last_name}
+                        </span>
                       </div>
                       <div className="flex justify-between py-3 border-b">
                         <span className="text-gray-600">Total Cost</span>
@@ -426,6 +509,39 @@ const PaymentResult = () => {
                           <p className="text-xs text-blue-600 mt-1">
                             Your higher advance payment reduces the balance amount to be paid later.
                           </p>
+                        </div>
+                      )}
+                      
+                      {/* Show room details for weekend bookings */}
+                      {bookingSource === 'weekend' && checkoutData.no_of_rooms && (
+                        <div className="mt-3 p-3 bg-purple-50 rounded-lg border border-purple-200">
+                          <div className="flex items-center gap-2 text-purple-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                            </svg>
+                            <span className="text-sm font-medium">
+                              {checkoutData.no_of_rooms} Room(s) Booked
+                            </span>
+                          </div>
+                          {checkoutData.price_per_room && (
+                            <p className="text-xs text-purple-600 mt-1">
+                              ₹{checkoutData.price_per_room} per room
+                            </p>
+                          )}
+                        </div>
+                      )}
+                      
+                      {/* Show guest count for bungalow/picnic bookings */}
+                      {(bookingSource === 'bungalows' || bookingSource === 'onedaypicnic') && checkoutData.no_of_people && (
+                        <div className="mt-3 p-3 bg-orange-50 rounded-lg border border-orange-200">
+                          <div className="flex items-center gap-2 text-orange-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
+                            <span className="text-sm font-medium">
+                              {checkoutData.no_of_people} Guest(s)
+                            </span>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -494,7 +610,12 @@ const PaymentResult = () => {
                 {isProcessing && (
                   <div className="text-center w-full">
                     <Button
-                      onClick={() => checkPhonePeStatus(orderId, "test")}
+                      onClick={() => {
+                        const params = new URLSearchParams(location.search);
+                        const merchantOrderId = params.get("orderId");
+                        const environment = params.get("environment") || "test";
+                        checkPhonePeStatus(merchantOrderId, environment);
+                      }}
                       className="bg-[#2E4D98] hover:bg-[#2E4D98]/90 px-8 py-6 text-lg"
                     >
                       Refresh Payment Status
