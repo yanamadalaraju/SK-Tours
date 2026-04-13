@@ -32,11 +32,7 @@ const Onedaypicnic: React.FC = () => {
     pin_code: "",
     state: "",
     country: "",
-<<<<<<< HEAD
-    type: "onedaypicnic",
-=======
     type: "onedaypicnic", 
->>>>>>> 8164c019f1143b5d8b38b57cbd689d2346db19dd
   });
 
   const handleMainChange = (e: ChangeEvent<HTMLInputElement>) => {

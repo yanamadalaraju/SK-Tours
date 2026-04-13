@@ -292,15 +292,9 @@ const WeekendForm: React.FC = () => {
     
       
 
-<<<<<<< HEAD
-        {/* Horizontal Checkbox Section for Tablet/Mobile */}
-        <div className="block md:hidden w-full px-1 md:px-5 mb-5 box-border">
-         <Gatewaycheckbox sidebarOpen={sidebarOpen} closeSidebar={() => setSidebarOpen(false)} />
-=======
    
         <div className="block md:hidden lg:hidden w-full px-4 md:px-5 mb-5 box-border">
           <Gatewaycheckbox   sidebarOpen={sidebarOpen} closeSidebar={() => setSidebarOpen(false)}/>
->>>>>>> 8164c019f1143b5d8b38b57cbd689d2346db19dd
         </div>
 
         <div className="flex flex-col lg:flex-row gap-1 lg:gap-1 p-4 lg:p-5 mx-auto">
