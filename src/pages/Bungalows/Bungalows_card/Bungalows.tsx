@@ -20,7 +20,8 @@ interface BungalowItem {
 const Bungalow: React.FC = () => {
   const navigate = useNavigate();
   const [bungalows, setBungalows] = useState<BungalowItem[]>([]);
-  
+  // Add this state at the top with other states
+const [sidebarOpen, setSidebarOpen] = useState(false);
   // Filter states
   const [priceRange, setPriceRange] = useState([0, 200000]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -335,6 +336,8 @@ const Bungalow: React.FC = () => {
                 </div>
               )}
             </main>
+
+            
           </div>
         </div>
       </div>

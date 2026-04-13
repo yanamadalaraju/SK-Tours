@@ -166,22 +166,23 @@ const BookingForm: React.FC = () => {
   return (
     <>
       <Header />
-      <div className="font-sans min-h-screen">
-        <div className="bg-[#001f54] text-white font-bold text-2xl md:text-3xl lg:text-4xl py-5 px-4 text-center mb-4 w-full">
+       <div className="bg-[#001f54] text-white font-bold text-2xl md:text-3xl lg:text-4xl py-5 px-4 text-center mb-4 w-full">
           Bungalow Booking
         </div>
+      <div className="font-sans min-h-screen p-3 mb-4">
+       
 
         <div className="block md:hidden lg:hidden w-full px-4 md:px-5 mb-5 box-border">
           <Bunglowcheckbox sidebarOpen={sidebarOpen} closeSidebar={() => setSidebarOpen(false)}/>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-4 lg:gap-1 p-3 lg:p-3 mx-auto">
-          <div className="hidden lg:block min-w-[80px]">
+          <div className="hidden lg:block min-w-[78px]">
             <Bunglowcheckbox  sidebarOpen={sidebarOpen} closeSidebar={() => setSidebarOpen(false)}/>
           </div>
 
           <div className="flex-1 min-w-0">
-            <div className="bg-[#f5d38c] p-4 md:p-3 w-full lg:w-[1140px] mx-0 lg:mx-5 h-auto">
+            <div className="bg-[#f5d38c] p-4 md:p-3 w-full lg:w-[1130px] mx-0 lg:mx-5 h-auto">
               <h2 className="bg-[#b80000] text-white text-center p-2.5 mb-1 w-full text-xl md:text-2xl">
                 Booking Form
               </h2>

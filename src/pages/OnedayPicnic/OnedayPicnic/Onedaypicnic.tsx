@@ -16,6 +16,7 @@ interface PersonData {
 const Onedaypicnic: React.FC = () => {
   const navigate = useNavigate();
   const [numPeople, setNumPeople] = useState<number>(1);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [peopleData, setPeopleData] = useState<PersonData[]>([
     { name: "", age: "", cell: "", email: "" },
@@ -31,7 +32,11 @@ const Onedaypicnic: React.FC = () => {
     pin_code: "",
     state: "",
     country: "",
+<<<<<<< HEAD
     type: "onedaypicnic",
+=======
+    type: "onedaypicnic", 
+>>>>>>> 8164c019f1143b5d8b38b57cbd689d2346db19dd
   });
 
   const handleMainChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -180,22 +185,23 @@ const Onedaypicnic: React.FC = () => {
   return (
     <>
       <Header />
-      <div className="font-sans min-h-screen">
-        <div className="bg-[#001f54] text-white font-bold text-2xl md:text-3xl lg:text-4xl py-5 px-4 text-center mb-5 w-full">
+       <div className="bg-[#001f54] text-white font-bold text-2xl md:text-3xl lg:text-4xl py-5 px-4 text-center mb-4 w-full">
           One Day Picnic Booking
         </div>
+      <div className="font-sans min-h-screen p-1">
+       
 
         <div className="block md:hidden lg:hidden w-full px-4 md:px-5 mb-5 box-border">
-          <Bunglowcheckbox />
+          <Bunglowcheckbox   sidebarOpen={sidebarOpen} closeSidebar={() => setSidebarOpen(false)}/>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-1 lg:gap-5 p-4 lg:p-5 mx-auto">
+        <div className="flex flex-col lg:flex-row gap-1 lg:gap-1 p-4 lg:p-5 mx-auto">
           <div className="hidden lg:block min-w-[250px]">
-            <Bunglowcheckbox />
+            <Bunglowcheckbox    sidebarOpen={sidebarOpen} closeSidebar={() => setSidebarOpen(false)}/>
           </div>
 
           <div className="flex-1 min-w-0">
-            <div className="bg-[#f5d38c] p-4 md:p-3 w-full lg:w-[1160px] mx-0 lg:mx-5 h-auto">
+            <div className="bg-[#f5d38c] p-4 md:p-3 w-full lg:w-[1130px] mx-0 lg:mx-5 h-auto">
               <h2 className="bg-[#b80000] text-white text-center p-2.5 mb-1 w-full text-xl md:text-2xl">
                 One Day Picnic Form
               </h2>
