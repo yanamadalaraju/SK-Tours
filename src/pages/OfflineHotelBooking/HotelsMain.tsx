@@ -181,7 +181,6 @@ const LocationDropdown = ({
   );
 };
 
-// ==================== Date Picker Dropdown Component ====================
 const DatePickerDropdown = ({
   title,
   onClose,
@@ -199,6 +198,8 @@ const DatePickerDropdown = ({
 }) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const weekDays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selected, setSelected] = useState<Date | null>(selectedDate || null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -217,16 +218,19 @@ const DatePickerDropdown = ({
     const lastDay = new Date(year, month + 1, 0);
     const days = [];
 
+    // Add padding days from previous month
     const firstDayOfWeek = firstDay.getDay();
     for (let i = firstDayOfWeek - 1; i >= 0; i--) {
       const prevDate = new Date(year, month, -i);
       days.push({ date: prevDate, currentMonth: false });
     }
 
+    // Add current month days
     for (let i = 1; i <= lastDay.getDate(); i++) {
       days.push({ date: new Date(year, month, i), currentMonth: true });
     }
 
+    // Add padding days from next month to complete 6 rows (42 days)
     const remainingDays = 42 - days.length;
     for (let i = 1; i <= remainingDays; i++) {
       days.push({ date: new Date(year, month + 1, i), currentMonth: false });
@@ -234,11 +238,6 @@ const DatePickerDropdown = ({
 
     return days;
   };
-
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [selected, setSelected] = useState<Date | null>(selectedDate || null);
-
-  const days = getDaysInMonth(currentDate);
 
   const prevMonth = () => {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
@@ -265,8 +264,10 @@ const DatePickerDropdown = ({
     onClose();
   };
 
+  const days = getDaysInMonth(currentDate);
+
   return (
-    <div ref={dropdownRef} className="bg-white rounded-lg shadow-xl border p-6 w-[700px] max-w-[90vw] max-h-[90vh] overflow-y-auto z-[100]">
+    <div ref={dropdownRef} className="bg-white rounded-lg shadow-xl border p-6 w-[400px] max-w-[90vw] z-[100]">
       <div className="flex justify-between items-center mb-6">
         <h3 className="font-bold text-gray-800 text-lg">{title}</h3>
         <button onClick={onClose} className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded">
@@ -274,67 +275,55 @@ const DatePickerDropdown = ({
         </button>
       </div>
 
-      <div className="flex gap-8">
-        <div className="flex-1">
-          <div className="flex justify-between items-center mb-4">
-            <button onClick={prevMonth} className="p-1 hover:bg-gray-100 rounded">
-              <ChevronLeft size={20} />
-            </button>
-            <h4 className="font-bold text-gray-800">{format(currentDate, 'MMMM yyyy')}</h4>
-            <button onClick={nextMonth} className="p-1 hover:bg-gray-100 rounded">
-              <ChevronRight size={20} />
-            </button>
-          </div>
-
-          <div className="grid grid-cols-7 gap-1">
-            {weekDays.map(day => (
-              <div key={day} className="text-center text-xs font-semibold text-gray-500 py-2">{day}</div>
-            ))}
-            {days.map((day, index) => {
-              const isSelected = selected && day.date.toDateString() === selected.toDateString();
-              const isToday = day.date.toDateString() === new Date().toDateString();
-              const isPast = day.date < new Date(new Date().setHours(0, 0, 0, 0));
-              return (
-                <button
-                  key={index}
-                  onClick={() => day.currentMonth && !isPast && handleDateClick(day.date)}
-                  disabled={!day.currentMonth || isPast}
-                  className={`h-10 w-10 rounded-full text-sm transition-colors ${
-                    isSelected ? "bg-orange-600 text-white font-bold" : !isSelected && day.currentMonth && !isPast ? "hover:bg-gray-100" : ""
-                  } ${isToday && !isSelected ? "border border-orange-300" : ""} ${(!day.currentMonth || isPast) ? "text-gray-300 cursor-not-allowed" : ""}`}
-                >
-                  {day.date.getDate()}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="w-48 flex-shrink-0 border-l pl-6">
-          <h4 className="font-bold text-gray-800 mb-4">Holidays</h4>
-          <div className="space-y-4">
-            <div className="flex items-start">
-              <div className="w-2 h-2 bg-red-500 rounded-full mr-3 mt-1.5"></div>
-              <div>
-                <div className="font-medium text-gray-800">26 Jan '26</div>
-                <div className="text-gray-600 text-sm">Republic Day</div>
-              </div>
-            </div>
-            <div className="flex items-start">
-              <div className="w-2 h-2 bg-red-500 rounded-full mr-3 mt-1.5"></div>
-              <div>
-                <div className="font-medium text-gray-800">15 Feb '26</div>
-                <div className="text-gray-600 text-sm">Maha Shivaratri</div>
-              </div>
-            </div>
-          </div>
-          <div className="mt-8 pt-6 border-t">
-            <button onClick={handleApply} className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-6 rounded-lg transition-colors">
-              Apply
-            </button>
-          </div>
-        </div>
+      {/* Month Navigation */}
+      <div className="flex justify-between items-center mb-4">
+        <button onClick={prevMonth} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+          <ChevronLeft size={20} />
+        </button>
+        <h4 className="font-bold text-gray-800 text-lg">{format(currentDate, 'MMMM yyyy')}</h4>
+        <button onClick={nextMonth} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+          <ChevronRight size={20} />
+        </button>
       </div>
+
+      {/* Calendar Grid */}
+      <div className="grid grid-cols-7 gap-1 mb-6">
+        {weekDays.map(day => (
+          <div key={day} className="text-center text-xs font-semibold text-gray-500 py-2">
+            {day}
+          </div>
+        ))}
+        {days.map((day, index) => {
+          const isSelected = selected && day.date.toDateString() === selected.toDateString();
+          const isToday = day.date.toDateString() === new Date().toDateString();
+          const isPast = day.date < new Date(new Date().setHours(0, 0, 0, 0));
+          
+          return (
+            <button
+              key={index}
+              onClick={() => day.currentMonth && !isPast && handleDateClick(day.date)}
+              disabled={!day.currentMonth || isPast}
+              className={`
+                h-10 w-10 rounded-full text-sm transition-colors mx-auto
+                ${isSelected ? "bg-orange-600 text-white font-bold" : ""}
+                ${!isSelected && day.currentMonth && !isPast ? "hover:bg-gray-100" : ""}
+                ${isToday && !isSelected ? "border-2 border-orange-300" : ""}
+                ${(!day.currentMonth || isPast) ? "text-gray-300 cursor-not-allowed" : "text-gray-700"}
+              `}
+            >
+              {day.date.getDate()}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Apply Button */}
+      <button 
+        onClick={handleApply} 
+        className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-6 rounded-lg transition-colors"
+      >
+        Apply
+      </button>
     </div>
   );
 };
