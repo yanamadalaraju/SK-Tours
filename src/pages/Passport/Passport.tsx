@@ -4,6 +4,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { BASE_URL } from "@/ApiUrls";
 import { useNavigate } from "react-router-dom";
+import { CheckCircle, AlertCircle } from 'lucide-react';
 
 // Define the interface for form data
 interface PassportFormData {
@@ -58,6 +59,11 @@ type TabType = "father" | "mother" | "spouse" | "guardian";
 const PassportFormOneM: React.FC = () => {
     const navigate = useNavigate();
     const [isMobile, setIsMobile] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showSuccess, setShowSuccess] = useState(false);
+    const [showError, setShowError] = useState(false);
+    const [successMessage, setSuccessMessage] = useState("");
+    const [errorMessage, setErrorMessage] = useState("");
 
     useEffect(() => {
         const checkMobile = () => {
@@ -122,42 +128,247 @@ const PassportFormOneM: React.FC = () => {
     // Handle text input changes
     const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
+        // Clear error when user starts typing
+        if (showError) setShowError(false);
     };
 
     // Handle radio-like checkbox groups (to ensure only one is selected)
     const handleGroupCheckbox = (e: React.ChangeEvent<HTMLInputElement>, groupName: string) => {
         const { value } = e.target;
         setFormData({ ...formData, [groupName]: value });
+        // Clear error when user makes a selection
+        if (showError) setShowError(false);
     };
 
-    const submitToBackend = async (messagePrefix: string): Promise<void> => {
-        try {
-            console.log("Submitting data:", formData);
-
-            const res = await axios.post(
-                `${BASE_URL}/api/passport/passport`,
-                formData
-            );
-
-            console.log("Response:", res.data);
-
-            if (res.data.success) {
-                const message = `${messagePrefix} ID: ${res.data.id}`;
-                window.alert(message);
-                navigate("/");
-            } else {
-                window.alert("Submission failed: " + (res.data.message || "Unknown error"));
-            }
-        } catch (error: any) {
-            console.error("Submission error:", error);
-            window.alert("Error: " + (error?.response?.data?.message || error.message));
+    // Validation function
+    const validateForm = (): boolean => {
+        // Required fields validation
+        if (!formData.applicant_for) {
+            setErrorMessage("Please select Applicant For");
+            setShowError(true);
+            setTimeout(() => setShowError(false), 5000);
+            return false;
         }
+        if (!formData.application_type) {
+            setErrorMessage("Please select Application Type");
+            setShowError(true);
+            setTimeout(() => setShowError(false), 5000);
+            return false;
+        }
+        if (!formData.passport_booklet) {
+            setErrorMessage("Please select Passport Booklet Type");
+            setShowError(true);
+            setTimeout(() => setShowError(false), 5000);
+            return false;
+        }
+        if (!formData.name) {
+            setErrorMessage("Please enter your Name");
+            setShowError(true);
+            setTimeout(() => setShowError(false), 5000);
+            return false;
+        }
+        if (!formData.surname) {
+            setErrorMessage("Please enter your Surname");
+            setShowError(true);
+            setTimeout(() => setShowError(false), 5000);
+            return false;
+        }
+        if (!formData.dob) {
+            setErrorMessage("Please select Date of Birth");
+            setShowError(true);
+            setTimeout(() => setShowError(false), 5000);
+            return false;
+        }
+        if (!formData.place_of_birth) {
+            setErrorMessage("Please enter Place of Birth");
+            setShowError(true);
+            setTimeout(() => setShowError(false), 5000);
+            return false;
+        }
+        if (!formData.cell_no) {
+            setErrorMessage("Please enter Cell Number");
+            setShowError(true);
+            setTimeout(() => setShowError(false), 5000);
+            return false;
+        }
+        if (!formData.email) {
+            setErrorMessage("Please enter Email Address");
+            setShowError(true);
+            setTimeout(() => setShowError(false), 5000);
+            return false;
+        }
+        if (!formData.address) {
+            setErrorMessage("Please enter Address");
+            setShowError(true);
+            setTimeout(() => setShowError(false), 5000);
+            return false;
+        }
+        if (!formData.city) {
+            setErrorMessage("Please enter City");
+            setShowError(true);
+            setTimeout(() => setShowError(false), 5000);
+            return false;
+        }
+        if (!formData.pincode) {
+            setErrorMessage("Please enter Pincode");
+            setShowError(true);
+            setTimeout(() => setShowError(false), 5000);
+            return false;
+        }
+        if (!formData.state) {
+            setErrorMessage("Please enter State");
+            setShowError(true);
+            setTimeout(() => setShowError(false), 5000);
+            return false;
+        }
+        if (!formData.country) {
+            setErrorMessage("Please enter Country");
+            setShowError(true);
+            setTimeout(() => setShowError(false), 5000);
+            return false;
+        }
+
+        // Email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.email)) {
+            setErrorMessage("Please enter a valid email address");
+            setShowError(true);
+            setTimeout(() => setShowError(false), 5000);
+            return false;
+        }
+
+        // Phone validation (10 digits)
+        const phoneRegex = /^\d{10}$/;
+        if (!phoneRegex.test(formData.cell_no)) {
+            setErrorMessage("Please enter a valid 10-digit phone number");
+            setShowError(true);
+            setTimeout(() => setShowError(false), 5000);
+            return false;
+        }
+
+        // Pincode validation (6 digits)
+        const pincodeRegex = /^\d{6}$/;
+        if (!pincodeRegex.test(formData.pincode)) {
+            setErrorMessage("Please enter a valid 6-digit pincode");
+            setShowError(true);
+            setTimeout(() => setShowError(false), 5000);
+            return false;
+        }
+
+        return true;
     };
 
-    const handleSubmit = async (): Promise<void> => {
-        await submitToBackend("Form submitted successfully.");
+    const resetForm = () => {
+        setFormData({
+            applicant_for: "",
+            application_type: "",
+            passport_booklet: "",
+            name: "",
+            middle_name: "",
+            surname: "",
+            dob: "",
+            place_of_birth: "",
+            cell_no: "",
+            email: "",
+            pan_no: "",
+            aadhaar_no: "",
+            qualification: "",
+            profession: "",
+            govt_employee: "",
+            visible_mark: "",
+            address: "",
+            city: "",
+            pincode: "",
+            state: "",
+            country: "",
+            father_name: "",
+            father_middle: "",
+            father_surname: "",
+            mother_name: "",
+            mother_middle: "",
+            mother_surname: "",
+            spouse_name: "",
+            spouse_middle: "",
+            spouse_surname: "",
+            guardian_name: "",
+            guardian_middle: "",
+            guardian_surname: "",
+            emergency_name: "",
+            emergency_cell: "",
+            emergency_email: "",
+            emergency_address: "",
+            emergency_city: "",
+            emergency_pincode: "",
+            emergency_state: "",
+            emergency_country: "",
+            criminal_case: "",
+            post_office: "",
+            police_station: "",
+        });
     };
+const submitToBackend = async (): Promise<void> => {
+    console.log("STEP 1: Submit clicked");
 
+    if (!validateForm()) {
+        console.log("STEP 2: Validation failed");
+        return;
+    }
+
+    setIsSubmitting(true);
+    console.log("STEP 3: Validation passed");
+
+    try {
+        console.log("STEP 4: Sending API request...");
+
+        const res = await axios.post(`${BASE_URL}/api/passport/form`, formData);
+
+        console.log("STEP 5: Response received", res);
+
+        const message = `Form submitted successfully. Application ID: ${res.data?.id || 'N/A'}`;
+
+        setSuccessMessage(message);
+        setShowSuccess(true);
+
+        console.log("STEP 6: Success UI triggered");
+
+        resetForm();
+
+        setTimeout(() => {
+            setShowSuccess(false);
+            navigate("/passport");
+        }, 3000);
+
+    } catch (error: any) {
+        console.log("STEP ERROR:", error);
+
+        let errorMsg = "Something went wrong";
+
+        if (error.response) {
+            console.log("Server error:", error.response);
+            errorMsg = error.response.data?.message || "Server error";
+        } else if (error.request) {
+            console.log("No response:", error.request);
+            errorMsg = "No response from server";
+        }
+
+        setErrorMessage(errorMsg);
+        setShowError(true);
+
+    } finally {
+        console.log("STEP FINAL: Done");
+        setIsSubmitting(false);
+    }
+};
+const handleSubmit = async (): Promise<void> => {
+    try {
+        await submitToBackend();
+    } catch (err) {
+        console.error("Unhandled error in handleSubmit:", err);
+        setErrorMessage("An unexpected error occurred. Please try again.");
+        setShowError(true);
+        setTimeout(() => setShowError(false), 5000);
+    }
+};
     const getInputName = (baseName: string): string => {
         switch (selectedTab) {
             case "father":
@@ -173,30 +384,73 @@ const PassportFormOneM: React.FC = () => {
         }
     };
 
-    // Helper function to render radio group
-    const RadioGroup = ({ name, options, value, onChange }: any) => (
-        <div className="flex flex-wrap items-center gap-2">
-            {options.map((option: any) => (
-                <div key={option.value} className="flex items-center gap-1">
-                    <input
-                        type="radio"
-                        name={name}
-                        value={option.value}
-                        onChange={(e) => onChange(e, name)}
-                        checked={value === option.value}
-                        className="w-4 h-4 md:w-5 md:h-5 border-2 border-green-600 bg-white"
-                    />
-                    <div className="bg-[#009146] text-white px-2 md:px-3 py-1 md:py-1.5 text-xs md:text-sm font-bold">
-                        {option.label}
-                    </div>
-                </div>
-            ))}
-        </div>
-    );
-
     return (
         <>
             <Header />
+            
+            {/* Success Message Toast */}
+          {/* Success Message Toast */}
+{showSuccess && (
+    <div className="fixed top-20 right-4 md:right-8 z-50 animate-slide-in max-w-[90%] sm:max-w-md">
+        <div className="bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-lg p-4 md:p-6 shadow-2xl border border-emerald-400">
+            <div className="flex items-start gap-3 md:gap-4">
+                <CheckCircle className="w-6 h-6 md:w-8 md:h-8 flex-shrink-0 mt-1" />
+                <div className="flex-1">
+                    <h3 className="text-base md:text-lg font-bold mb-1">✓ Application Submitted Successfully!</h3>
+                    <p className="text-sm opacity-90 mb-2">{successMessage}</p>
+                    <div className="flex items-center gap-2">
+                        <div className="flex-1 h-1 bg-white/30 rounded-full overflow-hidden">
+                            <div className="h-full bg-white rounded-full animate-progress"></div>
+                        </div>
+                        <p className="text-xs opacity-75">Redirecting in 3s...</p>
+                    </div>
+                </div>
+                <button 
+                    onClick={() => {
+                        setShowSuccess(false);
+                        navigate("/passport");
+                    }}
+                    className="text-white/80 hover:text-white transition"
+                >
+                    ✕
+                </button>
+            </div>
+        </div>
+    </div>
+)}
+            {/* Error Message Toast */}
+            {showError && (
+                <div className="fixed top-20 right-4 md:right-8 z-50 animate-slide-in max-w-[90%] sm:max-w-md">
+                    <div className="bg-gradient-to-r from-red-500 to-orange-600 text-white rounded-lg p-4 md:p-6 shadow-2xl border border-red-400">
+                        <div className="flex items-center gap-3 md:gap-4">
+                            <AlertCircle className="w-6 h-6 md:w-8 md:h-8 flex-shrink-0" />
+                            <div>
+                                <h3 className="text-base md:text-lg font-bold mb-1">Submission Failed</h3>
+                                <p className="text-sm opacity-90">{errorMessage}</p>
+                                <p className="text-xs opacity-75 mt-1">Please check your details and try again.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* CSS for animations */}
+            <style>{`
+                @keyframes slideIn {
+                    from {
+                        transform: translateX(100%);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translateX(0);
+                        opacity: 1;
+                    }
+                }
+                .animate-slide-in {
+                    animation: slideIn 0.3s ease-out;
+                }
+            `}</style>
+
             <div className="font-sans bg-white min-h-screen mb-2">
                 <header className="bg-[#0c2b66] text-white text-center p-3 md:p-4 text-xl md:text-3xl font-bold mb-2">
                     Passport Application Form
@@ -310,6 +564,7 @@ const PassportFormOneM: React.FC = () => {
                         </div>
                     </div>
 
+                    {/* Rest of your form fields remain exactly the same */}
                     {/* Name Row */}
                     <div className="flex flex-col md:grid md:grid-cols-[180px_1fr_180px_1fr_180px_1fr] gap-2 items-start md:items-center mb-1">
                         <div className="bg-[#5d3b13] text-white p-2 font-bold text-sm w-full md:w-auto">Name</div>
@@ -703,13 +958,21 @@ const PassportFormOneM: React.FC = () => {
 
                     {/* Buttons */}
                     <div className="text-center mt-4">
-                        <button
-                            className="px-4 md:px-6 py-1.5 md:py-2 mx-1 font-bold text-sm text-white border-none cursor-pointer bg-red-600 hover:bg-red-700 transition"
-                            type="button"
-                            onClick={handleSubmit}
-                        >
-                            Submit
-                        </button>
+                       <button
+    className="px-6 py-2 mx-1 font-bold text-sm text-white bg-red-600 hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+    type="button"
+    onClick={handleSubmit}
+    disabled={isSubmitting}
+>
+    {isSubmitting ? (
+        <>
+            <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+            Submitting...
+        </>
+    ) : (
+        "Submit Application"
+    )}
+</button>
                     </div>
 
                     {/* Bottom Note */}

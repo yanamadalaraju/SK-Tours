@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import {
   Hotel,
@@ -32,6 +31,7 @@ import axios from "axios";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { BASE_URL } from "@/ApiUrls";
+
 // Types
 interface TravellerCount {
   rooms: number;
@@ -88,9 +88,6 @@ const cities = [
   { name: "Jaipur", country: "India", popular: true },
   { name: "Ahmedabad", country: "India", popular: true }
 ];
-
-// API base URL
-// const BASE_URL = 'http://localhost:5000/api';
 
 // ==================== Location Dropdown Component ====================
 const LocationDropdown = ({ 
@@ -181,13 +178,15 @@ const LocationDropdown = ({
   );
 };
 
+// ==================== Updated DatePicker with Available Dates ====================
 const DatePickerDropdown = ({
   title,
   onClose,
   onDateSelect,
   nextStep,
   selectedDate,
-  autoOpen
+  autoOpen,
+  availableDates = []
 }: {
   title: string;
   onClose: () => void;
@@ -195,6 +194,7 @@ const DatePickerDropdown = ({
   nextStep?: () => void;
   selectedDate?: Date | null;
   autoOpen?: boolean;
+  availableDates?: string[];
 }) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const weekDays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
@@ -210,6 +210,11 @@ const DatePickerDropdown = ({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [onClose]);
+
+  const isDateAvailable = (date: Date): boolean => {
+    const dateStr = format(date, 'yyyy-MM-dd');
+    return availableDates.includes(dateStr);
+  };
 
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear();
@@ -265,6 +270,7 @@ const DatePickerDropdown = ({
   };
 
   const days = getDaysInMonth(currentDate);
+  const hasAvailableDates = availableDates.length > 0;
 
   return (
     <div ref={dropdownRef} className="bg-white rounded-lg shadow-xl border p-6 w-[400px] max-w-[90vw] z-[100]">
@@ -274,6 +280,24 @@ const DatePickerDropdown = ({
           <X size={20} />
         </button>
       </div>
+
+      {/* Legend for available dates */}
+      {hasAvailableDates && (
+        <div className="flex items-center gap-4 mb-4 pb-3 border-b">
+          <div className="flex items-center gap-1.5">
+            <div className="w-3 h-3 rounded-full bg-green-500"></div>
+            <span className="text-xs text-gray-600">Available</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-3 h-3 rounded-full bg-gray-200 border border-gray-300"></div>
+            <span className="text-xs text-gray-400">Unavailable</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-3 h-3 rounded-full bg-orange-600"></div>
+            <span className="text-xs text-gray-600">Selected</span>
+          </div>
+        </div>
+      )}
 
       {/* Month Navigation */}
       <div className="flex justify-between items-center mb-4">
@@ -297,25 +321,41 @@ const DatePickerDropdown = ({
           const isSelected = selected && day.date.toDateString() === selected.toDateString();
           const isToday = day.date.toDateString() === new Date().toDateString();
           const isPast = day.date < new Date(new Date().setHours(0, 0, 0, 0));
+          const isAvailable = isDateAvailable(day.date);
+          
+          // Determine if date should be disabled
+          const isDisabled = !day.currentMonth || isPast || (hasAvailableDates && !isAvailable);
           
           return (
             <button
               key={index}
-              onClick={() => day.currentMonth && !isPast && handleDateClick(day.date)}
-              disabled={!day.currentMonth || isPast}
+              onClick={() => !isDisabled && handleDateClick(day.date)}
+              disabled={isDisabled}
               className={`
-                h-10 w-10 rounded-full text-sm transition-colors mx-auto
-                ${isSelected ? "bg-orange-600 text-white font-bold" : ""}
-                ${!isSelected && day.currentMonth && !isPast ? "hover:bg-gray-100" : ""}
-                ${isToday && !isSelected ? "border-2 border-orange-300" : ""}
-                ${(!day.currentMonth || isPast) ? "text-gray-300 cursor-not-allowed" : "text-gray-700"}
+                relative h-10 w-10 rounded-full text-sm transition-colors mx-auto
+                ${isSelected ? "bg-orange-600 text-white font-bold shadow-md" : ""}
+                ${!isSelected && !isDisabled && isAvailable && hasAvailableDates ? "bg-green-100 text-green-800 border border-green-300 hover:bg-green-200" : ""}
+                ${!isSelected && !isDisabled && !isAvailable && !hasAvailableDates ? "hover:bg-gray-100" : ""}
+                ${isToday && !isSelected && !isDisabled ? "border-2 border-orange-300" : ""}
+                ${isDisabled ? "text-gray-300 cursor-not-allowed opacity-50" : "text-gray-700"}
               `}
             >
               {day.date.getDate()}
+              {/* Green dot indicator for available dates */}
+              {!isSelected && isAvailable && hasAvailableDates && !isDisabled && (
+                <span className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 bg-green-600 rounded-full"></span>
+              )}
             </button>
           );
         })}
       </div>
+
+      {/* No available dates message */}
+      {hasAvailableDates && availableDates.length === 0 && (
+        <div className="mb-4 p-3 bg-amber-50 rounded-lg text-center">
+          <p className="text-xs text-amber-700">⚠️ No hotels available for selected dates</p>
+        </div>
+      )}
 
       {/* Apply Button */}
       <button 
@@ -725,7 +765,7 @@ const FilterSidebar = ({
   );
 };
 
-
+// ==================== Hotel Card Component ====================
 const HotelCard = ({ hotel, onBookNow, checkIn, checkOut, travellers }: { 
   hotel: Hotel; 
   onBookNow: (hotel: Hotel) => void;
@@ -746,20 +786,6 @@ const HotelCard = ({ hotel, onBookNow, checkIn, checkOut, travellers }: {
     if (imagePath.startsWith('http')) return imagePath;
     const baseUrl = BASE_URL.replace('/api', '');
     return `${baseUrl}${imagePath}`;
-  };
-
-  const calculateNights = () => {
-    if (checkIn && checkOut) {
-      return Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
-    }
-    return 1;
-  };
-
-  const totalPrice = () => {
-    const nights = calculateNights();
-    const rooms = travellers?.rooms || 1;
-    const pricePerNight = Number(hotel.price);
-    return pricePerNight * nights * rooms;
   };
 
   const tabs = [
@@ -868,12 +894,6 @@ const HotelCard = ({ hotel, onBookNow, checkIn, checkOut, travellers }: {
                 <p className="font-bold text-lg">{hotel.hotel_name?.split(' ').slice(0, 2).join(' ')}</p>
               </div>
             )}
-            {/* {hotel.limited_time_sale && (
-              <div className="absolute top-3 left-3 bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-bold px-2 py-1 rounded-md shadow-md">Limited Time Sale</div>
-            )}
-            {hotel.free_stay_for_kids && (
-              <div className="absolute bottom-3 left-3 bg-gradient-to-r from-green-500 to-green-600 text-white text-xs font-bold px-2 py-1 rounded-md shadow-md">Free Stay for Kids</div>
-            )} */}
           </div>
         </div>
 
@@ -941,12 +961,6 @@ const HotelCard = ({ hotel, onBookNow, checkIn, checkOut, travellers }: {
 
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mt-4 pt-4 border-t border-gray-100">
             <div className="mb-4 sm:mb-0">
-              {/* <div className="flex items-center gap-2 mb-2">
-                {hotel.limited_time_sale && (
-                  <span className="bg-red-50 text-red-600 text-xs font-bold px-2 py-1 rounded-md">Limited Time Sale</span>
-                )}
-                <span className="text-sm text-gray-500">Per Night for {travellers?.rooms || 1} Room</span>
-              </div> */}
               <div>
                 {hotel.original_price && Number(hotel.original_price) > Number(hotel.price) && (
                   <div className="mb-1">
@@ -963,16 +977,12 @@ const HotelCard = ({ hotel, onBookNow, checkIn, checkOut, travellers }: {
             </div>
 
             <div className="text-right w-full sm:w-auto space-y-2">
-              {/* <button className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-2.5 px-8 rounded-xl transition-all shadow-md hover:shadow-lg w-full sm:w-auto">
-                VIEW ALL
-              </button> */}
               <button
                 onClick={() => onBookNow(hotel)}
                 className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-2.5 px-8 rounded-xl transition-all shadow-md hover:shadow-lg w-full sm:w-auto"
               >
                 BOOK NOW
               </button>
-              
             </div>
           </div>
         </div>
@@ -980,7 +990,6 @@ const HotelCard = ({ hotel, onBookNow, checkIn, checkOut, travellers }: {
     </div>
   );
 };
-
 
 // ==================== Main Hotel Search Component ====================
 const HotelSearchMain = () => {
@@ -991,6 +1000,10 @@ const HotelSearchMain = () => {
   const [filteredHotels, setFilteredHotels] = useState<Hotel[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  
+  // Available dates from API
+  const [availableCheckInDates, setAvailableCheckInDates] = useState<string[]>([]);
+  const [availableCheckOutDates, setAvailableCheckOutDates] = useState<string[]>([]);
   
   // Filters state
   const [filters, setFilters] = useState({
@@ -1029,18 +1042,36 @@ const HotelSearchMain = () => {
   const [autoOpenCheckOut, setAutoOpenCheckOut] = useState(false);
   const [autoOpenGuests, setAutoOpenGuests] = useState(false);
 
+  // Fetch hotels and available dates
   useEffect(() => {
-    fetchHotels();
+    fetchHotelsAndDates();
   }, []);
 
-  const fetchHotels = async () => {
+  const fetchHotelsAndDates = async () => {
     setLoading(true);
     setError('');
     try {
       const response = await axios.get(`${BASE_URL}/api/offline-hotels`);
       if (response.data.success) {
-        setHotels(response.data.data);
-        setFilteredHotels(response.data.data);
+        const hotelsData = response.data.data;
+        setHotels(hotelsData);
+        setFilteredHotels(hotelsData);
+        
+        // Extract available check-in and check-out dates from hotel data
+        const checkInDates = [...new Set(
+          hotelsData
+            .filter((hotel: Hotel) => hotel.check_in_date)
+            .map((hotel: Hotel) => hotel.check_in_date)
+        )];
+        
+        const checkOutDates = [...new Set(
+          hotelsData
+            .filter((hotel: Hotel) => hotel.check_out_date)
+            .map((hotel: Hotel) => hotel.check_out_date)
+        )];
+        
+        setAvailableCheckInDates(checkInDates);
+        setAvailableCheckOutDates(checkOutDates);
       } else {
         setError('Failed to fetch hotels');
       }
@@ -1103,7 +1134,7 @@ const HotelSearchMain = () => {
       return hotelCity.includes(searchLocationLower) || hotelLocation.includes(searchLocationLower);
     });
 
-    // Date filter
+    // Date filter - only show hotels that have matching check-in/check-out dates
     filtered = filtered.filter(hotel => {
       let dateMatch = true;
       if (searchCheckIn && hotel.check_in_date) {
@@ -1224,7 +1255,6 @@ const HotelSearchMain = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-blue-50/70 to-white">
- 
       <Header />
 
       <div className="flex-grow">
@@ -1244,7 +1274,7 @@ const HotelSearchMain = () => {
           </div>
         </div>
 
-        {/* Search Form - ORIGINAL STYLE */}
+        {/* Search Form */}
         <div className="max-w-7xl mx-auto px-4 -mt-16 relative z-10 mb-8">
           <div className="bg-white rounded-2xl shadow-2xl border border-gray-200">
             <div className="flex flex-col md:flex-row">
@@ -1283,7 +1313,7 @@ const HotelSearchMain = () => {
                   )}
                 </div>
 
-                {/* Check-in */}
+                {/* Check-in with available dates */}
                 <div className="relative border-b md:border-b-0 md:border-r border-gray-200">
                   <button 
                     onClick={() => { 
@@ -1314,13 +1344,14 @@ const HotelSearchMain = () => {
                         onDateSelect={handleCheckInSelect} 
                         nextStep={() => setShowCheckOutDropdown(true)} 
                         selectedDate={checkIn} 
-                        autoOpen={autoOpenCheckIn} 
+                        autoOpen={autoOpenCheckIn}
+                        availableDates={availableCheckInDates}
                       />
                     </div>
                   )}
                 </div>
 
-                {/* Check-out */}
+                {/* Check-out with available dates */}
                 <div className="relative border-b md:border-b-0 md:border-r border-gray-200">
                   <button 
                     onClick={() => { 
@@ -1351,7 +1382,8 @@ const HotelSearchMain = () => {
                         onDateSelect={handleCheckOutSelect} 
                         nextStep={() => setShowGuestsDropdown(true)} 
                         selectedDate={checkOut} 
-                        autoOpen={autoOpenCheckOut} 
+                        autoOpen={autoOpenCheckOut}
+                        availableDates={availableCheckOutDates}
                       />
                     </div>
                   )}
@@ -1499,7 +1531,7 @@ const HotelSearchMain = () => {
                   <div className="text-center py-12 bg-white rounded-xl shadow-lg">
                     <Hotel className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-xl font-bold text-gray-800 mb-2">No Hotels Found</h3>
-                    <p className="text-gray-600 mb-4">No hotels match your search criteria. Try adjusting your filters.</p>
+                    <p className="text-gray-600 mb-4">No hotels match your search criteria. Try adjusting your filters or selecting different dates.</p>
                     <button onClick={handleClearFilters} className="bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-6 rounded-lg transition-colors">
                       Clear All Filters
                     </button>
@@ -1511,8 +1543,6 @@ const HotelSearchMain = () => {
         )}
       </div>
       <Footer />
-
-   
     </div>
   );
 };

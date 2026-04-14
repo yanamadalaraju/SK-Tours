@@ -11,14 +11,12 @@ import {
   MapPin,
   Loader2
 } from "lucide-react";
-import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isBefore, startOfToday } from "date-fns";
+import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import Header from '@/components/Header';
 import Footer from "@/components/Footer";
 import { useNavigate } from 'react-router-dom';
 import { BASE_URL } from "@/ApiUrls";
-// API Base URL
-// const API_BASE_URL = "http://localhost:5000/api";
 
 // Indian airports data (from admin panel)
 const indianAirports = [
@@ -330,7 +328,7 @@ const TravellerSelector = ({
   );
 };
 
-// Date Selector - Single Month Calendar
+// Date Selector - With API Date Highlighting
 const DateSelector = ({ 
   label, 
   selectedDate, 
@@ -339,7 +337,8 @@ const DateSelector = ({
   disabled,
   autoOpen,
   onClose,
-  onSelect
+  onSelect,
+  availableDates = []
 }: { 
   label: string;
   selectedDate: Date | undefined;
@@ -349,6 +348,7 @@ const DateSelector = ({
   autoOpen?: boolean;
   onClose?: () => void;
   onSelect?: () => void;
+  availableDates?: string[];
 }) => {
   const [open, setOpen] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -360,19 +360,21 @@ const DateSelector = ({
     }
   }, [autoOpen, disabled]);
 
+  const isDateAvailable = (date: Date): boolean => {
+    const dateStr = format(date, 'yyyy-MM-dd');
+    return availableDates.includes(dateStr);
+  };
+
   const getCalendarDays = () => {
     const year = currentMonth.getFullYear();
     const month = currentMonth.getMonth();
-    const firstDayOfMonth = new Date(year, month, 1);
     const lastDayOfMonth = new Date(year, month + 1, 0);
-    const startingDayOfWeek = firstDayOfMonth.getDay();
+    const startingDayOfWeek = new Date(year, month, 1).getDay();
     
     const days = [];
-    // Add padding for previous month days
     for (let i = 0; i < startingDayOfWeek; i++) {
       days.push(null);
     }
-    // Add current month days
     for (let i = 1; i <= lastDayOfMonth.getDate(); i++) {
       days.push(new Date(year, month, i));
     }
@@ -390,7 +392,16 @@ const DateSelector = ({
   const isDateDisabled = (date: Date) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    return date < today || (minDate && date < minDate);
+    
+    if (date < today) return true;
+    if (minDate && date < minDate) return true;
+    
+    // If availableDates is provided and not empty, only enable dates that are available
+    if (availableDates.length > 0) {
+      return !isDateAvailable(date);
+    }
+    
+    return false;
   };
 
   useEffect(() => {
@@ -444,7 +455,7 @@ const DateSelector = ({
       </button>
 
       {open && (
-        <div className="fixed md:absolute top-full left-0 mt-2 bg-white border border-gray-200 shadow-xl rounded-lg z-[100] p-4 min-w-[300px]">
+        <div className="fixed md:absolute top-full left-0 mt-2 bg-white border border-gray-200 shadow-xl rounded-lg z-[100] p-4 min-w-[320px]">
           {/* Month Navigation */}
           <div className="flex items-center justify-between mb-4 px-2">
             <button
@@ -468,40 +479,74 @@ const DateSelector = ({
             </button>
           </div>
 
+          {/* Legend */}
+          {availableDates.length > 0 && (
+            <div className="flex items-center gap-4 mb-3 px-2 text-xs">
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                <span className="text-gray-600">Available</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-gray-200"></div>
+                <span className="text-gray-400">Unavailable</span>
+              </div>
+            </div>
+          )}
+
           {/* Calendar Grid */}
           <div className="grid grid-cols-7 gap-1 text-center">
             {weekDays.map(day => (
               <div key={day} className="text-xs text-gray-500 py-1">{day}</div>
             ))}
-            {calendarDays.map((date, i) => (
-              <button
-                key={i}
-                onClick={() => {
-                  if (date && !isDateDisabled(date)) {
-                    onDateSelect(date);
-                    setOpen(false);
-                    if (onSelect) onSelect();
-                    if (onClose) onClose();
-                  }
-                }}
-                disabled={!date || isDateDisabled(date)}
-                className={cn(
-                  "w-9 h-9 rounded-full text-sm transition-colors",
-                  !date && "invisible",
-                  date && selectedDate && date.toDateString() === selectedDate.toDateString() && "bg-blue-600 text-white font-medium",
-                  date && !selectedDate?.toDateString() && !isDateDisabled(date) && "hover:bg-gray-100",
-                  date && isDateDisabled(date) && "opacity-40 cursor-not-allowed"
-                )}
-              >
-                {date ? format(date, "d") : ""}
-              </button>
-            ))}
+            {calendarDays.map((date, i) => {
+              const isAvailable = date ? isDateAvailable(date) : false;
+              const isSelected = date && selectedDate && format(date, 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd');
+              const isDisabled = !date || isDateDisabled(date);
+              
+              return (
+                <button
+                  key={i}
+                  onClick={() => {
+                    if (date && !isDisabled) {
+                      onDateSelect(date);
+                      setOpen(false);
+                      if (onSelect) onSelect();
+                      if (onClose) onClose();
+                    }
+                  }}
+                  disabled={isDisabled}
+                  className={cn(
+                    "relative w-9 h-9 rounded-full text-sm transition-all duration-200 font-medium",
+                    !date && "invisible",
+                    isSelected && "bg-blue-600 text-white shadow-md",
+                    !isSelected && !isDisabled && isAvailable && "bg-green-100 text-green-800 border border-green-300 hover:bg-green-200",
+                    !isSelected && !isDisabled && !isAvailable && availableDates.length > 0 && "text-gray-300 cursor-not-allowed opacity-50",
+                    !isSelected && !isDisabled && availableDates.length === 0 && "hover:bg-gray-100",
+                    isDisabled && "opacity-40 cursor-not-allowed text-gray-300"
+                  )}
+                >
+                  {date ? format(date, "d") : ""}
+                  {/* Green dot indicator for available dates */}
+                  {isAvailable && !isSelected && availableDates.length > 0 && (
+                    <span className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 bg-green-600 rounded-full"></span>
+                  )}
+                </button>
+              );
+            })}
           </div>
+          
+          {/* No available dates message */}
+          {availableDates.length === 0 && (
+            <p className="text-xs text-center text-amber-600 mt-3 p-2 bg-amber-50 rounded-lg">
+              ⚠️ No flights available for this route
+            </p>
+          )}
         </div>
       )}
     </div>
   );
 };
+
 // City Selector
 const CitySelector = ({ 
   label, 
@@ -626,7 +671,6 @@ const CitySelector = ({
   );
 };
 
-
 // Flight Results Component - With Working Filters
 const FlightResults = ({ searchData, onBack, travellers }: { searchData: any; onBack: () => void; travellers: TravellerCount }) => {
   const [activeTab, setActiveTab] = useState<string | null>(null);
@@ -660,93 +704,85 @@ const FlightResults = ({ searchData, onBack, travellers }: { searchData: any; on
     mealsIncluded: false
   });
 
-useEffect(() => {
-  const fetchFlights = async () => {
-    if (!searchData) return;
-    
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const response = await fetch(`${BASE_URL}/api/offline-flights`);
-      const result = await response.json();
+  useEffect(() => {
+    const fetchFlights = async () => {
+      if (!searchData) return;
       
-      if (result.success && result.data) {
-        // FIX: Convert searchData tripType to match API format
-        const searchTripType = searchData.tripType === 'one-way' ? 'oneWay' : 'roundTrip';
+      setLoading(true);
+      setError(null);
+      
+      try {
+        const response = await fetch(`${BASE_URL}/api/offline-flights`);
+        const result = await response.json();
         
-        const filteredFlights = result.data.filter((flight: Flight) => {
-          // City matches - FIX: Use direct comparison
-          const fromCityMatch = flight.from_city?.toLowerCase() === searchData.fromCity?.name?.toLowerCase();
-          const toCityMatch = flight.to_city?.toLowerCase() === searchData.toCity?.name?.toLowerCase();
+        if (result.success && result.data) {
+          const searchTripType = searchData.tripType === 'one-way' ? 'oneWay' : 'roundTrip';
           
-          // Date match for departure
-          const flightDepartureDate = flight.departure_date ? new Date(flight.departure_date) : null;
-          const searchDepartureDate = searchData.departureDate;
-          
-          let dateMatch = false;
-          if (flightDepartureDate && searchDepartureDate) {
-            const flightDateStr = format(flightDepartureDate, 'yyyy-MM-dd');
-            const searchDateStr = format(searchDepartureDate, 'yyyy-MM-dd');
-            dateMatch = flightDateStr === searchDateStr;
-          }
-          
-          // FIX: Booking type match - compare with API format
-          const bookingTypeMatch = flight.booking_type === searchTripType;
-          
-          // For round trip, also check return date
-          let returnDateMatch = true;
-          if (searchTripType === 'roundTrip' && searchData.returnDate) {
-            if (flight.return_date) {
-              const flightReturnDate = new Date(flight.return_date);
-              const searchReturnDate = searchData.returnDate;
-              const flightReturnDateStr = format(flightReturnDate, 'yyyy-MM-dd');
-              const searchReturnDateStr = format(searchReturnDate, 'yyyy-MM-dd');
-              returnDateMatch = flightReturnDateStr === searchReturnDateStr;
-            } else {
-              returnDateMatch = false;
+          const filteredFlights = result.data.filter((flight: Flight) => {
+            const fromCityMatch = flight.from_city?.toLowerCase() === searchData.fromCity?.name?.toLowerCase();
+            const toCityMatch = flight.to_city?.toLowerCase() === searchData.toCity?.name?.toLowerCase();
+            
+            const flightDepartureDate = flight.departure_date ? new Date(flight.departure_date) : null;
+            const searchDepartureDate = searchData.departureDate;
+            
+            let dateMatch = false;
+            if (flightDepartureDate && searchDepartureDate) {
+              const flightDateStr = format(flightDepartureDate, 'yyyy-MM-dd');
+              const searchDateStr = format(searchDepartureDate, 'yyyy-MM-dd');
+              dateMatch = flightDateStr === searchDateStr;
             }
-          }
+            
+            const bookingTypeMatch = flight.booking_type === searchTripType;
+            
+            let returnDateMatch = true;
+            if (searchTripType === 'roundTrip' && searchData.returnDate) {
+              if (flight.return_date) {
+                const flightReturnDate = new Date(flight.return_date);
+                const searchReturnDate = searchData.returnDate;
+                const flightReturnDateStr = format(flightReturnDate, 'yyyy-MM-dd');
+                const searchReturnDateStr = format(searchReturnDate, 'yyyy-MM-dd');
+                returnDateMatch = flightReturnDateStr === searchReturnDateStr;
+              } else {
+                returnDateMatch = false;
+              }
+            }
+            
+            return fromCityMatch && toCityMatch && dateMatch && bookingTypeMatch && returnDateMatch;
+          });
           
-          return fromCityMatch && toCityMatch && dateMatch && bookingTypeMatch && returnDateMatch;
-        });
-        
-        setFlights(filteredFlights);
-        setFilteredFlights(filteredFlights);
-        
-        // Initialize airline filters
-        const airlineFilters: Record<string, boolean> = {};
-        filteredFlights.forEach((flight: Flight) => {
-          if (flight.airline && !airlineFilters[flight.airline]) {
-            airlineFilters[flight.airline] = true;
+          setFlights(filteredFlights);
+          setFilteredFlights(filteredFlights);
+          
+          const airlineFilters: Record<string, boolean> = {};
+          filteredFlights.forEach((flight: Flight) => {
+            if (flight.airline && !airlineFilters[flight.airline]) {
+              airlineFilters[flight.airline] = true;
+            }
+          });
+          setFilters(prev => ({ ...prev, airlines: airlineFilters }));
+          
+          if (filteredFlights.length > 0) {
+            const maxPrice = Math.max(...filteredFlights.map(f => parseFloat(f.price_per_adult)));
+            setFilters(prev => ({ ...prev, priceRange: { ...prev.priceRange, max: maxPrice } }));
           }
-        });
-        setFilters(prev => ({ ...prev, airlines: airlineFilters }));
-        
-        // Set max price range
-        if (filteredFlights.length > 0) {
-          const maxPrice = Math.max(...filteredFlights.map(f => parseFloat(f.price_per_adult)));
-          setFilters(prev => ({ ...prev, priceRange: { ...prev.priceRange, max: maxPrice } }));
+        } else {
+          setError('No flights found');
         }
-      } else {
-        setError('No flights found');
+      } catch (err) {
+        console.error('Error fetching flights:', err);
+        setError('Failed to fetch flights. Please try again.');
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error('Error fetching flights:', err);
-      setError('Failed to fetch flights. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  fetchFlights();
-}, [searchData]);;
+    fetchFlights();
+  }, [searchData]);
 
   // Apply filters and sorting
   useEffect(() => {
     let result = [...flights];
 
-    // Apply stops filter
     const selectedStops = [];
     if (filters.stops.nonstop) selectedStops.push('Non-stop');
     if (filters.stops.oneStop) selectedStops.push('1 Stop');
@@ -761,13 +797,11 @@ useEffect(() => {
       });
     }
 
-    // Apply price range filter
     result = result.filter(flight => {
       const price = parseFloat(flight.price_per_adult);
       return price >= filters.priceRange.min && price <= filters.priceRange.max;
     });
 
-    // Apply airlines filter
     const selectedAirlines = Object.entries(filters.airlines)
       .filter(([, selected]) => selected)
       .map(([airline]) => airline);
@@ -776,7 +810,6 @@ useEffect(() => {
       result = result.filter(flight => selectedAirlines.includes(flight.airline));
     }
 
-    // Apply departure time filter
     const selectedTimes = [];
     if (filters.departureTime.morning) selectedTimes.push('morning');
     if (filters.departureTime.afternoon) selectedTimes.push('afternoon');
@@ -794,19 +827,16 @@ useEffect(() => {
       });
     }
 
-    // Apply baggage filter
     if (filters.baggageIncluded) {
       result = result.filter(flight => 
         flight.baggage_allowance && flight.baggage_allowance.includes('kg')
       );
     }
 
-    // Apply meals filter
     if (filters.mealsIncluded) {
       result = result.filter(flight => flight.meals_included === 1);
     }
 
-    // Apply sorting
     switch (sortBy) {
       case 'price_low':
         result.sort((a, b) => parseFloat(a.price_per_adult) - parseFloat(b.price_per_adult));
@@ -825,7 +855,6 @@ useEffect(() => {
         });
         break;
       default:
-        // recommended - keep original order
         break;
     }
 
@@ -868,7 +897,6 @@ useEffect(() => {
     return parseInt(price).toLocaleString('en-IN');
   };
 
-  // Handle filter changes
   const handleStopFilter = (stopType: 'nonstop' | 'oneStop' | 'twoPlusStops') => {
     setFilters(prev => ({
       ...prev,
@@ -921,7 +949,6 @@ useEffect(() => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Back Button */}
         <button
           onClick={onBack}
           className="mb-6 flex items-center gap-2 text-gray-600 hover:text-orange-600 transition-colors group"
@@ -932,7 +959,6 @@ useEffect(() => {
           Modify Search
         </button>
 
-        {/* Search Summary Card */}
         {searchData && (
           <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl shadow-lg mb-8 p-6 text-white">
             <div className="flex flex-wrap items-center justify-between gap-4">
@@ -991,7 +1017,7 @@ useEffect(() => {
         )}
 
         <div className="flex flex-col lg:flex-row gap-6">
-          {/* LEFT FILTER PANEL - With Working Filters */}
+          {/* LEFT FILTER PANEL */}
           <div className="lg:w-80 flex-shrink-0">
             <div className="bg-white rounded-2xl shadow-lg sticky top-24 overflow-hidden">
               <div className="p-5 border-b border-gray-100 flex justify-between items-center">
@@ -1008,7 +1034,6 @@ useEffect(() => {
               </div>
               
               <div className="p-5 space-y-6 max-h-[calc(100vh-200px)] overflow-y-auto">
-                {/* Stops Filter */}
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                     <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1038,7 +1063,6 @@ useEffect(() => {
                   </div>
                 </div>
 
-                {/* Price Range Filter */}
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                     <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1062,7 +1086,6 @@ useEffect(() => {
                   </div>
                 </div>
 
-                {/* Airlines Filter */}
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                     <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1088,7 +1111,6 @@ useEffect(() => {
                   </div>
                 </div>
 
-                {/* Departure Time */}
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-3">Departure Time</h3>
                   <div className="space-y-2">
@@ -1111,7 +1133,6 @@ useEffect(() => {
                   </div>
                 </div>
 
-                {/* Additional Filters */}
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-3">Amenities</h3>
                   <div className="space-y-2">
@@ -1135,37 +1156,12 @@ useEffect(() => {
                     </label>
                   </div>
                 </div>
-
-                {/* Active Filters Summary */}
-                {(filters.stops.oneStop || filters.stops.twoPlusStops || 
-                  Object.values(filters.departureTime).some(v => v) ||
-                  filters.baggageIncluded || filters.mealsIncluded ||
-                  Object.values(filters.airlines).some(v => !v)) && (
-                  <div className="pt-4 border-t border-gray-100">
-                    <p className="text-xs text-gray-500 mb-2">Active filters:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {filters.stops.oneStop && (
-                        <span className="text-xs bg-gray-100 px-2 py-1 rounded-full">1 Stop</span>
-                      )}
-                      {filters.stops.twoPlusStops && (
-                        <span className="text-xs bg-gray-100 px-2 py-1 rounded-full">2+ Stops</span>
-                      )}
-                      {filters.baggageIncluded && (
-                        <span className="text-xs bg-gray-100 px-2 py-1 rounded-full">Baggage</span>
-                      )}
-                      {filters.mealsIncluded && (
-                        <span className="text-xs bg-gray-100 px-2 py-1 rounded-full">Meals</span>
-                      )}
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           </div>
 
           {/* RIGHT FLIGHT LIST */}
           <div className="flex-1 space-y-4">
-            {/* Sort Options */}
             <div className="bg-white rounded-xl shadow-sm p-4 flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-500">Sort by:</span>
@@ -1186,7 +1182,6 @@ useEffect(() => {
               </div>
             </div>
 
-            {/* Loading State */}
             {loading && (
               <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-50 mb-4">
@@ -1197,7 +1192,6 @@ useEffect(() => {
               </div>
             )}
 
-            {/* Error State */}
             {error && !loading && (
               <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-50 mb-4">
@@ -1215,7 +1209,6 @@ useEffect(() => {
               </div>
             )}
 
-            {/* No Results State */}
             {!loading && !error && filteredFlights.length === 0 && (
               <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-50 mb-4">
@@ -1232,17 +1225,14 @@ useEffect(() => {
               </div>
             )}
 
-            {/* FLIGHT CARDS */}
-            {!loading && !error && filteredFlights.map((flight, index) => (
+            {!loading && !error && filteredFlights.map((flight) => (
               <div 
                 key={flight.id} 
                 className={`bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 ${selectedFlight === flight.id ? 'ring-2 ring-orange-500' : ''}`}
                 onClick={() => setSelectedFlight(selectedFlight === flight.id ? null : flight.id)}
               >
-                {/* Main Flight Info */}
                 <div className="p-5">
                   <div className="flex flex-wrap lg:flex-nowrap items-center gap-6">
-                    {/* Airline Logo & Name */}
                     <div className="lg:w-40 flex-shrink-0">
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-md">
@@ -1255,17 +1245,14 @@ useEffect(() => {
                       </div>
                     </div>
 
-                    {/* Flight Timeline */}
                     <div className="flex-1">
                       <div className="flex items-center justify-between gap-4">
-                        {/* Departure */}
                         <div className="text-center flex-1">
                           <p className="text-2xl font-bold text-gray-900">{formatTime(flight.flight_time)}</p>
                           <p className="font-semibold text-gray-800">{flight.from_city}</p>
                           <p className="text-xs text-gray-500">{flight.from_airport_code}</p>
                         </div>
 
-                        {/* Duration & Flight Path */}
                         <div className="flex-1 px-4">
                           <div className="relative flex items-center justify-center">
                             <div className="absolute left-0 right-0 h-px bg-gray-300"></div>
@@ -1276,7 +1263,6 @@ useEffect(() => {
                           <p className="text-xs text-center text-green-600 mt-1 font-medium">{flight.flight_type}</p>
                         </div>
 
-                        {/* Arrival */}
                         <div className="text-center flex-1">
                           <p className="text-2xl font-bold text-gray-900">{formatTime(flight.arrival_time)}</p>
                           <p className="font-semibold text-gray-800">{flight.to_city}</p>
@@ -1285,7 +1271,6 @@ useEffect(() => {
                       </div>
                     </div>
 
-                    {/* Price & Book Button */}
                     <div className="lg:w-48 flex-shrink-0 text-right">
                       <div className="mb-2">
                         <p className="text-2xl font-bold text-orange-600">₹ {formatPrice(flight.price_per_adult)}</p>
@@ -1303,7 +1288,6 @@ useEffect(() => {
                     </div>
                   </div>
 
-                  {/* Expand/Collapse Toggle */}
                   <div className="mt-4 pt-3 border-t border-gray-100">
                     <button
                       onClick={(e) => {
@@ -1320,7 +1304,6 @@ useEffect(() => {
                   </div>
                 </div>
 
-                {/* Expanded Details */}
                 {activeTab === `details-${flight.id}` && (
                   <div className="bg-gradient-to-r from-gray-50 to-blue-50 p-5 border-t border-gray-100">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1358,7 +1341,6 @@ useEffect(() => {
                       </div>
                     </div>
                     
-                    {/* Fare Summary */}
                     <div className="mt-4 bg-orange-50 rounded-xl p-4">
                       <div className="flex flex-wrap items-center justify-between gap-3">
                         <div className="flex items-center gap-4 text-sm">
@@ -1412,11 +1394,57 @@ const FlightSearch = () => {
     infants: 0,
   });
 
+  // State for available dates from API
+  const [availableDepartureDates, setAvailableDepartureDates] = useState<string[]>([]);
+  const [availableReturnDates, setAvailableReturnDates] = useState<string[]>([]);
+
   // Auto-focus states
   const [autoOpenTo, setAutoOpenTo] = useState(false);
   const [autoOpenDeparture, setAutoOpenDeparture] = useState(false);
   const [autoOpenReturn, setAutoOpenReturn] = useState(false);
   const [autoOpenTravellers, setAutoOpenTravellers] = useState(false);
+
+  // Fetch available dates based on selected route
+  useEffect(() => {
+    const fetchAvailableDates = async () => {
+      if (!fromCity || !toCity) return;
+      
+      try {
+        const response = await fetch(`${BASE_URL}/api/offline-flights`);
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+          // Filter flights for the selected route
+          const routeFlights = result.data.filter((flight: Flight) => 
+            flight.from_city?.toLowerCase() === fromCity.name?.toLowerCase() &&
+            flight.to_city?.toLowerCase() === toCity.name?.toLowerCase()
+          );
+          
+          // Get unique departure dates
+          const departureDates = [...new Set(
+            routeFlights
+              .map((flight: Flight) => flight.departure_date)
+              .filter(date => date)
+          )];
+          
+          setAvailableDepartureDates(departureDates);
+          
+          // Get unique return dates (only for round trip flights)
+          const returnDates = [...new Set(
+            routeFlights
+              .filter((flight: Flight) => flight.booking_type === 'roundTrip' && flight.return_date)
+              .map((flight: Flight) => flight.return_date!)
+          )];
+          
+          setAvailableReturnDates(returnDates);
+        }
+      } catch (error) {
+        console.error('Error fetching available dates:', error);
+      }
+    };
+    
+    fetchAvailableDates();
+  }, [fromCity, toCity]);
 
   const swapCities = () => {
     setFromCity(toCity);
@@ -1438,7 +1466,6 @@ const FlightSearch = () => {
     setSearchData(newSearchData);
     setShowResults(true);
     
-    // Scroll to results smoothly
     setTimeout(() => {
       window.scrollTo({
         top: document.getElementById('flight-results')?.offsetTop || 0,
@@ -1455,7 +1482,6 @@ const FlightSearch = () => {
     });
   };
 
-  // Handlers for auto-focus sequence
   const handleFromSelect = () => {
     setAutoOpenTo(true);
   };
@@ -1476,7 +1502,6 @@ const FlightSearch = () => {
     setAutoOpenTravellers(true);
   };
 
-  // Reset auto-open flags when dropdowns are closed
   const handleToClose = () => {
     setAutoOpenTo(false);
   };
@@ -1500,7 +1525,6 @@ const FlightSearch = () => {
       <Header />
       
       <div className="flex-grow">
-        {/* Header Section with Background Image */}
         <div 
           className="pt-28 pb-28 relative bg-gradient-to-r from-blue-200/90 to-blue-300/90"
           style={{
@@ -1517,11 +1541,9 @@ const FlightSearch = () => {
               <Plane className="w-8 h-8 text-white" />
               <h1 className="text-2xl font-bold text-white">Flight Booking</h1>
             </div>
-          
           </div>
         </div>
 
-        {/* Search Form */}
         <div className="max-w-7xl mx-auto px-4 -mt-16 relative z-10 mb-20">  
           <div className="bg-white rounded-2xl shadow-2xl border border-gray-200">
             <div className="flex flex-col md:flex-row items-stretch">
@@ -1572,6 +1594,7 @@ const FlightSearch = () => {
                     autoOpen={autoOpenDeparture}
                     onClose={handleDepartureClose}
                     onSelect={handleDepartureSelect}
+                    availableDates={availableDepartureDates}
                   />
                 </div>
 
@@ -1585,6 +1608,7 @@ const FlightSearch = () => {
                     autoOpen={autoOpenReturn}
                     onClose={handleReturnClose}
                     onSelect={handleReturnSelect}
+                    availableDates={availableReturnDates}
                   />
                 </div>
 
@@ -1647,7 +1671,6 @@ const FlightSearch = () => {
           </p>
         </div>
 
-        {/* Flight Results Section */}
         {showResults && searchData && (
           <div id="flight-results" className="mt-8">
             <FlightResults searchData={searchData} onBack={handleBackToSearch} travellers={travellers} />

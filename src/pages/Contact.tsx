@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { BASE_URL } from '@/ApiUrls';
 
 const ContactPage = () => {
   const [formData, setFormData] = useState({
@@ -35,7 +36,6 @@ const ContactPage = () => {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
 
   // Fixed: Use import.meta.env for Vite/React apps
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,7 +58,7 @@ const ContactPage = () => {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/contact`, {
+      const response = await fetch(`${BASE_URL}/contact`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
