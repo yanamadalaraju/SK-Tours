@@ -18,7 +18,6 @@ import { Input } from "@/components/ui/input";
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import EmailModal from '../../EmailModal';
 import Bungalowpdf from './Bungalowpdf';
-
 interface Bungalow {
   bungalow_id: number;
   bungalow_code: string;
@@ -32,6 +31,10 @@ interface Bungalow {
   booking_policy?: string;
   cancellation_policy?: string;
   main_image?: string;
+  week_day_rate_desc?: string;      
+  weekend_rate_desc?: string;      
+  long_holidays_desc?: string;      
+  festival_holidays_desc?: string;  
 }
 
 interface BungalowItem {
@@ -66,13 +69,12 @@ interface EmailFormData {
 }
 
 type TabType = "overview" | "rent" | "inclusive" | "nearby" | "policy" | "cancellation";
-
 const Bunglowbookingcard: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const navigate = useNavigate();
   const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
-
+  const [activeRateTab, setActiveRateTab] = useState("weekday");
   const [bungalow, setBungalow] = useState<Bungalow | null>(null);
   const [images, setImages] = useState<BungalowImage[]>([]);
   const [relatedBungalows, setRelatedBungalows] = useState<any[]>([]);
@@ -92,7 +94,7 @@ const Bunglowbookingcard: React.FC = () => {
   const [selectedBungalowCodes, setSelectedBungalowCodes] = useState<string[]>([]);
   const [showMoreBungalows, setShowMoreBungalows] = useState(false);
 
-  // Fetch all bungalows for sidebar
+
   useEffect(() => {
     fetch(`${BASE_URL}/api/bungalows`)
       .then((res) => res.json())
@@ -223,6 +225,7 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
     }, 1000);
   };
 
+
   const handleBungalowCheckboxChange = (code: string, checked: boolean) => {
     if (checked) {
       setSelectedBungalowCodes(prev => [...prev, code]);
@@ -351,38 +354,75 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
           </div>
         );
 
-      case "rent":
-        return (
-          <div className="bg-[#E8F0FF] rounded-lg p-1 w-full">
-            <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
-              Bungalow Rent
-            </div>
-            <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-              <div className="min-h-[150px] lg:min-h-[180px] max-h-[200px] lg:max-h-[250px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-                <div className="space-y-4 w-full">
-                  <div className="border-gray-200 rounded-lg w-full">
-                    <div className="flex items-start w-full">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-black break-words whitespace-pre-wrap text-justify w-full text-sm lg:text-base">
-                          {bungalow.bungalow_rate ? bungalow.bungalow_rate : `Rent: ₹${bungalow.price} per night`}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="mt-1">
-              <button
-                onClick={() => navigate("/alert")}
-                className="w-full font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90 text-sm lg:text-base"
-              >
-                Customize your booking on chargeable basis
-              </button>
-            </div>
-          </div>
-        );
+case "rent":
+  // Get the rate description based on active tab
+  const getRateDescription = () => {
+    switch (activeRateTab) {
+      case "weekday":
+        return bungalow.week_day_rate_desc || "No weekday rate information available";
+      case "weekend":
+        return bungalow.weekend_rate_desc || "No weekend rate information available";
+      case "holidays":
+        return bungalow.long_holidays_desc || "No long holidays rate information available";
+      case "festival":
+        return bungalow.festival_holidays_desc || "No festival rate information available";
+      default:
+        return "No rate information available";
+    }
+  };
 
+  return (
+    <div className="bg-[#E8F0FF] rounded-lg p-1 w-full">
+      <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
+        Bungalow Rent
+      </div>
+      <div className="overflow-x-auto w-full mt-1">
+        {/* Tabs */}
+        <div className="flex bg-white border border-black rounded-t-lg overflow-hidden mb-0 min-w-[400px]">
+          {[
+            { key: "weekday", label: "Weekday Rate" },
+            { key: "weekend", label: "Weekend Rate" },
+            { key: "holidays", label: "Long Holidays" },
+            { key: "festival", label: "Festival Rates" },
+          ].map((tab, index, arr) => (
+            <div
+              key={tab.key}
+              onClick={() => setActiveRateTab(tab.key)}
+              className={`px-2 py-2 lg:py-3 text-[12px] xs:text-xs font-semibold text-center cursor-pointer flex-1
+                ${index !== arr.length - 1 ? "border-r border-black" : ""}
+                ${
+                  activeRateTab === tab.key
+                    ? "bg-[#A72703] text-white"
+                    : "bg-[#FFE797] text-gray-800"
+                }`}
+            >
+              {tab.label}
+            </div>
+          ))}
+        </div>
+
+        <div className="overflow-y-auto min-h-[180px] max-h-[190px]">
+          <table className="w-full border border-black border-t-0 min-w-[400px]">
+            <tbody>
+              <tr className="bg-[#FFEBEE]">
+                <td className="px-3 lg:px-4 py-2 lg:py-3 text-black text-sm lg:text-base text-justify leading-relaxed">
+                  {getRateDescription()}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div className="mt-1">
+        <button
+          onClick={() => navigate("/alert")}
+          className="w-full font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90 text-sm lg:text-base"
+        >
+          Customize your booking on chargeable basis
+        </button>
+      </div>
+    </div>
+  );
       case "inclusive":
         return (
           <div className="bg-[#E8F0FF] rounded-lg p-1 w-full overflow-x-hidden">
