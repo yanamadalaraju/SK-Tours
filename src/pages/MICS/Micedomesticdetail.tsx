@@ -221,7 +221,7 @@ const Micedomesticdetail = () => {
       setEmailLoading(true);
 
       const { pdf } = await import('@react-pdf/renderer');
-      const Micedomesticpdf = (await import('./micedomesticpdf')).default;
+      const Micedomesticpdf = (await import('./Micedomesticpdf')).default;
 
       const pdfInstance = (
         <Micedomesticpdf

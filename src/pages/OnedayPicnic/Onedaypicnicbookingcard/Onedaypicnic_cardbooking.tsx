@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Villaimg1 from "../Images/villa1.png";
 import Villaimg2 from "../Images/villa2.png";
@@ -7,6 +7,7 @@ import Villaimg4 from "../Images/villa4.png";
 import Villaimg5 from "../Images/villa5.png";
 import Villaimg6 from "../Images/villa6.png";
 import villaimg7 from "../Images/villa7.png";
+
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { BASE_URL } from "@/ApiUrls";
@@ -27,6 +28,8 @@ interface Picnic {
   property_rate?: string;
   per_pax_twin?: string;
   per_pax_triple?: string;
+  duration?: string;      
+  city_name?: string;       
   child_with_bed?: string;
   child_without_bed?: string;
   infant?: string;
@@ -35,17 +38,21 @@ interface Picnic {
   inclusive?: string;
   exclusive?: string;
   places_nearby?: string;
+  places_nearby_qa?: Array<{ id: number; question: string; answer: string }>;
   booking_policy?: string;
   cancellation_policy?: string;
   amenities?: string;
   main_image?: string;
 }
 
+
 interface PicnicItem {
   picnic_id: number;
   picnic_code: string;
   name: string;
   price: string;
+  duration?: string;       
+  city_name?: string;       
   main_image: string;
 }
 
@@ -78,6 +85,8 @@ const Onedaypicnic_cardbooking: React.FC = () => {
   const [images, setImages] = useState<PicnicImage[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   
+  // Auto-scroll timer reference
+const autoScrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);  
   // Email modal state
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [emailLoading, setEmailLoading] = useState(false);
@@ -91,8 +100,11 @@ const Onedaypicnic_cardbooking: React.FC = () => {
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [selectedPicnicCodes, setSelectedPicnicCodes] = useState<string[]>([]);
   const [showMorePicnics, setShowMorePicnics] = useState(false);
+  const [openNearbyQA, setOpenNearbyQA] = useState<number | null>(null);
+  const [durationRange, setDurationRange] = useState([1, 10]);
+  const [selectedCities, setSelectedCities] = useState<string[]>([]);
+  const [showMoreCities, setShowMoreCities] = useState(false);
 
-  // Fetch all picnics for sidebar
   useEffect(() => {
     fetch(`${BASE_URL}/api/one-day-picnic`)
       .then((res) => res.json())
@@ -102,7 +114,6 @@ const Onedaypicnic_cardbooking: React.FC = () => {
       .catch((err) => console.error("Error fetching picnics:", err));
   }, []);
 
-  /* FETCH PICNIC DETAILS */
   useEffect(() => {
     if (!id) return;
 
@@ -123,10 +134,36 @@ const Onedaypicnic_cardbooking: React.FC = () => {
     fetchPicnicDetails();
   }, [id]);
 
+  const extractDuration = (durationStr: string): number => {
+    if (!durationStr) return 0;
+    const match = durationStr.match(/(\d+)N/);
+    return match ? parseInt(match[1]) : 0;
+  };
+  
+  const uniqueCities = Array.from(new Set(allPicnics.map(p => p.city_name).filter(Boolean)));
+
+  const handleCityCheckboxChange = (city: string, checked: boolean) => {
+    if (checked) {
+      setSelectedCities([city]);
+      const selectedPicnic = allPicnics.find(p => p.city_name === city);
+      if (selectedPicnic) {
+        navigate(`/onedaybooking/${selectedPicnic.picnic_id}`);
+      }
+    } else {
+      setSelectedCities([]);
+    }
+  };  
+  
   const handleBook = (): void => {
     navigate("/ondaypicnicform");
   };
 
+
+  useEffect(() => {
+  if (picnic?.city_name) {
+    setSelectedCities([picnic.city_name]);
+  }
+}, [picnic]);
   const handleEmailSubmit = async (emailData: EmailFormData) => {
     try {
       setEmailLoading(true);
@@ -203,10 +240,11 @@ const Onedaypicnic_cardbooking: React.FC = () => {
 
   const clearAllFilters = () => {
     setPriceRange([0, 200000]);
+    setDurationRange([1, 10]);  
     setSearchQuery("");
     setShowSearchBtn(false);
     setIsSearchActive(false);
-    setSelectedPicnicCodes([]);
+    setSelectedCities([]);       
   };
 
   const clearSearch = () => {
@@ -222,46 +260,63 @@ const Onedaypicnic_cardbooking: React.FC = () => {
     setIsSearchActive(true);
     const query = searchQuery.trim().toLowerCase();
     const foundPicnic = allPicnics.find(p => 
-      p.name.toLowerCase().includes(query) || 
-      p.picnic_code.toLowerCase().includes(query)
+      p.picnic_code.toLowerCase().includes(query) ||
+      p.city_name?.toLowerCase().includes(query)
     );
-    
+
     if (foundPicnic) {
       navigate(`/onedaybooking/${foundPicnic.picnic_id}`);
     }
   };
 
-  if (loading || !picnic) {
-    return (
-      <>
-        <Header />
-        <div className="min-h-screen bg-[#FFEBEE]">
-          <div className="container mx-auto px-4 py-20 text-center flex flex-col items-center justify-center gap-4">
-            <span className="animate-spin h-12 w-12 border-4 border-blue-200 border-t-blue-600 rounded-full" />
-            <div className="text-2xl font-bold text-[#2E4D98]">Loading picnic details...</div>
-          </div>
-        </div>
-        <Footer />
-      </>
-    );
-  }
+  // Define carouselImages BEFORE using it in hooks
+  const carouselImages: string[] = images.length > 0
+    ? images.map((img) => `${BASE_URL}${img.image_url}`)
+    : [picnic?.main_image ? `${BASE_URL}${picnic.main_image}` : Villaimg1, Villaimg2, Villaimg3, Villaimg4, Villaimg5, Villaimg6, villaimg7];
 
-  /* IMAGE CAROUSEL */
-  const carouselImages: string[] =
-    images.length > 0
-      ? images.map((img) => `${BASE_URL}${img.image_url}`)
-      : [picnic.main_image ? `${BASE_URL}${picnic.main_image}` : Villaimg1, Villaimg2, Villaimg3, Villaimg4, Villaimg5, Villaimg6, villaimg7];
+  // Auto-scroll functions
+  const startAutoScroll = () => {
+    if (autoScrollTimer.current) {
+      clearInterval(autoScrollTimer.current);
+    }
+    if (carouselImages.length > 1) {
+      autoScrollTimer.current = setInterval(() => {
+        setCurrentImageIndex((prev) => (prev + 1) % carouselImages.length);
+      }, 5000);
+    }
+  };
+
+  const stopAutoScroll = () => {
+    if (autoScrollTimer.current) {
+      clearInterval(autoScrollTimer.current);
+      autoScrollTimer.current = null;
+    }
+  };
+
+  // Auto-scroll useEffect
+  useEffect(() => {
+    if (carouselImages.length > 1) {
+      startAutoScroll();
+    }
+    return () => stopAutoScroll();
+  }, [images, picnic]);
 
   const nextImage = (): void => {
+    stopAutoScroll();
     setCurrentImageIndex((prev) => (prev === carouselImages.length - 1 ? 0 : prev + 1));
+    startAutoScroll();
   };
 
   const prevImage = (): void => {
+    stopAutoScroll();
     setCurrentImageIndex((prev) => (prev === 0 ? carouselImages.length - 1 : prev - 1));
+    startAutoScroll();
   };
 
   const goToImage = (index: number): void => {
+    stopAutoScroll();
     setCurrentImageIndex(index);
+    startAutoScroll();
   };
 
   const handleTabClick = (tab: TabType): void => {
@@ -292,7 +347,7 @@ const Onedaypicnic_cardbooking: React.FC = () => {
                     <div className="flex items-start w-full">
                       <div className="flex-1 min-w-0">
                         <p className="text-black break-words whitespace-pre-wrap text-justify w-full text-sm lg:text-base">
-                          {picnic.overview || "No overview available"}
+                          {picnic?.overview || "No overview available"}
                         </p>
                       </div>
                     </div>
@@ -324,7 +379,7 @@ const Onedaypicnic_cardbooking: React.FC = () => {
                     <div className="flex items-start w-full">
                       <div className="flex-1 min-w-0">
                         <p className="text-black break-words whitespace-pre-wrap text-justify w-full text-sm lg:text-base">
-                          {picnic.property_rate || "No property rate details available"}
+                          {picnic?.property_rate || "No property rate details available"}
                         </p>
                       </div>
                     </div>
@@ -357,7 +412,7 @@ const Onedaypicnic_cardbooking: React.FC = () => {
                 </div>
                 <div className="flex-1 border-2 border-[#1e3a8a] rounded-b-lg bg-[#FFEBEE] w-full overflow-hidden min-h-0">
                   <div className="h-full overflow-y-auto p-2">
-                    {picnic.inclusive ? (
+                    {picnic?.inclusive ? (
                       <ul className="space-y-2 w-full">
                         {picnic.inclusive.split("\n").map((item, idx) => (
                           <li key={idx} className="w-full">
@@ -384,7 +439,7 @@ const Onedaypicnic_cardbooking: React.FC = () => {
                 </div>
                 <div className="flex-1 border-2 border-[#1e3a8a] rounded-b-lg bg-[#FFEBEE] w-full overflow-hidden min-h-0">
                   <div className="h-full overflow-y-auto p-2">
-                    {picnic.exclusive ? (
+                    {picnic?.exclusive ? (
                       <ul className="space-y-2 w-full">
                         {picnic.exclusive.split("\n").map((item, idx) => (
                           <li key={idx} className="w-full">
@@ -417,24 +472,63 @@ const Onedaypicnic_cardbooking: React.FC = () => {
         );
 
       case "nearby":
+        const placesNearbyQA = (picnic as any)?.places_nearby_qa || [];
+
         return (
           <div className="bg-[#E8F0FF] rounded-lg p-1 w-full">
             <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
               Places Near By
             </div>
             <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-              <div className="h-64 lg:h-64 overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-                <div className="space-y-4 w-full">
-                  <div className="border-gray-200 rounded-lg w-full">
-                    <div className="flex items-start w-full">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-black break-words whitespace-pre-wrap text-justify w-full text-sm lg:text-base">
-                          {picnic.places_nearby || "No nearby places listed"}
-                        </p>
-                      </div>
-                    </div>
+              <div className="min-h-[250px] lg:min-h-[250px] max-h-[250px] lg:max-h-[250px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+                {picnic?.places_nearby && (
+                  <div className="mb-4 p-3 bg-white rounded-lg">
+                    <p className="text-black break-words whitespace-pre-wrap text-justify w-full text-sm lg:text-base">
+                      {picnic.places_nearby}
+                    </p>
                   </div>
-                </div>
+                )}
+
+                {placesNearbyQA.length > 0 ? (
+                  <div className="border rounded-lg overflow-hidden">
+                    {placesNearbyQA.map((item: any, index: number) => (
+                      <div key={item.id || index} className="border-b">
+                        <div
+                          onClick={() => setOpenNearbyQA(openNearbyQA === index ? null : index)}
+                          className="flex justify-between items-center px-4 py-3 cursor-pointer hover:bg-gray-50"
+                          style={{ backgroundColor: "#2E3A8A", color: "#fff" }}
+                        >
+                          <span className="text-sm md:text-base">{item.question}</span>
+                          <span className="text-xs md:text-sm">{openNearbyQA === index ? "▼" : "▶"}</span>
+                        </div>
+                        {openNearbyQA === index && (
+                          <div
+                            className="bg-[#E8F0FF] px-4 py-4 text-sm md:text-base"
+                            style={{
+                              minHeight: "100px",
+                              maxHeight: "250px",
+                              overflowY: "auto",
+                              overflowX: "hidden",
+                              textAlign: "justify",
+                              wordBreak: "break-word",
+                              whiteSpace: "normal",
+                              borderRadius: "0 0 8px 8px",
+                              borderLeft: "1px solid black",
+                              borderRight: "1px solid black",
+                              borderBottom: "1px solid black",
+                            }}
+                          >
+                            {item.answer}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="px-4 py-6 text-center text-gray-500 text-sm bg-white rounded-lg">
+                    {picnic?.places_nearby || "No nearby places information available"}
+                  </div>
+                )}
               </div>
             </div>
             <div className="mt-1">
@@ -455,16 +549,17 @@ const Onedaypicnic_cardbooking: React.FC = () => {
               Amenities
             </div>
             <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-              <div className="min-h-[250px] lg:min-h-[250px] max-h-[310px] lg:max-h-[390px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-                {picnic.amenities ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 w-full">
+              <div className="min-h-[150px] lg:min-h-[250px] max-h-[250px] lg:max-h-[250px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+                {picnic?.amenities ? (
+                  <div className="flex flex-col gap-2 w-full">
                     {picnic.amenities.split('\n').map((item, idx) => (
-                      <div key={idx} className="flex items-center gap-2 p-2 bg-white rounded-lg shadow-sm">
-                        <svg className="w-4 h-4 lg:w-5 lg:h-5 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span className="text-black text-sm lg:text-base break-words">{item}</span>
-                      </div>
+                      item.trim() && (
+                        <div key={idx} className="flex items-start gap-2 p-1 rounded-lg w-full">
+                          <span className="text-black text-sm lg:text-base break-words flex-1 text-justify">
+                            {item}
+                          </span>
+                        </div>
+                      )
                     ))}
                   </div>
                 ) : (
@@ -493,7 +588,6 @@ const Onedaypicnic_cardbooking: React.FC = () => {
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-1 w-full">
-              {/* Booking Policy Section - 50% */}
               <div className="flex flex-col w-full min-h-[250px] lg:min-h-[280px] max-h-[280px] lg:max-h-[320px]">
                 <div className="bg-[#2E4D98] text-white text-center py-2 lg:py-3 rounded-t-lg w-full">
                   <h3 className="text-lg lg:text-xl font-bold">Booking Policy</h3>
@@ -501,13 +595,12 @@ const Onedaypicnic_cardbooking: React.FC = () => {
                 <div className="flex-1 border-2 border-[#1e3a8a] rounded-b-lg bg-[#FFEBEE] w-full overflow-hidden min-h-0">
                   <div className="h-full overflow-y-auto p-2">
                     <p className="text-black break-words whitespace-pre-wrap text-justify w-full text-sm lg:text-base">
-                      {picnic.booking_policy || "No booking policy available"}
+                      {picnic?.booking_policy || "No booking policy available"}
                     </p>
                   </div>
                 </div>
               </div>
 
-              {/* Cancellation Policy Section - 50% */}
               <div className="flex flex-col w-full min-h-[250px] lg:min-h-[280px] max-h-[280px] lg:max-h-[320px]">
                 <div className="bg-[#2E4D98] text-white text-center py-2 lg:py-3 rounded-t-lg w-full">
                   <h3 className="text-lg lg:text-xl font-bold">Cancellation Policy</h3>
@@ -515,7 +608,7 @@ const Onedaypicnic_cardbooking: React.FC = () => {
                 <div className="flex-1 border-2 border-[#1e3a8a] rounded-b-lg bg-[#FFEBEE] w-full overflow-hidden min-h-0">
                   <div className="h-full overflow-y-auto p-2">
                     <p className="text-black break-words whitespace-pre-wrap text-justify w-full text-sm lg:text-base">
-                      {picnic.cancellation_policy || "No cancellation policy available"}
+                      {picnic?.cancellation_policy || "No cancellation policy available"}
                     </p>
                   </div>
                 </div>
@@ -557,6 +650,22 @@ const Onedaypicnic_cardbooking: React.FC = () => {
     }
   };
 
+  // Loading state - moved to the end after all hooks
+  if (loading || !picnic) {
+    return (
+      <>
+        <Header />
+        <div className="min-h-screen bg-[#FFEBEE]">
+          <div className="container mx-auto px-4 py-20 text-center flex flex-col items-center justify-center gap-4">
+            <span className="animate-spin h-12 w-12 border-4 border-blue-200 border-t-blue-600 rounded-full" />
+            <div className="text-2xl font-bold text-[#2E4D98]">Loading picnic details...</div>
+          </div>
+        </div>
+        <Footer />
+      </>
+    );
+  }
+
   return (
     <>
       <Header />
@@ -590,13 +699,28 @@ const Onedaypicnic_cardbooking: React.FC = () => {
                   />
                 </div>
 
-                {/* Search */}
+                <div className="mb-6">
+                  <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Duration</h3>
+                  <div className="flex justify-between text-sm text-gray-600 mb-3">
+                    <span>{durationRange[0]} Days</span>
+                    <span>{durationRange[1]} Days</span>
+                  </div>
+                  <Slider 
+                    value={durationRange} 
+                    onValueChange={setDurationRange} 
+                    min={1} 
+                    max={10} 
+                    step={1} 
+                    className="w-full" 
+                  />
+                </div>
+
                 <div className="mb-4">
                   <form onSubmit={handleSearch} className="flex gap-2">
                     <div className="relative flex-1">
                       <Input
                         type="text"
-                        placeholder="Search by name or code"
+                        placeholder="Search by code or city"  
                         value={searchQuery}
                         onChange={(e) => { 
                           setSearchQuery(e.target.value); 
@@ -623,47 +747,43 @@ const Onedaypicnic_cardbooking: React.FC = () => {
                   </form>
                 </div>
 
-                {/* Picnic Checkboxes */}
+                {/* City Filter */}
                 <div className="mb-4">
                   <div className="flex justify-between items-center mb-3 bg-white p-2 rounded-lg border border-black">
                     <h2 className="text-xl font-bold text-[#2E4D98]">Picnic Types</h2>
                   </div>
-                  <div className="space-y-3">
-                    {allPicnics.length > 0 ? (
-                      Array.from(new Map(allPicnics.map(p => [p.picnic_code, p])).values())
-                        .slice(0, showMorePicnics ? undefined : 6)
-                        .map((picnicItem) => (
-                          <div key={picnicItem.picnic_code} className="flex items-center gap-3 cursor-pointer">
-                            <Checkbox
-                              checked={picnicItem.picnic_code === picnic.picnic_code}
-                              onCheckedChange={(checked) => handlePicnicCheckboxChange(picnicItem.picnic_code, checked as boolean)}
-                              className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
-                            />
-                            <span
-                              className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${picnicItem.picnic_code === picnic.picnic_code ? 'font-bold text-[#2E4D98]' : ''}`}
-                              onClick={() => {
-                                if (picnicItem.picnic_code === picnic.picnic_code) {
-                                  handlePicnicCheckboxChange(picnicItem.picnic_code, false);
-                                } else {
-                                  handlePicnicCheckboxChange(picnicItem.picnic_code, true);
-                                }
-                              }}
-                            >
-                              {picnicItem.name} 
-                            </span>
-                          </div>
-                        ))
-                    ) : (
-                      <div className="text-sm text-gray-400">Loading picnics...</div>
-                    )}
-                  </div>
-                  {allPicnics.length > 6 && (
-                    <button 
-                      onClick={() => setShowMorePicnics(!showMorePicnics)} 
-                      className="mt-4 text-[#2E4D98] text-sm font-semibold hover:underline"
-                    >
-                      {showMorePicnics ? "Show Less" : `Show ${allPicnics.length - 6} More`}
-                    </button>
+               
+                  {uniqueCities.length > 0 && (
+                    <div className="mb-6">
+                      <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">City</h3>
+                      <div className="space-y-2 max-h-48 overflow-y-auto">
+                        {uniqueCities
+                          .slice(0, showMoreCities ? undefined : 6)
+                          .map((city) => (
+                            <div key={city} className="flex items-center gap-3 cursor-pointer">
+                              <Checkbox
+                                checked={selectedCities.includes(city)}
+                                onCheckedChange={(checked) => handleCityCheckboxChange(city, checked as boolean)}
+                                className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
+                              />
+                              <span
+                                className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${selectedCities.includes(city) ? 'font-bold text-[#2E4D98]' : ''}`}
+                                onClick={() => handleCityCheckboxChange(city, !selectedCities.includes(city))}
+                              >
+                                {city}
+                              </span>
+                            </div>
+                          ))}
+                      </div>
+                      {uniqueCities.length > 6 && (
+                        <button 
+                          onClick={() => setShowMoreCities(!showMoreCities)} 
+                          className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
+                        >
+                          {showMoreCities ? "Show Less" : `Show ${uniqueCities.length - 6} More`}
+                        </button>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>
@@ -681,7 +801,7 @@ const Onedaypicnic_cardbooking: React.FC = () => {
                 </div>
               </div>
 
-              {/* Image Carousel */}
+              {/* Image Carousel with Auto-scroll */}
               <div className="relative rounded-2xl overflow-hidden mb-2">
                 <div className="relative h-64 sm:h-80 lg:h-[500px] overflow-hidden">
                   <img
@@ -694,13 +814,13 @@ const Onedaypicnic_cardbooking: React.FC = () => {
                     <>
                       <button
                         onClick={prevImage}
-                        className="absolute left-2 lg:left-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-1 lg:p-2 rounded-full transition-all duration-200"
+                        className="absolute left-2 lg:left-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-1 lg:p-2 rounded-full transition-all duration-200 z-10"
                       >
                         <ChevronLeft className="w-4 h-4 lg:w-6 lg:h-6" />
                       </button>
                       <button
                         onClick={nextImage}
-                        className="absolute right-2 lg:right-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-1 lg:p-2 rounded-full transition-all duration-200"
+                        className="absolute right-2 lg:right-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-1 lg:p-2 rounded-full transition-all duration-200 z-10"
                       >
                         <ChevronRight className="w-4 h-4 lg:w-6 lg:h-6" />
                       </button>
@@ -708,8 +828,22 @@ const Onedaypicnic_cardbooking: React.FC = () => {
                   )}
 
                   {carouselImages.length > 1 && (
-                    <div className="absolute top-2 lg:top-4 right-2 lg:right-4 bg-black/50 text-white px-2 lg:px-3 py-0.5 lg:py-1 rounded-full text-xs lg:text-sm">
+                    <div className="absolute top-2 lg:top-4 right-2 lg:right-4 bg-black/50 text-white px-2 lg:px-3 py-0.5 lg:py-1 rounded-full text-xs lg:text-sm z-10">
                       {currentImageIndex + 1} / {carouselImages.length}
+                    </div>
+                  )}
+
+                  {/* Auto-scroll indicator dots */}
+                  {carouselImages.length > 1 && (
+                    <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1 z-10">
+                      {carouselImages.map((_, index) => (
+                        <div
+                          key={index}
+                          className={`h-1 rounded-full transition-all duration-300 ${
+                            index === currentImageIndex ? 'w-6 bg-white' : 'w-2 bg-white/50'
+                          }`}
+                        />
+                      ))}
                     </div>
                   )}
                 </div>
@@ -721,10 +855,11 @@ const Onedaypicnic_cardbooking: React.FC = () => {
                         <button
                           key={index}
                           onClick={() => goToImage(index)}
-                          className={`flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 lg:w-20 lg:h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 ${index === currentImageIndex
-                            ? 'border-[#2E4D98] ring-1 lg:ring-2 ring-[#2E4D98] ring-opacity-50 scale-105'
-                            : 'border-transparent hover:border-gray-300'
-                            }`}
+                          className={`flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 lg:w-20 lg:h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
+                            index === currentImageIndex
+                              ? 'border-[#2E4D98] ring-1 lg:ring-2 ring-[#2E4D98] ring-opacity-50 scale-105'
+                              : 'border-transparent hover:border-gray-300'
+                          }`}
                         >
                           <img
                             src={image}
@@ -777,7 +912,7 @@ const Onedaypicnic_cardbooking: React.FC = () => {
                     {tabs.map((tab, idx) => (
                       <button
                         key={tab.key}
-                        onClick={() => handleTabClick(tab.key)}
+                        onClick={() => handleTabClick(tab.key as TabType)}
                         className={`px-1 lg:px-3 py-2 lg:py-4 text-[10px] xs:text-xs sm:text-sm font-semibold text-center whitespace-nowrap
                           ${idx < 5 ? "border-r border-black" : ""} transition 
                           ${activeTab === tab.key

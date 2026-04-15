@@ -13,6 +13,8 @@ interface PicnicItem {
   picnic_code: string;
   name: string;
   price: string;
+  duration: string;
+  city_name: string;
   main_image: string;
 }
 
@@ -23,11 +25,22 @@ const Onedaypicnic_card: React.FC = () => {
   
   // Filter states
   const [priceRange, setPriceRange] = useState([0, 200000]);
+  const [durationRange, setDurationRange] = useState([1, 10]);
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearchBtn, setShowSearchBtn] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
-  const [selectedPicnicCodes, setSelectedPicnicCodes] = useState<string[]>([]);
-  const [showMorePicnics, setShowMorePicnics] = useState(false);
+  const [selectedCities, setSelectedCities] = useState<string[]>([]);
+  const [showMoreCities, setShowMoreCities] = useState(false);
+
+  // Extract duration number from string like "5N/3D" - returns number of nights
+  const extractDuration = (durationStr: string): number => {
+    if (!durationStr) return 0;
+    const match = durationStr.match(/(\d+)N/);
+    return match ? parseInt(match[1]) : 0;
+  };
+
+  // Get unique cities from picnics
+  const uniqueCities = Array.from(new Set(picnics.map(p => p.city_name).filter(Boolean)));
 
   useEffect(() => {
     fetch(`${BASE_URL}/api/one-day-picnic`)
@@ -41,19 +54,7 @@ const Onedaypicnic_card: React.FC = () => {
 
   // Filter picnics based on selections
   useEffect(() => {
-    let result: PicnicItem[] = [];
-
-    // Add selected picnics by code
-    if (selectedPicnicCodes.length > 0) {
-      selectedPicnicCodes.forEach(code => {
-        const foundPicnic = picnics.find(p => p.picnic_code === code);
-        if (foundPicnic) {
-          result.push(foundPicnic);
-        }
-      });
-    } else {
-      result = [...picnics];
-    }
+    let result = [...picnics];
 
     // Filter by price
     result = result.filter(picnic =>
@@ -61,17 +62,32 @@ const Onedaypicnic_card: React.FC = () => {
       parseFloat(picnic.price) <= priceRange[1]
     );
 
+    // Filter by duration
+    result = result.filter(picnic => {
+      if (!picnic.duration) return true;
+      const durationNights = extractDuration(picnic.duration);
+      return durationNights >= durationRange[0] && durationNights <= durationRange[1];
+    });
+
+    // Filter by city
+    if (selectedCities.length > 0) {
+      result = result.filter(picnic =>
+        selectedCities.includes(picnic.city_name)
+      );
+    }
+
     // Filter by search query
     if (isSearchActive && searchQuery.trim() !== "") {
       const query = searchQuery.trim().toLowerCase();
       result = result.filter(picnic =>
         picnic.name.toLowerCase().includes(query) ||
-        picnic.picnic_code.toLowerCase().includes(query)
+        picnic.picnic_code.toLowerCase().includes(query) ||
+        picnic.city_name?.toLowerCase().includes(query)
       );
     }
 
     setFilteredPicnics(result);
-  }, [selectedPicnicCodes, picnics, priceRange, searchQuery, isSearchActive]);
+  }, [picnics, priceRange, durationRange, selectedCities, searchQuery, isSearchActive]);
 
   const handleCardClick = (picnic: PicnicItem): void => {
     navigate(`/onedaybooking/${picnic.picnic_id}`);
@@ -82,25 +98,26 @@ const Onedaypicnic_card: React.FC = () => {
     navigate(`/onedaybooking/${picnic.picnic_id}`);
   };
 
-  const handleBookClick = (e: React.MouseEvent): void => {
+  const handleBookClick = (e: React.MouseEvent, picnic: PicnicItem): void => {
     e.stopPropagation();
-    navigate(`/ondaypicnicform`);
+    navigate(`/ondaypicnicform`, { state: { picnic } });
   };
 
-  const handlePicnicCheckboxChange = (code: string, checked: boolean) => {
+  const handleCityCheckboxChange = (city: string, checked: boolean) => {
     if (checked) {
-      setSelectedPicnicCodes(prev => [...prev, code]);
+      setSelectedCities(prev => [...prev, city]);
     } else {
-      setSelectedPicnicCodes(prev => prev.filter(c => c !== code));
+      setSelectedCities(prev => prev.filter(c => c !== city));
     }
   };
 
   const clearAllFilters = () => {
     setPriceRange([0, 200000]);
+    setDurationRange([1, 10]);
     setSearchQuery("");
     setShowSearchBtn(false);
     setIsSearchActive(false);
-    setSelectedPicnicCodes([]);
+    setSelectedCities([]);
   };
 
   const clearSearch = () => {
@@ -124,7 +141,7 @@ const Onedaypicnic_card: React.FC = () => {
             <aside className="lg:w-80">
               <div className="bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl shadow-lg p-6 border border-blue-200 sticky top-24">
                 <div className="flex justify-between items-center mb-6 bg-[#2E4D98] p-2 rounded-lg border border-black">
-                  <h2 className="text-2xl font-bold text-white">One Day Picnic</h2>
+                  <h2 className="text-2xl font-bold text-white">Filters</h2>
                   <button onClick={clearAllFilters} className="text-sm text-white hover:underline">
                     Clear All
                   </button>
@@ -147,13 +164,32 @@ const Onedaypicnic_card: React.FC = () => {
                   />
                 </div>
 
+                {/* Duration Range Filter */}
+                <div className="mb-6">
+                  <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Duration Range</h3>
+                  <div className="flex justify-between text-sm text-gray-600 mb-3">
+                    <span>{durationRange[0]} Days</span>
+                    <span>{durationRange[1]} Days</span>
+                  </div>
+                  <Slider 
+                    value={durationRange} 
+                    onValueChange={setDurationRange} 
+                    min={1} 
+                    max={10} 
+                    step={1} 
+                    className="w-full" 
+                  />
+                </div>
+
+       
+
                 {/* Search */}
                 <div className="mb-4">
                   <form onSubmit={handleSearch} className="flex gap-2">
                     <div className="relative flex-1">
                       <Input
                         type="text"
-                        placeholder="Search by name or code"
+                        placeholder="Search by name, code or city"
                         value={searchQuery}
                         onChange={(e) => { 
                           setSearchQuery(e.target.value); 
@@ -179,44 +215,39 @@ const Onedaypicnic_card: React.FC = () => {
                     )}
                   </form>
                 </div>
-
-                {/* Picnic Checkboxes */}
-                <div className="mb-4">
-                  <div className="flex justify-between items-center mb-3 bg-white p-2 rounded-lg border border-black">
-                    <h2 className="text-xl font-bold text-[#2E4D98]">Picnic Types</h2>
-                  </div>
-                  <div className="space-y-3">
-                    {picnics.length > 0 ? (
-                      Array.from(new Map(picnics.map(p => [p.picnic_code, p])).values())
-                        .slice(0, showMorePicnics ? undefined : 6)
-                        .map((picnic) => (
-                          <div key={picnic.picnic_code} className="flex items-center gap-3 cursor-pointer">
+                         {/* City Filter */}
+                {uniqueCities.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">City</h3>
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                      {uniqueCities
+                        .slice(0, showMoreCities ? undefined : 6)
+                        .map((city) => (
+                          <div key={city} className="flex items-center gap-3 cursor-pointer">
                             <Checkbox
-                              checked={selectedPicnicCodes.includes(picnic.picnic_code)}
-                              onCheckedChange={(checked) => handlePicnicCheckboxChange(picnic.picnic_code, checked as boolean)}
+                              checked={selectedCities.includes(city)}
+                              onCheckedChange={(checked) => handleCityCheckboxChange(city, checked as boolean)}
                               className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
                             />
                             <span
-                              className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${selectedPicnicCodes.includes(picnic.picnic_code) ? 'font-bold text-[#2E4D98]' : ''}`}
-                              onClick={() => handlePicnicCheckboxChange(picnic.picnic_code, !selectedPicnicCodes.includes(picnic.picnic_code))}
+                              className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${selectedCities.includes(city) ? 'font-bold text-[#2E4D98]' : ''}`}
+                              onClick={() => handleCityCheckboxChange(city, !selectedCities.includes(city))}
                             >
-                              {picnic.name}
+                              {city}
                             </span>
                           </div>
-                        ))
-                    ) : (
-                      <div className="text-sm text-gray-400">Loading picnics...</div>
+                        ))}
+                    </div>
+                    {uniqueCities.length > 6 && (
+                      <button 
+                        onClick={() => setShowMoreCities(!showMoreCities)} 
+                        className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
+                      >
+                        {showMoreCities ? "Show Less" : `Show ${uniqueCities.length - 6} More`}
+                      </button>
                     )}
                   </div>
-                  {picnics.length > 6 && (
-                    <button 
-                      onClick={() => setShowMorePicnics(!showMorePicnics)} 
-                      className="mt-4 text-[#2E4D98] text-sm font-semibold hover:underline"
-                    >
-                      {showMorePicnics ? "Show Less" : `Show ${picnics.length - 6} More`}
-                    </button>
-                  )}
-                </div>
+                )}
               </div>
             </aside>
 
@@ -264,17 +295,19 @@ const Onedaypicnic_card: React.FC = () => {
                     <div key={item.picnic_id} className="flex flex-col">
                       {/* Two-column header UI - OUTSIDE the card */}
                       <div className="bg-white border-2 border-gray-300 rounded-lg p-3 mb-3 shadow-sm">
-                        <div className="grid grid-cols-2 gap-0 border border-gray-400 rounded overflow-hidden">
+                        <div className="grid grid-cols-3 gap-0 border border-gray-400 rounded overflow-hidden">
                           <div className="bg-[#2E4D98] border-r border-gray-400 p-2 flex items-center justify-center">
-                            <div className="text-sm font-bold text-white text-center"> {item.name}</div>
+                            <div className="text-sm font-bold text-white text-center">CODE</div>
                           </div>
                           <div className="bg-gradient-to-br from-blue-100 to-blue-50 p-2 flex items-center justify-center">
                             <div className="text-sm font-bold text-gray-900 text-center">
-                              {item.picnic_code}
+                              {item.picnic_code ||'N/A'}
                             </div>
                           </div>
+                            <div className="bg-[#2E4D98] border-r border-gray-400 p-2 flex items-center justify-center">
+                            <div className="text-sm font-bold text-white text-center">{item.duration ||'N/A'}</div>
+                          </div>
                         </div>
-                      
                       </div>
 
                       {/* Card Content */}
@@ -302,10 +335,25 @@ const Onedaypicnic_card: React.FC = () => {
                         </div>
 
                         <div className="p-5 flex-1 flex flex-col">
+                     
+
+                          {/* Price */}
                           <div className="mb-3 flex items-center">
                             <span className="w-[150px] text-sm text-[#2E4D98] font-bold">Price</span>
                             <p className="text-2lg font-bold text-gray-900 ml-auto text-right">
                               ₹{parseFloat(item.price).toLocaleString('en-IN')}
+                            </p>
+                          </div>
+                             <div className="mb-3 flex items-center">
+                            <span className="w-[150px] text-sm text-[#2E4D98] font-bold">City</span>
+                            <p className="text-2lg font-bold text-gray-900 ml-auto text-right">
+                              {item.city_name ||'N/A'}
+                            </p>
+                          </div>
+                             <div className="mb-3 flex items-center">
+                            <span className="w-[150px] text-sm text-[#2E4D98] font-bold">One Day Picnic Name</span>
+                            <p className="text-2lg font-bold text-gray-900 ml-auto text-right">
+                              {item.name ||'N/A'}
                             </p>
                           </div>
 
@@ -322,7 +370,7 @@ const Onedaypicnic_card: React.FC = () => {
                             <Button
                               size="sm"
                               className="flex-1 bg-[#E53C42] hover:bg-[#E53C42] hover:opacity-90 text-white"
-                              onClick={(e) => handleBookClick(e)}
+                              onClick={(e) => handleBookClick(e, item)}
                             >
                               Book Now
                             </Button>

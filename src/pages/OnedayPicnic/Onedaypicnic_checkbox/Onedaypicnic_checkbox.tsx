@@ -56,9 +56,8 @@ const Onedaypicnic_checkbox = ({
   const [showMorePicnics, setShowMorePicnics] = useState(false);
   
   // Debounce timer reference
-  const debounceTimerRef = useRef<NodeJS.Timeout>();
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Fetch picnics from API - changed endpoint and variable names
   useEffect(() => {
     const abortController = new AbortController();
     

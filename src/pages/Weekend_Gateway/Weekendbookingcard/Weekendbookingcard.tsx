@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -12,17 +12,19 @@ import { PDFDownloadLink } from '@react-pdf/renderer';
 import EmailModal from '../../EmailModal';
 import WeekendGatewaypdf from './WeekendGatewaypdf';
 
-// Type definitions based on API response
 interface WeekendGateway {
   gateway_id: number;
   gateway_code: string;
   name: string;
   price: string;
+  duration?: string;
+  city_name?: string;
   main_image?: string;
   overview?: string;
   inclusive?: string;
   exclusive?: string;
   places_nearby?: string;
+  places_nearby_qa?: Array<{ id: number; question: string; answer: string }>;
   booking_policy?: string;
   cancellation_policy?: string;
   amenities?: string;
@@ -39,6 +41,8 @@ interface GatewayItem {
   gateway_code: string;
   name: string;
   price: string;
+  duration?: string;
+  city_name?: string;
   main_image: string;
 }
 
@@ -67,25 +71,59 @@ const Weekendbookingcard: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   
+  // Auto-scroll timer reference
+const autoScrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);  
+  
   // Email modal state
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [emailLoading, setEmailLoading] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [openNearbyQA, setOpenNearbyQA] = useState<number | null>(null);
   
-  // Sidebar filter states
+  // Filter states
   const [allGateways, setAllGateways] = useState<GatewayItem[]>([]);
   const [priceRange, setPriceRange] = useState([0, 200000]);
+  const [durationRange, setDurationRange] = useState([1, 10]);
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearchBtn, setShowSearchBtn] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
-  const [selectedGatewayCodes, setSelectedGatewayCodes] = useState<string[]>([]);
-  const [showMoreGateways, setShowMoreGateways] = useState(false);
+  const [selectedCities, setSelectedCities] = useState<string[]>([]);
+  const [showMoreCities, setShowMoreCities] = useState(false);
 
   const location = useLocation();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
   const passedGateway = location.state?.bungalow as WeekendGateway | undefined;
+
+  // Extract duration number from string like "2N/4D" - returns number of nights
+  const extractDuration = (durationStr: string): number => {
+    if (!durationStr) return 0;
+    const match = durationStr.match(/(\d+)N/);
+    return match ? parseInt(match[1]) : 0;
+  };
+
+  // Get unique cities from gateways
+  const uniqueCities = Array.from(new Set(allGateways.map(g => g.city_name).filter(Boolean)));
+
+  // Auto-scroll carousel function
+  const startAutoScroll = () => {
+    if (autoScrollTimer.current) {
+      clearInterval(autoScrollTimer.current);
+    }
+    if (carouselImages.length > 1) {
+      autoScrollTimer.current = setInterval(() => {
+        setCurrentImageIndex((prev) => (prev + 1) % carouselImages.length);
+      }, 5000); // 5 seconds
+    }
+  };
+
+  const stopAutoScroll = () => {
+    if (autoScrollTimer.current) {
+      clearInterval(autoScrollTimer.current);
+      autoScrollTimer.current = null;
+    }
+  };
 
   // Fetch all gateways for sidebar
   useEffect(() => {
@@ -132,66 +170,83 @@ const Weekendbookingcard: React.FC = () => {
     fetchGatewayDetails();
   }, [id, passedGateway, navigate]);
 
+  // Start auto-scroll when images are loaded
+  useEffect(() => {
+    if (carouselImages.length > 1) {
+      startAutoScroll();
+    }
+    return () => stopAutoScroll();
+  }, [images, gateway]);
+
   const handleBook = (): void => {
     navigate("/WeekendForm", {
       state: { bungalow: gateway }
     });
   };
 
-  const handleEmailSubmit = async (emailData: EmailFormData) => {
-    try {
-      setEmailLoading(true);
-      
-      const { pdf } = await import('@react-pdf/renderer');
-      
-      const pdfInstance = (
-        <WeekendGatewaypdf
-          gateway={gateway || {}}
-          images={images}
-          currentImageIndex={currentImageIndex}
-        />
-      );
+  useEffect(() => {
+  if (gateway?.city_name) {
+    setSelectedCities([gateway.city_name]);
+  }
+}, [gateway]);
 
-      const pdfBlob = await pdf(pdfInstance).toBlob();
+const handleEmailSubmit = async (emailData: EmailFormData) => {
+  try {
+    setEmailLoading(true);
+    
+    const { pdf } = await import('@react-pdf/renderer');
+    
+    // Create custom subject with tour name and code
+    const customSubject = `${emailData.subject || 'Weekend Gateway Tour Details'} - ${gateway?.name} (${gateway?.gateway_code})`;
+    
+    const pdfInstance = (
+      <WeekendGatewaypdf
+        gateway={gateway || {}}
+        images={images}
+        currentImageIndex={currentImageIndex}
+      />
+    );
 
-      const formData = new FormData();
-      formData.append('to', emailData.to);
-      formData.append('subject', emailData.subject);
-      formData.append('message', emailData.message);
-      formData.append('gatewayTitle', gateway?.name || '');
-      formData.append('gatewayCode', gateway?.gateway_code || '');
-      formData.append('pdf', pdfBlob, `gateway_${gateway?.gateway_code || 'details'}.pdf`);
+    const pdfBlob = await pdf(pdfInstance).toBlob();
 
-      let response;
-      let result;
-      
-      response = await fetch(`${BASE_URL}/api/send-tour-pdf`, {
-        method: 'POST',
-        body: formData,
-      });
-      
-      const contentType = response.headers.get('content-type');
-      if (contentType && contentType.includes('application/json')) {
-        result = await response.json();
-      } else {
-        const text = await response.text();
-        throw new Error(`Server returned ${response.status}: ${text.substring(0, 100)}`);
-      }
+    const formData = new FormData();
+    formData.append('to', emailData.to);
+    formData.append('subject', customSubject);
+    formData.append('message', emailData.message);
+    formData.append('gatewayTitle', gateway?.name || '');
+    formData.append('gatewayCode', gateway?.gateway_code || '');
+    formData.append('pdf', pdfBlob, `gateway_${gateway?.gateway_code || 'details'}.pdf`);
 
-      if (!response.ok || !result.success) {
-        throw new Error(result.message || 'Failed to send email');
-      }
-
-      setShowEmailModal(false);
-      alert('Email sent successfully!');
-
-    } catch (error: any) {
-      console.error('Error sending email:', error);
-      alert(`Failed to send email: ${error.message || 'Unknown error'}`);
-    } finally {
-      setEmailLoading(false);
+    let response;
+    let result;
+    
+    response = await fetch(`${BASE_URL}/api/send-tour-pdf`, {
+      method: 'POST',
+      body: formData,
+    });
+    
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      result = await response.json();
+    } else {
+      const text = await response.text();
+      throw new Error(`Server returned ${response.status}: ${text.substring(0, 100)}`);
     }
-  };
+
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || 'Failed to send email');
+    }
+
+    setShowEmailModal(false);
+    alert('Email sent successfully!');
+
+  } catch (error: any) {
+    console.error('Error sending email:', error);
+    alert(`Failed to send email: ${error.message || 'Unknown error'}`);
+  } finally {
+    setEmailLoading(false);
+  }
+};
 
   const handleDownloadPdf = () => {
     setIsGeneratingPdf(true);
@@ -200,24 +255,26 @@ const Weekendbookingcard: React.FC = () => {
     }, 1000);
   };
 
-  const handleGatewayCheckboxChange = (code: string, checked: boolean) => {
+  const handleCityCheckboxChange = (city: string, checked: boolean) => {
     if (checked) {
-      setSelectedGatewayCodes([code]);
-      const selectedGateway = allGateways.find(g => g.gateway_code === code);
-      if (selectedGateway) {
-        navigate(`/weekendbookingcard/${selectedGateway.gateway_id}`);
+      setSelectedCities(prev => [...prev, city]);
+      // Navigate to the first gateway of selected city
+      const gatewayWithCity = allGateways.find(g => g.city_name === city);
+      if (gatewayWithCity) {
+        navigate(`/weekendbookingcard/${gatewayWithCity.gateway_id}`);
       }
     } else {
-      setSelectedGatewayCodes([]);
+      setSelectedCities(prev => prev.filter(c => c !== city));
     }
   };
 
   const clearAllFilters = () => {
     setPriceRange([0, 200000]);
+    setDurationRange([1, 10]);
     setSearchQuery("");
     setShowSearchBtn(false);
     setIsSearchActive(false);
-    setSelectedGatewayCodes([]);
+    setSelectedCities([]);
   };
 
   const clearSearch = () => {
@@ -233,8 +290,8 @@ const Weekendbookingcard: React.FC = () => {
     setIsSearchActive(true);
     const query = searchQuery.trim().toLowerCase();
     const foundGateway = allGateways.find(g => 
-      g.name.toLowerCase().includes(query) || 
-      g.gateway_code.toLowerCase().includes(query)
+      g.gateway_code.toLowerCase().includes(query) ||
+      g.city_name?.toLowerCase().includes(query)
     );
     
     if (foundGateway) {
@@ -258,23 +315,29 @@ const Weekendbookingcard: React.FC = () => {
         ];
 
   const nextImage = (): void => {
+    stopAutoScroll();
     if (carouselImages.length > 0) {
       setCurrentImageIndex(
         (prev) => (prev === carouselImages.length - 1 ? 0 : prev + 1)
       );
     }
+    startAutoScroll();
   };
 
   const prevImage = (): void => {
+    stopAutoScroll();
     if (carouselImages.length > 0) {
       setCurrentImageIndex(
         (prev) => (prev === 0 ? carouselImages.length - 1 : prev - 1)
       );
     }
+    startAutoScroll();
   };
 
   const goToImage = (index: number): void => {
+    stopAutoScroll();
     setCurrentImageIndex(index);
+    startAutoScroll();
   };
 
   const getTabDisplayName = (tab: TabType): string => {
@@ -398,7 +461,7 @@ const Weekendbookingcard: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-1 w-full">
-              <div className="flex flex-col w-full min-h-[250px] lg:min-h-[280px] max-h-[250px] lg:max-h-[320px]">
+              <div className="flex flex-col w-full min-h-[250px] lg:min-h-[250px] max-h-[250px] lg:max-h-[250px]">
                 <div className="bg-[#2E4D98] text-white text-center py-2 lg:py-3 rounded-t-lg w-full">
                   <h3 className="text-lg lg:text-xl font-bold">Inclusive</h3>
                 </div>
@@ -425,7 +488,7 @@ const Weekendbookingcard: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex flex-col w-full min-h-[250px] lg:min-h-[280px] max-h-[250px] lg:max-h-[320px]">
+              <div className="flex flex-col w-full min-h-[250px] lg:min-h-[250px] max-h-[250px] lg:max-h-[250px]">
                 <div className="bg-[#2E4D98] text-white text-center py-2 lg:py-3 rounded-t-lg w-full">
                   <h3 className="text-lg lg:text-xl font-bold">Excludes</h3>
                 </div>
@@ -464,24 +527,63 @@ const Weekendbookingcard: React.FC = () => {
         );
 
       case "nearby":
+        const placesNearbyQA = (gateway as any)?.places_nearby_qa || [];
+
         return (
           <div className="bg-[#E8F0FF] rounded-lg p-1 w-full">
             <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
               Places Near By
             </div>
             <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-              <div className="h-64 lg:h-64 overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-                <div className="space-y-4 w-full">
-                  <div className="border-gray-200 rounded-lg w-full">
-                    <div className="flex items-start w-full">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-black break-words whitespace-pre-wrap text-justify w-full text-sm lg:text-base">
-                          {gateway?.places_nearby || "No nearby places listed"}
-                        </p>
-                      </div>
-                    </div>
+              <div className="min-h-[250px] lg:min-h-[250px] max-h-[250px] lg:max-h-[250px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+                {gateway?.places_nearby && (
+                  <div className="mb-4 p-3 bg-white rounded-lg">
+                    <p className="text-black break-words whitespace-pre-wrap text-justify w-full text-sm lg:text-base">
+                      {gateway.places_nearby}
+                    </p>
                   </div>
-                </div>
+                )}
+
+                {placesNearbyQA.length > 0 ? (
+                  <div className="border rounded-lg overflow-hidden">
+                    {placesNearbyQA.map((item: any, index: number) => (
+                      <div key={item.id || index} className="border-b">
+                        <div
+                          onClick={() => setOpenNearbyQA(openNearbyQA === index ? null : index)}
+                          className="flex justify-between items-center px-4 py-3 cursor-pointer hover:bg-gray-50"
+                          style={{ backgroundColor: "#2E3A8A", color: "#fff" }}
+                        >
+                          <span className="text-sm md:text-base">{item.question}</span>
+                          <span className="text-xs md:text-sm">{openNearbyQA === index ? "▼" : "▶"}</span>
+                        </div>
+                        {openNearbyQA === index && (
+                          <div
+                            className="bg-[#E8F0FF] px-4 py-4 text-sm md:text-base"
+                            style={{
+                              minHeight: "100px",
+                              maxHeight: "250px",
+                              overflowY: "auto",
+                              overflowX: "hidden",
+                              textAlign: "justify",
+                              wordBreak: "break-word",
+                              whiteSpace: "normal",
+                              borderRadius: "0 0 8px 8px",
+                              borderLeft: "1px solid black",
+                              borderRight: "1px solid black",
+                              borderBottom: "1px solid black",
+                            }}
+                          >
+                            {item.answer}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="px-4 py-6 text-center text-gray-500 text-sm bg-white rounded-lg">
+                    {gateway?.places_nearby || "No nearby places information available"}
+                  </div>
+                )}
               </div>
             </div>
             <div className="mt-1">
@@ -502,16 +604,17 @@ const Weekendbookingcard: React.FC = () => {
               Amenities
             </div>
             <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-              <div className="min-h-[250px] lg:min-h-[250px] max-h-[310px] lg:max-h-[390px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+              <div className="min-h-[250px] lg:min-h-[250px] max-h-[250px] lg:max-h-[250px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
                 {gateway?.amenities ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 w-full">
+                  <div className="flex flex-col gap-2 w-full">
                     {gateway.amenities.split('\n').map((item, idx) => (
-                      <div key={idx} className="flex items-center gap-2 p-2 bg-white rounded-lg shadow-sm">
-                        <svg className="w-4 h-4 lg:w-5 lg:h-5 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span className="text-black text-sm lg:text-base break-words">{item}</span>
-                      </div>
+                      item.trim() && (
+                        <div key={idx} className="flex items-start gap-2 p-1 rounded-lg w-full">
+                          <span className="text-black text-sm lg:text-base break-words flex-1 text-justify">
+                            {item}
+                          </span>
+                        </div>
+                      )
                     ))}
                   </div>
                 ) : (
@@ -540,8 +643,7 @@ const Weekendbookingcard: React.FC = () => {
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-1 w-full">
-              {/* Booking Policy Section - 50% */}
-              <div className="flex flex-col w-full min-h-[250px] lg:min-h-[280px] max-h-[280px] lg:max-h-[320px]">
+              <div className="flex flex-col w-full min-h-[250px] lg:min-h-[250px] max-h-[250px] lg:max-h-[250px]">
                 <div className="bg-[#2E4D98] text-white text-center py-2 lg:py-3 rounded-t-lg w-full">
                   <h3 className="text-lg lg:text-xl font-bold">Booking Policy</h3>
                 </div>
@@ -554,8 +656,7 @@ const Weekendbookingcard: React.FC = () => {
                 </div>
               </div>
 
-              {/* Cancellation Policy Section - 50% */}
-              <div className="flex flex-col w-full min-h-[250px] lg:min-h-[280px] max-h-[280px] lg:max-h-[320px]">
+              <div className="flex flex-col w-full min-h-[250px] lg:min-h-[250px] max-h-[250px] lg:max-h-[250px]">
                 <div className="bg-[#2E4D98] text-white text-center py-2 lg:py-3 rounded-t-lg w-full">
                   <h3 className="text-lg lg:text-xl font-bold">Cancellation Policy</h3>
                 </div>
@@ -652,7 +753,7 @@ const Weekendbookingcard: React.FC = () => {
             <aside className="lg:w-80">
               <div className="bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl shadow-lg p-6 border border-blue-200 sticky top-24">
                 <div className="flex justify-between items-center mb-6 bg-[#2E4D98] p-2 rounded-lg border border-black">
-                  <h2 className="text-2xl font-bold text-white">Weekend Gateways</h2>
+                  <h2 className="text-2xl font-bold text-white">Filters</h2>
                   <button onClick={clearAllFilters} className="text-sm text-white hover:underline">
                     Clear All
                   </button>
@@ -675,13 +776,32 @@ const Weekendbookingcard: React.FC = () => {
                   />
                 </div>
 
+                {/* Duration Filter */}
+                <div className="mb-6">
+                  <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Duration Range</h3>
+                  <div className="flex justify-between text-sm text-gray-600 mb-3">
+                    <span>{durationRange[0]} Days</span>
+                    <span>{durationRange[1]} Days</span>
+                  </div>
+                  <Slider 
+                    value={durationRange} 
+                    onValueChange={setDurationRange} 
+                    min={1} 
+                    max={10} 
+                    step={1} 
+                    className="w-full" 
+                  />
+                </div>
+
+             
+
                 {/* Search */}
                 <div className="mb-4">
                   <form onSubmit={handleSearch} className="flex gap-2">
                     <div className="relative flex-1">
                       <Input
                         type="text"
-                        placeholder="Search by name or code"
+                        placeholder="Search by code or city"
                         value={searchQuery}
                         onChange={(e) => { 
                           setSearchQuery(e.target.value); 
@@ -707,50 +827,39 @@ const Weekendbookingcard: React.FC = () => {
                     )}
                   </form>
                 </div>
-
-                {/* Gateway Checkboxes */}
-                <div className="mb-4">
-                  <div className="flex justify-between items-center mb-3 bg-white p-2 rounded-lg border border-black">
-                    <h2 className="text-xl font-bold text-[#2E4D98]">Gateway Types</h2>
-                  </div>
-                  <div className="space-y-3">
-                    {allGateways.length > 0 ? (
-                      Array.from(new Map(allGateways.map(g => [g.gateway_code, g])).values())
-                        .slice(0, showMoreGateways ? undefined : 6)
-                        .map((gatewayItem) => (
-                          <div key={gatewayItem.gateway_code} className="flex items-center gap-3 cursor-pointer">
+                   {/* City Filter */}
+                {uniqueCities.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">City</h3>
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                      {uniqueCities
+                        .slice(0, showMoreCities ? undefined : 6)
+                        .map((city) => (
+                          <div key={city} className="flex items-center gap-3 cursor-pointer">
                             <Checkbox
-                              checked={gatewayItem.gateway_code === gateway.gateway_code}
-                              onCheckedChange={(checked) => handleGatewayCheckboxChange(gatewayItem.gateway_code, checked as boolean)}
+                              checked={selectedCities.includes(city)}
+                              onCheckedChange={(checked) => handleCityCheckboxChange(city, checked as boolean)}
                               className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
                             />
                             <span
-                              className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${gatewayItem.gateway_code === gateway.gateway_code ? 'font-bold text-[#2E4D98]' : ''}`}
-                              onClick={() => {
-                                if (gatewayItem.gateway_code === gateway.gateway_code) {
-                                  handleGatewayCheckboxChange(gatewayItem.gateway_code, false);
-                                } else {
-                                  handleGatewayCheckboxChange(gatewayItem.gateway_code, true);
-                                }
-                              }}
+                              className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${selectedCities.includes(city) ? 'font-bold text-[#2E4D98]' : ''}`}
+                              onClick={() => handleCityCheckboxChange(city, !selectedCities.includes(city))}
                             >
-                              {gatewayItem.name} 
+                              {city}
                             </span>
                           </div>
-                        ))
-                    ) : (
-                      <div className="text-sm text-gray-400">Loading gateways...</div>
+                        ))}
+                    </div>
+                    {uniqueCities.length > 6 && (
+                      <button 
+                        onClick={() => setShowMoreCities(!showMoreCities)} 
+                        className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
+                      >
+                        {showMoreCities ? "Show Less" : `Show ${uniqueCities.length - 6} More`}
+                      </button>
                     )}
                   </div>
-                  {allGateways.length > 6 && (
-                    <button 
-                      onClick={() => setShowMoreGateways(!showMoreGateways)} 
-                      className="mt-4 text-[#2E4D98] text-sm font-semibold hover:underline"
-                    >
-                      {showMoreGateways ? "Show Less" : `Show ${allGateways.length - 6} More`}
-                    </button>
-                  )}
-                </div>
+                )}
               </div>
             </aside>
 
@@ -767,7 +876,7 @@ const Weekendbookingcard: React.FC = () => {
                 </div>
               </div>
 
-              {/* Image Carousel */}
+              {/* Image Carousel with Auto-scroll */}
               <div className="relative rounded-2xl overflow-hidden mb-2">
                 <div className="relative h-64 sm:h-80 lg:h-[500px] overflow-hidden">
                   <img
@@ -783,13 +892,13 @@ const Weekendbookingcard: React.FC = () => {
                     <>
                       <button
                         onClick={prevImage}
-                        className="absolute left-2 lg:left-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-1 lg:p-2 rounded-full transition-all duration-200"
+                        className="absolute left-2 lg:left-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-1 lg:p-2 rounded-full transition-all duration-200 z-10"
                       >
                         <ChevronLeft className="w-4 h-4 lg:w-6 lg:h-6" />
                       </button>
                       <button
                         onClick={nextImage}
-                        className="absolute right-2 lg:right-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-1 lg:p-2 rounded-full transition-all duration-200"
+                        className="absolute right-2 lg:right-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-1 lg:p-2 rounded-full transition-all duration-200 z-10"
                       >
                         <ChevronRight className="w-4 h-4 lg:w-6 lg:h-6" />
                       </button>
@@ -797,8 +906,22 @@ const Weekendbookingcard: React.FC = () => {
                   )}
 
                   {carouselImages.length > 1 && (
-                    <div className="absolute top-2 lg:top-4 right-2 lg:right-4 bg-black/50 text-white px-2 lg:px-3 py-0.5 lg:py-1 rounded-full text-xs lg:text-sm">
+                    <div className="absolute top-2 lg:top-4 right-2 lg:right-4 bg-black/50 text-white px-2 lg:px-3 py-0.5 lg:py-1 rounded-full text-xs lg:text-sm z-10">
                       {currentImageIndex + 1} / {carouselImages.length}
+                    </div>
+                  )}
+
+                  {/* Auto-scroll indicator */}
+                  {carouselImages.length > 1 && (
+                    <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1 z-10">
+                      {carouselImages.map((_, index) => (
+                        <div
+                          key={index}
+                          className={`h-1 rounded-full transition-all duration-300 ${
+                            index === currentImageIndex ? 'w-6 bg-white' : 'w-2 bg-white/50'
+                          }`}
+                        />
+                      ))}
                     </div>
                   )}
                 </div>
@@ -810,10 +933,11 @@ const Weekendbookingcard: React.FC = () => {
                         <button
                           key={index}
                           onClick={() => goToImage(index)}
-                          className={`flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 lg:w-20 lg:h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 ${index === currentImageIndex
-                            ? 'border-[#2E4D98] ring-1 lg:ring-2 ring-[#2E4D98] ring-opacity-50 scale-105'
-                            : 'border-transparent hover:border-gray-300'
-                            }`}
+                          className={`flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 lg:w-20 lg:h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
+                            index === currentImageIndex
+                              ? 'border-[#2E4D98] ring-1 lg:ring-2 ring-[#2E4D98] ring-opacity-50 scale-105'
+                              : 'border-transparent hover:border-gray-300'
+                          }`}
                         >
                           <img
                             src={image}
