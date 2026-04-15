@@ -272,7 +272,7 @@ const Weekendcard: React.FC = () => {
                               className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${selectedGatewayCodes.includes(gateway.gateway_code) ? 'font-bold text-[#2E4D98]' : ''}`}
                               onClick={() => handleGatewayCheckboxChange(gateway.gateway_code, !selectedGatewayCodes.includes(gateway.gateway_code))}
                             >
-                              {gateway.name} ({gateway.gateway_code})
+                              {gateway.name} 
                             </span>
                           </div>
                         ))
@@ -297,17 +297,17 @@ const Weekendcard: React.FC = () => {
               {/* Header banner */}
               <div
                 className="relative rounded-2xl overflow-hidden mb-6 bg-cover bg-center bg-no-repeat"
-                style={{ backgroundImage: `url('https://360biznus.com/wp-content/uploads/2025/08/360-virtual-tour-of-shiva-carpets1.jpg')` }}
+                style={{ backgroundImage: `url('https://www.salonemilano.it/sites/default/files/styles/libero/public/images/articles/2024-07/Cover_L%27architettura-dell%27esporre-al-Master-IDEA-salonemilano_0.jpg.webp?itok=3feuLMNd')` }}
               >
                 <div className="p-8 min-h-[180px] flex items-center">
                   <div className="text-white">
-                    <h1 className="text-3xl font-bold mb-2" style={{ textShadow: "2px 2px 4px rgb(0,0,0)" }}>
+                    <h1 className="text-3xl font-bold mb-2" style={{textShadow: "2px 2px 4px rgb(108, 106, 106)"  }}>
                       Weekend Gateway
                     </h1>
-                    <p className="text-base opacity-90 max-w-2xl" style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.5)" }}>
+                    <p className="text-base opacity-90 max-w-2xl" style={{textShadow: "2px 2px 4px rgb(21, 1, 1)"}}>
                       Perfect weekend getaways for a refreshing break
                     </p>
-                    <p className="text-sm opacity-80 mt-2" style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.5)" }}>
+                    <p className="text-sm opacity-80 mt-2" style={{  textShadow: "2px 2px 4px rgb(21, 1, 1)"}}>
                       Showing {filteredGateways.length} gateways
                     </p>
                   </div>

@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import EmailModal from '../../EmailModal';
 import Bungalowpdf from './Bungalowpdf';
+
 interface Bungalow {
   bungalow_id: number;
   bungalow_code: string;
@@ -30,6 +31,7 @@ interface Bungalow {
   places_nearby?: string;
   booking_policy?: string;
   cancellation_policy?: string;
+  amenities?: string;
   main_image?: string;
   week_day_rate_desc?: string;      
   weekend_rate_desc?: string;      
@@ -68,7 +70,8 @@ interface EmailFormData {
   message: string;
 }
 
-type TabType = "overview" | "rent" | "inclusive" | "nearby" | "policy" | "cancellation";
+type TabType = "overview" | "rent" | "inclusive" | "nearby" | "amenities" | "policy_cancellation";
+
 const Bunglowbookingcard: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [activeTab, setActiveTab] = useState<TabType>("overview");
@@ -93,7 +96,6 @@ const Bunglowbookingcard: React.FC = () => {
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [selectedBungalowCodes, setSelectedBungalowCodes] = useState<string[]>([]);
   const [showMoreBungalows, setShowMoreBungalows] = useState(false);
-
 
   useEffect(() => {
     fetch(`${BASE_URL}/api/bungalows`)
@@ -159,64 +161,61 @@ const Bunglowbookingcard: React.FC = () => {
     navigate("/bookingform");
   };
 
-const handleEmailSubmit = async (emailData: EmailFormData) => {
-  try {
-    setEmailLoading(true);
-    
-    // Import pdf dynamically
-    const { pdf } = await import('@react-pdf/renderer');
-    
-    const pdfInstance = (
-      <Bungalowpdf
-        bungalow={bungalow || {}}
-        images={images}
-        currentImageIndex={currentImageIndex}
-      />
-    );
+  const handleEmailSubmit = async (emailData: EmailFormData) => {
+    try {
+      setEmailLoading(true);
+      
+      // Import pdf dynamically
+      const { pdf } = await import('@react-pdf/renderer');
+      
+      const pdfInstance = (
+        <Bungalowpdf
+          bungalow={bungalow || {}}
+          images={images}
+          currentImageIndex={currentImageIndex}
+        />
+      );
 
-    const pdfBlob = await pdf(pdfInstance).toBlob();
+      const pdfBlob = await pdf(pdfInstance).toBlob();
 
-    const formData = new FormData();
-    formData.append('to', emailData.to);
-    formData.append('subject', emailData.subject);
-    formData.append('message', emailData.message);
-    // Use the field names that the backend expects (from working MICE example)
-    formData.append('tourTitle', bungalow?.name || '');
-    formData.append('tourCode', bungalow?.bungalow_code || '');
-    formData.append('pdf', pdfBlob, `bungalow_${bungalow?.bungalow_code || 'details'}.pdf`);
+      const formData = new FormData();
+      formData.append('to', emailData.to);
+      formData.append('subject', emailData.subject);
+      formData.append('message', emailData.message);
+      formData.append('tourTitle', bungalow?.name || '');
+      formData.append('tourCode', bungalow?.bungalow_code || '');
+      formData.append('pdf', pdfBlob, `bungalow_${bungalow?.bungalow_code || 'details'}.pdf`);
 
-    // Use the existing working endpoint instead of send-bungalow-pdf
-    const response = await fetch(`${BASE_URL}/api/send-tour-pdf`, {
-      method: 'POST',
-      body: formData,
-    });
+      const response = await fetch(`${BASE_URL}/api/send-tour-pdf`, {
+        method: 'POST',
+        body: formData,
+      });
 
-    // Add better error handling for non-JSON responses
-    let result;
-    const contentType = response.headers.get('content-type');
-    
-    if (contentType && contentType.includes('application/json')) {
-      result = await response.json();
-    } else {
-      const textResponse = await response.text();
-      console.error('Non-JSON response:', textResponse);
-      throw new Error(`Server error: ${response.status} ${response.statusText}`);
+      let result;
+      const contentType = response.headers.get('content-type');
+      
+      if (contentType && contentType.includes('application/json')) {
+        result = await response.json();
+      } else {
+        const textResponse = await response.text();
+        console.error('Non-JSON response:', textResponse);
+        throw new Error(`Server error: ${response.status} ${response.statusText}`);
+      }
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'Failed to send email');
+      }
+
+      setShowEmailModal(false);
+      alert('Email sent successfully!');
+
+    } catch (error: any) {
+      console.error('Error sending email:', error);
+      alert(`Failed to send email: ${error.message || 'Unknown error'}`);
+    } finally {
+      setEmailLoading(false);
     }
-
-    if (!response.ok || !result.success) {
-      throw new Error(result.message || 'Failed to send email');
-    }
-
-    setShowEmailModal(false);
-    alert('Email sent successfully!');
-
-  } catch (error: any) {
-    console.error('Error sending email:', error);
-    alert(`Failed to send email: ${error.message || 'Unknown error'}`);
-  } finally {
-    setEmailLoading(false);
-  }
-};
+  };
 
   const handleDownloadPdf = () => {
     setIsGeneratingPdf(true);
@@ -224,19 +223,17 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
       setIsGeneratingPdf(false);
     }, 1000);
   };
-
-
-  const handleBungalowCheckboxChange = (code: string, checked: boolean) => {
-    if (checked) {
-      setSelectedBungalowCodes(prev => [...prev, code]);
-      const selectedBungalow = allBungalows.find(b => b.bungalow_code === code);
-      if (selectedBungalow) {
-        navigate(`/bunglowbookingcard/${selectedBungalow.bungalow_id}`);
-      }
-    } else {
-      setSelectedBungalowCodes(prev => prev.filter(c => c !== code));
+const handleBungalowCheckboxChange = (code: string, checked: boolean) => {
+  if (checked) {
+    setSelectedBungalowCodes([code]);
+    const selectedBungalow = allBungalows.find(b => b.bungalow_code === code);
+    if (selectedBungalow) {
+      navigate(`/bunglowbookingcard/${selectedBungalow.bungalow_id}`);
     }
-  };
+  } else {
+    setSelectedBungalowCodes([]);
+  }
+};
 
   const clearAllFilters = () => {
     setPriceRange([0, 200000]);
@@ -316,8 +313,8 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
     { key: "rent", label: "Bungalow Rent" },
     { key: "inclusive", label: "Inclusive & Excludes" },
     { key: "nearby", label: "Place Near By" },
-    { key: "policy", label: "Booking Policy" },
-    { key: "cancellation", label: "Cancellation Policy" }
+    { key: "amenities", label: "Amenities" },
+    { key: "policy_cancellation", label: "Book.P/Canc.P" }
   ];
 
   const renderTabContent = (): JSX.Element => {
@@ -354,8 +351,7 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
           </div>
         );
 
-case "rent":
-  // Get the rate description based on active tab
+    case "rent":
   const getRateDescription = () => {
     switch (activeRateTab) {
       case "weekday":
@@ -377,7 +373,6 @@ case "rent":
         Bungalow Rent
       </div>
       <div className="overflow-x-auto w-full mt-1">
-        {/* Tabs */}
         <div className="flex bg-white border border-black rounded-t-lg overflow-hidden mb-0 min-w-[400px]">
           {[
             { key: "weekday", label: "Weekday Rate" },
@@ -401,16 +396,15 @@ case "rent":
           ))}
         </div>
 
-        <div className="overflow-y-auto min-h-[180px] max-h-[190px]">
-          <table className="w-full border border-black border-t-0 min-w-[400px]">
-            <tbody>
-              <tr className="bg-[#FFEBEE]">
-                <td className="px-3 lg:px-4 py-2 lg:py-3 text-black text-sm lg:text-base text-justify leading-relaxed">
-                  {getRateDescription()}
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        {/* Fixed height 200px with content starting from top */}
+        <div className="h-[200px] overflow-y-auto">
+          <div className="border border-black border-t-0 bg-[#FFEBEE] w-full min-h-full">
+            <div className="p-2 lg:p-2">
+              <p className="text-black text-sm lg:text-base text-justify leading-relaxed">
+                {getRateDescription()}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
       <div className="mt-1">
@@ -423,6 +417,7 @@ case "rent":
       </div>
     </div>
   );
+
       case "inclusive":
         return (
           <div className="bg-[#E8F0FF] rounded-lg p-1 w-full overflow-x-hidden">
@@ -528,25 +523,30 @@ case "rent":
           </div>
         );
 
-      case "policy":
+      case "amenities":
         return (
           <div className="bg-[#E8F0FF] rounded-lg p-1 w-full">
-            <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg mb-1 w-full">
-              Booking Policy
+            <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
+              Amenities
             </div>
             <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-              <div className="min-h-[150px] lg:min-h-[180px] max-h-[150px] lg:max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-                <div className="space-y-4 w-full">
-                  <div className="border-gray-200 rounded-lg w-full">
-                    <div className="flex items-start w-full">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-black break-words whitespace-pre-wrap text-justify w-full text-sm lg:text-base">
-                          {bungalow.booking_policy || "No booking policy available"}
-                        </p>
+              <div className="min-h-[150px] lg:min-h-[180px] max-h-[300px] lg:max-h-[350px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+                {bungalow.amenities ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 w-full">
+                    {bungalow.amenities.split('\n').map((item, idx) => (
+                      <div key={idx} className="flex items-center gap-2 p-2 bg-white rounded-lg shadow-sm">
+                        <svg className="w-4 h-4 lg:w-5 lg:h-5 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span className="text-black text-sm lg:text-base break-words">{item}</span>
                       </div>
-                    </div>
+                    ))}
                   </div>
-                </div>
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <span className="text-gray-500 italic text-sm lg:text-base">No amenities listed</span>
+                  </div>
+                )}
               </div>
             </div>
             <div className="mt-1">
@@ -560,27 +560,43 @@ case "rent":
           </div>
         );
 
-      case "cancellation":
+      case "policy_cancellation":
         return (
           <div className="bg-[#E8F0FF] rounded-lg p-1 w-full">
             <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg mb-1 w-full">
-              Cancellation Policy
+              Booking & Cancellation Policy
             </div>
-            <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-              <div className="min-h-[150px] lg:min-h-[180px] max-h-[150px] lg:max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-                <div className="space-y-4 w-full">
-                  <div className="border-gray-200 rounded-lg w-full">
-                    <div className="flex items-start w-full">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-black break-words whitespace-pre-wrap text-justify w-full text-sm lg:text-base">
-                          {bungalow.cancellation_policy || "No cancellation policy available"}
-                        </p>
-                      </div>
-                    </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-1 w-full">
+              {/* Booking Policy Section - 50% */}
+              <div className="flex flex-col w-full min-h-[250px] lg:min-h-[280px] max-h-[280px] lg:max-h-[320px]">
+                <div className="bg-[#2E4D98] text-white text-center py-2 lg:py-3 rounded-t-lg w-full">
+                  <h3 className="text-lg lg:text-xl font-bold">Booking Policy</h3>
+                </div>
+                <div className="flex-1 border-2 border-[#1e3a8a] rounded-b-lg bg-[#FFEBEE] w-full overflow-hidden min-h-0">
+                  <div className="h-full overflow-y-auto p-2">
+                    <p className="text-black break-words whitespace-pre-wrap text-justify w-full text-sm lg:text-base">
+                      {bungalow.booking_policy || "No booking policy available"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Cancellation Policy Section - 50% */}
+              <div className="flex flex-col w-full min-h-[250px] lg:min-h-[280px] max-h-[280px] lg:max-h-[320px]">
+                <div className="bg-[#2E4D98] text-white text-center py-2 lg:py-3 rounded-t-lg w-full">
+                  <h3 className="text-lg lg:text-xl font-bold">Cancellation Policy</h3>
+                </div>
+                <div className="flex-1 border-2 border-[#1e3a8a] rounded-b-lg bg-[#FFEBEE] w-full overflow-hidden min-h-0">
+                  <div className="h-full overflow-y-auto p-2">
+                    <p className="text-black break-words whitespace-pre-wrap text-justify w-full text-sm lg:text-base">
+                      {bungalow.cancellation_policy || "No cancellation policy available"}
+                    </p>
                   </div>
                 </div>
               </div>
             </div>
+            
             <div className="mt-1">
               <button
                 onClick={() => navigate("/alert")}
@@ -682,63 +698,65 @@ case "rent":
                   </form>
                 </div>
 
-                {/* Bungalow Checkboxes */}
-                <div className="mb-4">
-                  <div className="flex justify-between items-center mb-3 bg-white p-2 rounded-lg border border-black">
-                    <h2 className="text-xl font-bold text-[#2E4D98]">Bungalow Types</h2>
-                  </div>
-                  <div className="space-y-3">
-                    {allBungalows.length > 0 ? (
-                      Array.from(new Map(allBungalows.map(b => [b.bungalow_code, b])).values())
-                        .slice(0, showMoreBungalows ? undefined : 6)
-                        .map((bungalowItem) => (
-                          <div key={bungalowItem.bungalow_code} className="flex items-center gap-3 cursor-pointer">
-                            <Checkbox
-                              checked={selectedBungalowCodes.includes(bungalowItem.bungalow_code) || bungalowItem.bungalow_code === bungalow.bungalow_code}
-                              onCheckedChange={(checked) => handleBungalowCheckboxChange(bungalowItem.bungalow_code, checked as boolean)}
-                              className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
-                            />
-                            <span
-                              className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${(selectedBungalowCodes.includes(bungalowItem.bungalow_code) || bungalowItem.bungalow_code === bungalow.bungalow_code) ? 'font-bold text-[#2E4D98]' : ''}`}
-                              onClick={() => handleBungalowCheckboxChange(bungalowItem.bungalow_code, !selectedBungalowCodes.includes(bungalowItem.bungalow_code))}
-                            >
-                              {bungalowItem.name} ({bungalowItem.bungalow_code})
-                            </span>
-                          </div>
-                        ))
-                    ) : (
-                      <div className="text-sm text-gray-400">Loading bungalows...</div>
-                    )}
-                  </div>
-                  {allBungalows.length > 6 && (
-                    <button 
-                      onClick={() => setShowMoreBungalows(!showMoreBungalows)} 
-                      className="mt-4 text-[#2E4D98] text-sm font-semibold hover:underline"
-                    >
-                      {showMoreBungalows ? "Show Less" : `Show ${allBungalows.length - 6} More`}
-                    </button>
-                  )}
-                </div>
+            {/* Bungalow Checkboxes */}
+<div className="mb-4">
+  <div className="flex justify-between items-center mb-3 bg-white p-2 rounded-lg border border-black">
+    <h2 className="text-xl font-bold text-[#2E4D98]">Bungalow Types</h2>
+  </div>
+  <div className="space-y-3">
+    {allBungalows.length > 0 ? (
+      Array.from(new Map(allBungalows.map(b => [b.bungalow_code, b])).values())
+        .slice(0, showMoreBungalows ? undefined : 6)
+        .map((bungalowItem) => (
+          <div key={bungalowItem.bungalow_code} className="flex items-center gap-3 cursor-pointer">
+            <Checkbox
+              checked={bungalowItem.bungalow_code === bungalow.bungalow_code}
+              onCheckedChange={(checked) => handleBungalowCheckboxChange(bungalowItem.bungalow_code, checked as boolean)}
+              className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
+            />
+            <span
+              className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${bungalowItem.bungalow_code === bungalow.bungalow_code ? 'font-bold text-[#2E4D98]' : ''}`}
+              onClick={() => {
+                // If clicking on already selected bungalow, uncheck it
+                if (bungalowItem.bungalow_code === bungalow.bungalow_code) {
+                  handleBungalowCheckboxChange(bungalowItem.bungalow_code, false);
+                } else {
+                  handleBungalowCheckboxChange(bungalowItem.bungalow_code, true);
+                }
+              }}
+            >
+              {bungalowItem.name}
+            </span>
+          </div>
+        ))
+    ) : (
+      <div className="text-sm text-gray-400">Loading bungalows...</div>
+    )}
+  </div>
+  {allBungalows.length > 6 && (
+    <button 
+      onClick={() => setShowMoreBungalows(!showMoreBungalows)} 
+      className="mt-4 text-[#2E4D98] text-sm font-semibold hover:underline"
+    >
+      {showMoreBungalows ? "Show Less" : `Show ${allBungalows.length - 6} More`}
+    </button>
+  )}
+</div>
               </div>
             </aside>
 
             {/* Main Content */}
             <main className="flex-1">
-          
-
-           <div className="w-full overflow-hidden border mb-2">
-          <div className="flex w-full items-stretch gap-1">
-            {/* City Label */}
-            <div className="flex-1 flex items-center justify-center p-3 bg-[#2E3A8A] border border-black">
-              <span className="font-bold text-white"> Bungalow Booking:</span>
-            </div>
-        
-            {/* City Value */}
-            <div className="flex-1 flex items-center justify-center p-3 bg-blue-100 border border-black">
-              <span className="text-[#2E3A8A] font-bold">{bungalow.name} </span>
-            </div>
-            </div>
-            </div>
+              <div className="w-full overflow-hidden border mb-2">
+                <div className="flex w-full items-stretch gap-1">
+                  <div className="flex-1 flex items-center justify-center p-3 bg-[#2E3A8A] border border-black">
+                    <span className="font-bold text-white">Bungalow Booking:</span>
+                  </div>
+                  <div className="flex-1 flex items-center justify-center p-3 bg-blue-100 border border-black">
+                    <span className="text-[#2E3A8A] font-bold">{bungalow.name}</span>
+                  </div>
+                </div>
+              </div>
 
               {/* Image Carousel */}
               <div className="relative rounded-2xl overflow-hidden mb-2">
@@ -798,66 +816,60 @@ case "rent":
               </div>
 
               {/* Excel-like Table Layout */}
-        <div className="bg-white rounded-xl shadow-sm mb-1.5 overflow-hidden border border-black overflow-x-auto">
-  <div className="min-w-[800px] lg:min-w-0">
+              <div className="bg-white rounded-xl shadow-sm mb-1.5 overflow-hidden border border-black overflow-x-auto">
+                <div className="min-w-[800px] lg:min-w-0">
+                  {/* Header */}
+                  <div className="grid grid-cols-6 bg-[#E8F0FF] border-b border-black">
+                    <div className="border-r border-white bg-[#2E3a8a] px-2 lg:px-4 py-2 lg:py-3">
+                      <h3 className="font-bold text-white text-left text-sm lg:text-lg">Bungalow</h3>
+                    </div>
+                    <div className="col-span-4 border-r border-white bg-[#2E3a8a] px-2 lg:px-4 py-2 lg:py-3">
+                      <h3 className="font-bold text-white text-left text-sm lg:text-lg">Name</h3>
+                    </div>
+                    <div className="px-2 lg:px-4 py-2 lg:py-3 bg-[#2E3a8a]">
+                      <h3 className="font-bold text-white text-start text-sm lg:text-lg">Price</h3>
+                    </div>
+                  </div>
 
-    {/* Header */}
-    <div className="grid grid-cols-6 bg-[#E8F0FF] border-b border-black">
-      <div className="border-r border-white bg-[#2E3a8a] px-2 lg:px-4 py-2 lg:py-3">
-        <h3 className="font-bold text-white text-left text-sm lg:text-lg">Bungalow</h3>
-      </div>
+                  {/* Data Row */}
+                  <div className="grid grid-cols-6 border-black">
+                    <div className="border-r border-black px-1 lg:px-4 py-2 lg:py-3 bg-blue-50">
+                      <p className="text-sm lg:text-lg font-bold text-[#2E4D98] text-left tracking-wide">
+                        {bungalow.bungalow_code}
+                      </p>
+                    </div>
+                    <div className="col-span-4 border-r border-black px-2 lg:px-4 py-2 lg:py-3 bg-blue-50">
+                      <p className="text-sm lg:text-lg font-semibold text-gray-900 text-left break-words">
+                        {bungalow.name}
+                      </p>
+                    </div>
+                    <div className="px-2 lg:px-4 py-2 lg:py-3 bg-red-50">
+                      <p className="text-sm lg:text-lg font-bold text-[#E53C42] text-left">
+                        ₹{parseFloat(bungalow.price).toLocaleString('en-IN')}
+                      </p>
+                    </div>
+                  </div>
 
-      <div className="col-span-4 border-r border-white bg-[#2E3a8a] px-2 lg:px-4 py-2 lg:py-3">
-        <h3 className="font-bold text-white text-left text-sm lg:text-lg">Name</h3>
-      </div>
-
-      <div className="px-2 lg:px-4 py-2 lg:py-3 bg-[#2E3a8a]">
-        <h3 className="font-bold text-white text-start text-sm lg:text-lg">Price</h3>
-      </div>
-    </div>
-
-    {/* Data Row */}
-    <div className="grid grid-cols-6 border-black">
-      <div className="border-r border-black px-1 lg:px-4 py-2 lg:py-3 bg-blue-50">
-        <p className="text-sm lg:text-lg font-bold text-[#2E4D98] text-left tracking-wide">
-          {bungalow.bungalow_code}
-        </p>
-      </div>
-
-      <div className="col-span-4 border-r border-black px-2 lg:px-4 py-2 lg:py-3 bg-blue-50">
-        <p className="text-sm lg:text-lg font-semibold text-gray-900 text-left break-words">
-          {bungalow.name}
-        </p>
-      </div>
-
-      <div className="px-2 lg:px-4 py-2 lg:py-3 bg-red-50">
-        <p className="text-sm lg:text-lg font-bold text-[#E53C42] text-left">
-          ₹{parseFloat(bungalow.price).toLocaleString('en-IN')}
-        </p>
-      </div>
-    </div>
-
-    {/* Tabs (UNCHANGED) */}
-    <div className="grid grid-cols-6 bg-white border-t border-black">
-      {tabs.map((tab, idx) => (
-        <button
-          key={tab.key}
-          onClick={() => handleTabClick(tab.key)}
-          className={`col-span-1 px-2 py-4 text-xs sm:text-sm font-semibold text-center
-            ${idx < 5 ? "border-r border-black" : ""}
-            ${activeTab === tab.key
-              ? "bg-[#A72703] text-white"
-              : "bg-[#FFE797] text-gray-800"
-            }
-          `}
-        >
-          {tab.label}
-        </button>
-      ))}
-    </div>
-
-  </div>
-</div>
+                  {/* Tabs */}
+                  <div className="grid grid-cols-6 bg-white border-t border-black">
+                    {tabs.map((tab, idx) => (
+                      <button
+                        key={tab.key}
+                        onClick={() => handleTabClick(tab.key)}
+                        className={`col-span-1 px-2 py-4 text-xs sm:text-sm font-semibold text-center
+                          ${idx < 5 ? "border-r border-black" : ""}
+                          ${activeTab === tab.key
+                            ? "bg-[#A72703] text-white"
+                            : "bg-[#FFE797] text-gray-800"
+                          }
+                        `}
+                      >
+                        {tab.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
 
               {/* Tab Content */}
               <div className="bg-[#2E4D98] rounded-md shadow-sm p-2 lg:p-4">
@@ -934,49 +946,6 @@ case "rent":
                   </button>
                 </div>
               </div>
-
-              {/* {relatedBungalows.length > 0 && (
-                <div className="mt-6">
-                  <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg">
-                    Related Bungalows
-                  </div>
-                  <div className="border-2 border-[#1e3a8a] border-t-0 rounded-b-lg p- bg-[#FFEBEE]">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {relatedBungalows.map((related) => (
-                        <div
-                          key={related.bungalow_id}
-                          onClick={() => handleRelatedClick(related)}
-                          className="cursor-pointer bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow overflow-hidden"
-                        >
-                          <img
-                            src={`${BASE_URL}${related.main_image}`}
-                            alt={related.name}
-                            className="w-full h-40 object-cover"
-                            onError={(e) => {
-                              e.currentTarget.src = Villaimg1;
-                            }}
-                          />
-                          <div className="p-3">
-                            <h4 className="font-bold text-gray-800">{related.name}</h4>
-                            <p className="text-[#E53C42] font-semibold">
-                              ₹{parseFloat(related.price).toLocaleString('en-IN')}
-                            </p>
-                            <button
-                              className="mt-2 w-full bg-[#2E4D98] text-white py-1 rounded-lg text-sm hover:opacity-90"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleRelatedClick(related);
-                              }}
-                            >
-                              View Details
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )} */}
             </main>
           </div>
         </div>

@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { BASE_URL } from "@/ApiUrls";
 import { useNavigate } from "react-router-dom";
-import { CheckCircle, AlertCircle } from 'lucide-react';
+import { CheckCircle, AlertCircle, Download, Mail } from 'lucide-react';
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import EmailModal from '../EmailModal';
+import PassportFormPDF from './PassportFormPDF';
 
 // Define the interface for form data
 interface PassportFormData {
@@ -54,6 +57,13 @@ interface PassportFormData {
     police_station: string;
 }
 
+interface EmailFormData {
+    from: string;
+    to: string;
+    subject: string;
+    message: string;
+}
+
 type TabType = "father" | "mother" | "spouse" | "guardian";
 
 const PassportFormOneM: React.FC = () => {
@@ -64,6 +74,10 @@ const PassportFormOneM: React.FC = () => {
     const [showError, setShowError] = useState(false);
     const [successMessage, setSuccessMessage] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
+    const [showEmailModal, setShowEmailModal] = useState(false);
+    const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+    const [submittedData, setSubmittedData] = useState<PassportFormData | null>(null);
+    const [isFormSubmitted, setIsFormSubmitted] = useState(false);
 
     useEffect(() => {
         const checkMobile = () => {
@@ -128,21 +142,18 @@ const PassportFormOneM: React.FC = () => {
     // Handle text input changes
     const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
-        // Clear error when user starts typing
         if (showError) setShowError(false);
     };
 
-    // Handle radio-like checkbox groups (to ensure only one is selected)
+    // Handle radio-like checkbox groups
     const handleGroupCheckbox = (e: React.ChangeEvent<HTMLInputElement>, groupName: string) => {
         const { value } = e.target;
         setFormData({ ...formData, [groupName]: value });
-        // Clear error when user makes a selection
         if (showError) setShowError(false);
     };
 
     // Validation function
     const validateForm = (): boolean => {
-        // Required fields validation
         if (!formData.applicant_for) {
             setErrorMessage("Please select Applicant For");
             setShowError(true);
@@ -228,7 +239,6 @@ const PassportFormOneM: React.FC = () => {
             return false;
         }
 
-        // Email validation
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(formData.email)) {
             setErrorMessage("Please enter a valid email address");
@@ -237,7 +247,6 @@ const PassportFormOneM: React.FC = () => {
             return false;
         }
 
-        // Phone validation (10 digits)
         const phoneRegex = /^\d{10}$/;
         if (!phoneRegex.test(formData.cell_no)) {
             setErrorMessage("Please enter a valid 10-digit phone number");
@@ -246,7 +255,6 @@ const PassportFormOneM: React.FC = () => {
             return false;
         }
 
-        // Pincode validation (6 digits)
         const pincodeRegex = /^\d{6}$/;
         if (!pincodeRegex.test(formData.pincode)) {
             setErrorMessage("Please enter a valid 6-digit pincode");
@@ -307,68 +315,115 @@ const PassportFormOneM: React.FC = () => {
         });
     };
 const submitToBackend = async (): Promise<void> => {
-    console.log("STEP 1: Submit clicked");
+  if (!validateForm()) return;
 
-    if (!validateForm()) {
-        console.log("STEP 2: Validation failed");
-        return;
-    }
+  setIsSubmitting(true);
 
-    setIsSubmitting(true);
-    console.log("STEP 3: Validation passed");
+  try {
+    const res = await axios.post(`${BASE_URL}/api/passport/form`, formData, {
+      timeout: 15000, // ← Add timeout so it doesn't hang forever
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
 
-    try {
-        console.log("STEP 4: Sending API request...");
+    console.log("Response:", res.data);
 
-        const res = await axios.post(`${BASE_URL}/api/passport/form`, formData);
+    setSuccessMessage(`Form submitted successfully. Application ID: ${res.data?.id || 'N/A'}`);
+    setShowSuccess(true);
+    setSubmittedData(formData);
+    setIsFormSubmitted(true);
 
-        console.log("STEP 5: Response received", res);
+    setTimeout(() => setShowSuccess(false), 3000);
 
-        const message = `Form submitted successfully. Application ID: ${res.data?.id || 'N/A'}`;
+  } catch (error: any) {
+    console.error("Submit error:", error);
 
-        setSuccessMessage(message);
-        setShowSuccess(true);
+    const errorMsg =
+      error.code === 'ECONNABORTED'
+        ? "Request timed out. Please try again."
+        : error.response?.data?.message || error.message || "Something went wrong";
 
-        console.log("STEP 6: Success UI triggered");
+    setErrorMessage(errorMsg);
+    setShowError(true);
+    setTimeout(() => setShowError(false), 5000);
 
-        resetForm();
+  } finally {
+    setIsSubmitting(false); // ← This MUST always run
+  }
+};
 
-        setTimeout(() => {
-            setShowSuccess(false);
-            navigate("/passport");
-        }, 3000);
-
-    } catch (error: any) {
-        console.log("STEP ERROR:", error);
-
-        let errorMsg = "Something went wrong";
-
-        if (error.response) {
-            console.log("Server error:", error.response);
-            errorMsg = error.response.data?.message || "Server error";
-        } else if (error.request) {
-            console.log("No response:", error.request);
-            errorMsg = "No response from server";
+    const handleSubmit = async (): Promise<void> => {
+        try {
+            await submitToBackend();
+        } catch (err) {
+            console.error("Unhandled error in handleSubmit:", err);
+            setErrorMessage("An unexpected error occurred. Please try again.");
+            setShowError(true);
+            setTimeout(() => setShowError(false), 5000);
         }
+    };
 
-        setErrorMessage(errorMsg);
-        setShowError(true);
+    const handleEmailSubmit = async (emailData: EmailFormData) => {
+        try {
+            const { pdf } = await import('@react-pdf/renderer');
+            
+            const pdfInstance = (
+                <PassportFormPDF
+                    formData={submittedData || formData}
+                />
+            );
 
-    } finally {
-        console.log("STEP FINAL: Done");
-        setIsSubmitting(false);
-    }
-};
-const handleSubmit = async (): Promise<void> => {
-    try {
-        await submitToBackend();
-    } catch (err) {
-        console.error("Unhandled error in handleSubmit:", err);
-        setErrorMessage("An unexpected error occurred. Please try again.");
-        setShowError(true);
-        setTimeout(() => setShowError(false), 5000);
-    }
-};
+            const pdfBlob = await pdf(pdfInstance).toBlob();
+
+            const formDataToSend = new FormData();
+            formDataToSend.append('to', emailData.to);
+            formDataToSend.append('subject', emailData.subject);
+            formDataToSend.append('message', emailData.message);
+            formDataToSend.append('tourTitle', `Passport Application - ${submittedData?.name || formData.name}`);
+            formDataToSend.append('tourCode', `PASS_${Date.now()}`);
+            formDataToSend.append('pdf', pdfBlob, `passport_application_${submittedData?.name || 'form'}.pdf`);
+
+            const response = await fetch(`${BASE_URL}/api/send-tour-pdf`, {
+                method: 'POST',
+                body: formDataToSend,
+            });
+
+            let result;
+            const contentType = response.headers.get('content-type');
+            
+            if (contentType && contentType.includes('application/json')) {
+                result = await response.json();
+            } else {
+                const textResponse = await response.text();
+                console.error('Non-JSON response:', textResponse);
+                throw new Error(`Server error: ${response.status} ${response.statusText}`);
+            }
+
+            if (!response.ok || !result.success) {
+                throw new Error(result.message || 'Failed to send email');
+            }
+
+            setShowEmailModal(false);
+            alert('Email sent successfully!');
+
+        } catch (error: any) {
+            console.error('Error sending email:', error);
+            alert(`Failed to send email: ${error.message || 'Unknown error'}`);
+        }
+    };
+
+    const handleDownloadPdf = () => {
+        setIsGeneratingPdf(true);
+        setTimeout(() => {
+            setIsGeneratingPdf(false);
+        }, 1000);
+    };
+
+    const handleBook = () => {
+        navigate("/bookingform");
+    };
+
     const getInputName = (baseName: string): string => {
         switch (selectedTab) {
             case "father":
@@ -389,35 +444,31 @@ const handleSubmit = async (): Promise<void> => {
             <Header />
             
             {/* Success Message Toast */}
-          {/* Success Message Toast */}
-{showSuccess && (
-    <div className="fixed top-20 right-4 md:right-8 z-50 animate-slide-in max-w-[90%] sm:max-w-md">
-        <div className="bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-lg p-4 md:p-6 shadow-2xl border border-emerald-400">
-            <div className="flex items-start gap-3 md:gap-4">
-                <CheckCircle className="w-6 h-6 md:w-8 md:h-8 flex-shrink-0 mt-1" />
-                <div className="flex-1">
-                    <h3 className="text-base md:text-lg font-bold mb-1">✓ Application Submitted Successfully!</h3>
-                    <p className="text-sm opacity-90 mb-2">{successMessage}</p>
-                    <div className="flex items-center gap-2">
-                        <div className="flex-1 h-1 bg-white/30 rounded-full overflow-hidden">
-                            <div className="h-full bg-white rounded-full animate-progress"></div>
+            {showSuccess && (
+                <div className="fixed top-20 right-4 md:right-8 z-50 animate-slide-in max-w-[90%] sm:max-w-md">
+                    <div className="bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-lg p-4 md:p-6 shadow-2xl border border-emerald-400">
+                        <div className="flex items-start gap-3 md:gap-4">
+                            <CheckCircle className="w-6 h-6 md:w-8 md:h-8 flex-shrink-0 mt-1" />
+                            <div className="flex-1">
+                                <h3 className="text-base md:text-lg font-bold mb-1">✓ Application Submitted Successfully!</h3>
+                                <p className="text-sm opacity-90 mb-2">{successMessage}</p>
+                                <div className="flex items-center gap-2">
+                                    <div className="flex-1 h-1 bg-white/30 rounded-full overflow-hidden">
+                                        <div className="h-full bg-white rounded-full animate-progress"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button 
+                                onClick={() => setShowSuccess(false)}
+                                className="text-white/80 hover:text-white transition"
+                            >
+                                ✕
+                            </button>
                         </div>
-                        <p className="text-xs opacity-75">Redirecting in 3s...</p>
                     </div>
                 </div>
-                <button 
-                    onClick={() => {
-                        setShowSuccess(false);
-                        navigate("/passport");
-                    }}
-                    className="text-white/80 hover:text-white transition"
-                >
-                    ✕
-                </button>
-            </div>
-        </div>
-    </div>
-)}
+            )}
+            
             {/* Error Message Toast */}
             {showError && (
                 <div className="fixed top-20 right-4 md:right-8 z-50 animate-slide-in max-w-[90%] sm:max-w-md">
@@ -446,8 +497,19 @@ const handleSubmit = async (): Promise<void> => {
                         opacity: 1;
                     }
                 }
+                @keyframes progress {
+                    from {
+                        width: 100%;
+                    }
+                    to {
+                        width: 0%;
+                    }
+                }
                 .animate-slide-in {
                     animation: slideIn 0.3s ease-out;
+                }
+                .animate-progress {
+                    animation: progress 3s linear forwards;
                 }
             `}</style>
 
@@ -564,7 +626,6 @@ const handleSubmit = async (): Promise<void> => {
                         </div>
                     </div>
 
-                    {/* Rest of your form fields remain exactly the same */}
                     {/* Name Row */}
                     <div className="flex flex-col md:grid md:grid-cols-[180px_1fr_180px_1fr_180px_1fr] gap-2 items-start md:items-center mb-1">
                         <div className="bg-[#5d3b13] text-white p-2 font-bold text-sm w-full md:w-auto">Name</div>
@@ -956,24 +1017,90 @@ const handleSubmit = async (): Promise<void> => {
                         />
                     </div>
 
-                    {/* Buttons */}
-                    <div className="text-center mt-4">
-                       <button
-    className="px-6 py-2 mx-1 font-bold text-sm text-white bg-red-600 hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-    type="button"
-    onClick={handleSubmit}
-    disabled={isSubmitting}
->
-    {isSubmitting ? (
-        <>
-            <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
-            Submitting...
-        </>
-    ) : (
-        "Submit Application"
-    )}
-</button>
-                    </div>
+<div className="text-center mt-4">
+    <div className="flex flex-wrap justify-center items-center gap-2">
+        {/* Submit Button */}
+        <button
+            className="px-6 py-2 font-bold text-sm text-white bg-[#0c2b66] hover:bg-[#1a3a7a] transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 rounded-lg"
+            type="button"
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+        >
+            {isSubmitting ? (
+                <>
+                    <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+                    Submitting...
+                </>
+            ) : (
+                "Submit Application"
+            )}
+        </button>
+
+        {/* Download PDF Button - Enabled after submission */}
+        {isFormSubmitted && (
+            <div className="border border-green-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                <PDFDownloadLink
+                    document={
+                        <PassportFormPDF
+                            formData={submittedData || formData}
+                        />
+                    }
+                    fileName={`passport_application_${submittedData?.name || 'form'}_${new Date().toISOString().split('T')[0]}.pdf`}
+                    onClick={() => setIsGeneratingPdf(true)}
+                >
+                    {({ loading, error }) => (
+                        <button
+                            className={`px-4 py-2 ${loading || isGeneratingPdf ? 'bg-green-900' : 'bg-green-700 hover:bg-green-800'} text-white font-bold flex items-center justify-center gap-2 transition-colors text-sm rounded-lg`}
+                            disabled={loading || isGeneratingPdf}
+                        >
+                            {loading || isGeneratingPdf ? (
+                                <>
+                                    <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+                                    Generating...
+                                </>
+                            ) : (
+                                <>
+                                    <Download className="h-4 w-4" />
+                                    Download PDF
+                                </>
+                            )}
+                        </button>
+                    )}
+                </PDFDownloadLink>
+            </div>
+        )}
+
+        {/* Email Button - Enabled after submission */}
+        {isFormSubmitted && (
+            <button
+                onClick={() => setShowEmailModal(true)}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold flex items-center justify-center gap-2 rounded-lg transition-colors text-sm"
+            >
+                <Mail className="h-4 w-4" />
+                Email
+            </button>
+        )}
+
+        {/* Book Now Button - Always visible */}
+        <button
+            onClick={handleBook}
+            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold flex items-center justify-center gap-2 rounded-lg transition-colors text-sm"
+        >
+            Book Now
+        </button>
+    </div>
+</div>
+
+{/* Email Modal - Make sure tour has correct properties */}
+<EmailModal
+    isOpen={showEmailModal}
+    onClose={() => setShowEmailModal(false)}
+    onSubmit={handleEmailSubmit}
+    tour={{
+        name: `Passport Application - ${submittedData?.name || formData.name}`,
+        bungalow_code: `PASS_${Date.now()}`
+    }}
+/>
 
                     {/* Bottom Note */}
                     <div className="mt-3 text-center text-xs font-bold px-2">
@@ -981,6 +1108,17 @@ const handleSubmit = async (): Promise<void> => {
                     </div>
                 </div>
             </div>
+
+<EmailModal
+    isOpen={showEmailModal}
+    onClose={() => setShowEmailModal(false)}
+    onSubmit={handleEmailSubmit}
+    tour={{
+        name: `Passport Application - ${submittedData?.name || formData.name}`,
+        bungalow_code: `PASS_${Date.now()}`
+    }}
+/>
+
             <Footer />
         </>
     );

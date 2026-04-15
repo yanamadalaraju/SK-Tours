@@ -24,6 +24,8 @@ interface WeekendGateway {
   exclusive?: string;
   places_nearby?: string;
   booking_policy?: string;
+  cancellation_policy?: string;
+  amenities?: string;
   per_pax_twin?: string;
   per_pax_triple?: string;
   child_with_bed?: string;
@@ -55,7 +57,7 @@ interface EmailFormData {
   message: string;
 }
 
-type TabType = "overview" | "tour" | "inclusive" | "nearby" | "policy" | "cancellation";
+type TabType = "overview" | "tour" | "inclusive" | "nearby" | "amenities" | "policy_cancellation";
 
 const Weekendbookingcard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>("overview");
@@ -136,64 +138,60 @@ const Weekendbookingcard: React.FC = () => {
     });
   };
 
-const handleEmailSubmit = async (emailData: EmailFormData) => {
-  try {
-    setEmailLoading(true);
-    
-    const { pdf } = await import('@react-pdf/renderer');
-    
-    const pdfInstance = (
-      <WeekendGatewaypdf
-        gateway={gateway || {}}
-        images={images}
-        currentImageIndex={currentImageIndex}
-      />
-    );
+  const handleEmailSubmit = async (emailData: EmailFormData) => {
+    try {
+      setEmailLoading(true);
+      
+      const { pdf } = await import('@react-pdf/renderer');
+      
+      const pdfInstance = (
+        <WeekendGatewaypdf
+          gateway={gateway || {}}
+          images={images}
+          currentImageIndex={currentImageIndex}
+        />
+      );
 
-    const pdfBlob = await pdf(pdfInstance).toBlob();
+      const pdfBlob = await pdf(pdfInstance).toBlob();
 
-    const formData = new FormData();
-    formData.append('to', emailData.to);
-    formData.append('subject', emailData.subject);
-    formData.append('message', emailData.message);
-    formData.append('gatewayTitle', gateway?.name || '');
-    formData.append('gatewayCode', gateway?.gateway_code || '');
-    formData.append('pdf', pdfBlob, `gateway_${gateway?.gateway_code || 'details'}.pdf`);
+      const formData = new FormData();
+      formData.append('to', emailData.to);
+      formData.append('subject', emailData.subject);
+      formData.append('message', emailData.message);
+      formData.append('gatewayTitle', gateway?.name || '');
+      formData.append('gatewayCode', gateway?.gateway_code || '');
+      formData.append('pdf', pdfBlob, `gateway_${gateway?.gateway_code || 'details'}.pdf`);
 
-    // Try different endpoint paths
-    let response;
-    let result;
-    
-    // Try the correct endpoint (same pattern as MICE)
-    response = await fetch(`${BASE_URL}/api/send-tour-pdf`, {
-      method: 'POST',
-      body: formData,
-    });
-    
-    // Check if response is OK and is JSON
-    const contentType = response.headers.get('content-type');
-    if (contentType && contentType.includes('application/json')) {
-      result = await response.json();
-    } else {
-      // If not JSON, throw error with status
-      const text = await response.text();
-      throw new Error(`Server returned ${response.status}: ${text.substring(0, 100)}`);
+      let response;
+      let result;
+      
+      response = await fetch(`${BASE_URL}/api/send-tour-pdf`, {
+        method: 'POST',
+        body: formData,
+      });
+      
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        result = await response.json();
+      } else {
+        const text = await response.text();
+        throw new Error(`Server returned ${response.status}: ${text.substring(0, 100)}`);
+      }
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'Failed to send email');
+      }
+
+      setShowEmailModal(false);
+      alert('Email sent successfully!');
+
+    } catch (error: any) {
+      console.error('Error sending email:', error);
+      alert(`Failed to send email: ${error.message || 'Unknown error'}`);
+    } finally {
+      setEmailLoading(false);
     }
-
-    if (!response.ok || !result.success) {
-      throw new Error(result.message || 'Failed to send email');
-    }
-
-    setShowEmailModal(false);
-    alert('Email sent successfully!');
-
-  } catch (error: any) {
-    console.error('Error sending email:', error);
-    alert(`Failed to send email: ${error.message || 'Unknown error'}`);
-  } finally {
-    setEmailLoading(false);
-  }
-};
+  };
 
   const handleDownloadPdf = () => {
     setIsGeneratingPdf(true);
@@ -204,13 +202,13 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
 
   const handleGatewayCheckboxChange = (code: string, checked: boolean) => {
     if (checked) {
-      setSelectedGatewayCodes(prev => [...prev, code]);
+      setSelectedGatewayCodes([code]);
       const selectedGateway = allGateways.find(g => g.gateway_code === code);
       if (selectedGateway) {
         navigate(`/weekendbookingcard/${selectedGateway.gateway_id}`);
       }
     } else {
-      setSelectedGatewayCodes(prev => prev.filter(c => c !== code));
+      setSelectedGatewayCodes([]);
     }
   };
 
@@ -285,8 +283,8 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
       case "tour":        return "Tour Cost";
       case "inclusive":   return "Inclusive & Excludes";
       case "nearby":      return "Place Near By";
-      case "policy":      return "Booking Policy";
-      case "cancellation":return "Cancellation Policy";
+      case "amenities":   return "Amenities";
+      case "policy_cancellation": return "Book.P/Canc.P";
       default:            return tab;
     }
   };
@@ -300,7 +298,7 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
               Overview
             </div>
             <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-              <div className="min-h-[150px] lg:min-h-[180px] max-h-[200px] lg:max-h-[250px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+              <div className="h-64 lg:h-64 overflow-y-auto p-2 bg-[#FFEBEE] w-full">
                 <div className="space-y-4 w-full">
                   <div className="border-gray-200 rounded-lg w-full">
                     <div className="flex items-start w-full">
@@ -331,7 +329,7 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
             <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
               Tour Cost
             </div>
-            <div className="border-2  border-t-0 overflow-hidden rounded-b-lg w-full mt-1">
+            <div className="border-2 border-t-0 overflow-hidden rounded-b-lg w-full mt-1">
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
                   <thead>
@@ -472,7 +470,7 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
               Places Near By
             </div>
             <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-              <div className="min-h-[150px] lg:min-h-[180px] max-h-[200px] lg:max-h-[250px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+              <div className="h-64 lg:h-64 overflow-y-auto p-2 bg-[#FFEBEE] w-full">
                 <div className="space-y-4 w-full">
                   <div className="border-gray-200 rounded-lg w-full">
                     <div className="flex items-start w-full">
@@ -497,25 +495,30 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
           </div>
         );
 
-      case "policy":
+      case "amenities":
         return (
           <div className="bg-[#E8F0FF] rounded-lg p-1 w-full">
-            <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg mb-1 w-full">
-              Booking Policy
+            <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
+              Amenities
             </div>
             <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-              <div className="min-h-[150px] lg:min-h-[180px] max-h-[150px] lg:max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-                <div className="space-y-4 w-full">
-                  <div className="border-gray-200 rounded-lg w-full">
-                    <div className="flex items-start w-full">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-black break-words whitespace-pre-wrap text-justify w-full text-sm lg:text-base">
-                          {gateway?.booking_policy || "No booking policy available"}
-                        </p>
+              <div className="min-h-[250px] lg:min-h-[250px] max-h-[310px] lg:max-h-[390px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+                {gateway?.amenities ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 w-full">
+                    {gateway.amenities.split('\n').map((item, idx) => (
+                      <div key={idx} className="flex items-center gap-2 p-2 bg-white rounded-lg shadow-sm">
+                        <svg className="w-4 h-4 lg:w-5 lg:h-5 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span className="text-black text-sm lg:text-base break-words">{item}</span>
                       </div>
-                    </div>
+                    ))}
                   </div>
-                </div>
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <span className="text-gray-500 italic text-sm lg:text-base">No amenities listed</span>
+                  </div>
+                )}
               </div>
             </div>
             <div className="mt-1">
@@ -529,27 +532,43 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
           </div>
         );
 
-      case "cancellation":
+      case "policy_cancellation":
         return (
           <div className="bg-[#E8F0FF] rounded-lg p-1 w-full">
             <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg mb-1 w-full">
-              Cancellation Policy
+              Booking & Cancellation Policy
             </div>
-            <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
-              <div className="min-h-[150px] lg:min-h-[180px] max-h-[150px] lg:max-h-[180px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-                <div className="space-y-4 w-full">
-                  <div className="border-gray-200 rounded-lg w-full">
-                    <div className="flex items-start w-full">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-black break-words whitespace-pre-wrap text-justify w-full text-sm lg:text-base">
-                          {gateway?.booking_policy || "No cancellation policy available"}
-                        </p>
-                      </div>
-                    </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-1 w-full">
+              {/* Booking Policy Section - 50% */}
+              <div className="flex flex-col w-full min-h-[250px] lg:min-h-[280px] max-h-[280px] lg:max-h-[320px]">
+                <div className="bg-[#2E4D98] text-white text-center py-2 lg:py-3 rounded-t-lg w-full">
+                  <h3 className="text-lg lg:text-xl font-bold">Booking Policy</h3>
+                </div>
+                <div className="flex-1 border-2 border-[#1e3a8a] rounded-b-lg bg-[#FFEBEE] w-full overflow-hidden min-h-0">
+                  <div className="h-full overflow-y-auto p-2">
+                    <p className="text-black break-words whitespace-pre-wrap text-justify w-full text-sm lg:text-base">
+                      {gateway?.booking_policy || "No booking policy available"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Cancellation Policy Section - 50% */}
+              <div className="flex flex-col w-full min-h-[250px] lg:min-h-[280px] max-h-[280px] lg:max-h-[320px]">
+                <div className="bg-[#2E4D98] text-white text-center py-2 lg:py-3 rounded-t-lg w-full">
+                  <h3 className="text-lg lg:text-xl font-bold">Cancellation Policy</h3>
+                </div>
+                <div className="flex-1 border-2 border-[#1e3a8a] rounded-b-lg bg-[#FFEBEE] w-full overflow-hidden min-h-0">
+                  <div className="h-full overflow-y-auto p-2">
+                    <p className="text-black break-words whitespace-pre-wrap text-justify w-full text-sm lg:text-base">
+                      {gateway?.cancellation_policy || gateway?.booking_policy || "No cancellation policy available"}
+                    </p>
                   </div>
                 </div>
               </div>
             </div>
+            
             <div className="mt-1">
               <button
                 onClick={() => navigate("/alert")}
@@ -621,7 +640,7 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
     );
   }
 
-  const tabs: TabType[] = ["overview", "tour", "inclusive", "nearby", "policy", "cancellation"];
+  const tabs: TabType[] = ["overview", "tour", "inclusive", "nearby", "amenities", "policy_cancellation"];
 
   return (
     <>
@@ -701,15 +720,21 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                         .map((gatewayItem) => (
                           <div key={gatewayItem.gateway_code} className="flex items-center gap-3 cursor-pointer">
                             <Checkbox
-                              checked={selectedGatewayCodes.includes(gatewayItem.gateway_code) || gatewayItem.gateway_code === gateway.gateway_code}
+                              checked={gatewayItem.gateway_code === gateway.gateway_code}
                               onCheckedChange={(checked) => handleGatewayCheckboxChange(gatewayItem.gateway_code, checked as boolean)}
                               className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
                             />
                             <span
-                              className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${(selectedGatewayCodes.includes(gatewayItem.gateway_code) || gatewayItem.gateway_code === gateway.gateway_code) ? 'font-bold text-[#2E4D98]' : ''}`}
-                              onClick={() => handleGatewayCheckboxChange(gatewayItem.gateway_code, !selectedGatewayCodes.includes(gatewayItem.gateway_code))}
+                              className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${gatewayItem.gateway_code === gateway.gateway_code ? 'font-bold text-[#2E4D98]' : ''}`}
+                              onClick={() => {
+                                if (gatewayItem.gateway_code === gateway.gateway_code) {
+                                  handleGatewayCheckboxChange(gatewayItem.gateway_code, false);
+                                } else {
+                                  handleGatewayCheckboxChange(gatewayItem.gateway_code, true);
+                                }
+                              }}
                             >
-                              {gatewayItem.name} ({gatewayItem.gateway_code})
+                              {gatewayItem.name} 
                             </span>
                           </div>
                         ))
@@ -731,23 +756,16 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
 
             {/* Main Content */}
             <main className="flex-1">
-          
-
-              
-
-                <div className="w-full overflow-hidden border mb-2">
-          <div className="flex w-full items-stretch gap-1">
-            {/* City Label */}
-            <div className="flex-1 flex items-center justify-center p-3 bg-[#2E3A8A] border border-black">
-              <span className="font-bold text-white">    Weekend Gateway</span>
-            </div>
-        
-            {/* City Value */}
-            <div className="flex-1 flex items-center justify-center p-3 bg-blue-100 border border-black">
-              <span className="text-[#2E3A8A] font-bold"> {gateway.name}   </span>
-            </div>
-            </div>
-            </div>
+              <div className="w-full overflow-hidden border mb-2">
+                <div className="flex w-full items-stretch gap-1">
+                  <div className="flex-1 flex items-center justify-center p-3 bg-[#2E3A8A] border border-black">
+                    <span className="font-bold text-white">Weekend Gateway</span>
+                  </div>
+                  <div className="flex-1 flex items-center justify-center p-3 bg-blue-100 border border-black">
+                    <span className="text-[#2E3A8A] font-bold">{gateway.name}</span>
+                  </div>
+                </div>
+              </div>
 
               {/* Image Carousel */}
               <div className="relative rounded-2xl overflow-hidden mb-2">
@@ -809,67 +827,61 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                 )}
               </div>
 
-       {/* Excel-like Table Layout */}
-<div className="bg-white rounded-xl shadow-sm mb-1.5 overflow-hidden border border-black overflow-x-auto">
-  <div className="min-w-[800px] lg:min-w-0">
+              {/* Excel-like Table Layout */}
+              <div className="bg-white rounded-xl shadow-sm mb-1.5 overflow-hidden border border-black overflow-x-auto">
+                <div className="min-w-[800px] lg:min-w-0">
+                  {/* Header */}
+                  <div className="grid grid-cols-6 bg-[#E8F0FF] border-b border-black">
+                    <div className="border-r border-white bg-[#2E3a8a] px-2 lg:px-4 py-2 lg:py-3">
+                      <h3 className="font-bold text-white text-left text-sm lg:text-lg">Gateway</h3>
+                    </div>
+                    <div className="col-span-4 border-r border-white bg-[#2E3a8a] px-2 lg:px-4 py-2 lg:py-3">
+                      <h3 className="font-bold text-white text-left text-sm lg:text-lg">Name</h3>
+                    </div>
+                    <div className="px-2 lg:px-4 py-2 lg:py-3 bg-[#2E3a8a]">
+                      <h3 className="font-bold text-white text-start text-sm lg:text-lg">Price</h3>
+                    </div>
+                  </div>
 
-    {/* Header */}
-    <div className="grid grid-cols-6 bg-[#E8F0FF] border-b border-black">
-      <div className="border-r border-white bg-[#2E3a8a] px-2 lg:px-4 py-2 lg:py-3">
-        <h3 className="font-bold text-white text-left text-sm lg:text-lg">Gateway</h3>
-      </div>
+                  {/* Data Row */}
+                  <div className="grid grid-cols-6 border-black">
+                    <div className="border-r border-black px-1 lg:px-4 py-2 lg:py-3 bg-blue-50">
+                      <p className="text-sm lg:text-lg font-bold text-[#2E4D98] text-left tracking-wide">
+                        {gateway.gateway_code}
+                      </p>
+                    </div>
+                    <div className="col-span-4 border-r border-black px-2 lg:px-4 py-2 lg:py-3 bg-blue-50">
+                      <p className="text-sm lg:text-lg font-semibold text-gray-900 text-left break-words">
+                        {gateway.name}
+                      </p>
+                    </div>
+                    <div className="px-2 lg:px-4 py-2 lg:py-3 bg-red-50">
+                      <p className="text-sm lg:text-lg font-bold text-[#E53C42] text-left">
+                        ₹{parseFloat(gateway.price).toLocaleString('en-IN')}
+                      </p>
+                    </div>
+                  </div>
 
-      <div className="col-span-4 border-r border-white bg-[#2E3a8a] px-2 lg:px-4 py-2 lg:py-3">
-        <h3 className="font-bold text-white text-left text-sm lg:text-lg">Name</h3>
-      </div>
-
-      <div className="px-2 lg:px-4 py-2 lg:py-3 bg-[#2E3a8a]">
-        <h3 className="font-bold text-white text-start text-sm lg:text-lg">Price</h3>
-      </div>
-    </div>
-
-    {/* Data Row */}
-    <div className="grid grid-cols-6 border-black">
-      <div className="border-r border-black px-1 lg:px-4 py-2 lg:py-3 bg-blue-50">
-        <p className="text-sm lg:text-lg font-bold text-[#2E4D98] text-left tracking-wide">
-          {gateway.gateway_code}
-        </p>
-      </div>
-
-      <div className="col-span-4 border-r border-black px-2 lg:px-4 py-2 lg:py-3 bg-blue-50">
-        <p className="text-sm lg:text-lg font-semibold text-gray-900 text-left break-words">
-          {gateway.name}
-        </p>
-      </div>
-
-      <div className="px-2 lg:px-4 py-2 lg:py-3 bg-red-50">
-        <p className="text-sm lg:text-lg font-bold text-[#E53C42] text-left">
-          ₹{parseFloat(gateway.price).toLocaleString('en-IN')}
-        </p>
-      </div>
-    </div>
-
-    {/* Tabs (UNCHANGED) */}
-    <div className="grid grid-cols-6 bg-white border-t border-black">
-      {tabs.map((tab, idx) => (
-        <button
-          key={tab}
-          onClick={() => setActiveTab(tab)}
-          className={`px-1 lg:px-3 py-2 lg:py-4 text-[10px] xs:text-xs sm:text-sm font-semibold text-center whitespace-nowrap
-            ${idx < 5 ? "border-r border-black" : ""} transition 
-            ${activeTab === tab
-              ? "bg-[#A72703] text-white"
-              : "bg-[#FFE797] text-gray-800"
-            }
-          `}
-        >
-          {getTabDisplayName(tab)}
-        </button>
-      ))}
-    </div>
-
-  </div>
-</div>
+                  {/* Tabs */}
+                  <div className="grid grid-cols-6 bg-white border-t border-black">
+                    {tabs.map((tab, idx) => (
+                      <button
+                        key={tab}
+                        onClick={() => setActiveTab(tab)}
+                        className={`px-1 lg:px-3 py-2 lg:py-4 text-[10px] xs:text-xs sm:text-sm font-semibold text-center whitespace-nowrap
+                          ${idx < 5 ? "border-r border-black" : ""} transition 
+                          ${activeTab === tab
+                            ? "bg-[#A72703] text-white"
+                            : "bg-[#FFE797] text-gray-800"
+                          }
+                        `}
+                      >
+                        {getTabDisplayName(tab)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
 
               {/* Tab Content */}
               <div className="bg-[#2E4D98] rounded-md shadow-sm p-2 lg:p-4">

@@ -329,7 +329,7 @@ useEffect(() => {
                 </div>
                 <button
                   onClick={handleSearch}
-                  className="text-white w-[330px] h-[45px] border border-black"
+                  className="text-white w-[360px] h-[45px] border border-black"
                   style={{ backgroundColor: "red" }}
                 >
                   Search
@@ -393,7 +393,7 @@ useEffect(() => {
 
             <div className="p-1">
               <div className="flex items-center mb-2 gap-1">
-                <div className="border border-black w-[355px] h-[45px] flex items-center justify-center font-semibold" style={{ backgroundColor: "#2E4D98", color: "white" }}>
+                <div className="border border-black w-[360px] h-[45px] flex items-center justify-center font-semibold" style={{ backgroundColor: "#2E4D98", color: "white" }}>
                   International Cities
                 </div>
                 <div className="relative w-[355px]">
@@ -426,7 +426,7 @@ useEffect(() => {
                 </div>
                 <button
                   onClick={handleSearch}
-                  className="text-white w-[330px] h-[45px] border border-black"
+                  className="text-white w-[365px] h-[45px] border border-black"
                   style={{ backgroundColor: "red" }}
                 >
                   Search
