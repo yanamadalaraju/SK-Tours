@@ -118,6 +118,8 @@ import CheckoutPageBungalow from "./pages/Bungalows/Bookingform/CheckoutPageBung
 import CheckoutPagePicnic from "./pages/OnedayPicnic/OnedayPicnic/CheckoutPagePicnic";
 import CheckoutPageWeekend from "./pages/Weekend_Gateway/WeekendForm/CheckoutPageWeekend";
 
+import CheckoutPagePassport from './pages/Passport/CheckoutPagePassport';
+
 
 const queryClient = new QueryClient();
 
@@ -146,6 +148,10 @@ const App = () => (
             <Route path="/checkout-bungalow" element={<CheckoutPageBungalow />} />
             <Route path="/checkout-picnic" element={<CheckoutPagePicnic />} />
             <Route path="/checkout-weekend" element={<CheckoutPageWeekend />} />
+          
+            <Route path="/checkout-passport" element={<CheckoutPagePassport />} />
+
+
 
           <Route path="/payment-result" element={<PaymentResult />} />
           <Route path="/about" element={<AboutPage />} />

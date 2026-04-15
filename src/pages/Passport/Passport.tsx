@@ -78,6 +78,7 @@ const PassportFormOneM: React.FC = () => {
     const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
     const [submittedData, setSubmittedData] = useState<PassportFormData | null>(null);
     const [isFormSubmitted, setIsFormSubmitted] = useState(false);
+    const [submittedApplicationId, setSubmittedApplicationId] = useState<string | null>(null);
 
     useEffect(() => {
         const checkMobile = () => {
@@ -314,44 +315,56 @@ const PassportFormOneM: React.FC = () => {
             police_station: "",
         });
     };
-const submitToBackend = async (): Promise<void> => {
-  if (!validateForm()) return;
 
-  setIsSubmitting(true);
+    const submitToBackend = async (): Promise<void> => {
+        if (!validateForm()) return;
 
-  try {
-    const res = await axios.post(`${BASE_URL}/api/passport/form`, formData, {
-      timeout: 15000, // ← Add timeout so it doesn't hang forever
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
+        setIsSubmitting(true);
 
-    console.log("Response:", res.data);
+        try {
+            const res = await axios.post(`${BASE_URL}/api/passport/form`, formData, {
+                timeout: 15000,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
 
-    setSuccessMessage(`Form submitted successfully. Application ID: ${res.data?.id || 'N/A'}`);
-    setShowSuccess(true);
-    setSubmittedData(formData);
-    setIsFormSubmitted(true);
+            console.log("Response:", res.data);
 
-    setTimeout(() => setShowSuccess(false), 3000);
+            // Store the application ID from the response
+            const applicationId = res.data?.id || res.data?.application_id || `PASS_${Date.now()}`;
+            setSubmittedApplicationId(applicationId);
 
-  } catch (error: any) {
-    console.error("Submit error:", error);
+            setSuccessMessage(`Form submitted successfully. Application ID: ${applicationId}`);
+            setShowSuccess(true);
+            setSubmittedData(formData);
+            setIsFormSubmitted(true);
 
-    const errorMsg =
-      error.code === 'ECONNABORTED'
-        ? "Request timed out. Please try again."
-        : error.response?.data?.message || error.message || "Something went wrong";
+            // Save to localStorage for checkout page
+            localStorage.setItem('passportFormData', JSON.stringify({
+                ...formData,
+                application_id: applicationId,
+                submitted_at: new Date().toISOString()
+            }));
 
-    setErrorMessage(errorMsg);
-    setShowError(true);
-    setTimeout(() => setShowError(false), 5000);
+            setTimeout(() => setShowSuccess(false), 5000);
 
-  } finally {
-    setIsSubmitting(false); // ← This MUST always run
-  }
-};
+        } catch (error: any) {
+            console.error("Submit error:", error);
+
+            const errorMsg =
+                error.code === 'ECONNABORTED'
+                    ? "Request timed out. Please try again."
+                    : error.response?.data?.message || error.message || "Something went wrong";
+
+            setErrorMessage(errorMsg);
+            setShowError(true);
+            setTimeout(() => setShowError(false), 5000);
+
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     const handleSubmit = async (): Promise<void> => {
         try {
@@ -420,8 +433,27 @@ const submitToBackend = async (): Promise<void> => {
         }, 1000);
     };
 
+    // Handle Book Now - Only works after form submission
     const handleBook = () => {
-        navigate("/bookingform");
+        // Only navigate if form has been submitted
+        if (!isFormSubmitted) {
+            setErrorMessage("Please submit the application form first before proceeding to payment.");
+            setShowError(true);
+            setTimeout(() => setShowError(false), 5000);
+            return;
+        }
+
+        // Navigate to checkout page with application data
+        navigate("/checkout-passport", {
+            state: {
+                application: {
+                    ...(submittedData || formData),
+                    application_id: submittedApplicationId || `PASS_${Date.now()}`,
+                    submitted_data: submittedData || formData
+                },
+                source: 'passport'
+            }
+        });
     };
 
     const getInputName = (baseName: string): string => {
@@ -476,9 +508,9 @@ const submitToBackend = async (): Promise<void> => {
                         <div className="flex items-center gap-3 md:gap-4">
                             <AlertCircle className="w-6 h-6 md:w-8 md:h-8 flex-shrink-0" />
                             <div>
-                                <h3 className="text-base md:text-lg font-bold mb-1">Submission Failed</h3>
+                                <h3 className="text-base md:text-lg font-bold mb-1">Action Required</h3>
                                 <p className="text-sm opacity-90">{errorMessage}</p>
-                                <p className="text-xs opacity-75 mt-1">Please check your details and try again.</p>
+                                <p className="text-xs opacity-75 mt-1">Please submit the form first.</p>
                             </div>
                         </div>
                     </div>
@@ -509,7 +541,7 @@ const submitToBackend = async (): Promise<void> => {
                     animation: slideIn 0.3s ease-out;
                 }
                 .animate-progress {
-                    animation: progress 3s linear forwards;
+                    animation: progress 5s linear forwards;
                 }
             `}</style>
 
@@ -519,6 +551,7 @@ const submitToBackend = async (): Promise<void> => {
                 </header>
 
                 <div className="p-2 md:p-4 pb-10 max-w-[1300px] mx-auto bg-[#fbeedf] overflow-x-auto">
+                    {/* Form fields remain the same ... */}
                     {/* Applicant For / Type / Booklet */}
                     <div className="flex flex-col md:grid md:grid-cols-[150px_auto_auto_auto_170px_auto_auto_200px_auto_auto] gap-2 items-start md:items-center mb-1">
                         <div className="bg-[#5d3b13] text-white p-2 font-bold text-sm w-full md:w-auto">Applicant For</div>
@@ -1017,90 +1050,103 @@ const submitToBackend = async (): Promise<void> => {
                         />
                     </div>
 
-<div className="text-center mt-4">
-    <div className="flex flex-wrap justify-center items-center gap-2">
-        {/* Submit Button */}
-        <button
-            className="px-6 py-2 font-bold text-sm text-white bg-[#0c2b66] hover:bg-[#1a3a7a] transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 rounded-lg"
-            type="button"
-            onClick={handleSubmit}
-            disabled={isSubmitting}
-        >
-            {isSubmitting ? (
-                <>
-                    <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
-                    Submitting...
-                </>
-            ) : (
-                "Submit Application"
-            )}
-        </button>
+                    <div className="text-center mt-4">
+                        <div className="flex flex-wrap justify-center items-center gap-2">
+                            {/* Submit Button */}
+                            <button
+                                className="px-6 py-2 font-bold text-sm text-white bg-[#0c2b66] hover:bg-[#1a3a7a] transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 rounded-lg"
+                                type="button"
+                                onClick={handleSubmit}
+                                disabled={isSubmitting}
+                            >
+                                {isSubmitting ? (
+                                    <>
+                                        <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+                                        Submitting...
+                                    </>
+                                ) : (
+                                    "Submit Application"
+                                )}
+                            </button>
 
-        {/* Download PDF Button - Enabled after submission */}
-        {isFormSubmitted && (
-            <div className="border border-green-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                <PDFDownloadLink
-                    document={
-                        <PassportFormPDF
-                            formData={submittedData || formData}
-                        />
-                    }
-                    fileName={`passport_application_${submittedData?.name || 'form'}_${new Date().toISOString().split('T')[0]}.pdf`}
-                    onClick={() => setIsGeneratingPdf(true)}
-                >
-                    {({ loading, error }) => (
-                        <button
-                            className={`px-4 py-2 ${loading || isGeneratingPdf ? 'bg-green-900' : 'bg-green-700 hover:bg-green-800'} text-white font-bold flex items-center justify-center gap-2 transition-colors text-sm rounded-lg`}
-                            disabled={loading || isGeneratingPdf}
-                        >
-                            {loading || isGeneratingPdf ? (
-                                <>
-                                    <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
-                                    Generating...
-                                </>
-                            ) : (
-                                <>
-                                    <Download className="h-4 w-4" />
-                                    Download PDF
-                                </>
+                            {/* Download PDF Button - Enabled after submission */}
+                            {isFormSubmitted && (
+                                <div className="border border-green-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                                    <PDFDownloadLink
+                                        document={
+                                            <PassportFormPDF
+                                                formData={submittedData || formData}
+                                            />
+                                        }
+                                        fileName={`passport_application_${submittedData?.name || 'form'}_${new Date().toISOString().split('T')[0]}.pdf`}
+                                        onClick={() => setIsGeneratingPdf(true)}
+                                    >
+                                        {({ loading, error }) => (
+                                            <button
+                                                className={`px-4 py-2 ${loading || isGeneratingPdf ? 'bg-green-900' : 'bg-green-700 hover:bg-green-800'} text-white font-bold flex items-center justify-center gap-2 transition-colors text-sm rounded-lg`}
+                                                disabled={loading || isGeneratingPdf}
+                                            >
+                                                {loading || isGeneratingPdf ? (
+                                                    <>
+                                                        <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+                                                        Generating...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Download className="h-4 w-4" />
+                                                        Download PDF
+                                                    </>
+                                                )}
+                                            </button>
+                                        )}
+                                    </PDFDownloadLink>
+                                </div>
                             )}
-                        </button>
-                    )}
-                </PDFDownloadLink>
-            </div>
-        )}
 
-        {/* Email Button - Enabled after submission */}
-        {isFormSubmitted && (
-            <button
-                onClick={() => setShowEmailModal(true)}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold flex items-center justify-center gap-2 rounded-lg transition-colors text-sm"
-            >
-                <Mail className="h-4 w-4" />
-                Email
-            </button>
-        )}
+                            {/* Email Button - Enabled after submission */}
+                            {isFormSubmitted && (
+                                <button
+                                    onClick={() => setShowEmailModal(true)}
+                                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold flex items-center justify-center gap-2 rounded-lg transition-colors text-sm"
+                                >
+                                    <Mail className="h-4 w-4" />
+                                    Email
+                                </button>
+                            )}
 
-        {/* Book Now Button - Always visible */}
-        <button
-            onClick={handleBook}
-            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold flex items-center justify-center gap-2 rounded-lg transition-colors text-sm"
-        >
-            Book Now
-        </button>
-    </div>
-</div>
+                            {/* Book Now Button - Disabled until form is submitted */}
+                            <button
+                                onClick={handleBook}
+                                disabled={!isFormSubmitted}
+                                className={`px-4 py-2 font-bold flex items-center justify-center gap-2 rounded-lg transition-colors text-sm ${
+                                    isFormSubmitted 
+                                        ? 'bg-red-600 hover:bg-red-700 text-white' 
+                                        : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                                }`}
+                                title={!isFormSubmitted ? "Please submit the application form first" : "Proceed to payment"}
+                            >
+                                Book Now
+                            </button>
+                        </div>
+                        
+                        {/* Helper text for Book Now button */}
+                        {!isFormSubmitted && (
+                            <p className="text-xs text-gray-500 mt-2">
+                                Submit the application form to enable booking and payment
+                            </p>
+                        )}
+                    </div>
 
-{/* Email Modal - Make sure tour has correct properties */}
-<EmailModal
-    isOpen={showEmailModal}
-    onClose={() => setShowEmailModal(false)}
-    onSubmit={handleEmailSubmit}
-    tour={{
-        name: `Passport Application - ${submittedData?.name || formData.name}`,
-        bungalow_code: `PASS_${Date.now()}`
-    }}
-/>
+                    {/* Email Modal */}
+                    <EmailModal
+                        isOpen={showEmailModal}
+                        onClose={() => setShowEmailModal(false)}
+                        onSubmit={handleEmailSubmit}
+                        tour={{
+                            name: `Passport Application - ${submittedData?.name || formData.name}`,
+                            bungalow_code: `PASS_${Date.now()}`
+                        }}
+                    />
 
                     {/* Bottom Note */}
                     <div className="mt-3 text-center text-xs font-bold px-2">
@@ -1109,15 +1155,15 @@ const submitToBackend = async (): Promise<void> => {
                 </div>
             </div>
 
-<EmailModal
-    isOpen={showEmailModal}
-    onClose={() => setShowEmailModal(false)}
-    onSubmit={handleEmailSubmit}
-    tour={{
-        name: `Passport Application - ${submittedData?.name || formData.name}`,
-        bungalow_code: `PASS_${Date.now()}`
-    }}
-/>
+            <EmailModal
+                isOpen={showEmailModal}
+                onClose={() => setShowEmailModal(false)}
+                onSubmit={handleEmailSubmit}
+                tour={{
+                    name: `Passport Application - ${submittedData?.name || formData.name}`,
+                    bungalow_code: `PASS_${Date.now()}`
+                }}
+            />
 
             <Footer />
         </>
