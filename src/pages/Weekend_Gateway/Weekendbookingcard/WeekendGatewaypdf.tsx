@@ -346,17 +346,17 @@ const WeekendGatewaypdf: React.FC<WeekendGatewaypdfProps> = ({ gateway, images, 
           </View>
         )}
 
-        {/* Inclusive & Exclusive */}
+        {/* Includes & Excludes */}
         {(gateway.inclusive || gateway.exclusive) && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Inclusive & Exclusive</Text>
+            <Text style={styles.sectionTitle}>Includes & Excludes</Text>
             <View style={styles.table}>
               <View style={styles.tableRow}>
                 <View style={[styles.tableCol, styles.tableHeader]}>
-                  <Text style={[styles.tableCell, { color: 'white' }]}>Inclusive</Text>
+                  <Text style={[styles.tableCell, { color: 'white' }]}>Includes</Text>
                 </View>
                 <View style={[styles.tableCol, styles.tableHeader]}>
-                  <Text style={[styles.tableCell, { color: 'white' }]}>Exclusive</Text>
+                  <Text style={[styles.tableCell, { color: 'white' }]}>Excludes</Text>
                 </View>
               </View>
               <View style={styles.tableRow}>

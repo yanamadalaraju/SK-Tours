@@ -463,18 +463,18 @@ const Bungalowpdf: React.FC<BungalowpdfProps> = ({ bungalow, images, currentImag
         <Text style={styles.pageNumber} render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} fixed />
       </Page>
 
-      {/* Page 4: Inclusive & Exclusive */}
+      {/* Page 4: Includes & Excludes */}
       <Page size="A4" style={styles.page}>
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Inclusive & Exclusive</Text>
+          <Text style={styles.sectionTitle}>Includes & Excludes</Text>
 
           <View style={styles.twoColumnTable}>
             <View style={styles.twoColumnRow}>
               <View style={styles.twoColumnHeader}>
-                <Text style={styles.twoColumnHeaderText}>Inclusive</Text>
+                <Text style={styles.twoColumnHeaderText}>Includes</Text>
               </View>
               <View style={styles.twoColumnHeader}>
-                <Text style={styles.twoColumnHeaderText}>Exclusive</Text>
+                <Text style={styles.twoColumnHeaderText}>Excludes</Text>
               </View>
             </View>
             <View style={styles.twoColumnRow}>

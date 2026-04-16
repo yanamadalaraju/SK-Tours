@@ -344,7 +344,7 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
     switch (tab) {
       case "overview":    return "Overview";
       case "tour":        return "Tour Cost";
-      case "inclusive":   return "Inclusive & Excludes";
+      case "inclusive":   return "Includes & Excludes";
       case "nearby":      return "Place Near By";
       case "amenities":   return "Amenities";
       case "policy_cancellation": return "Book.P/Canc.P";
@@ -457,13 +457,13 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
         return (
           <div className="bg-[#E8F0FF] rounded-lg p-1 w-full overflow-x-hidden">
             <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg mb-1 w-full">
-              Inclusive & Excludes
+              Includes & Excludes
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-1 w-full">
               <div className="flex flex-col w-full min-h-[250px] lg:min-h-[250px] max-h-[250px] lg:max-h-[250px]">
                 <div className="bg-[#2E4D98] text-white text-center py-2 lg:py-3 rounded-t-lg w-full">
-                  <h3 className="text-lg lg:text-xl font-bold">Inclusive</h3>
+                  <h3 className="text-lg lg:text-xl font-bold">Includes</h3>
                 </div>
                 <div className="flex-1 border-2 border-[#1e3a8a] rounded-b-lg bg-[#FFEBEE] w-full overflow-hidden min-h-0">
                   <div className="h-full overflow-y-auto p-2">
@@ -481,7 +481,7 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
                       </ul>
                     ) : (
                       <div className="flex items-center justify-center h-full">
-                        <span className="text-gray-500 italic text-sm lg:text-base">No inclusive items listed</span>
+                        <span className="text-gray-500 italic text-sm lg:text-base">No Includes items listed</span>
                       </div>
                     )}
                   </div>

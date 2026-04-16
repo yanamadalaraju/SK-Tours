@@ -355,7 +355,7 @@ const autoScrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const tabs: { key: TabType; label: string }[] = [
     { key: "overview", label: "Overview" },
     { key: "rent", label: "Bungalow Rent" },
-    { key: "inclusive", label: "Inclusive & Excludes" },
+    { key: "inclusive", label: "Includes & Excludes" },
     { key: "nearby", label: "Place Near By" },
     { key: "amenities", label: "Amenities" },
     { key: "policy_cancellation", label: "Book.P/Canc.P" }
@@ -464,13 +464,13 @@ const autoScrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
         return (
           <div className="bg-[#E8F0FF] rounded-lg p-1 w-full overflow-x-hidden">
             <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg mb-1 w-full">
-              Inclusive & Excludes
+              Includes & Excludes
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-1 w-full">
               <div className="flex flex-col w-full min-h-[250px] lg:min-h-[280px] max-h-[250px] lg:max-h-[320px]">
                 <div className="bg-[#2E4D98] text-white text-center py-2 lg:py-3 rounded-t-lg w-full">
-                  <h3 className="text-lg lg:text-xl font-bold">Inclusive</h3>
+                  <h3 className="text-lg lg:text-xl font-bold">Includes</h3>
                 </div>
                 <div className="flex-1 border-2 border-[#1e3a8a] rounded-b-lg bg-[#FFEBEE] w-full overflow-hidden min-h-0">
                   <div className="h-full overflow-y-auto p-2">
@@ -488,7 +488,7 @@ const autoScrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
                       </ul>
                     ) : (
                       <div className="flex items-center justify-center h-full">
-                        <span className="text-gray-500 italic text-sm lg:text-base">No inclusive items listed</span>
+                        <span className="text-gray-500 italic text-sm lg:text-base">No Includes items listed</span>
                       </div>
                     )}
                   </div>
@@ -778,8 +778,8 @@ const autoScrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
                   />
                 </div>
 
-                {/* Search */}
-                <div className="mb-4">
+               
+                {/* <div className="mb-4">
                   <form onSubmit={handleSearch} className="flex gap-2">
                     <div className="relative flex-1">
                       <Input
@@ -809,7 +809,7 @@ const autoScrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
                       </Button>
                     )}
                   </form>
-                </div>
+                </div> */}
 
                 {/* City Filter */}
                 {uniqueCities.length > 0 && (
