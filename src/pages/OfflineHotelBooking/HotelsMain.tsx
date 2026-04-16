@@ -541,12 +541,26 @@ const FilterSidebar = ({
   const getStarCount = (stars: number) => {
     return hotels.filter(hotel => hotel.star_rating === stars).length;
   };
-
-  const getAmenityCount = (amenity: string) => {
-    return hotels.filter(hotel => 
-      hotel.amenities?.toLowerCase().includes(amenity.toLowerCase())
-    ).length;
-  };
+const getAmenityCount = (amenity: string) => {
+  return hotels.filter(hotel => {
+    // Handle amenities if it's a string, array, or undefined
+    if (!hotel.amenities) return false;
+    
+    // If amenities is an array
+    if (Array.isArray(hotel.amenities)) {
+      return hotel.amenities.some(a => 
+        a.toLowerCase().includes(amenity.toLowerCase())
+      );
+    }
+    
+    // If amenities is a string
+    if (typeof hotel.amenities === 'string') {
+      return hotel.amenities.toLowerCase().includes(amenity.toLowerCase());
+    }
+    
+    return false;
+  }).length;
+};
 
   const priceRanges = [
     { label: 'Under ₹2,500', min: 0, max: 2500 },
@@ -923,19 +937,23 @@ const HotelCard = ({ hotel, onBookNow, checkIn, checkOut, travellers }: {
               </div>
             </div>
           </div>
-
-          {hotel.amenities && (
-            <div className="mb-4">
-              <ul className="space-y-2">
-                {hotel.amenities.split(',').slice(0, 2).map((feature, idx) => (
-                  <li key={idx} className="flex items-start text-gray-700">
-                    <Check size={18} className="mr-2 flex-shrink-0 mt-0.5 text-green-500" />
-                    <span className="text-sm">{feature.trim()}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+{hotel.amenities && (
+  <div className="mb-4">
+    <ul className="space-y-2">
+      {(Array.isArray(hotel.amenities) 
+        ? hotel.amenities 
+        : typeof hotel.amenities === 'string' 
+          ? hotel.amenities.split(',') 
+          : []
+      ).slice(0, 2).map((feature, idx) => (
+        <li key={idx} className="flex items-start text-gray-700">
+          <Check size={18} className="mr-2 flex-shrink-0 mt-0.5 text-green-500" />
+          <span className="text-sm">{typeof feature === 'string' ? feature.trim() : String(feature)}</span>
+        </li>
+      ))}
+    </ul>
+  </div>
+)}
 
           <div className="border-b border-gray-200 mb-4">
             <div className="flex flex-wrap gap-1">
@@ -976,7 +994,16 @@ const HotelCard = ({ hotel, onBookNow, checkIn, checkOut, travellers }: {
               </div>
             </div>
 
-            <div className="text-right w-full sm:w-auto space-y-2">
+            <div className="text-right w-full  d-flex  sm:w-auto space-y-2">
+                
+              <button
+                // onClick={() => onBookNow(hotel)}
+                className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-2.5 px-8 rounded-xl transition-all shadow-md hover:shadow-lg w-full sm:w-auto"
+              >
+               
+               View Details
+              </button>
+            
               <button
                 onClick={() => onBookNow(hotel)}
                 className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-2.5 px-8 rounded-xl transition-all shadow-md hover:shadow-lg w-full sm:w-auto"
@@ -1116,15 +1143,31 @@ const HotelSearchMain = () => {
       filtered = filtered.filter(hotel => Number(hotel.rating) >= currentFilters.minRating);
     }
 
-    // Amenities filter
-    if (currentFilters.amenities.length > 0) {
-      filtered = filtered.filter(hotel => {
-        if (!hotel.amenities) return false;
-        return currentFilters.amenities.every(amenity =>
-          hotel.amenities!.toLowerCase().includes(amenity.toLowerCase())
+// Amenities filter
+if (currentFilters.amenities.length > 0) {
+  filtered = filtered.filter(hotel => {
+    if (!hotel.amenities) return false;
+    
+    // Helper function to check if amenities include the search term
+    const amenitiesIncludes = (amenity: string): boolean => {
+      const searchTerm = amenity.toLowerCase();
+      
+      if (Array.isArray(hotel.amenities)) {
+        return hotel.amenities.some(a => 
+          String(a).toLowerCase().includes(searchTerm)
         );
-      });
-    }
+      }
+      
+      if (typeof hotel.amenities === 'string') {
+        return hotel.amenities.toLowerCase().includes(searchTerm);
+      }
+      
+      return false;
+    };
+    
+    return currentFilters.amenities.every(amenitiesIncludes);
+  });
+}
 
     // Location filter
     filtered = filtered.filter(hotel => {
