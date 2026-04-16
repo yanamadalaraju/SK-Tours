@@ -1,6 +1,7 @@
 import React, { useState, ChangeEvent, FormEvent, useEffect } from 'react';
 import img from "../../assets/png[3].png";
 import { BASE_URL } from '@/ApiUrls';
+import { useNavigate } from 'react-router-dom';
 
 interface FormData {
   email: string;
@@ -28,6 +29,7 @@ const Agentsignup = () => {
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
   const [alertType, setAlertType] = useState<'success' | 'error'>('success');
+    const navigate = useNavigate();
   
   // State for password visibility
   const [showPassword, setShowPassword] = useState(false);
@@ -122,6 +124,10 @@ const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
           confirmPassword: '',
           acceptTerms: false
         });
+
+             setTimeout(() => {
+            navigate('/login');
+          }, 2000); 
 
       } else {
         showCustomAlert(

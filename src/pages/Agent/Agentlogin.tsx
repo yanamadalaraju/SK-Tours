@@ -135,7 +135,7 @@ const Login = () => {
 
       // ✅ Navigate after success
       setTimeout(() => {
-        window.location.href = "/micepage";
+        window.location.href = "/";
       }, 1000);
 
     } else {

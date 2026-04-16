@@ -80,8 +80,7 @@ const Login = () => {
 
     return newErrors;
   };
-
- const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
   e.preventDefault();
 
   const validationErrors = validateForm();
@@ -114,28 +113,46 @@ const Login = () => {
       return;
     }
 
-    // 🔥 PASSWORD CHECK
+    // PASSWORD CHECK - Works for both plain text and hashed
     let isMatch = false;
 
-    // Case 1: Plain password
+    // Check if it's plain text password
     if (user.password === formData.password) {
       isMatch = true;
     }
-
-    // Case 2: Hashed password (basic skip for now)
-    if (user.password.startsWith("$2b$")) {
-      // ⚠️ bcrypt compare should be backend
-      showCustomAlert("Password is hashed. Use backend login API", "error");
-      setIsLoading(false);
-      return;
+    // Check if it's hashed password (starts with $2b$)
+    else if (user.password.startsWith("$2b$")) {
+      // For hashed passwords, we need to call backend API
+      try {
+        const loginResponse = await fetch(`${BASE_URL}/api/users/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: formData.email,
+            password: formData.password
+          })
+        });
+        const loginData = await loginResponse.json();
+        isMatch = loginData.success;
+      } catch (err) {
+        console.error("Login API error:", err);
+        isMatch = false;
+      }
     }
 
     if (isMatch) {
       showCustomAlert("Login successful!", "success");
 
-      // ✅ Navigate after success
+      // Save to localStorage if remember me
+      if (formData.rememberMe) {
+        localStorage.setItem('userEmail', formData.email);
+      } else {
+        sessionStorage.setItem('userEmail', formData.email);
+      }
+
+      // Navigate after success
       setTimeout(() => {
-        window.location.href = "/micepage";
+        window.location.href = "/";
       }, 1000);
 
     } else {

@@ -1,4 +1,5 @@
 import React, { useState, ChangeEvent, FormEvent, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; // Add this import
 import img from "../../assets/png[3].png";
 import { BASE_URL } from '@/ApiUrls';
 
@@ -17,6 +18,8 @@ interface FormErrors {
 }
 
 const SignUp = () => {
+  const navigate = useNavigate(); // Initialize navigate hook
+  
   const [formData, setFormData] = useState<FormData>({
     email: '',
     password: '',
@@ -83,62 +86,70 @@ const SignUp = () => {
     setAlertType(type);
     setShowAlert(true);
   };
-const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
 
-  const validationErrors = validateForm();
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
-  if (Object.keys(validationErrors).length === 0) {
-    try {
-      const response = await fetch(`${BASE_URL}/api/users`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password
-        })
-      });
+    const validationErrors = validateForm();
 
-      let data = {};
+    if (Object.keys(validationErrors).length === 0) {
       try {
-        data = await response.json();
-      } catch {
-        data = {};
-      }
-
-      console.log("Status:", response.status);
-      console.log("Data:", data);
-
-      if (response.ok) {
-        showCustomAlert(
-          (data as any).message || "User registered successfully!",
-          "success"
-        );
-
-        // reset form
-        setFormData({
-          email: '',
-          password: '',
-          confirmPassword: '',
-          acceptTerms: false
+        const response = await fetch(`${BASE_URL}/api/users`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: formData.email,
+            password: formData.password
+          })
         });
 
-      } else {
-        showCustomAlert(
-          (data as any).error || "Something went wrong",
-          "error"
-        );
-      }
+        let data = {};
+        try {
+          data = await response.json();
+        } catch {
+          data = {};
+        }
 
-    } catch (error) {
-      console.error(error);
-      showCustomAlert("Network error", "error");
+        console.log("Status:", response.status);
+        console.log("Data:", data);
+
+        if (response.ok) {
+          showCustomAlert(
+            (data as any).message || "User registered successfully!",
+            "success"
+          );
+
+          // reset form
+          setFormData({
+            email: '',
+            password: '',
+            confirmPassword: '',
+            acceptTerms: false
+          });
+
+          // Navigate to login page after successful registration
+          // Add a small delay to show the success message before navigating
+          setTimeout(() => {
+            navigate('/login');
+          }, 2000); // 2 second delay to show success message
+
+        } else {
+          showCustomAlert(
+            (data as any).error || "Something went wrong",
+            "error"
+          );
+        }
+
+      } catch (error) {
+        console.error(error);
+        showCustomAlert("Network error", "error");
+      }
+    } else {
+      setErrors(validationErrors);
+      showCustomAlert("Fix form errors", "error");
     }
-  } else {
-    setErrors(validationErrors);
-    showCustomAlert("Fix form errors", "error");
-  }
-};
+  };
+  
   // Eye icon component
   const EyeIcon = ({ show, onClick }: { show: boolean; onClick: () => void }) => (
     <button
