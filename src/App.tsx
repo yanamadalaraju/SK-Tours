@@ -220,6 +220,8 @@ const App = () => (
           <Route path="/signup" element={<SignUp />} />
           <Route path="/offlinehotelbooking" element={<HotelSearchBar />} />
           <Route path="/hotel-detail" element={<HotelDetailPage />} />
+          // In your App.tsx or router configuration
+<Route path="/hotel-detail/:id" element={<HotelDetailPage />} />
           <Route path="/micpage" element={<MicePage />} />
           <Route path="/aboutmic" element={<AboutMice />} />
           <Route path="/micpackages" element={<Micpackages />} />

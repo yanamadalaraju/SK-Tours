@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   Hotel,
   MapPin,
@@ -27,48 +27,85 @@ import {
   Gift,
   Ticket,
   Clock8,
-  Map,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Volume2,
+  Zap,
+  WashingMachine
 } from "lucide-react";
 import { format } from "date-fns";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { BASE_URL } from "@/ApiUrls";
+import axios from "axios";
+import { FaRegIdBadge } from "react-icons/fa";
 
 interface HotelDetail {
   id: number;
+  country: string;
+  city: string;
+  location: string | null;
+  property_name: string;
+  check_in_date: string;
+  check_out_date: string;
+  rooms: number;
+  adults: number;
+  children: number;
+  pets: number;
+  children_ages: number[];
   hotel_name: string;
   hotel_location: string;
-  location?: string;
-  address?: string;
-  rating: number | string;
-  total_ratings: number;
   star_rating: number;
-  price: string | number;
-  original_price?: string | number;
-  sale_price?: string | number;
-  taxes?: string | number;
-  amenities?: string | string[];
-  main_image?: string;
-  additional_images?: string[];
-  overview_description?: string;
-  hotel_facilities_description?: string;
-  airport_transfers_description?: string;
-  meal_plan_description?: string;
-  taxes_description?: string;
-  free_stay_for_kids?: boolean | number;
-  limited_time_sale?: boolean | number;
-  login_to_book?: boolean | number;
-  pay_later?: boolean | number;
-  status?: string;
-  city?: string;
-  check_in_date?: string;
-  check_out_date?: string;
-  rooms?: number;
-  adults?: number;
-  children?: number;
-  pets?: boolean | number;
+  main_image: string;
+  additional_images: string[];
+  rating: string;
+  total_ratings: number;
+  price: string;
+  taxes: string;
+  amenities: string[];
+  custom_amenities: string[];
+  status: string;
+  free_stay_for_kids: number;
+  limited_time_sale: number;
+  sale_price: string;
+  original_price: string;
+  login_to_book: number;
+  pay_later: number;
+  overview_description: string;
+  hotel_facilities_description: string;
+  airport_transfers_description: string;
+  meal_plan_description: string;
+  taxes_description: string;
+  created_at: string;
+  updated_at: string;
+  room_types_data: {
+    standard?: {
+      enabled: boolean;
+      hotels: RoomVariant[];
+    };
+    deluxe?: {
+      enabled: boolean;
+      hotels: RoomVariant[];
+    };
+    luxury?: {
+      enabled: boolean;
+      hotels: RoomVariant[];
+    };
+  };
+  searchLocality: string;
+}
+
+interface RoomVariant {
+  id: number;
+  roomType: string;
+  price: string;
+  amenities: string[];
+  maxOccupancy: number;
+  bedType: string;
+  roomSize: string;
+  availableRooms: number;
+  description: string;
+  images: string[];
 }
 
 interface TravellerCount {
@@ -78,32 +115,25 @@ interface TravellerCount {
   infants?: number;
 }
 
-interface RoomType {
+interface RoomTypeDisplay {
   id: string;
   name: string;
-  size: string;
-  beds: string;
-  occupancy: string;
-  price: string | number;
-  amenities: string[];
-  images: string[];
-  description: string;
+  variants: RoomVariant[];
+  enabled: boolean;
 }
 
 const HotelDetailPage = () => {
   const navigate = useNavigate();
-  const location = useLocation();
+  const { id } = useParams();
   const [hotel, setHotel] = useState<HotelDetail | null>(null);
   const [selectedImage, setSelectedImage] = useState<string>("");
   const [showFullDescription, setShowFullDescription] = useState(false);
-  const [selectedRoom, setSelectedRoom] = useState<string>("standard");
+  const [selectedRoomType, setSelectedRoomType] = useState<string>("standard");
+  const [selectedRoomVariant, setSelectedRoomVariant] = useState<RoomVariant | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [imageError, setImageError] = useState(false);
-  const [currentImageIndex, setCurrentImageIndex] = useState<Record<string, number>>({
-    standard: 0,
-    deluxe: 0,
-    luxury: 0
-  });
+  const [currentImageIndex, setCurrentImageIndex] = useState<Record<string, number>>({});
 
   // Travellers from search or default
   const [travellers, setTravellers] = useState<TravellerCount>({
@@ -126,20 +156,39 @@ const HotelDetailPage = () => {
   });
 
   useEffect(() => {
-    const hotelData = location.state?.hotel || localStorage.getItem('selectedHotel');
-    if (hotelData) {
-      const parsedHotel = typeof hotelData === 'string' ? JSON.parse(hotelData) : hotelData;
-      setHotel(parsedHotel);
-      setSelectedImage(parsedHotel.main_image || "");
-      
-      if (parsedHotel.rooms) setTravellers(prev => ({ ...prev, rooms: parsedHotel.rooms }));
-      if (parsedHotel.adults) setTravellers(prev => ({ ...prev, adults: parsedHotel.adults }));
-      if (parsedHotel.children) setTravellers(prev => ({ ...prev, children: parsedHotel.children }));
-      if (parsedHotel.checkIn) setCheckIn(new Date(parsedHotel.checkIn));
-      if (parsedHotel.checkOut) setCheckOut(new Date(parsedHotel.checkOut));
+    fetchHotelDetails();
+  }, [id]);
+
+  const fetchHotelDetails = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const response = await axios.get(`${BASE_URL}/api/offline-hotels/${id}`);
+      if (response.data.success) {
+        const hotelData = response.data.data;
+        setHotel(hotelData);
+        setSelectedImage(hotelData.main_image || "");
+        
+        // Set default selected room variant
+        if (hotelData.room_types_data?.standard?.enabled && hotelData.room_types_data.standard.hotels.length > 0) {
+          setSelectedRoomVariant(hotelData.room_types_data.standard.hotels[0]);
+        } else if (hotelData.room_types_data?.deluxe?.enabled && hotelData.room_types_data.deluxe.hotels.length > 0) {
+          setSelectedRoomVariant(hotelData.room_types_data.deluxe.hotels[0]);
+          setSelectedRoomType("deluxe");
+        } else if (hotelData.room_types_data?.luxury?.enabled && hotelData.room_types_data.luxury.hotels.length > 0) {
+          setSelectedRoomVariant(hotelData.room_types_data.luxury.hotels[0]);
+          setSelectedRoomType("luxury");
+        }
+      } else {
+        setError("Failed to fetch hotel details");
+      }
+    } catch (err) {
+      console.error("Error fetching hotel details:", err);
+      setError("Error fetching hotel details. Please try again.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-  }, [location]);
+  };
 
   const getImageUrl = (imagePath: string | undefined) => {
     if (!imagePath || imageError) return null;
@@ -154,12 +203,12 @@ const HotelDetailPage = () => {
   };
 
   const calculateTotalPrice = () => {
-    if (!hotel) return 0;
-    return Number(hotel.price);
+    if (!selectedRoomVariant) return 0;
+    return Number(selectedRoomVariant.price);
   };
 
   const handleBookNow = () => {
-    if (!hotel) return;
+    if (!hotel || !selectedRoomVariant) return;
     const hotelForCheckout = {
       ...hotel,
       checkIn: checkIn,
@@ -167,8 +216,9 @@ const HotelDetailPage = () => {
       rooms: travellers.rooms,
       adults: travellers.adults,
       children: travellers.children,
-      selectedRoom: selectedRoom,
-      total_price_value: Number(hotel.price)
+      selectedRoomType: selectedRoomType,
+      selectedRoomVariant: selectedRoomVariant,
+      total_price_value: Number(selectedRoomVariant.price)
     };
     localStorage.setItem('selectedHotel', JSON.stringify(hotelForCheckout));
     navigate('/checkout-hotels', { state: { hotel: hotelForCheckout } });
@@ -177,88 +227,66 @@ const HotelDetailPage = () => {
   const nextImage = (roomId: string, imagesLength: number) => {
     setCurrentImageIndex(prev => ({
       ...prev,
-      [roomId]: (prev[roomId] + 1) % imagesLength
+      [roomId]: ((prev[roomId] || 0) + 1) % imagesLength
     }));
   };
 
   const prevImage = (roomId: string, imagesLength: number) => {
     setCurrentImageIndex(prev => ({
       ...prev,
-      [roomId]: (prev[roomId] - 1 + imagesLength) % imagesLength
+      [roomId]: ((prev[roomId] || 0) - 1 + imagesLength) % imagesLength
     }));
   };
 
+  // Get room types that are enabled
+  const getEnabledRoomTypes = (): RoomTypeDisplay[] => {
+    if (!hotel?.room_types_data) return [];
+    
+    const types: RoomTypeDisplay[] = [];
+    if (hotel.room_types_data.standard?.enabled) {
+      types.push({
+        id: "standard",
+        name: "Standard Room",
+        variants: hotel.room_types_data.standard.hotels,
+        enabled: true
+      });
+    }
+    if (hotel.room_types_data.deluxe?.enabled) {
+      types.push({
+        id: "deluxe",
+        name: "Deluxe Room",
+        variants: hotel.room_types_data.deluxe.hotels,
+        enabled: true
+      });
+    }
+    if (hotel.room_types_data.luxury?.enabled) {
+      types.push({
+        id: "luxury",
+        name: "Luxury Suite",
+        variants: hotel.room_types_data.luxury.hotels,
+        enabled: true
+      });
+    }
+    return types;
+  };
+
+  const handleRoomTypeSelect = (typeId: string, variant: RoomVariant) => {
+    setSelectedRoomType(typeId);
+    setSelectedRoomVariant(variant);
+  };
+
   const amenitiesList = [
-    { icon: <Wifi size={20} />, name: "Free Wi-Fi", available: true },
-    { icon: <Coffee size={20} />, name: "Breakfast", available: true },
+    { icon: <Wifi size={20} />, name: "Free Wi-Fi", available: hotel?.amenities?.includes("Free WiFi") },
+    { icon: <Coffee size={20} />, name: "Breakfast", available: hotel?.meal_plan_description?.includes("Breakfast") },
     { icon: <Utensils size={20} />, name: "Restaurant", available: true },
     { icon: <Car size={20} />, name: "Parking", available: true },
-    { icon: <Dumbbell size={20} />, name: "Gym", available: true },
-    { icon: <Waves size={20} />, name: "Swimming Pool", available: true },
-    { icon: <Wind size={20} />, name: "Air Conditioning", available: true },
+    { icon: <Dumbbell size={20} />, name: "Gym", available: hotel?.hotel_facilities_description?.includes("Gym") },
+    { icon: <Waves size={20} />, name: "Swimming Pool", available: hotel?.hotel_facilities_description?.includes("Pool") },
+    { icon: <Wind size={20} />, name: "Air Conditioning", available: hotel?.amenities?.includes("Air Conditioning") },
     { icon: <Bath size={20} />, name: "Spa", available: hotel?.star_rating >= 4 },
-    { icon: <Tv size={20} />, name: "Flat Screen TV", available: true },
-    { icon: <Thermometer size={20} />, name: "Room Heating", available: true },
+    { icon: <Tv size={20} />, name: "Flat Screen TV", available: hotel?.amenities?.includes("TV") },
+    { icon: <FaRegIdBadge size={20} />, name: "Mini Bar", available: hotel?.amenities?.includes("Mini Bar") || hotel?.amenities?.includes("Mini Fridge") },
     { icon: <ShieldCheck size={20} />, name: "24/7 Security", available: true }
-  ];
-
-  // Room types with multiple images
-  const roomTypes: RoomType[] = [
-    { 
-      id: "standard", 
-      name: "Standard Room", 
-      size: "25 m²", 
-      beds: "1 Double Bed", 
-      occupancy: "2 Adults", 
-      price: hotel?.price || 0, 
-      amenities: ["City View", "Free Wi-Fi", "Air Conditioning", "Work Desk", "LED TV"],
-      images: [
-        "https://images.unsplash.com/photo-1618773928121-c32242e63f39?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-        "https://images.unsplash.com/photo-1595576508898-0ad5c879a061?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-        "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-        "https://images.unsplash.com/photo-1566665797739-1674de7a421a?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-      ],
-      description: "Comfortable standard room with modern amenities and city views. Perfect for business travelers and couples."
-    },
-    { 
-      id: "deluxe", 
-      name: "Deluxe Room", 
-      size: "35 m²", 
-      beds: "1 King Bed", 
-      occupancy: "2 Adults + 1 Child", 
-      price: Number(hotel?.price || 0) * 1.5, 
-      amenities: ["Pool View", "Free Wi-Fi", "Mini Bar", "Bathtub", "Coffee Machine", "King Size Bed"],
-      images: [
-        "https://images.unsplash.com/photo-1590490360182-c33d57733427?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-        "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-        "https://images.unsplash.com/photo-1611892440504-42a792e24d32?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-        "https://images.unsplash.com/photo-1631049035182-249067d7618b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-      ],
-      description: "Spacious deluxe room with pool view and premium amenities. Includes complimentary breakfast and mini bar."
-    },
-    { 
-      id: "luxury", 
-      name: "Luxury Suite", 
-      size: "50 m²", 
-      beds: "1 King Bed + Sofa", 
-      occupancy: "3 Adults", 
-      price: Number(hotel?.price || 0) * 2.2, 
-      amenities: ["Ocean View", "Living Area", "Complimentary Breakfast", "Butler Service", "Jacuzzi", "Private Balcony"],
-      images: [
-        "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-        "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-        "https://images.unsplash.com/photo-1617098759320-4e296d6dd8b6?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-        "https://images.unsplash.com/photo-1631049035182-249067d7618b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-      ],
-      description: "Luxurious suite with ocean view, separate living area and dedicated butler service. The ultimate luxury experience."
-    }
-  ];
-
-  const reviews = [
-    { name: "Rajesh Kumar", rating: 5, date: "December 2024", comment: "Excellent stay! Great service and amazing location. The staff was very helpful.", avatar: "RK" },
-    { name: "Priya Sharma", rating: 4.5, date: "November 2024", comment: "Beautiful property with great amenities. The food was delicious.", avatar: "PS" },
-    { name: "Amit Patel", rating: 5, date: "October 2024", comment: "One of the best hotels I've stayed at. Highly recommended!", avatar: "AP" },
-    { name: "Neha Gupta", rating: 4, date: "September 2024", comment: "Great value for money. Clean rooms and friendly staff.", avatar: "NG" }
   ];
 
   if (loading) {
@@ -272,13 +300,13 @@ const HotelDetailPage = () => {
     );
   }
 
-  if (!hotel) {
+  if (error || !hotel) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <Hotel className="w-20 h-20 text-gray-400 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-800 mb-2">Hotel Not Found</h2>
-          <p className="text-gray-600 mb-6">The hotel you're looking for doesn't exist or has been removed.</p>
+          <p className="text-gray-600 mb-6">{error || "The hotel you're looking for doesn't exist or has been removed."}</p>
           <button onClick={() => navigate('/hotels')} className="bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-6 rounded-lg">
             Back to Hotels
           </button>
@@ -289,12 +317,13 @@ const HotelDetailPage = () => {
 
   const mainImageUrl = getImageUrl(hotel.main_image);
   const additionalImages = hotel.additional_images?.map(img => getImageUrl(img)).filter(Boolean) || [];
+  const enabledRoomTypes = getEnabledRoomTypes();
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
       
-      {/* Hero Section with Image Gallery */}
+      {/* Hero Section */}
       <div className="relative bg-gradient-to-r from-gray-900 to-gray-800 text-white">
         <div className="absolute inset-0 bg-black/50 z-10"></div>
         <div className="relative z-20 pt-28 pb-20 px-4">
@@ -319,7 +348,7 @@ const HotelDetailPage = () => {
                   </div>
                   <div className="flex items-center gap-1">
                     <MapPin size={18} />
-                    <span className="text-white/80">{hotel.hotel_location}</span>
+                    <span className="text-white/80">{hotel.hotel_location}, {hotel.city}</span>
                   </div>
                 </div>
                 
@@ -341,7 +370,7 @@ const HotelDetailPage = () => {
               
               <div className="bg-white/10 backdrop-blur-sm rounded-xl p-5">
                 <div className="text-center">
-                  <div className="text-3xl font-bold">₹{formatPrice(hotel.price)}</div>
+                  <div className="text-3xl font-bold">₹{formatPrice(selectedRoomVariant?.price || hotel.price)}</div>
                   <div className="text-sm text-white/70">per night</div>
                   {hotel.original_price && Number(hotel.original_price) > Number(hotel.price) && (
                     <div className="mt-1">
@@ -422,135 +451,149 @@ const HotelDetailPage = () => {
               </div>
             </div>
 
-            {/* Room Types with Multiple Images */}
+            {/* Room Types Section */}
             <div className="bg-white rounded-xl shadow-sm p-6">
               <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
                 <Hotel size={24} className="text-orange-600" />
-                Room Types
+                Available Room Types
               </h2>
-              <div className="space-y-6">
-                {roomTypes.map((room) => (
-                  <div 
-                    key={room.id} 
-                    className={`border rounded-xl overflow-hidden cursor-pointer transition-all ${
-                      selectedRoom === room.id ? "border-orange-600 bg-orange-50 shadow-md" : "border-gray-200 hover:border-orange-300 hover:shadow-sm"
-                    }`} 
-                    onClick={() => setSelectedRoom(room.id)}
-                  >
-                    <div className="flex flex-col">
-                      {/* Room Image Carousel */}
-                      <div className="relative bg-gray-900">
-                        <div className="relative h-64 md:h-80">
-                          <img 
-                            src={room.images[currentImageIndex[room.id]]} 
-                            alt={`${room.name} - Image ${currentImageIndex[room.id] + 1}`}
-                            className="w-full h-full object-cover"
-                          />
-                          {/* Image Navigation Arrows */}
-                          {room.images.length > 1 && (
-                            <>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  prevImage(room.id, room.images.length);
-                                }}
-                                className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all"
-                              >
-                                <ChevronLeft size={20} />
-                              </button>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  nextImage(room.id, room.images.length);
-                                }}
-                                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all"
-                              >
-                                <ChevronRight size={20} />
-                              </button>
-                            </>
-                          )}
-                          {/* Image Counter */}
-                          <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
-                            {currentImageIndex[room.id] + 1} / {room.images.length}
-                          </div>
-                          {selectedRoom === room.id && (
-                            <div className="absolute top-2 right-2 bg-orange-600 text-white rounded-full p-1">
-                              <Check size={16} />
-                            </div>
-                          )}
-                        </div>
-                        
-                        {/* Thumbnail Gallery */}
-                        {room.images.length > 1 && (
-                          <div className="flex gap-2 p-2 bg-gray-100 overflow-x-auto">
-                            {room.images.map((img, idx) => (
-                              <div
-                                key={idx}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setCurrentImageIndex(prev => ({ ...prev, [room.id]: idx }));
-                                }}
-                                className={`flex-shrink-0 w-16 h-16 rounded cursor-pointer transition-all ${
-                                  currentImageIndex[room.id] === idx 
-                                    ? "ring-2 ring-orange-600 opacity-100" 
-                                    : "opacity-70 hover:opacity-100"
-                                }`}
-                              >
-                                <img 
-                                  src={img} 
-                                  alt={`${room.name} thumbnail ${idx + 1}`}
-                                  className="w-full h-full object-cover rounded"
-                                />
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                      
-                      {/* Room Details */}
-                      <div className="p-5">
-                        <div className="flex flex-wrap justify-between items-start gap-4">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <h3 className="text-xl font-bold">{room.name}</h3>
-                              {room.id === "luxury" && <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">Best Value</span>}
-                              {room.id === "deluxe" && <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">Popular</span>}
-                            </div>
-                            <p className="text-sm text-gray-600 mb-3">{room.description}</p>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm text-gray-600 mb-3">
-                              <span>📏 {room.size}</span>
-                              <span>🛏️ {room.beds}</span>
-                              <span>👥 {room.occupancy}</span>
-                              <span className="text-orange-600 font-semibold">₹{formatPrice(room.price)}/night</span>
-                            </div>
-                            <div className="flex flex-wrap gap-2">
-                              {room.amenities.map((amenity, idx) => (
-                                <span key={idx} className="text-xs bg-gray-100 px-2 py-1 rounded">✓ {amenity}</span>
-                              ))}
-                            </div>
-                          </div>
-                          <button 
-                            className={`px-6 py-2 rounded-lg font-medium whitespace-nowrap transition-all ${
-                              selectedRoom === room.id 
-                                ? "bg-orange-600 text-white" 
-                                : "bg-gray-100 text-gray-700 hover:bg-orange-100 hover:text-orange-600"
+              
+              {enabledRoomTypes.length === 0 ? (
+                <p className="text-gray-500 text-center py-8">No room types available at the moment.</p>
+              ) : (
+                <div className="space-y-6">
+                  {enabledRoomTypes.map((roomType) => (
+                    <div key={roomType.id} className="space-y-3">
+                      <h3 className="text-xl font-semibold text-gray-800">{roomType.name}</h3>
+                      <div className="grid grid-cols-1 gap-4">
+                        {roomType.variants.map((variant, idx) => (
+                          <div
+                            key={variant.id}
+                            className={`border rounded-xl overflow-hidden cursor-pointer transition-all ${
+                              selectedRoomType === roomType.id && selectedRoomVariant?.id === variant.id
+                                ? "border-orange-600 bg-orange-50 shadow-md"
+                                : "border-gray-200 hover:border-orange-300 hover:shadow-sm"
                             }`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedRoom(room.id);
-                            }}
+                            onClick={() => handleRoomTypeSelect(roomType.id, variant)}
                           >
-                            {selectedRoom === room.id ? "Selected" : "Select Room"}
-                          </button>
-                        </div>
+                            <div className="flex flex-col md:flex-row">
+                              {/* Room Image Carousel */}
+                              {variant.images && variant.images.length > 0 && (
+                                <div className="md:w-64 relative bg-gray-900">
+                                  <div className="relative h-48 md:h-full">
+                                    <img
+                                      src={getImageUrl(variant.images[currentImageIndex[`${roomType.id}-${variant.id}`] || 0]) || variant.images[0]}
+                                      alt={variant.roomType}
+                                      className="w-full h-full object-cover"
+                                    />
+                                    {variant.images.length > 1 && (
+                                      <>
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            nextImage(`${roomType.id}-${variant.id}`, variant.images.length);
+                                          }}
+                                          className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-1 rounded-full transition-all"
+                                        >
+                                          <ChevronRight size={16} />
+                                        </button>
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            prevImage(`${roomType.id}-${variant.id}`, variant.images.length);
+                                          }}
+                                          className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-1 rounded-full transition-all"
+                                        >
+                                          <ChevronLeft size={16} />
+                                        </button>
+                                      </>
+                                    )}
+                                  </div>
+                                  {/* Thumbnails */}
+                                  {variant.images.length > 1 && (
+                                    <div className="flex gap-1 p-1 bg-gray-100 overflow-x-auto">
+                                      {variant.images.slice(0, 4).map((img, imgIdx) => (
+                                        <div
+                                          key={imgIdx}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setCurrentImageIndex(prev => ({
+                                              ...prev,
+                                              [`${roomType.id}-${variant.id}`]: imgIdx
+                                            }));
+                                          }}
+                                          className={`flex-shrink-0 w-12 h-12 rounded cursor-pointer ${
+                                            currentImageIndex[`${roomType.id}-${variant.id}`] === imgIdx
+                                              ? "ring-2 ring-orange-600"
+                                              : "opacity-70"
+                                          }`}
+                                        >
+                                          <img
+                                            src={getImageUrl(img) || img}
+                                            alt={`Thumbnail ${imgIdx + 1}`}
+                                            className="w-full h-full object-cover rounded"
+                                          />
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                              
+                              {/* Room Details */}
+                              <div className="flex-1 p-5">
+                                <div className="flex flex-wrap justify-between items-start gap-4">
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                      <h3 className="text-lg font-bold">{variant.roomType}</h3>
+                                      {variant.availableRooms > 0 && (
+                                        <span className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded">
+                                          {variant.availableRooms} rooms left
+                                        </span>
+                                      )}
+                                    </div>
+                                    <p className="text-sm text-gray-600 mb-3">{variant.description}</p>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm text-gray-600 mb-3">
+                                      <span>📏 {variant.roomSize} sq.ft</span>
+                                      <span>🛏️ {variant.bedType}</span>
+                                      <span>👥 Max {variant.maxOccupancy} Guests</span>
+                                      <span className="text-orange-600 font-semibold">₹{formatPrice(variant.price)}/night</span>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2">
+                                      {variant.amenities?.slice(0, 4).map((amenity, amenityIdx) => (
+                                        <span key={amenityIdx} className="text-xs bg-gray-100 px-2 py-1 rounded">✓ {amenity}</span>
+                                      ))}
+                                      {variant.amenities && variant.amenities.length > 4 && (
+                                        <span className="text-xs text-gray-500">+{variant.amenities.length - 4} more</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <button
+                                    className={`px-6 py-2 rounded-lg font-medium whitespace-nowrap transition-all ${
+                                      selectedRoomType === roomType.id && selectedRoomVariant?.id === variant.id
+                                        ? "bg-orange-600 text-white"
+                                        : "bg-gray-100 text-gray-700 hover:bg-orange-100 hover:text-orange-600"
+                                    }`}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleRoomTypeSelect(roomType.id, variant);
+                                    }}
+                                  >
+                                    {selectedRoomType === roomType.id && selectedRoomVariant?.id === variant.id ? "Selected" : "Select"}
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* Facilities Details */}
+            {/* Hotel Facilities */}
             {hotel.hotel_facilities_description && (
               <div className="bg-white rounded-xl shadow-sm p-6">
                 <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
@@ -572,48 +615,44 @@ const HotelDetailPage = () => {
               </div>
             )}
 
+            {/* Airport Transfer */}
+            {hotel.airport_transfers_description && (
+              <div className="bg-white rounded-xl shadow-sm p-6">
+                <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+                  <Car size={24} className="text-orange-600" />
+                  Airport Transfer
+                </h2>
+                <div className="text-gray-700 leading-relaxed">{hotel.airport_transfers_description}</div>
+              </div>
+            )}
+
             {/* Reviews */}
             <div className="bg-white rounded-xl shadow-sm p-6">
               <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
                 <ThumbsUp size={24} className="text-orange-600" />
                 Guest Reviews
               </h2>
-              <div className="grid md:grid-cols-2 gap-4">
-                {reviews.map((review, idx) => (
-                  <div key={idx} className="border-b pb-4">
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-bold">
-                        {review.avatar}
-                      </div>
-                      <div>
-                        <p className="font-semibold">{review.name}</p>
-                        <div className="flex items-center gap-2">
-                          <div className="flex">
-                            {[...Array(5)].map((_, i) => (
-                              <Star key={i} className={`w-3 h-3 ${i < Math.floor(review.rating) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`} />
-                            ))}
-                          </div>
-                          <span className="text-xs text-gray-500">{review.date}</span>
+              <div className="flex items-center gap-4 mb-6">
+                <div className="text-center">
+                  <div className="text-4xl font-bold text-orange-600">{Number(hotel.rating || 4.5).toFixed(1)}</div>
+                  <div className="flex mt-1">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className={`w-4 h-4 ${i < Math.floor(Number(hotel.rating)) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`} />
+                    ))}
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">{hotel.total_ratings} Reviews</p>
+                </div>
+                <div className="flex-1">
+                  <div className="space-y-2">
+                    {[5, 4, 3, 2, 1].map((star) => (
+                      <div key={star} className="flex items-center gap-2">
+                        <span className="text-sm w-8">{star} ★</span>
+                        <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                          <div className="h-full bg-orange-500 rounded-full" style={{ width: `${Math.random() * 100}%` }}></div>
                         </div>
                       </div>
-                    </div>
-                    <p className="text-gray-700 text-sm">{review.comment}</p>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Location Map */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                <Map size={24} className="text-orange-600" />
-                Location & Nearby
-              </h2>
-              <div className="bg-gray-200 rounded-lg h-64 flex items-center justify-center">
-                <div className="text-center">
-                  <MapPin size={32} className="text-gray-400 mx-auto mb-2" />
-                  <p className="text-gray-600">{hotel.hotel_location}</p>
-                  <p className="text-sm text-gray-500 mt-1">Interactive map would be displayed here</p>
                 </div>
               </div>
             </div>
@@ -621,16 +660,24 @@ const HotelDetailPage = () => {
 
           {/* Right Column - Booking Sidebar */}
           <div className="space-y-6">
-            {/* Price Summary - Updated without taxes */}
+            {/* Price Summary */}
             <div className="bg-white rounded-xl shadow-sm p-6 sticky top-24">
               <h3 className="text-xl font-bold mb-4">Your Booking Summary</h3>
+              
+              {selectedRoomVariant && (
+                <div className="mb-4 p-3 bg-orange-50 rounded-lg">
+                  <p className="text-sm text-gray-600">Selected Room</p>
+                  <p className="font-semibold text-orange-600">{selectedRoomVariant.roomType}</p>
+                  <p className="text-xs text-gray-500 mt-1">Max {selectedRoomVariant.maxOccupancy} guests • {selectedRoomVariant.bedType}</p>
+                </div>
+              )}
               
               <div className="space-y-4 mb-6">
                 <div className="flex justify-between text-gray-700">
                   <span>Room Price (per night)</span>
-                  <span className="font-semibold">₹{formatPrice(hotel.price)}</span>
+                  <span className="font-semibold">₹{formatPrice(selectedRoomVariant?.price || hotel.price)}</span>
                 </div>
-                {hotel.free_stay_for_kids && (
+                {hotel.free_stay_for_kids === 1 && (
                   <div className="flex justify-between text-green-600">
                     <span>Kids Stay Free</span>
                     <span>✓</span>
@@ -645,14 +692,6 @@ const HotelDetailPage = () => {
                 </div>
               </div>
 
-              {/* Selected Room Display */}
-              <div className="mb-6 p-3 bg-orange-50 rounded-lg">
-                <p className="text-sm text-gray-600">Selected Room</p>
-                <p className="font-semibold text-orange-600 text-lg">
-                  {roomTypes.find(r => r.id === selectedRoom)?.name || "Standard Room"}
-                </p>
-              </div>
-
               {/* Date Selection */}
               <div className="mb-6">
                 <label className="block text-sm font-semibold mb-2">Check-in Date</label>
@@ -660,6 +699,7 @@ const HotelDetailPage = () => {
                   <Calendar size={18} className="text-gray-500" />
                   <span className="font-medium">{format(checkIn, "dd MMM yyyy")}</span>
                 </div>
+                <p className="text-xs text-gray-500 mt-1">Check-in: 2:00 PM</p>
               </div>
 
               <div className="mb-6">
@@ -668,6 +708,7 @@ const HotelDetailPage = () => {
                   <Calendar size={18} className="text-gray-500" />
                   <span className="font-medium">{format(checkOut, "dd MMM yyyy")}</span>
                 </div>
+                <p className="text-xs text-gray-500 mt-1">Check-out: 12:00 PM</p>
               </div>
 
               {/* Guest Details */}

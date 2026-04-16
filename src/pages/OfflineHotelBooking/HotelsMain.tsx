@@ -2469,17 +2469,9 @@ const HotelCard = ({ hotel, onBookNow, checkIn, checkOut, travellers }: {
 
   const mainImageUrl = getImageUrl(hotel.main_image);
 
-  const handleViewDetails = () => {
-    const hotelWithDetails = {
-      ...hotel,
-      checkIn: checkIn,
-      checkOut: checkOut,
-      rooms: travellers?.rooms || 1,
-      adults: travellers?.adults || 2,
-      children: travellers?.children || 0,
-    };
-    navigate('/hotel-detail', { state: { hotel: hotelWithDetails } });
-  };
+ const handleViewDetails = () => {
+  navigate(`/hotel-detail/${hotel.id}`);
+};
 
   return (
     <div className="bg-white rounded-xl shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-300 mb-6 overflow-hidden">
