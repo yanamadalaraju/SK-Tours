@@ -119,6 +119,7 @@ import CheckoutPagePicnic from "./pages/OnedayPicnic/OnedayPicnic/CheckoutPagePi
 import CheckoutPageWeekend from "./pages/Weekend_Gateway/WeekendForm/CheckoutPageWeekend";
 
 import CheckoutPagePassport from './pages/Passport/CheckoutPagePassport';
+import HotelDetailPage from "./pages/OfflineHotelBooking/HotelDetailPage";
 
 
 const queryClient = new QueryClient();
@@ -218,6 +219,7 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/offlinehotelbooking" element={<HotelSearchBar />} />
+          <Route path="/hotel-detail" element={<HotelDetailPage />} />
           <Route path="/micpage" element={<MicePage />} />
           <Route path="/aboutmic" element={<AboutMice />} />
           <Route path="/micpackages" element={<Micpackages />} />
