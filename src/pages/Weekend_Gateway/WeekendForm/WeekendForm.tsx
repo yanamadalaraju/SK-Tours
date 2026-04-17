@@ -269,7 +269,7 @@ const WeekendForm: React.FC = () => {
       };
 
       const response = await axios.post(
-        `${BASE_URL}/api/bungalows/weekend-gateways/bookings`,
+        `${BASE_URL}/api/weekend-gateways/bookings`,
         payload
       );
 
