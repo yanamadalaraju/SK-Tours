@@ -1,4 +1,4 @@
-// src/pages/OfflineHotelBooking/CheckoutPageHotels.tsx - Fixed version using same API as tours
+// src/pages/OfflineHotelBooking/CheckoutPageHotels.tsx - Fixed guest details
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { BASE_URL } from '@/ApiUrls';
 import axios from 'axios';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { AlertCircle, Star, MapPin, Hotel } from "lucide-react";
+import { AlertCircle, Star, MapPin, Hotel, Home, Sparkles, Crown, Users, Calendar, Clock, Bed, Maximize, Check, User, Baby } from "lucide-react";
 
 // Guest interface
 interface GuestDetails {
@@ -22,17 +22,51 @@ interface GuestDetails {
   age: number;
 }
 
+interface SelectedRoom {
+  id: number;
+  roomType: string;
+  price: string;
+  pricePerChild: string | null;
+  amenities: string[];
+  maxOccupancy: number;
+  bedType: string;
+  roomSize: string;
+  availableRooms: number;
+  description: string;
+  images: string[];
+}
+
 interface HotelData {
   id: number;
   hotel_name: string;
   hotel_location: string;
   star_rating: number;
+  rating?: string | number;
+  total_ratings?: number;
   price: string | number;
+  taxes?: string | number;
+  total_amount?: string | number;
+  price_per_child?: string | number;
   main_image?: string;
+  additional_images?: string[];
+  amenities?: string[];
+  overview_description?: string;
   rooms?: number;
   adults?: number;
   children?: number;
+  children_ages?: number[];
+  pets?: number;
+  check_in_date?: string;
+  check_out_date?: string;
+  city?: string;
   total_price_value?: number;
+  selectedRoom?: SelectedRoom;
+  selectedRoomCategory?: string;
+  roomPrice?: number;
+  childPrice?: number;
+  totalChildrenPrice?: number;
+  basePrice?: number;
+  nights?: number;
   [key: string]: any;
 }
 
@@ -72,34 +106,99 @@ const CheckoutPageHotels = () => {
 
   // Initialize hotel data and guest details
   useEffect(() => {
-    if (location.state?.hotel) {
-      const hotel = location.state.hotel;
-      setHotelData(hotel);
-      const totalHotelCost = hotel.total_price_value || parsePrice(hotel.price);
-      setCustomPaymentAmount(totalHotelCost.toString());
-      setPaymentType('full');
-      initializeGuestDetails(hotel);
-      setLoading(false);
-    } else {
-      const savedHotel = localStorage.getItem('selectedHotel');
-      if (savedHotel) {
-        const parsedHotel = JSON.parse(savedHotel);
-        setHotelData(parsedHotel);
-        const totalHotelCost = parsedHotel.total_price_value || parsePrice(parsedHotel.price);
-        setCustomPaymentAmount(totalHotelCost.toString());
-        setPaymentType('full');
-        initializeGuestDetails(parsedHotel);
+    const initializeData = () => {
+      let hotel: HotelData | null = null;
+      
+      if (location.state?.hotel) {
+        hotel = location.state.hotel;
+        console.log('Hotel data from state:', hotel); // Debug log
+      } else {
+        const savedHotel = localStorage.getItem('selectedHotel');
+        if (savedHotel) {
+          hotel = JSON.parse(savedHotel);
+          console.log('Hotel data from localStorage:', hotel); // Debug log
+        }
       }
+
+      if (hotel) {
+        setHotelData(hotel);
+        
+        // Calculate total cost based on selected room if available
+        const totalCost = calculateTotalCost(hotel);
+        setCustomPaymentAmount(totalCost.toString());
+        setPaymentType('full');
+        
+        // Initialize guest details with correct counts from API
+        initializeGuestDetails(hotel);
+      }
+      
       setLoading(false);
-    }
+    };
+
+    initializeData();
   }, [location]);
 
+  const calculateTotalCost = (hotel: HotelData): number => {
+    // If total_price_value is already calculated, use it
+    if (hotel.total_price_value) {
+      return hotel.total_price_value;
+    }
+
+    // Calculate based on selected room
+    if (hotel.selectedRoom) {
+      const roomPrice = Number(hotel.selectedRoom.price);
+      const childPrice = hotel.selectedRoom.pricePerChild 
+        ? Number(hotel.selectedRoom.pricePerChild) 
+        : Number(hotel.price_per_child || 0);
+      const childrenCount = hotel.children || 0;
+      const totalChildrenPrice = childPrice * childrenCount;
+      const nights = calculateNights(hotel);
+      const totalRoomPrice = roomPrice * nights;
+      const taxes = Number(hotel.taxes || 0);
+      
+      return totalRoomPrice + totalChildrenPrice + taxes;
+    }
+
+    // Fallback to base calculation
+    const basePrice = Number(hotel.price);
+    const childPrice = Number(hotel.price_per_child || 0);
+    const childrenCount = hotel.children || 0;
+    const totalChildrenPrice = childPrice * childrenCount;
+    const nights = calculateNights(hotel);
+    const totalRoomPrice = basePrice * nights;
+    const taxes = Number(hotel.taxes || 0);
+    
+    return totalRoomPrice + totalChildrenPrice + taxes;
+  };
+
+  const calculateNights = (hotel: HotelData): number => {
+    if (hotel.nights) return hotel.nights;
+    
+    const checkIn = hotel.check_in_date ? new Date(hotel.check_in_date) : new Date();
+    const checkOut = hotel.check_out_date ? new Date(hotel.check_out_date) : new Date();
+    
+    // If check-out is same as check-in, add 1 day
+    if (checkOut.getTime() === checkIn.getTime()) {
+      checkOut.setDate(checkOut.getDate() + 1);
+    }
+    
+    const nights = Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
+    return nights > 0 ? nights : 1;
+  };
+
+  // FIXED: Initialize guest details correctly from API data
   const initializeGuestDetails = (hotel: HotelData) => {
-    const adults = hotel.adults || 2;
-    const children = hotel.children || 0;
+    // Use exact values from API - no fallback defaults that override API data
+    const adults = hotel.adults !== undefined ? hotel.adults : 2;
+    const children = hotel.children !== undefined ? hotel.children : 0;
+    const childrenAges = hotel.children_ages || [];
+    
+    console.log('Initializing guests:', { adults, children, childrenAges }); // Debug log
+    
     const details: GuestDetails[] = [];
     let id = 1;
 
+    // Create adult entries
     for (let i = 0; i < adults; i++) {
       details.push({
         id: id++,
@@ -107,21 +206,25 @@ const CheckoutPageHotels = () => {
         name: '',
         firstName: '',
         lastName: '',
-        age: 30
+        age: 18 // Minimum adult age
       });
     }
 
+    // Create child entries with their ages from API
     for (let i = 0; i < children; i++) {
+      // Use the age from children_ages array if available, otherwise default to 8
+      const childAge = childrenAges[i] !== undefined ? childrenAges[i] : 8;
       details.push({
         id: id++,
         type: 'child',
         name: '',
         firstName: '',
         lastName: '',
-        age: 8
+        age: childAge
       });
     }
 
+    console.log('Created guest details:', details); // Debug log
     setGuestDetails(details);
   };
 
@@ -155,6 +258,16 @@ const CheckoutPageHotels = () => {
         alert(`Please enter valid age for ${guest.type} #${guest.id}`);
         return false;
       }
+      // Validate child age (0-17)
+      if (guest.type === 'child' && guest.age > 17) {
+        alert(`Child age must be 17 or younger for guest #${guest.id}`);
+        return false;
+      }
+      // Validate adult age (18+)
+      if (guest.type === 'adult' && guest.age < 18) {
+        alert(`Adult age must be 18 or older for guest #${guest.id}`);
+        return false;
+      }
     }
     return true;
   };
@@ -176,7 +289,7 @@ const CheckoutPageHotels = () => {
 
   const getTotalHotelCost = () => {
     if (!hotelData) return 0;
-    return hotelData.total_price_value || parsePrice(hotelData.price);
+    return calculateTotalCost(hotelData);
   };
 
   const getCurrentPaymentAmount = () => {
@@ -241,6 +354,39 @@ const CheckoutPageHotels = () => {
     return total > 0 ? Math.round((amount / total) * 100) : 0;
   };
 
+  const getRoomTypeIcon = (category: string) => {
+    switch (category?.toLowerCase()) {
+      case 'standard':
+        return <Home className="w-4 h-4" />;
+      case 'deluxe':
+        return <Sparkles className="w-4 h-4" />;
+      case 'luxury':
+        return <Crown className="w-4 h-4" />;
+      default:
+        return <Home className="w-4 h-4" />;
+    }
+  };
+
+  const getRoomTypeColor = (category: string) => {
+    switch (category?.toLowerCase()) {
+      case 'standard':
+        return 'bg-blue-100 text-blue-700 border-blue-200';
+      case 'deluxe':
+        return 'bg-purple-100 text-purple-700 border-purple-200';
+      case 'luxury':
+        return 'bg-amber-100 text-amber-700 border-amber-200';
+      default:
+        return 'bg-gray-100 text-gray-700 border-gray-200';
+    }
+  };
+
+  const getImageUrl = (imagePath: string | undefined) => {
+    if (!imagePath) return null;
+    if (imagePath.startsWith('http')) return imagePath;
+    const baseUrl = BASE_URL.replace('/api', '');
+    return `${baseUrl}${imagePath}`;
+  };
+
   const handlePhonePePayment = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
@@ -292,8 +438,8 @@ const CheckoutPageHotels = () => {
 
     try {
       const paymentDescription = isFullPayment
-        ? `Full Payment for ${hotelData.hotel_name}`
-        : `${paymentPercentage}% Partial Payment for ${hotelData.hotel_name}`;
+        ? `Full Payment for ${hotelData?.hotel_name}`
+        : `${paymentPercentage}% Partial Payment for ${hotelData?.hotel_name}`;
 
       // Prepare guest details as JSON string for notes
       const guestDetailsJSON = JSON.stringify(guestDetails.map(g => ({
@@ -304,16 +450,30 @@ const CheckoutPageHotels = () => {
         age: g.age
       })));
 
-      // Save checkout record to database with source='hotels' (using same API as tours)
+      // Prepare room details if selected
+      const roomDetails = hotelData?.selectedRoom ? {
+        room_id: hotelData.selectedRoom.id,
+        room_type: hotelData.selectedRoom.roomType,
+        room_category: hotelData.selectedRoomCategory,
+        room_price: hotelData.selectedRoom.price,
+        price_per_child: hotelData.selectedRoom.pricePerChild,
+        max_occupancy: hotelData.selectedRoom.maxOccupancy,
+        bed_type: hotelData.selectedRoom.bedType,
+        room_size: hotelData.selectedRoom.roomSize
+      } : null;
+
+      const nights = calculateNights(hotelData!);
+
+      // Save checkout record to database with source='hotels'
       const checkoutResponse = await axios.post(
         `${BASE_URL}/api/checkout`,
         {
-          tour_id: hotelData.id?.toString() || '',
-          tour_code: hotelData.id?.toString() || '',
-          tour_title: hotelData.hotel_name || '',
-          tour_duration: `${hotelData.rooms || 1} room(s)`,
-          tour_locations: hotelData.hotel_location || '',
-          tour_image_url: hotelData.main_image || '',
+          tour_id: hotelData?.id?.toString() || '',
+          tour_code: `HTL-${hotelData?.id}`,
+          tour_title: hotelData?.hotel_name || '',
+          tour_duration: `${nights} night${nights > 1 ? 's' : ''}, ${hotelData?.rooms || 1} room(s)`,
+          tour_locations: `${hotelData?.hotel_location}, ${hotelData?.city || ''}`,
+          tour_image_url: hotelData?.main_image || '',
 
           // Price details
           total_tour_cost: totalHotelCost,
@@ -334,9 +494,43 @@ const CheckoutPageHotels = () => {
 
           payment_method: 'phonepe',
           source_page: 'offline-hotels',
-          source: 'hotels', // Source field to identify this is a hotel booking
+          source: 'hotels',
           terms_accepted: formData.termsAccepted,
-          notes: `${paymentDescription}\n\nGuest Details:\n${guestDetailsJSON}\n\nSpecial Requests: ${formData.specialRequests || 'None'}\n\nHotel Details:\n- Rooms: ${hotelData.rooms || 1}\n- Adults: ${hotelData.adults || 2}\n- Children: ${hotelData.children || 0}\n- Star Rating: ${hotelData.star_rating || 0}`
+          notes: JSON.stringify({
+            payment_description: paymentDescription,
+            guest_details: guestDetails.map(g => ({
+              type: g.type,
+              first_name: g.firstName,
+              last_name: g.lastName,
+              age: g.age
+            })),
+            special_requests: formData.specialRequests || 'None',
+            hotel_details: {
+              hotel_id: hotelData?.id,
+              hotel_name: hotelData?.hotel_name,
+              hotel_location: hotelData?.hotel_location,
+              star_rating: hotelData?.star_rating,
+              rooms: hotelData?.rooms || 1,
+              adults: hotelData?.adults || 1,
+              children: hotelData?.children || 0,
+              children_ages: hotelData?.children_ages || [],
+              check_in_date: hotelData?.check_in_date,
+              check_out_date: hotelData?.check_out_date,
+              nights: nights
+            },
+            room_details: roomDetails,
+            price_breakdown: {
+              base_price: hotelData?.selectedRoom ? Number(hotelData.selectedRoom.price) : Number(hotelData?.price || 0),
+              price_per_night: hotelData?.selectedRoom ? Number(hotelData.selectedRoom.price) : Number(hotelData?.price || 0),
+              child_price_per_night: Number(hotelData?.selectedRoom?.pricePerChild || hotelData?.price_per_child || 0),
+              children_count: hotelData?.children || 0,
+              total_children_price: (Number(hotelData?.selectedRoom?.pricePerChild || hotelData?.price_per_child || 0) * (hotelData?.children || 0)),
+              nights: nights,
+              room_total: (hotelData?.selectedRoom ? Number(hotelData.selectedRoom.price) : Number(hotelData?.price || 0)) * nights,
+              taxes: Number(hotelData?.taxes || 0),
+              total_amount: totalHotelCost
+            }
+          })
         }
       );
 
@@ -365,12 +559,15 @@ const CheckoutPageHotels = () => {
             email: formData.email,
             phone: formData.phone,
             checkout_id: checkoutId,
-            hotel_name: hotelData.hotel_name || '',
+            hotel_name: hotelData?.hotel_name || '',
             payment_type: isFullPayment ? 'full' : 'partial',
             payment_percentage: paymentPercentage,
-            source: 'hotels', // Added source field
+            source: 'hotels',
             guest_count: guestDetails.length,
-            hotel_location: hotelData.hotel_location
+            hotel_location: hotelData?.hotel_location,
+            selected_room: hotelData?.selectedRoom?.roomType || 'Standard',
+            room_category: hotelData?.selectedRoomCategory || 'standard',
+            nights: nights
           }
         }
       );
@@ -399,7 +596,8 @@ const CheckoutPageHotels = () => {
           merchant_order_id: paymentResponse.data.merchantOrderId,
           payment_type: isFullPayment ? 'full' : 'partial',
           custom_amount: paymentType === 'custom' || paymentType === 'partial' ? customPaymentAmount : null,
-          source: 'hotels' // Added source field
+          source: 'hotels',
+          nights: nights
         };
 
         localStorage.setItem('currentHotelBooking', JSON.stringify(bookingData));
@@ -450,6 +648,22 @@ const CheckoutPageHotels = () => {
   const paymentPercentage = calculatePercentage(paymentAmount);
   const balanceAmount = totalHotelCost - paymentAmount;
   const isFullPayment = paymentAmount >= totalHotelCost;
+  const nights = calculateNights(hotelData);
+  const basePricePerNight = hotelData.selectedRoom 
+    ? Number(hotelData.selectedRoom.price) 
+    : Number(hotelData.price);
+  const childPricePerNight = hotelData.selectedRoom?.pricePerChild 
+    ? Number(hotelData.selectedRoom.pricePerChild) 
+    : Number(hotelData.price_per_child || 0);
+  const childrenCount = hotelData.children || 0;
+  const adultsCount = hotelData.adults || 1;
+  const totalChildrenPrice = childPricePerNight * childrenCount;
+  const roomTotal = basePricePerNight * nights;
+  const taxes = Number(hotelData.taxes || 0);
+
+  // Count guests by type for display
+  const adultGuests = guestDetails.filter(g => g.type === 'adult');
+  const childGuests = guestDetails.filter(g => g.type === 'child');
 
   return (
     <>
@@ -480,42 +694,145 @@ const CheckoutPageHotels = () => {
                   </div>
                 </div>
 
-                {/* Hotel Summary */}
+                {/* Hotel Summary with Image */}
                 <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-5 mb-8 border border-blue-100">
                   <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
                     <Hotel className="h-5 w-5 text-blue-600" />
                     Hotel Summary
                   </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
+                  
+                  <div className="flex flex-col md:flex-row gap-4">
+                    {/* Hotel Image */}
+                    {hotelData.main_image && (
+                      <div className="md:w-48 h-32 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+                        <img
+                          src={getImageUrl(hotelData.main_image) || ''}
+                          alt={hotelData.hotel_name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                    
+                    <div className="flex-1">
                       <h3 className="font-bold text-lg text-gray-800 mb-2">{hotelData.hotel_name}</h3>
                       <p className="text-gray-600 flex items-center gap-1 mb-3">
                         <MapPin size={16} /> {hotelData.hotel_location}
                       </p>
-                      <div className="flex items-center gap-4">
+                      <div className="flex flex-wrap items-center gap-3 mb-3">
                         <div className="flex">
                           {[...Array(hotelData.star_rating || 0)].map((_, i) => (
                             <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                           ))}
                         </div>
-                        <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-                          {hotelData.rooms || 1} Room(s)
-                        </span>
-                        <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                          {hotelData.adults || 2} Adults
-                        </span>
-                        {hotelData.children && hotelData.children > 0 && (
-                          <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">
-                            {hotelData.children} Children
+                        {hotelData.rating && (
+                          <span className="text-sm bg-green-100 text-green-700 px-2 py-1 rounded">
+                            {Number(hotelData.rating).toFixed(1)} ★ ({hotelData.total_ratings || 0} reviews)
                           </span>
                         )}
                       </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-3xl font-bold text-gray-900 mb-1">
-                        {formatPrice(totalHotelCost)}
+                      <div className="flex flex-wrap gap-2">
+                        <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                          {hotelData.rooms || 1} Room(s)
+                        </span>
+                        <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                          {adultsCount} Adult{adultsCount !== 1 ? 's' : ''}
+                        </span>
+                        {childrenCount > 0 && (
+                          <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">
+                            {childrenCount} Child{childrenCount !== 1 ? 'ren' : ''}
+                          </span>
+                        )}
+                        <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
+                          {nights} Night{nights > 1 ? 's' : ''}
+                        </span>
                       </div>
-                      <p className="text-gray-600">Total Stay Cost</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Selected Room Details */}
+                {hotelData.selectedRoom && (
+                  <div className={`border rounded-xl p-5 mb-8 ${getRoomTypeColor(hotelData.selectedRoomCategory || 'standard')}`}>
+                    <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                      {getRoomTypeIcon(hotelData.selectedRoomCategory || 'standard')}
+                      Selected Room: {hotelData.selectedRoom.roomType}
+                      <span className="text-sm font-normal capitalize ml-2">
+                        ({hotelData.selectedRoomCategory})
+                      </span>
+                    </h2>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <Bed className="w-4 h-4 text-gray-500" />
+                          <span className="text-sm">{hotelData.selectedRoom.bedType}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Maximize className="w-4 h-4 text-gray-500" />
+                          <span className="text-sm">{hotelData.selectedRoom.roomSize} sq.ft</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Users className="w-4 h-4 text-gray-500" />
+                          <span className="text-sm">Max {hotelData.selectedRoom.maxOccupancy} guests</span>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-sm text-gray-600">{hotelData.selectedRoom.description}</p>
+                        <div className="flex flex-wrap gap-1">
+                          {hotelData.selectedRoom.amenities?.slice(0, 3).map((amenity, idx) => (
+                            <span key={idx} className="text-xs bg-white/50 px-2 py-1 rounded flex items-center gap-1">
+                              <Check className="w-3 h-3" /> {amenity}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Stay Details */}
+                <div className="bg-white border border-gray-200 rounded-xl p-5 mb-8">
+                  <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <Calendar className="h-5 w-5 text-blue-600" />
+                    Stay Details
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-green-100 p-2 rounded-lg">
+                        <Calendar className="w-4 h-4 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Check-in</p>
+                        <p className="font-semibold">
+                          {hotelData.check_in_date 
+                            ? new Date(hotelData.check_in_date).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
+                            : 'To be confirmed'}
+                        </p>
+                        <p className="text-xs text-gray-500">From 2:00 PM</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="bg-red-100 p-2 rounded-lg">
+                        <Calendar className="w-4 h-4 text-red-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Check-out</p>
+                        <p className="font-semibold">
+                          {hotelData.check_out_date 
+                            ? new Date(hotelData.check_out_date).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
+                            : 'To be confirmed'}
+                        </p>
+                        <p className="text-xs text-gray-500">Until 12:00 PM</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="bg-blue-100 p-2 rounded-lg">
+                        <Clock className="w-4 h-4 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Duration</p>
+                        <p className="font-semibold">{nights} Night{nights > 1 ? 's' : ''}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -606,10 +923,11 @@ const CheckoutPageHotels = () => {
                   </p>
                 </div>
 
-                {/* Guest Details Section */}
+                {/* Guest Details Section - FIXED */}
                 <div className="bg-white border border-gray-200 rounded-xl p-5 mb-8">
                   <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-xl font-semibold text-gray-800">
+                    <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+                      <Users className="h-5 w-5 text-blue-600" />
                       Guest Details ({guestDetails.length} Guest{guestDetails.length !== 1 ? 's' : ''})
                     </h2>
                     <button
@@ -618,6 +936,18 @@ const CheckoutPageHotels = () => {
                     >
                       {showGuestDetails ? 'Hide Details' : 'Show Details'}
                     </button>
+                  </div>
+
+                  {/* Guest Type Summary */}
+                  <div className="flex gap-4 mb-4 p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <User className="w-4 h-4 text-blue-600" />
+                      <span className="text-sm">Adults: <strong>{adultGuests.length}</strong></span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Baby className="w-4 h-4 text-yellow-600" />
+                      <span className="text-sm">Children: <strong>{childGuests.length}</strong></span>
+                    </div>
                   </div>
 
                   {showGuestDetails && (
@@ -631,6 +961,7 @@ const CheckoutPageHotels = () => {
                         <table className="w-full border-collapse min-w-[600px]">
                           <thead>
                             <tr className="border-b-2 border-gray-200 bg-gray-50">
+                              <th className="p-3 text-left">#</th>
                               <th className="p-3 text-left">Type</th>
                               <th className="p-3 text-left">First Name</th>
                               <th className="p-3 text-left">Last Name</th>
@@ -638,12 +969,20 @@ const CheckoutPageHotels = () => {
                             </tr>
                           </thead>
                           <tbody>
-                            {guestDetails.map((guest) => (
-                              <tr key={guest.id} className="border-b border-gray-100">
+                            {guestDetails.map((guest, index) => (
+                              <tr key={guest.id} className="border-b border-gray-100 hover:bg-gray-50">
+                                <td className="p-3 text-gray-500">{index + 1}</td>
                                 <td className="p-3 align-top">
-                                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${guest.type === 'adult' ? 'bg-blue-100 text-blue-700' : 'bg-yellow-100 text-yellow-700'
-                                    }`}>
-                                    {guest.type === 'adult' ? 'Adult' : 'Child'}
+                                  <span className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 w-fit ${
+                                    guest.type === 'adult' 
+                                      ? 'bg-blue-100 text-blue-700' 
+                                      : 'bg-yellow-100 text-yellow-700'
+                                  }`}>
+                                    {guest.type === 'adult' ? (
+                                      <><User className="w-3 h-3" /> Adult</>
+                                    ) : (
+                                      <><Baby className="w-3 h-3" /> Child</>
+                                    )}
                                   </span>
                                 </td>
                                 <td className="p-3 align-top">
@@ -653,6 +992,7 @@ const CheckoutPageHotels = () => {
                                     onChange={(e) => handleGuestInputChange(guest.id, 'firstName', e.target.value)}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     placeholder="First name"
+                                    required
                                   />
                                 </td>
                                 <td className="p-3 align-top">
@@ -662,6 +1002,7 @@ const CheckoutPageHotels = () => {
                                     onChange={(e) => handleGuestInputChange(guest.id, 'lastName', e.target.value)}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     placeholder="Last name"
+                                    required
                                   />
                                 </td>
                                 <td className="p-3 align-top">
@@ -669,10 +1010,11 @@ const CheckoutPageHotels = () => {
                                     type="number"
                                     value={guest.age || ''}
                                     onChange={(e) => handleGuestInputChange(guest.id, 'age', parseInt(e.target.value) || 0)}
-                                    className="w-24 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     placeholder="Age"
-                                    min="0"
-                                    max="120"
+                                    min={guest.type === 'adult' ? 18 : 0}
+                                    max={guest.type === 'adult' ? 120 : 17}
+                                    required
                                   />
                                 </td>
                               </tr>
@@ -681,11 +1023,14 @@ const CheckoutPageHotels = () => {
                         </table>
                       </div>
 
-                      <div className="mt-4 p-4 bg-gray-50 rounded-lg flex gap-6 text-sm">
-                        <div><span className="text-gray-600">Adults:</span> <strong>{guestDetails.filter(g => g.type === 'adult').length}</strong></div>
-                        <div><span className="text-gray-600">Children:</span> <strong>{guestDetails.filter(g => g.type === 'child').length}</strong></div>
-                        <div><span className="text-gray-600">Total Guests:</span> <strong>{guestDetails.length}</strong></div>
-                      </div>
+                      {/* Children Ages from API Display */}
+                      {hotelData.children_ages && hotelData.children_ages.length > 0 && (
+                        <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                          <p className="text-sm text-blue-700">
+                            <strong>Children ages from booking:</strong> {hotelData.children_ages.join(', ')} years
+                          </p>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -817,35 +1162,65 @@ const CheckoutPageHotels = () => {
                 <h2 className="text-xl font-semibold text-gray-800 mb-6 pb-3 border-b">Price Breakdown</h2>
 
                 <div className="space-y-4 mb-8">
-                  <div className="flex justify-between items-center py-3 border-b">
-                    <div>
-                      <span className="text-gray-700 font-medium">Hotel Charges</span>
-                      <p className="text-sm text-gray-500">Total stay cost for all guests</p>
-                    </div>
-                    <span className="text-lg font-bold text-gray-900">{formatPrice(totalHotelCost)}</span>
+                  {/* Room Charges */}
+                  <div className="flex justify-between items-center py-2">
+                    <span className="text-gray-600">
+                      Room Charges ({nights} night{nights > 1 ? 's' : ''})
+                    </span>
+                    <span className="font-medium">{formatPrice(roomTotal)}</span>
+                  </div>
+                  <div className="text-xs text-gray-500 pl-4">
+                    {formatPrice(basePricePerNight)} × {nights} night{nights > 1 ? 's' : ''}
                   </div>
 
-                  <div className="flex justify-between items-center py-3 border-b">
-                    <div>
+                  {/* Children Charges */}
+                  {childrenCount > 0 && (
+                    <>
+                      <div className="flex justify-between items-center py-2 border-t">
+                        <span className="text-gray-600">
+                          Children Charges ({childrenCount} child{childrenCount !== 1 ? 'ren' : ''})
+                        </span>
+                        <span className="font-medium">{formatPrice(totalChildrenPrice)}</span>
+                      </div>
+                      <div className="text-xs text-gray-500 pl-4">
+                        {formatPrice(childPricePerNight)} × {childrenCount} child{childrenCount !== 1 ? 'ren' : ''}
+                      </div>
+                    </>
+                  )}
+
+                  {/* Taxes */}
+                  <div className="flex justify-between items-center py-2 border-t">
+                    <span className="text-gray-600">Taxes & Fees</span>
+                    <span className="font-medium">{formatPrice(taxes)}</span>
+                  </div>
+
+                  {/* Total */}
+                  <div className="flex justify-between items-center py-3 border-t-2">
+                    <span className="text-gray-800 font-semibold">Total Hotel Cost</span>
+                    <span className="text-xl font-bold text-gray-900">{formatPrice(totalHotelCost)}</span>
+                  </div>
+
+                  {/* Payment Summary */}
+                  <div className="bg-blue-50 rounded-xl p-4 mt-6 border border-blue-100">
+                    <div className="flex justify-between items-center">
                       <span className="text-blue-600 font-semibold">
                         {isFullPayment ? 'Full Payment' : `Partial Payment (${paymentPercentage}%)`}
                       </span>
-                      <p className="text-sm text-gray-500">Pay now to confirm your booking</p>
+                      <span className="text-xl font-bold text-blue-600">{formatPrice(paymentAmount)}</span>
                     </div>
-                    <span className="text-xl font-bold text-blue-600">{formatPrice(paymentAmount)}</span>
+                    <p className="text-sm text-gray-600 mt-2">
+                      Pay now to confirm your booking
+                    </p>
                   </div>
 
                   {!isFullPayment && (
                     <div className="flex justify-between items-center py-3">
-                      <div>
-                        <span className="text-gray-600">Balance to Pay Later</span>
-                        <p className="text-sm text-gray-500">Payable before check-in</p>
-                      </div>
+                      <span className="text-gray-600">Balance to Pay Later</span>
                       <span className="text-lg font-semibold text-gray-700">{formatPrice(balanceAmount)}</span>
                     </div>
                   )}
 
-                  <div className="bg-blue-50 rounded-xl p-4 mt-6 border border-blue-100">
+                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 mt-4 border border-green-100">
                     <div className="flex justify-between items-center">
                       <span className="text-lg font-bold text-gray-800">Amount to Pay Now</span>
                       <span className="text-2xl font-bold text-[#E53C42]">{formatPrice(paymentAmount)}</span>
@@ -859,20 +1234,24 @@ const CheckoutPageHotels = () => {
                 {/* Guest Summary */}
                 <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 mb-6">
                   <h3 className="font-semibold text-purple-800 mb-3 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
-                    </svg>
+                    <Users className="h-5 w-5" />
                     Guest Summary
                   </h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-purple-700">Adults:</span>
-                      <span className="font-semibold text-purple-900">{guestDetails.filter(g => g.type === 'adult').length}</span>
+                      <span className="font-semibold text-purple-900">{adultGuests.length}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-purple-700">Children:</span>
-                      <span className="font-semibold text-purple-900">{guestDetails.filter(g => g.type === 'child').length}</span>
+                      <span className="font-semibold text-purple-900">{childGuests.length}</span>
                     </div>
+                    {hotelData.children_ages && hotelData.children_ages.length > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-purple-700">Children Ages:</span>
+                        <span className="font-semibold text-purple-900">{hotelData.children_ages.join(', ')}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between pt-2 border-t border-purple-200">
                       <span className="text-purple-700 font-medium">Total Guests:</span>
                       <span className="font-semibold text-purple-900">{guestDetails.length}</span>
@@ -880,6 +1259,27 @@ const CheckoutPageHotels = () => {
                     <div className="flex justify-between">
                       <span className="text-purple-700">Rooms:</span>
                       <span className="font-semibold text-purple-900">{hotelData.rooms || 1}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-purple-700">Nights:</span>
+                      <span className="font-semibold text-purple-900">{nights}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Hotel Quick Info */}
+                <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-6">
+                  <h3 className="font-semibold text-gray-800 mb-3">Hotel Information</h3>
+                  <div className="space-y-2 text-sm">
+                    <p className="font-medium">{hotelData.hotel_name}</p>
+                    <p className="text-gray-600 flex items-center gap-1">
+                      <MapPin size={14} /> {hotelData.hotel_location}
+                    </p>
+                    <div className="flex items-center gap-1">
+                      {[...Array(hotelData.star_rating || 0)].map((_, i) => (
+                        <Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                      ))}
+                      <span className="text-gray-600 ml-1">{hotelData.star_rating} Star</span>
                     </div>
                   </div>
                 </div>

@@ -22,16 +22,12 @@ import {
   Sparkles,
   Bath,
   Tv,
-  Thermometer,
   ShieldCheck,
   Gift,
   Ticket,
   Clock8,
   ChevronLeft,
   ChevronRight,
-  Volume2,
-  Zap,
-  WashingMachine
 } from "lucide-react";
 import { format } from "date-fns";
 import Header from "@/components/Header";
@@ -62,6 +58,8 @@ interface HotelDetail {
   total_ratings: number;
   price: string;
   taxes: string;
+  total_amount: string;
+  price_per_child: string;
   amenities: string[];
   custom_amenities: string[];
   status: string;
@@ -99,6 +97,7 @@ interface RoomVariant {
   id: number;
   roomType: string;
   price: string;
+  pricePerChild?: string | null;
   amenities: string[];
   maxOccupancy: number;
   bedType: string;
@@ -135,7 +134,7 @@ const HotelDetailPage = () => {
   const [imageError, setImageError] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState<Record<string, number>>({});
 
-  // Travellers from search or default
+  // Travellers from search or default - USE API DATA
   const [travellers, setTravellers] = useState<TravellerCount>({
     rooms: 1,
     adults: 2,
@@ -143,17 +142,9 @@ const HotelDetailPage = () => {
     infants: 0
   });
 
-  // Dates from search or default
-  const [checkIn, setCheckIn] = useState<Date>(() => {
-    const d = new Date();
-    d.setDate(d.getDate() + 1);
-    return d;
-  });
-  const [checkOut, setCheckOut] = useState<Date>(() => {
-    const d = new Date();
-    d.setDate(d.getDate() + 3);
-    return d;
-  });
+  // Dates from API or default
+  const [checkIn, setCheckIn] = useState<Date>(new Date());
+  const [checkOut, setCheckOut] = useState<Date>(new Date());
 
   useEffect(() => {
     fetchHotelDetails();
@@ -169,15 +160,32 @@ const HotelDetailPage = () => {
         setHotel(hotelData);
         setSelectedImage(hotelData.main_image || "");
         
+        // Set travellers from API data
+        setTravellers({
+          rooms: hotelData.rooms || 1,
+          adults: hotelData.adults || 2,
+          children: hotelData.children || 0,
+          infants: 0
+        });
+        
+        // Set dates from API data
+        if (hotelData.check_in_date) {
+          setCheckIn(new Date(hotelData.check_in_date));
+        }
+        if (hotelData.check_out_date) {
+          setCheckOut(new Date(hotelData.check_out_date));
+        }
+        
         // Set default selected room variant
         if (hotelData.room_types_data?.standard?.enabled && hotelData.room_types_data.standard.hotels.length > 0) {
+          setSelectedRoomType("standard");
           setSelectedRoomVariant(hotelData.room_types_data.standard.hotels[0]);
         } else if (hotelData.room_types_data?.deluxe?.enabled && hotelData.room_types_data.deluxe.hotels.length > 0) {
-          setSelectedRoomVariant(hotelData.room_types_data.deluxe.hotels[0]);
           setSelectedRoomType("deluxe");
+          setSelectedRoomVariant(hotelData.room_types_data.deluxe.hotels[0]);
         } else if (hotelData.room_types_data?.luxury?.enabled && hotelData.room_types_data.luxury.hotels.length > 0) {
-          setSelectedRoomVariant(hotelData.room_types_data.luxury.hotels[0]);
           setSelectedRoomType("luxury");
+          setSelectedRoomVariant(hotelData.room_types_data.luxury.hotels[0]);
         }
       } else {
         setError("Failed to fetch hotel details");
@@ -202,24 +210,65 @@ const HotelDetailPage = () => {
     return Number(price).toLocaleString('en-IN');
   };
 
+  const calculateNights = () => {
+    if (!checkIn || !checkOut) return 1;
+    const nights = Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
+    return nights > 0 ? nights : 1;
+  };
+
   const calculateTotalPrice = () => {
-    if (!selectedRoomVariant) return 0;
-    return Number(selectedRoomVariant.price);
+    if (!hotel || !selectedRoomVariant) return 0;
+    
+    const nights = calculateNights();
+    const roomPrice = Number(selectedRoomVariant.price);
+    const totalRoomPrice = roomPrice * nights;
+    
+    // Calculate children price
+    const childPrice = selectedRoomVariant.pricePerChild 
+      ? Number(selectedRoomVariant.pricePerChild) 
+      : Number(hotel.price_per_child || 0);
+    const childrenCount = hotel.children || 0;
+    const totalChildrenPrice = childPrice * childrenCount;
+    
+    const taxes = Number(hotel.taxes || 0);
+    
+    return totalRoomPrice + totalChildrenPrice + taxes;
   };
 
   const handleBookNow = () => {
     if (!hotel || !selectedRoomVariant) return;
+    
+    const nights = calculateNights();
+    const roomPrice = Number(selectedRoomVariant.price);
+    const childPrice = selectedRoomVariant.pricePerChild 
+      ? Number(selectedRoomVariant.pricePerChild) 
+      : Number(hotel.price_per_child || 0);
+    const childrenCount = hotel.children || 0;
+    const totalChildrenPrice = childPrice * childrenCount;
+    const totalRoomPrice = roomPrice * nights;
+    const taxes = Number(hotel.taxes || 0);
+    const totalPrice = totalRoomPrice + totalChildrenPrice + taxes;
+    
     const hotelForCheckout = {
       ...hotel,
       checkIn: checkIn,
       checkOut: checkOut,
-      rooms: travellers.rooms,
-      adults: travellers.adults,
-      children: travellers.children,
-      selectedRoomType: selectedRoomType,
-      selectedRoomVariant: selectedRoomVariant,
-      total_price_value: Number(selectedRoomVariant.price)
+      rooms: hotel.rooms || 1,
+      adults: hotel.adults || 2,
+      children: hotel.children || 0,
+      children_ages: hotel.children_ages || [],
+      selectedRoom: selectedRoomVariant,
+      selectedRoomCategory: selectedRoomType,
+      nights: nights,
+      roomPrice: roomPrice,
+      childPrice: childPrice,
+      totalChildrenPrice: totalChildrenPrice,
+      total_price_value: totalPrice,
+      basePrice: roomPrice,
+      taxes: taxes,
+      total_amount: totalPrice
     };
+    
     localStorage.setItem('selectedHotel', JSON.stringify(hotelForCheckout));
     navigate('/checkout-hotels', { state: { hotel: hotelForCheckout } });
   };
@@ -318,6 +367,8 @@ const HotelDetailPage = () => {
   const mainImageUrl = getImageUrl(hotel.main_image);
   const additionalImages = hotel.additional_images?.map(img => getImageUrl(img)).filter(Boolean) || [];
   const enabledRoomTypes = getEnabledRoomTypes();
+  const nights = calculateNights();
+  const totalPrice = calculateTotalPrice();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -370,8 +421,8 @@ const HotelDetailPage = () => {
               
               <div className="bg-white/10 backdrop-blur-sm rounded-xl p-5">
                 <div className="text-center">
-                  <div className="text-3xl font-bold">₹{formatPrice(selectedRoomVariant?.price || hotel.price)}</div>
-                  <div className="text-sm text-white/70">per night</div>
+                  <div className="text-3xl font-bold">₹{formatPrice(totalPrice)}</div>
+                  <div className="text-sm text-white/70">for {nights} night{nights > 1 ? 's' : ''}</div>
                   {hotel.original_price && Number(hotel.original_price) > Number(hotel.price) && (
                     <div className="mt-1">
                       <span className="text-sm line-through text-white/50">₹{formatPrice(hotel.original_price)}</span>
@@ -559,6 +610,12 @@ const HotelDetailPage = () => {
                                       <span>👥 Max {variant.maxOccupancy} Guests</span>
                                       <span className="text-orange-600 font-semibold">₹{formatPrice(variant.price)}/night</span>
                                     </div>
+                                    {/* Show child price if available */}
+                                    {(variant.pricePerChild || hotel.price_per_child) && hotel.children > 0 && (
+                                      <div className="text-sm text-gray-600 mb-3">
+                                        <span>👶 Child price: ₹{formatPrice(variant.pricePerChild || hotel.price_per_child)} per child</span>
+                                      </div>
+                                    )}
                                     <div className="flex flex-wrap gap-2">
                                       {variant.amenities?.slice(0, 4).map((amenity, amenityIdx) => (
                                         <span key={amenityIdx} className="text-xs bg-gray-100 px-2 py-1 rounded">✓ {amenity}</span>
@@ -674,9 +731,25 @@ const HotelDetailPage = () => {
               
               <div className="space-y-4 mb-6">
                 <div className="flex justify-between text-gray-700">
-                  <span>Room Price (per night)</span>
-                  <span className="font-semibold">₹{formatPrice(selectedRoomVariant?.price || hotel.price)}</span>
+                  <span>Room Price ({nights} night{nights > 1 ? 's' : ''})</span>
+                  <span className="font-semibold">₹{formatPrice((Number(selectedRoomVariant?.price || hotel.price) * nights))}</span>
                 </div>
+                
+                {/* Children Charges */}
+                {hotel.children > 0 && (
+                  <div className="flex justify-between text-gray-700">
+                    <span>Children ({hotel.children} child{hotel.children > 1 ? 'ren' : ''})</span>
+                    <span className="font-semibold">
+                      ₹{formatPrice(Number(selectedRoomVariant?.pricePerChild || hotel.price_per_child || 0) * hotel.children)}
+                    </span>
+                  </div>
+                )}
+                
+                <div className="flex justify-between text-gray-700">
+                  <span>Taxes & Fees</span>
+                  <span className="font-semibold">₹{formatPrice(hotel.taxes || 0)}</span>
+                </div>
+                
                 {hotel.free_stay_for_kids === 1 && (
                   <div className="flex justify-between text-green-600">
                     <span>Kids Stay Free</span>
@@ -685,8 +758,8 @@ const HotelDetailPage = () => {
                 )}
                 <div className="border-t pt-4">
                   <div className="flex justify-between text-xl font-bold text-orange-600">
-                    <span>Total per night</span>
-                    <span>₹{formatPrice(calculateTotalPrice())}</span>
+                    <span>Total Amount</span>
+                    <span>₹{formatPrice(totalPrice)}</span>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">All taxes included</p>
                 </div>
@@ -711,13 +784,22 @@ const HotelDetailPage = () => {
                 <p className="text-xs text-gray-500 mt-1">Check-out: 12:00 PM</p>
               </div>
 
-              {/* Guest Details */}
+              {/* Guest Details - FROM API */}
               <div className="mb-6">
                 <label className="block text-sm font-semibold mb-2">Guests</label>
                 <div className="border rounded-lg p-3 flex items-center gap-2 bg-gray-50">
                   <Users size={18} className="text-gray-500" />
-                  <span>{travellers.rooms} Room, {travellers.adults} Adult{travellers.adults > 1 ? 's' : ''}{travellers.children > 0 ? `, ${travellers.children} Child` : ''}</span>
+                  <span>
+                    {hotel.rooms} Room{hotel.rooms > 1 ? 's' : ''}, 
+                    {hotel.adults} Adult{hotel.adults > 1 ? 's' : ''}
+                    {hotel.children > 0 ? `, ${hotel.children} Child${hotel.children > 1 ? 'ren' : ''}` : ''}
+                  </span>
                 </div>
+                {hotel.children_ages && hotel.children_ages.length > 0 && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Children ages: {hotel.children_ages.join(', ')}
+                  </p>
+                )}
               </div>
 
               {/* Cancellation Policy */}

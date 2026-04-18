@@ -45,6 +45,8 @@ interface Hotel {
   original_price?: string | number;
   sale_price?: string | number;
   taxes?: string | number;
+  total_amount?: string | number;
+  price_per_child?: string | number;
   amenities?: string | string[];
   main_image?: string;
   additional_images?: string[];
@@ -65,6 +67,7 @@ interface Hotel {
   adults?: number;
   children?: number;
   pets?: boolean | number;
+  children_ages?: number[];
 }
 
 // Popular cities
@@ -754,8 +757,6 @@ const FilterSidebar = ({
 };
 
 // ==================== Hotel Card Component ====================
-
-// ==================== Hotel Card Component ====================
 const HotelCard = ({ hotel, onBookNow, checkIn, checkOut, travellers }: { 
   hotel: Hotel; 
   onBookNow: (hotel: Hotel) => void;
@@ -857,13 +858,16 @@ const HotelCard = ({ hotel, onBookNow, checkIn, checkOut, travellers }: {
           <div className="space-y-2">
             {[
               { label: 'Base Price', amount: `₹${formatPrice(hotel.price)}` },
-              { label: 'SGST (9%)', amount: `₹${Math.round(Number(hotel.price) * 0.09).toLocaleString()}` },
-              { label: 'CGST (9%)', amount: `₹${Math.round(Number(hotel.price) * 0.09).toLocaleString()}` },
-              { label: 'Service Charge', amount: hotel.taxes ? `₹${formatPrice(hotel.taxes)}` : '₹315' }
+              { label: 'Taxes & Fees', amount: hotel.taxes ? `₹${formatPrice(hotel.taxes)}` : '₹315' }
             ].map((item, idx) => (
               <div key={idx} className="flex justify-between text-sm border-b pb-2"><span>{item.label}</span><span className="font-medium">{item.amount}</span></div>
             ))}
-            <div className="flex justify-between text-sm font-bold pt-2"><span>Total per night</span><span>₹{(Number(hotel.price) + Math.round(Number(hotel.price) * 0.18) + (Number(hotel.taxes) || 315)).toLocaleString()}</span></div>
+            <div className="flex justify-between text-sm font-bold pt-2">
+              <span>Total Amount</span>
+              <span className="text-lg text-orange-600">
+                ₹{formatPrice(hotel.total_amount || (Number(hotel.price) + Number(hotel.taxes || 0)))}
+              </span>
+            </div>
           </div>
         )}
       </div>
@@ -876,30 +880,30 @@ const HotelCard = ({ hotel, onBookNow, checkIn, checkOut, travellers }: {
     navigate(`/hotel-detail/${hotel.id}`);
   };
 
+  // Calculate display price (use total_amount if available, otherwise calculate)
+  const displayPrice = hotel.total_amount || (Number(hotel.price) + Number(hotel.taxes || 0));
+
   return (
     <div className="bg-white rounded-xl shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-300 mb-6 overflow-hidden">
-      {/* FIXED: Separate image section with fixed height */}
       <div className="flex flex-col lg:flex-row">
-<div className="lg:w-64 lg:flex-shrink-0">
-  <div className="h-48 lg:h-56 bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center relative overflow-hidden">
-    {mainImageUrl ? (
-      <img 
-        src={mainImageUrl} 
-        alt={hotel.hotel_name} 
-        className="w-full h-full object-cover transition-transform duration-300 hover:scale-105" 
-        onError={() => setImageError(true)} 
-      />
-    ) : (
-      <div className="text-white text-center">
-        <Hotel className="w-12 h-12 mx-auto mb-2" />
-        <p className="font-bold text-lg">{hotel.hotel_name?.split(' ').slice(0, 2).join(' ')}</p>
-      </div>
-    )}
-  </div>
-</div>
+        <div className="lg:w-64 lg:flex-shrink-0">
+          <div className="h-48 lg:h-56 bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center relative overflow-hidden">
+            {mainImageUrl ? (
+              <img 
+                src={mainImageUrl} 
+                alt={hotel.hotel_name} 
+                className="w-full h-full object-cover transition-transform duration-300 hover:scale-105" 
+                onError={() => setImageError(true)} 
+              />
+            ) : (
+              <div className="text-white text-center">
+                <Hotel className="w-12 h-12 mx-auto mb-2" />
+                <p className="font-bold text-lg">{hotel.hotel_name?.split(' ').slice(0, 2).join(' ')}</p>
+              </div>
+            )}
+          </div>
+        </div>
 
-
-        {/* Content Section - Expands based on tab content */}
         <div className="flex-1 p-5 min-w-0">
           <div className="flex flex-wrap justify-between items-start gap-4 mb-4">
             <div className="min-w-0 flex-1">
@@ -961,7 +965,6 @@ const HotelCard = ({ hotel, onBookNow, checkIn, checkOut, travellers }: {
             </div>
           </div>
 
-          {/* Tab Content - This expands but image stays fixed */}
           {activeTab && (
             <div className="mb-4 bg-gray-50 rounded-lg overflow-hidden">
               {tabContent[activeTab]}
@@ -977,29 +980,30 @@ const HotelCard = ({ hotel, onBookNow, checkIn, checkOut, travellers }: {
                   </div>
                 )}
                 <div className="flex items-baseline flex-wrap gap-2">
-                  <span className="text-2xl font-bold text-gray-800">₹{formatPrice(hotel.price)}</span>
+                  <span className="text-2xl font-bold text-gray-800">₹{formatPrice(displayPrice)}</span>
                   {hotel.taxes && (
-                    <span className="text-gray-500 text-sm">+ ₹{formatPrice(hotel.taxes)} taxes</span>
+                    <span className="text-gray-500 text-sm">incl. taxes</span>
                   )}
                 </div>
+                <p className="text-xs text-gray-500 mt-1">Total price for stay</p>
               </div>
             </div>
 
-           <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-          <button
-            onClick={handleViewDetails}
-            className="bg-white border-2 border-blue-500 text-blue-600 hover:bg-blue-50 font-bold py-2.5 px-6 rounded-xl transition-all shadow-sm hover:shadow-md w-full sm:w-auto"
-          >
-            View Details
-          </button>
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+              <button
+                onClick={handleViewDetails}
+                className="bg-white border-2 border-blue-500 text-blue-600 hover:bg-blue-50 font-bold py-2.5 px-6 rounded-xl transition-all shadow-sm hover:shadow-md w-full sm:w-auto"
+              >
+                View Details
+              </button>
 
-          <button
-            onClick={() => onBookNow(hotel)}
-            className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-2.5 px-6 rounded-xl transition-all shadow-md hover:shadow-lg w-full sm:w-auto"
-          >
-            BOOK NOW
-          </button>
-        </div>
+              <button
+                onClick={() => onBookNow(hotel)}
+                className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-2.5 px-6 rounded-xl transition-all shadow-md hover:shadow-lg w-full sm:w-auto"
+              >
+                BOOK NOW
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -1252,6 +1256,10 @@ const HotelSearchMain = () => {
 
   const handleBookNow = (hotel: Hotel) => {
     const nights = checkOut && checkIn ? Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)) : 1;
+    
+    // Use total_amount from API or calculate
+    const totalAmount = hotel.total_amount || (Number(hotel.price) + Number(hotel.taxes || 0));
+    
     const hotelForCheckout = {
       ...hotel,
       checkIn: checkIn,
@@ -1260,7 +1268,8 @@ const HotelSearchMain = () => {
       adults: travellers.adults,
       children: travellers.children,
       nights: nights,
-      total_price_value: Number(hotel.price)
+      total_price_value: Number(totalAmount),
+      selectedRoomType: null // No room type selected from search page
     };
     localStorage.setItem('selectedHotel', JSON.stringify(hotelForCheckout));
     navigate('/checkout-hotels', { state: { hotel: hotelForCheckout } });
