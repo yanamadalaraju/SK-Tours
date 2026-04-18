@@ -348,20 +348,18 @@ const [tourType, setTourType] = useState<'Individual' | 'Group' | 'Ladies Specia
     }, 1000);
   };
   // Calculate EMI (assuming 6 months)
-  const calculateEMI = (price: string | number) => {
-    if (!price) return 'EMI from ₹0/month';
-    const numPrice = typeof price === 'string' ? parseFloat(price) : price;
-    const emiAmount = Math.round(numPrice / 6);
-    return `EMI from ₹${emiAmount.toLocaleString('en-IN')}/month`;
-  };
+  // const calculateEMI = (price: string | number) => {
+  //   if (!price) return 'EMI from ₹0/month';
+  //   const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+  //   const emiAmount = Math.round(numPrice / 6);
+  //   return `EMI from ₹${emiAmount.toLocaleString('en-IN')}/month`;
+  // };
 
-  // Generate duration string from days
   const formatDuration = (days: number) => {
     const nights = days - 1;
     return `${nights}N/${days}D`;
   };
 
-  // Month tabs for group tours
   const monthTabs: string[] = [
     "ALL",
     "JAN 2025",
@@ -695,7 +693,7 @@ const [tourType, setTourType] = useState<'Individual' | 'Group' | 'Ladies Specia
       title: basic_details.title,
       duration: formatDuration(basic_details.duration_days),
       price: formatPrice(basic_details.base_price_adult),
-      emi: calculateEMI(basic_details.base_price_adult),
+      emi: basic_details.emi_price ? `EMI from ${formatPrice(basic_details.emi_price)}/month` : "EMI available on request",
       badge: getBadge(basic_details.category_id || 1),
       code: basic_details.tour_code,
       description: basic_details.overview,
@@ -1206,7 +1204,7 @@ if (!defaultVisible.includes(data.basic_details?.primary_destination_name)) {
                     onClick={() => setShowMoreIndian(!showMoreIndian)}
                     className="mt-4 text-[#2E4D98] text-xs lg:text-sm font-medium hover:underline flex items-center gap-1"
                   >
-                    {showMoreIndian ? 'Show Less' : 'Show More States'}
+                    {showMoreIndian ? 'Show Less' : 'Show More'}
                   </button>
                 </div>
 

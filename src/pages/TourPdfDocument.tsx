@@ -779,47 +779,28 @@ const renderGroupAirlinesTable = () => {
       </View>
     );
   };
-
-  // Function to render EMI options table (for both)
-  const renderEMITable = () => {
-    if (!tour?.emiOptions?.options || tour.emiOptions.options.length === 0) {
-      return null;
-    }
-
-    return (
-      <View style={styles.tableContainer}>
-        {/* Header */}
-        <View style={styles.tableHeader}>
-          <Text style={[styles.tableHeaderCell, { width: '40%' }]}>Particulars</Text>
-          <Text style={[styles.tableHeaderCell, { width: '20%' }]}>Loan Amount</Text>
-          <Text style={[styles.tableHeaderCell, { width: '20%' }]}>Months</Text>
-          <Text style={[styles.tableHeaderCell, { width: '20%' }]}>EMI</Text>
-        </View>
-
-        {/* Rows */}
-        {tour.emiOptions.options.map((emi, index) => (
-          <View 
-            key={index} 
-            style={[
-              styles.tableRow,
-              { backgroundColor: index % 2 === 0 ? '#FFEBEE' : '#FFEBEE80' }
-            ]}
-          >
-            <Text style={[styles.tableCell, { width: '40%', textAlign: 'left', paddingLeft: 8, fontWeight: 'bold' }]}>
-              {emi.particulars}
-            </Text>
-            <Text style={[styles.tableCell, { width: '20%' }]}>
-              {formatPrice(emi.loanAmount)}
-            </Text>
-            <Text style={[styles.tableCell, { width: '20%' }]}>{emi.months}</Text>
-            <Text style={[styles.tableCell, { width: '20%' }]}>
-              {formatPrice(emi.emi)}
-            </Text>
-          </View>
-        ))}
+// Current code (WRONG - using emi_price)
+const renderEMITable = () => {
+  return (
+    <View style={styles.tableContainer}>
+      <View style={styles.tableHeader}>
+        <Text style={[styles.tableHeaderCell, { width: '40%' }]}>Particulars</Text>
+        <Text style={[styles.tableHeaderCell, { width: '20%' }]}>Months</Text>
+        <Text style={[styles.tableHeaderCell, { width: '20%' }]}>EMI</Text>
       </View>
-    );
-  };
+
+      {tour.emiOptions.options.map((emi: any, index: number) => (
+        <View key={index} style={styles.tableRow}>
+          <Text style={[styles.tableCell, { width: '40%' }]}>{emi.particulars}</Text>
+          <Text style={[styles.tableCell, { width: '20%' }]}>{emi.months}</Text>
+          <Text style={[styles.tableCell, { width: '20%' }]}>
+            {formatPrice(emi.emi_price)}  {/* ← PROBLEM: emi_price doesn't exist */}
+          </Text>
+        </View>
+      ))}
+    </View>
+  );
+};
 
   return (
     <Document>

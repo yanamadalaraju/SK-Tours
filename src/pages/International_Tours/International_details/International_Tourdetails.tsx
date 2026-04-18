@@ -300,12 +300,12 @@ if (data.basic_details?.primary_destination_name) {
     };
 
     // Calculate EMI
-    const calculateEMI = (price) => {
-      if (!price) return 'EMI from ₹0/month';
-      const numPrice = typeof price === 'string' ? parseFloat(price) : price;
-      const emiAmount = Math.round(numPrice / 6);
-      return `EMI from ₹${emiAmount.toLocaleString('en-IN')}/month`;
-    };
+    // const calculateEMI = (price) => {
+    //   if (!price) return 'EMI from ₹0/month';
+    //   const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+    //   const emiAmount = Math.round(numPrice / 6);
+    //   return `EMI from ₹${emiAmount.toLocaleString('en-IN')}/month`;
+    // };
 
     // Format duration
     const formatDuration = (days) => {
@@ -672,8 +672,10 @@ const processOptionalTours = (optionalToursArray) => {
       title: basic_details.title,
       duration: formatDuration(basic_details.duration_days),
       price: formatPrice(basic_details.base_price_adult),
-      emi: calculateEMI(basic_details.base_price_adult),
-      badge: getBadge(basic_details.category_id || 1),
+emi: basic_details.emi_price 
+    ? `EMI from ${formatPrice(basic_details.emi_price)}/month` 
+    : "EMI available on request",
+          badge: getBadge(basic_details.category_id || 1),
       code: basic_details.tour_code,
       description: basic_details.overview,
 
