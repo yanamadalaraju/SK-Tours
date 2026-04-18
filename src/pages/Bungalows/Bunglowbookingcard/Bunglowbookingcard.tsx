@@ -88,7 +88,7 @@ const Bunglowbookingcard: React.FC = () => {
   const [relatedBungalows, setRelatedBungalows] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // Email modal state
+  // Mail modal state
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [emailLoading, setEmailLoading] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
@@ -230,7 +230,7 @@ const autoScrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
       }
 
       setShowEmailModal(false);
-      alert('Email sent successfully!');
+      alert('Mail sent successfully!');
 
     } catch (error: any) {
       console.error('Error sending email:', error);
@@ -1037,7 +1037,7 @@ const autoScrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 lg:h-4 lg:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
-                    Email
+                    Mail
                   </button>
                 </div>
 
