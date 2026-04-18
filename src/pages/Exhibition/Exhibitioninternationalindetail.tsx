@@ -142,11 +142,11 @@ const Exhibitioninternationalindetail = () => {
     return price || '₹0';
   };
 
-  const calculateEMI = (price) => {
-    if (!price) return 'EMI from ₹0/month';
-    const numPrice = typeof price === 'string' ? parseFloat(price) : price;
-    return `EMI from ₹${Math.round(numPrice / 6).toLocaleString('en-IN')}/month`;
-  };
+  // const calculateEMI = (price) => {
+  //   if (!price) return 'EMI from ₹0/month';
+  //   const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+  //   return `EMI from ₹${Math.round(numPrice / 6).toLocaleString('en-IN')}/month`;
+  // };
 
   const formatDuration = (days) => `${days - 1}N/${days}D`;
 
@@ -617,8 +617,10 @@ const Exhibitioninternationalindetail = () => {
       cityName: basicDetails.city_name || "City not available",
       overview: basicDetails.overview || "Tour overview not available",
       price: formatPriceExhibition(basicDetails.base_price_adult),
-      emi: calculateEMI(basicDetails.base_price_adult),
-      badge: getBadge(basicDetails.category_id || 1),
+emi: basicDetails.emi_price 
+  ? `EMI from ${formatPriceExhibition(basicDetails.emi_price)}/month` 
+  : "EMI available on request",
+        badge: getBadge(basicDetails.category_id || 1),
       code: basicDetails.tour_code || '',
       description: basicDetails.overview || '',
       images: processImages(imagesArray),

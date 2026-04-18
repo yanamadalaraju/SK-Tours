@@ -523,13 +523,13 @@ const Micedomesticdetail = () => {
       return `${nights}N/${days}D`;
     };
 
-    const calculateEMI = (price: string | number) => {
-      if (!price) return 'EMI from ₹0/month';
-      const numPrice = typeof price === 'string' ? parseFloat(price) : price;
-      if (isNaN(numPrice)) return 'EMI from ₹0/month';
-      const emiAmount = Math.round(numPrice / 6);
-      return `EMI from ₹${emiAmount.toLocaleString('en-IN')}/month`;
-    };
+    // const calculateEMI = (price: string | number) => {
+    //   if (!price) return 'EMI from ₹0/month';
+    //   const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+    //   if (isNaN(numPrice)) return 'EMI from ₹0/month';
+    //   const emiAmount = Math.round(numPrice / 6);
+    //   return `EMI from ₹${emiAmount.toLocaleString('en-IN')}/month`;
+    // };
 
     return {
       title: tourData?.title || "MICE Tour",
@@ -537,8 +537,10 @@ const Micedomesticdetail = () => {
       cityName: mice_city?.city_name || "",
       stateName: mice_city?.state_name || "",  // ← Add this line
       price: formatPriceExhibition(tourData?.base_price_adult || 0),
-      emi: calculateEMI(tourData?.base_price_adult || 0),
-      code: tourData?.tour_code || "N/A",
+  emi: tourData?.emi_price 
+    ? `EMI from ${formatPriceExhibition(tourData.emi_price)}/month` 
+    : "EMI available on request",
+  code: tourData?.tour_code || "N/A",
       overview: tourData?.overview || "Tour overview not available",
       images: getImages(),
       itinerary: processItinerary(),
