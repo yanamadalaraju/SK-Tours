@@ -153,119 +153,179 @@ const PassportFormOneM: React.FC = () => {
         if (showError) setShowError(false);
     };
 
-    // Validation function
-    const validateForm = (): boolean => {
-        if (!formData.applicant_for) {
-            setErrorMessage("Please select Applicant For");
+const validateForm = (): boolean => {
+    // Helper to check empty
+    const isEmpty = (value: string): boolean => !value || value.trim() === '';
+    
+    // Required field validations
+    if (!formData.applicant_for) {
+        setErrorMessage("Please select Applicant For");
+        setShowError(true);
+        setTimeout(() => setShowError(false), 5000);
+        return false;
+    }
+    
+    if (!formData.application_type) {
+        setErrorMessage("Please select Application Type");
+        setShowError(true);
+        setTimeout(() => setShowError(false), 5000);
+        return false;
+    }
+    
+    if (!formData.passport_booklet) {
+        setErrorMessage("Please select Passport Booklet Type");
+        setShowError(true);
+        setTimeout(() => setShowError(false), 5000);
+        return false;
+    }
+    
+    if (isEmpty(formData.name)) {
+        setErrorMessage("Please enter your Name");
+        setShowError(true);
+        setTimeout(() => setShowError(false), 5000);
+        return false;
+    }
+    
+    if (isEmpty(formData.surname)) {
+        setErrorMessage("Please enter your Surname");
+        setShowError(true);
+        setTimeout(() => setShowError(false), 5000);
+        return false;
+    }
+    
+    if (!formData.dob) {
+        setErrorMessage("Please select Date of Birth");
+        setShowError(true);
+        setTimeout(() => setShowError(false), 5000);
+        return false;
+    }
+    
+    // DOB - Not future date
+    const dobDate = new Date(formData.dob);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    if (dobDate > today) {
+        setErrorMessage("Date of Birth cannot be in the future");
+        setShowError(true);
+        setTimeout(() => setShowError(false), 5000);
+        return false;
+    }
+    
+    if (isEmpty(formData.place_of_birth)) {
+        setErrorMessage("Please enter Place of Birth");
+        setShowError(true);
+        setTimeout(() => setShowError(false), 5000);
+        return false;
+    }
+    
+    if (isEmpty(formData.cell_no)) {
+        setErrorMessage("Please enter Cell Number");
+        setShowError(true);
+        setTimeout(() => setShowError(false), 5000);
+        return false;
+    }
+    
+    // Cell number - 10 digits
+    const phoneRegex = /^\d{10}$/;
+    if (!phoneRegex.test(formData.cell_no)) {
+        setErrorMessage("Please enter a valid 10-digit phone number");
+        setShowError(true);
+        setTimeout(() => setShowError(false), 5000);
+        return false;
+    }
+    
+    if (isEmpty(formData.email)) {
+        setErrorMessage("Please enter Email Address");
+        setShowError(true);
+        setTimeout(() => setShowError(false), 5000);
+        return false;
+    }
+    
+    // Email - Valid format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+        setErrorMessage("Please enter a valid email address");
+        setShowError(true);
+        setTimeout(() => setShowError(false), 5000);
+        return false;
+    }
+    
+    if (isEmpty(formData.address)) {
+        setErrorMessage("Please enter Address");
+        setShowError(true);
+        setTimeout(() => setShowError(false), 5000);
+        return false;
+    }
+    
+    if (isEmpty(formData.city)) {
+        setErrorMessage("Please enter City");
+        setShowError(true);
+        setTimeout(() => setShowError(false), 5000);
+        return false;
+    }
+    
+    if (isEmpty(formData.pincode)) {
+        setErrorMessage("Please enter Pincode");
+        setShowError(true);
+        setTimeout(() => setShowError(false), 5000);
+        return false;
+    }
+    
+    // Pincode - 6 digits
+    const pincodeRegex = /^\d{6}$/;
+    if (!pincodeRegex.test(formData.pincode)) {
+        setErrorMessage("Please enter a valid 6-digit pincode");
+        setShowError(true);
+        setTimeout(() => setShowError(false), 5000);
+        return false;
+    }
+    
+    if (isEmpty(formData.state)) {
+        setErrorMessage("Please enter State");
+        setShowError(true);
+        setTimeout(() => setShowError(false), 5000);
+        return false;
+    }
+    
+    if (isEmpty(formData.country)) {
+        setErrorMessage("Please enter Country");
+        setShowError(true);
+        setTimeout(() => setShowError(false), 5000);
+        return false;
+    }
+    
+    if (!formData.criminal_case) {
+        setErrorMessage("Please select if you have any criminal cases pending");
+        setShowError(true);
+        setTimeout(() => setShowError(false), 5000);
+        return false;
+    }
+    
+    // PAN Card validation (optional but validate format if provided)
+    if (formData.pan_no && formData.pan_no.trim() !== "") {
+        const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+        if (!panRegex.test(formData.pan_no.toUpperCase())) {
+            setErrorMessage("Invalid PAN Card format. Expected: ABCDE1234F");
             setShowError(true);
             setTimeout(() => setShowError(false), 5000);
             return false;
         }
-        if (!formData.application_type) {
-            setErrorMessage("Please select Application Type");
+    }
+    
+    // Aadhaar validation (optional but validate format if provided)
+    if (formData.aadhaar_no && formData.aadhaar_no.trim() !== "") {
+        const aadhaarRegex = /^\d{12}$/;
+        if (!aadhaarRegex.test(formData.aadhaar_no)) {
+            setErrorMessage("Invalid Aadhaar Number. Please enter 12 digits");
             setShowError(true);
             setTimeout(() => setShowError(false), 5000);
             return false;
         }
-        if (!formData.passport_booklet) {
-            setErrorMessage("Please select Passport Booklet Type");
-            setShowError(true);
-            setTimeout(() => setShowError(false), 5000);
-            return false;
-        }
-        if (!formData.name) {
-            setErrorMessage("Please enter your Name");
-            setShowError(true);
-            setTimeout(() => setShowError(false), 5000);
-            return false;
-        }
-        if (!formData.surname) {
-            setErrorMessage("Please enter your Surname");
-            setShowError(true);
-            setTimeout(() => setShowError(false), 5000);
-            return false;
-        }
-        if (!formData.dob) {
-            setErrorMessage("Please select Date of Birth");
-            setShowError(true);
-            setTimeout(() => setShowError(false), 5000);
-            return false;
-        }
-        if (!formData.place_of_birth) {
-            setErrorMessage("Please enter Place of Birth");
-            setShowError(true);
-            setTimeout(() => setShowError(false), 5000);
-            return false;
-        }
-        if (!formData.cell_no) {
-            setErrorMessage("Please enter Cell Number");
-            setShowError(true);
-            setTimeout(() => setShowError(false), 5000);
-            return false;
-        }
-        if (!formData.email) {
-            setErrorMessage("Please enter Email Address");
-            setShowError(true);
-            setTimeout(() => setShowError(false), 5000);
-            return false;
-        }
-        if (!formData.address) {
-            setErrorMessage("Please enter Address");
-            setShowError(true);
-            setTimeout(() => setShowError(false), 5000);
-            return false;
-        }
-        if (!formData.city) {
-            setErrorMessage("Please enter City");
-            setShowError(true);
-            setTimeout(() => setShowError(false), 5000);
-            return false;
-        }
-        if (!formData.pincode) {
-            setErrorMessage("Please enter Pincode");
-            setShowError(true);
-            setTimeout(() => setShowError(false), 5000);
-            return false;
-        }
-        if (!formData.state) {
-            setErrorMessage("Please enter State");
-            setShowError(true);
-            setTimeout(() => setShowError(false), 5000);
-            return false;
-        }
-        if (!formData.country) {
-            setErrorMessage("Please enter Country");
-            setShowError(true);
-            setTimeout(() => setShowError(false), 5000);
-            return false;
-        }
-
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(formData.email)) {
-            setErrorMessage("Please enter a valid email address");
-            setShowError(true);
-            setTimeout(() => setShowError(false), 5000);
-            return false;
-        }
-
-        const phoneRegex = /^\d{10}$/;
-        if (!phoneRegex.test(formData.cell_no)) {
-            setErrorMessage("Please enter a valid 10-digit phone number");
-            setShowError(true);
-            setTimeout(() => setShowError(false), 5000);
-            return false;
-        }
-
-        const pincodeRegex = /^\d{6}$/;
-        if (!pincodeRegex.test(formData.pincode)) {
-            setErrorMessage("Please enter a valid 6-digit pincode");
-            setShowError(true);
-            setTimeout(() => setShowError(false), 5000);
-            return false;
-        }
-
-        return true;
-    };
+    }
+    
+    return true;
+};
 
     const resetForm = () => {
         setFormData({
@@ -1110,7 +1170,7 @@ const PassportFormOneM: React.FC = () => {
                                     className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold flex items-center justify-center gap-2 rounded-lg transition-colors text-sm"
                                 >
                                     <Mail className="h-4 w-4" />
-                                    Email
+                                    Mail
                                 </button>
                             )}
 
