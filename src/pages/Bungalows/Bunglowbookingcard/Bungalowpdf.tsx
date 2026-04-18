@@ -503,10 +503,10 @@ const Bungalowpdf: React.FC<BungalowpdfProps> = ({ bungalow, images, currentImag
         <Text style={styles.pageNumber} render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} fixed />
       </Page>
 
-      {/* Page 5: Places Near By with Q&A */}
+      {/* Page 5: Question & Answers with Q&A */}
       <Page size="A4" style={styles.page}>
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Places Near By</Text>
+          <Text style={styles.sectionTitle}>Question & Answers</Text>
 
           {/* Regular places nearby text */}
           {bungalow.places_nearby && (
@@ -515,7 +515,7 @@ const Bungalowpdf: React.FC<BungalowpdfProps> = ({ bungalow, images, currentImag
             </View>
           )}
 
-          {/* Q&A Section for Places Near By */}
+          {/* Q&A Section for Question & Answers */}
           {placesNearbyQA.length > 0 && (
             <View>
               <Text style={styles.subSectionTitle}>Frequently Asked Questions</Text>

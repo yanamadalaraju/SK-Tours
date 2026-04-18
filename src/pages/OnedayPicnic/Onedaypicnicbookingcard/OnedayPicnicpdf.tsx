@@ -291,17 +291,17 @@ const OnedayPicnicpdf: React.FC<OnedayPicnicpdfProps> = ({ picnic, images, curre
           </View>
         )}
 
-        {/* Places Near By with Q&A - Free flow text then Q&A */}
+        {/* Question & Answers with Q&A - Free flow text then Q&A */}
         {(picnic.places_nearby || placesNearbyQA.length > 0) && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Places Near By</Text>
+            <Text style={styles.sectionTitle}>Question & Answers</Text>
             
             {/* Regular places nearby text - Free flow */}
             {picnic.places_nearby && (
               <Text style={styles.valueText}>{picnic.places_nearby}</Text>
             )}
 
-            {/* Q&A Section for Places Near By */}
+            {/* Q&A Section for Question & Answers */}
             {placesNearbyQA.length > 0 && (
               <View>
                 {placesNearbyQA.map((item: any, index: number) => (

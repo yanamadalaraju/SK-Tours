@@ -86,7 +86,7 @@ const EmailModal: React.FC<EmailModalProps> = ({ isOpen, onClose, onSubmit, tour
 
           <div className="space-y-2">
             <Label htmlFor="to" className="text-gray-700 font-medium">
-            Enter your Email ID
+            Enter your Mail ID
             </Label>
             <Input
               id="to"
@@ -151,7 +151,7 @@ const EmailModal: React.FC<EmailModalProps> = ({ isOpen, onClose, onSubmit, tour
                   Sending...
                 </>
               ) : (
-                'Sent Email'
+                'Sent Mail'
               )}
             </Button>
           </div>
