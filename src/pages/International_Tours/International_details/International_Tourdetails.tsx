@@ -258,7 +258,9 @@ const [loadingDestinations, setLoadingDestinations] = useState(false);
       const processedData = processTourData(data);
       setTour(processedData);
       setTourType(foundTourType || 'Individual');
-
+if (data.basic_details?.primary_destination_name) {
+  setSelectedWorldTours([data.basic_details.primary_destination_name]);
+}
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
       console.error('Error fetching tour details:', err);
