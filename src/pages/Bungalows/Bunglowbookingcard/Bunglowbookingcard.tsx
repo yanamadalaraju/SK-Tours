@@ -356,7 +356,7 @@ const autoScrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     { key: "overview", label: "Overview" },
     { key: "rent", label: "Bungalow Rent" },
     { key: "inclusive", label: "Includes & Excludes" },
-    { key: "nearby", label: "Place Near By" },
+    { key: "nearby", label: "Q & A" },
     { key: "amenities", label: "Amenities" },
     { key: "policy_cancellation", label: "Book.P/Canc.P" }
   ];
@@ -539,7 +539,7 @@ const autoScrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
         return (
           <div className="bg-[#E8F0FF] rounded-lg p-1 w-full">
             <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
-              Places Near By
+              Question & Answers
             </div>
             <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
               <div className="min-h-[250px] lg:min-h-[250px] max-h-[250px] lg:max-h-[250px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">

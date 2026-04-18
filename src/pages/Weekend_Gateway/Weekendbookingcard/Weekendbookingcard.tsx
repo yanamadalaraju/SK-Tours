@@ -345,7 +345,7 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
       case "overview":    return "Overview";
       case "tour":        return "Tour Cost";
       case "inclusive":   return "Includes & Excludes";
-      case "nearby":      return "Place Near By";
+      case "nearby":      return "Q & A";
       case "amenities":   return "Amenities";
       case "policy_cancellation": return "Book.P/Canc.P";
       default:            return tab;
@@ -532,7 +532,7 @@ const handleEmailSubmit = async (emailData: EmailFormData) => {
         return (
           <div className="bg-[#E8F0FF] rounded-lg p-1 w-full">
             <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
-              Places Near By
+              Question & Answers
             </div>
             <div className="border-2 border-[#1e3a8a] border-t-0 overflow-hidden rounded-b-lg w-full">
               <div className="min-h-[250px] lg:min-h-[250px] max-h-[250px] lg:max-h-[250px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
