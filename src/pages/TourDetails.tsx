@@ -782,9 +782,36 @@ const [tourType, setTourType] = useState<'Individual' | 'Group' | 'Ladies Specia
       console.log("processedData", processedData);
       console.log("Found tour type:", foundTourType);
 
-      setTour(processedData);
-      setTourType(foundTourType);
+   setTour(processedData);
+setTourType(foundTourType);
+setSelectedState(data.basic_details?.primary_destination_name || "");
 
+const defaultVisible = [      'Andhra Pradesh',
+                          'Bihar',
+                          'Chhattisgarh',
+                          'Dadra & Nagar Haveli',
+                          'Daman & Diu',
+                          'Delhi',
+                          'Gujarat',
+                          'Haryana',
+                          'Jharkhand',
+                          'Karnataka',
+                          'Ladakh',
+                          'Lakshadweep',
+                          'Madhya Pradesh',
+                          'Maharashtra',
+                          'North East',
+                          'Odisha',
+                          'Puducherry',
+                          'Punjab & Haryana',
+                          'Seven Sisters',
+                          'Tamil Nadu',
+                          'Uttar Pradesh',
+                          'Uttarakhand',
+                          'West Bengal',];
+if (!defaultVisible.includes(data.basic_details?.primary_destination_name)) {
+  setShowMoreIndian(true);
+}
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
       console.error('Error fetching tour details:', err);
