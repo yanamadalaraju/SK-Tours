@@ -93,38 +93,38 @@ const CheckoutPageOfflineFlights = () => {
 
   // Initialize flight data and passenger details
   useEffect(() => {
-    const initializeFlightData = (flight: FlightData) => {
-      // Calculate actual prices from API data
-      const adultCount = flight.adults || 1;
-      const childCount = flight.children || 0;
-      const infantCount = flight.infants || 0;
-      
-      // Get actual prices from API
-      const adultPrice = parsePrice(flight.price_per_adult);
-      const childPrice = flight.price_per_child ? parsePrice(flight.price_per_child) : 0;
-      const infantPrice = 0; // Infants are usually free
-      
-      // Calculate total based on actual API prices
-      const calculatedTotal = (adultCount * adultPrice) + (childCount * childPrice) + (infantCount * infantPrice);
-      
-      // Use API total_amount if available and valid, otherwise use calculated total
-      const apiTotalAmount = flight.total_amount ? parsePrice(flight.total_amount) : null;
-      const finalTotal = apiTotalAmount && apiTotalAmount > 0 ? apiTotalAmount : calculatedTotal;
-      
-      const enrichedFlight: FlightData = {
-        ...flight,
-        adult_price: adultPrice,
-        child_price: childPrice,
-        infant_price: infantPrice,
-        total_price_value: finalTotal
-      };
-      
-      setFlightData(enrichedFlight);
-      setCustomPaymentAmount(finalTotal.toString());
-      setPaymentType('full');
-      
-      initializePassengerDetails(enrichedFlight);
-    };
+   const initializeFlightData = (flight: FlightData) => {
+  // Use the selected traveller counts (these override the API's capacity limits)
+  const adultCount = flight.adults || 1;
+  const childCount = flight.children || 0;
+  const infantCount = flight.infants || 0;
+  
+  // Get actual prices from API
+  const adultPrice = parsePrice(flight.price_per_adult);
+  const childPrice = flight.price_per_child ? parsePrice(flight.price_per_child) : 0;
+  const infantPrice = 0; // Infants are usually free
+  
+  // Calculate total based on actual API prices and selected counts
+  const calculatedTotal = (adultCount * adultPrice) + (childCount * childPrice) + (infantCount * infantPrice);
+  
+  // Use API total_amount if available and valid, otherwise use calculated total
+  const apiTotalAmount = flight.total_amount ? parsePrice(flight.total_amount) : null;
+  const finalTotal = apiTotalAmount && apiTotalAmount > 0 ? apiTotalAmount : calculatedTotal;
+  
+  const enrichedFlight: FlightData = {
+    ...flight,
+    adult_price: adultPrice,
+    child_price: childPrice,
+    infant_price: infantPrice,
+    total_price_value: finalTotal
+  };
+  
+  setFlightData(enrichedFlight);
+  setCustomPaymentAmount(finalTotal.toString());
+  setPaymentType('full');
+  
+  initializePassengerDetails(enrichedFlight);
+};
 
     if (location.state?.flight) {
       initializeFlightData(location.state.flight);
@@ -140,63 +140,74 @@ const CheckoutPageOfflineFlights = () => {
   }, [location]);
 
   const initializePassengerDetails = (flight: FlightData) => {
-    const adults = flight.adults || 1;
-    const children = flight.children || 0;
-    const infants = flight.infants || 0;
+  // IMPORTANT: Use the selected traveller counts that were stored during booking
+  // These override the API's capacity limits (flight.adults, flight.children)
+  const selectedAdults = flight.adults || 1;      // This is now the selected count from search
+  const selectedChildren = flight.children || 0;  // This is now the selected count from search
+  const selectedInfants = flight.infants || 0;    // This is now the selected count from search
 
-    const details: PassengerDetails[] = [];
-    let id = 1;
+  console.log('Initializing passengers:', { 
+    selectedAdults, 
+    selectedChildren, 
+    selectedInfants 
+  });
 
-    for (let i = 0; i < adults; i++) {
-      details.push({
-        id: id++,
-        type: 'adult',
-        name: '',
-        firstName: '',
-        middleName: '',
-        lastName: '',
-        age: 0,
-        dob: '',
-        gender: 'Mr',
-        passportNo: '',
-        passportExpireDate: ''
-      });
-    }
+  const details: PassengerDetails[] = [];
+  let id = 1;
 
-    for (let i = 0; i < children; i++) {
-      details.push({
-        id: id++,
-        type: 'child',
-        name: '',
-        firstName: '',
-        middleName: '',
-        lastName: '',
-        age: 8,
-        dob: '',
-        gender: 'Mstr',
-        passportNo: '',
-        passportExpireDate: ''
-      });
-    }
+  // Create adult passenger forms
+  for (let i = 0; i < selectedAdults; i++) {
+    details.push({
+      id: id++,
+      type: 'adult',
+      name: '',
+      firstName: '',
+      middleName: '',
+      lastName: '',
+      age: 0,
+      dob: '',
+      gender: 'Mr',
+      passportNo: '',
+      passportExpireDate: ''
+    });
+  }
 
-    for (let i = 0; i < infants; i++) {
-      details.push({
-        id: id++,
-        type: 'infant',
-        name: '',
-        firstName: '',
-        middleName: '',
-        lastName: '',
-        age: 1,
-        dob: '',
-        gender: 'Mstr',
-        passportNo: '',
-        passportExpireDate: ''
-      });
-    }
+  // Create child passenger forms
+  for (let i = 0; i < selectedChildren; i++) {
+    details.push({
+      id: id++,
+      type: 'child',
+      name: '',
+      firstName: '',
+      middleName: '',
+      lastName: '',
+      age: 8,
+      dob: '',
+      gender: 'Mstr',
+      passportNo: '',
+      passportExpireDate: ''
+    });
+  }
 
-    setPassengerDetails(details);
-  };
+  // Create infant passenger forms
+  for (let i = 0; i < selectedInfants; i++) {
+    details.push({
+      id: id++,
+      type: 'infant',
+      name: '',
+      firstName: '',
+      middleName: '',
+      lastName: '',
+      age: 1,
+      dob: '',
+      gender: 'Mstr',
+      passportNo: '',
+      passportExpireDate: ''
+    });
+  }
+
+  setPassengerDetails(details);
+};
 
   const handlePassengerInputChange = (passengerId: number, field: keyof PassengerDetails, value: string | number) => {
     setPassengerDetails(prev =>

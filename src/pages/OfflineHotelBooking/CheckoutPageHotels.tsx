@@ -70,6 +70,10 @@ interface HotelData {
   [key: string]: any;
 }
 
+
+
+
+
 const CheckoutPageHotels = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -158,6 +162,7 @@ const CheckoutPageHotels = () => {
 
     initializeData();
   }, [location]);
+  
 
   // SIMPLE TOTAL COST - Just return the pre-calculated value
   const getTotalHotelCost = () => {
