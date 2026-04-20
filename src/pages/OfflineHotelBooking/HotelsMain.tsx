@@ -25,11 +25,13 @@ import Footer from "@/components/Footer";
 import { BASE_URL } from "@/ApiUrls";
 
 // Types
+// Updated Types
 interface TravellerCount {
   rooms: number;
   adults: number;
   children: number;
   infants?: number;
+  pets?: boolean; // Add pets flag
 }
 
 interface Hotel {
@@ -416,14 +418,16 @@ const GuestsDropdown = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [onClose]);
 
-  useEffect(() => {
-    onTravellersChange({
-      rooms,
-      adults,
-      children,
-      infants: 0
-    });
-  }, [rooms, adults, children, onTravellersChange]);
+ // Inside GuestsDropdown component, update the useEffect that syncs with parent
+useEffect(() => {
+  onTravellersChange({
+    rooms,
+    adults,
+    children,
+    infants: 0,
+    pets: withPets // Pass pets selection to parent
+  });
+}, [rooms, adults, children, withPets, onTravellersChange]);
 
   const updateChildrenAge = (index: number, age: number) => {
     const newAges = [...childrenAges];
@@ -536,6 +540,7 @@ const GuestsDropdown = ({
 };
 
 // ==================== Filter Sidebar Component ====================
+// ==================== Filter Sidebar Component ====================
 const FilterSidebar = ({ 
   hotels, 
   onFilterChange,
@@ -547,6 +552,37 @@ const FilterSidebar = ({
   selectedFilters: any;
   onClearFilters: () => void;
 }) => {
+  // Extract all unique amenities from the actual hotel data
+  const getAvailableAmenities = () => {
+    const amenitySet = new Set<string>();
+    hotels.forEach(hotel => {
+      if (hotel.amenities) {
+        if (Array.isArray(hotel.amenities)) {
+          hotel.amenities.forEach(a => {
+            if (a && typeof a === 'string') {
+              amenitySet.add(a.trim());
+            }
+          });
+        } else if (typeof hotel.amenities === 'string') {
+          hotel.amenities.split(',').forEach(a => {
+            if (a) amenitySet.add(a.trim());
+          });
+        }
+      }
+    });
+    return Array.from(amenitySet).sort();
+  };
+
+  // Extract unique cities/locations from hotel data
+  const getAvailableLocations = () => {
+    const locationSet = new Set<string>();
+    hotels.forEach(hotel => {
+      if (hotel.city) locationSet.add(hotel.city);
+      if (hotel.hotel_location) locationSet.add(hotel.hotel_location);
+    });
+    return Array.from(locationSet).sort();
+  };
+
   const getPriceRangeCount = (min: number, max: number | null) => {
     return hotels.filter(hotel => {
       const price = getEffectivePrice(hotel);
@@ -564,17 +600,25 @@ const FilterSidebar = ({
       if (!hotel.amenities) return false;
       
       if (Array.isArray(hotel.amenities)) {
+        // Exact match for array items
         return hotel.amenities.some(a => 
-          a.toLowerCase().includes(amenity.toLowerCase())
+          String(a).trim().toLowerCase() === amenity.toLowerCase()
         );
       }
       
       if (typeof hotel.amenities === 'string') {
-        return hotel.amenities.toLowerCase().includes(amenity.toLowerCase());
+        // Split by comma and check for exact match
+        return hotel.amenities.split(',').some(a => 
+          a.trim().toLowerCase() === amenity.toLowerCase()
+        );
       }
       
       return false;
     }).length;
+  };
+
+  const getRatingCount = (minRating: number) => {
+    return hotels.filter(hotel => Number(hotel.rating) >= minRating).length;
   };
 
   const priceRanges = [
@@ -589,11 +633,13 @@ const FilterSidebar = ({
 
   const starCategories = [3, 4, 5];
   
-  const amenitiesList = [
-    'Free Cancellation', 'Breakfast Included', 'Swimming Pool', 
-    'Spa', 'Wi-Fi', 'Pet Friendly', 'Parking', 'Airport Shuttle', 
-    'Restaurant', 'Fitness Center', 'Room Service', 'Bar'
-  ];
+  // Get actual amenities from hotel data
+  const actualAmenities = getAvailableAmenities();
+  
+  // Fallback amenities if none found in data
+  const amenitiesList = actualAmenities.length > 0 
+    ? actualAmenities 
+    : ['Free WiFi', 'Air Conditioning', 'TV', 'Tea/Coffee Maker', 'Mini Fridge', 'Bathtub', 'Mini Bar'];
 
   const activeFiltersCount = () => {
     let count = 0;
@@ -602,8 +648,18 @@ const FilterSidebar = ({
     if (selectedFilters.amenities?.length) count += selectedFilters.amenities.length;
     if (selectedFilters.minRating && selectedFilters.minRating > 0) count++;
     if (selectedFilters.customBudget?.min || selectedFilters.customBudget?.max) count++;
+    if (selectedFilters.location) count++;
     return count;
   };
+
+  const [searchLocation, setSearchLocation] = useState(selectedFilters.location || '');
+  const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
+  
+  const availableLocations = getAvailableLocations();
+  
+  const filteredLocationSuggestions = availableLocations.filter(loc => 
+    loc.toLowerCase().includes(searchLocation.toLowerCase())
+  ).slice(0, 5);
 
   return (
     <div className="bg-white rounded-xl shadow-lg p-6 sticky top-24">
@@ -616,20 +672,74 @@ const FilterSidebar = ({
           <p className="text-sm text-gray-500 mt-1">Refine your hotel search</p>
         </div>
         {activeFiltersCount() > 0 && (
-          <button onClick={onClearFilters} className="text-sm text-orange-600 hover:text-orange-700 font-medium">
+          <button 
+            onClick={() => {
+              setSearchLocation('');
+              onClearFilters();
+            }} 
+            className="text-sm text-orange-600 hover:text-orange-700 font-medium"
+          >
             Clear all ({activeFiltersCount()})
           </button>
         )}
       </div>
 
+      {/* Location Filter */}
       <div className="mb-6">
         <h3 className="font-semibold text-gray-800 mb-3">Search for locality / hotel name</h3>
         <div className="relative">
-          <input type="text" placeholder="Enter locality or hotel" className="w-full p-3 pl-10 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/30 transition-all" />
+          <input 
+            type="text" 
+            placeholder="Enter locality or hotel" 
+            value={searchLocation}
+            onChange={(e) => {
+              setSearchLocation(e.target.value);
+              setShowLocationSuggestions(true);
+            }}
+            onFocus={() => setShowLocationSuggestions(true)}
+            onBlur={() => setTimeout(() => setShowLocationSuggestions(false), 200)}
+            className="w-full p-3 pl-10 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/30 transition-all" 
+          />
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+          
+          {showLocationSuggestions && searchLocation && filteredLocationSuggestions.length > 0 && (
+            <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+              {filteredLocationSuggestions.map((loc, idx) => (
+                <div
+                  key={idx}
+                  className="px-4 py-2 hover:bg-orange-50 cursor-pointer text-sm"
+                  onClick={() => {
+                    setSearchLocation(loc);
+                    onFilterChange({ ...selectedFilters, location: loc });
+                    setShowLocationSuggestions(false);
+                  }}
+                >
+                  <MapPin className="w-3 h-3 inline mr-2 text-gray-400" />
+                  {loc}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
+        {selectedFilters.location && (
+          <div className="mt-2 flex items-center gap-2">
+            <span className="text-xs bg-orange-50 text-orange-600 px-2 py-1 rounded-full flex items-center gap-1">
+              {selectedFilters.location}
+              <button 
+                onClick={() => {
+                  setSearchLocation('');
+                  onFilterChange({ ...selectedFilters, location: '' });
+                }}
+                className="hover:text-orange-800"
+              >
+                <X size={12} />
+              </button>
+            </span>
+          </div>
+        )}
       </div>
 
+      {/* Price Per Night */}
       <div className="mb-6">
         <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
           <DollarSign className="w-4 h-4 text-gray-500" />
@@ -664,6 +774,7 @@ const FilterSidebar = ({
         </div>
       </div>
 
+      {/* Custom Budget */}
       <div className="mb-6 p-4 bg-gray-50 rounded-xl">
         <h3 className="font-semibold text-gray-800 mb-3">Custom Budget</h3>
         <div className="flex gap-3">
@@ -696,6 +807,7 @@ const FilterSidebar = ({
         </div>
       </div>
 
+      {/* Star Category */}
       <div className="mb-6">
         <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
           <Star className="w-4 h-4 text-gray-500" />
@@ -721,7 +833,9 @@ const FilterSidebar = ({
                     className="w-4 h-4 rounded border-gray-300 text-orange-600 focus:ring-orange-500 cursor-pointer" 
                   />
                   <div className="flex items-center gap-1">
-                    {[...Array(stars)].map((_, i) => (<Star key={i} className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />))}
+                    {[...Array(stars)].map((_, i) => (
+                      <Star key={i} className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
+                    ))}
                     <span className="text-gray-700 text-sm ml-1">{stars} Star</span>
                   </div>
                 </div>
@@ -732,61 +846,116 @@ const FilterSidebar = ({
         </div>
       </div>
 
+      {/* Guest Rating */}
       <div className="mb-6">
         <h3 className="font-semibold text-gray-800 mb-3">Guest Rating</h3>
         <div className="space-y-2.5">
-          {[4.5, 4.0, 3.5, 3.0].map(rating => (
-            <label key={rating} className="flex items-center gap-3 cursor-pointer group">
-              <input 
-                type="radio" 
-                name="rating" 
-                checked={selectedFilters.minRating === rating} 
-                onChange={() => onFilterChange({ ...selectedFilters, minRating: rating })} 
-                className="w-4 h-4 text-orange-600 focus:ring-orange-500 cursor-pointer" 
-              />
-              <span className="text-gray-700 group-hover:text-orange-600 transition-colors text-sm">{rating}+ Stars</span>
-            </label>
-          ))}
+          {[4.5, 4.0, 3.5, 3.0].map(rating => {
+            const count = getRatingCount(rating);
+            return (
+              <label key={rating} className="flex items-center justify-between cursor-pointer group">
+                <div className="flex items-center gap-3">
+                  <input 
+                    type="radio" 
+                    name="rating" 
+                    checked={selectedFilters.minRating === rating} 
+                    onChange={() => onFilterChange({ ...selectedFilters, minRating: rating })} 
+                    className="w-4 h-4 text-orange-600 focus:ring-orange-500 cursor-pointer" 
+                  />
+                  <span className="text-gray-700 group-hover:text-orange-600 transition-colors text-sm">{rating}+ Stars</span>
+                </div>
+                <span className="text-xs text-gray-400">({count})</span>
+              </label>
+            );
+          })}
+          {selectedFilters.minRating > 0 && (
+            <button 
+              onClick={() => onFilterChange({ ...selectedFilters, minRating: 0 })}
+              className="text-xs text-orange-600 hover:text-orange-700 mt-1"
+            >
+              Clear rating filter
+            </button>
+          )}
         </div>
       </div>
 
+      {/* Amenities */}
       <div className="mb-6">
         <h3 className="font-semibold text-gray-800 mb-3">Amenities</h3>
-        <div className="grid grid-cols-2 gap-2.5">
+        <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
           {amenitiesList.map(amenity => {
             const count = getAmenityCount(amenity);
             const isSelected = selectedFilters.amenities?.includes(amenity);
             return (
-              <label key={amenity} className="flex items-center gap-2 cursor-pointer group">
-                <input 
-                  type="checkbox" 
-                  checked={isSelected || false} 
-                  onChange={() => {
-                    const currentAmenities = selectedFilters.amenities || [];
-                    const newAmenities = currentAmenities.includes(amenity)
-                      ? currentAmenities.filter((a: string) => a !== amenity)
-                      : [...currentAmenities, amenity];
-                    onFilterChange({ ...selectedFilters, amenities: newAmenities });
-                  }} 
-                  className="w-3.5 h-3.5 rounded border-gray-300 text-orange-600 focus:ring-orange-500 cursor-pointer" 
-                />
-                <span className="text-xs text-gray-700 group-hover:text-orange-600 transition-colors">{amenity}</span>
-                <span className="text-xs text-gray-400">({count})</span>
+              <label key={amenity} className="flex items-center justify-between cursor-pointer group">
+                <div className="flex items-center gap-2">
+                  <input 
+                    type="checkbox" 
+                    checked={isSelected || false} 
+                    onChange={() => {
+                      const currentAmenities = selectedFilters.amenities || [];
+                      const newAmenities = currentAmenities.includes(amenity)
+                        ? currentAmenities.filter((a: string) => a !== amenity)
+                        : [...currentAmenities, amenity];
+                      onFilterChange({ ...selectedFilters, amenities: newAmenities });
+                    }} 
+                    className="w-3.5 h-3.5 rounded border-gray-300 text-orange-600 focus:ring-orange-500 cursor-pointer" 
+                  />
+                  <span className="text-sm text-gray-700 group-hover:text-orange-600 transition-colors truncate max-w-[180px]">
+                    {amenity}
+                  </span>
+                </div>
+                <span className="text-xs text-gray-400 ml-2">({count})</span>
               </label>
             );
           })}
         </div>
       </div>
 
+      {/* Active Filters Summary */}
       {activeFiltersCount() > 0 && (
         <div className="pt-4 border-t">
           <p className="text-xs text-gray-500 mb-2">Active filters:</p>
           <div className="flex flex-wrap gap-2">
-            {selectedFilters.priceRanges?.slice(0, 3).map((range: string) => (<span key={range} className="text-xs bg-orange-50 text-orange-600 px-2 py-1 rounded-full">{range.replace('-inf', '+').replace('-', ' - ')}</span>))}
-            {selectedFilters.stars?.map((stars: number) => (<span key={stars} className="text-xs bg-orange-50 text-orange-600 px-2 py-1 rounded-full">{stars} Star</span>))}
-            {selectedFilters.amenities?.slice(0, 2).map((amenity: string) => (<span key={amenity} className="text-xs bg-orange-50 text-orange-600 px-2 py-1 rounded-full">{amenity}</span>))}
-            {selectedFilters.minRating > 0 && (<span className="text-xs bg-orange-50 text-orange-600 px-2 py-1 rounded-full">{selectedFilters.minRating}+ Rating</span>)}
-            {activeFiltersCount() > 5 && (<span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">+{activeFiltersCount() - 5} more</span>)}
+            {selectedFilters.location && (
+              <span className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded-full flex items-center gap-1">
+                <MapPin size={10} />
+                {selectedFilters.location}
+              </span>
+            )}
+            {selectedFilters.priceRanges?.slice(0, 3).map((range: string) => {
+              const display = range.replace('-inf', '+').replace(/-/g, ' - ₹');
+              return (
+                <span key={range} className="text-xs bg-orange-50 text-orange-600 px-2 py-1 rounded-full">
+                  ₹{display}
+                </span>
+              );
+            })}
+            {selectedFilters.customBudget?.min && selectedFilters.customBudget?.max && (
+              <span className="text-xs bg-orange-50 text-orange-600 px-2 py-1 rounded-full">
+                ₹{selectedFilters.customBudget.min} - ₹{selectedFilters.customBudget.max}
+              </span>
+            )}
+            {selectedFilters.stars?.map((stars: number) => (
+              <span key={stars} className="text-xs bg-orange-50 text-orange-600 px-2 py-1 rounded-full">
+                {stars} ★
+              </span>
+            ))}
+            {selectedFilters.minRating > 0 && (
+              <span className="text-xs bg-orange-50 text-orange-600 px-2 py-1 rounded-full">
+                {selectedFilters.minRating}+ Rating
+              </span>
+            )}
+            {selectedFilters.amenities?.slice(0, 3).map((amenity: string) => (
+              <span key={amenity} className="text-xs bg-orange-50 text-orange-600 px-2 py-1 rounded-full truncate max-w-[120px]">
+                {amenity}
+              </span>
+            ))}
+            {activeFiltersCount() > 6 && (
+              <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
+                +{activeFiltersCount() - 6} more
+              </span>
+            )}
           </div>
         </div>
       )}
@@ -1088,11 +1257,12 @@ const HotelSearchMain = () => {
     return d;
   });
   const [travellers, setTravellers] = useState<TravellerCount>({
-    rooms: 1,
-    adults: 2,
-    children: 0,
-    infants: 0
-  });
+  rooms: 1,
+  adults: 2,
+  children: 0,
+  infants: 0,
+  pets: false
+});
 
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
   const [showCheckInDropdown, setShowCheckInDropdown] = useState(false);
@@ -1142,96 +1312,141 @@ const HotelSearchMain = () => {
     }
   };
 
-  const applyFilters = (hotelList: Hotel[], currentFilters: typeof filters, searchLocation: string, searchCheckIn: Date | undefined, searchCheckOut: Date | undefined, searchTravellers: TravellerCount) => {
-    let filtered = [...hotelList];
+  // Update the applyFilters function to include location filter
+// Update the applyFilters function with correct guest capacity logic
+const applyFilters = (hotelList: Hotel[], currentFilters: typeof filters, searchLocation: string, searchCheckIn: Date | undefined, searchCheckOut: Date | undefined, searchTravellers: TravellerCount) => {
+  let filtered = [...hotelList];
 
-    if (currentFilters.priceRanges.length > 0) {
-      filtered = filtered.filter(hotel => {
-        const price = getEffectivePrice(hotel);
-        return currentFilters.priceRanges.some(rangeKey => {
-          const [min, max] = rangeKey.split('-').map(v => v === 'inf' ? Infinity : Number(v));
-          return price >= min && price <= max;
-        });
-      });
-    }
-
-    if (currentFilters.customBudget.min) {
-      filtered = filtered.filter(hotel => getEffectivePrice(hotel) >= Number(currentFilters.customBudget.min));
-    }
-    if (currentFilters.customBudget.max) {
-      filtered = filtered.filter(hotel => getEffectivePrice(hotel) <= Number(currentFilters.customBudget.max));
-    }
-
-    if (currentFilters.stars.length > 0) {
-      filtered = filtered.filter(hotel => currentFilters.stars.includes(hotel.star_rating));
-    }
-
-    if (currentFilters.minRating > 0) {
-      filtered = filtered.filter(hotel => Number(hotel.rating) >= currentFilters.minRating);
-    }
-
-    if (currentFilters.amenities.length > 0) {
-      filtered = filtered.filter(hotel => {
-        if (!hotel.amenities) return false;
-        
-        const amenitiesIncludes = (amenity: string): boolean => {
-          const searchTerm = amenity.toLowerCase();
-          
-          if (Array.isArray(hotel.amenities)) {
-            return hotel.amenities.some(a => 
-              String(a).toLowerCase().includes(searchTerm)
-            );
-          }
-          
-          if (typeof hotel.amenities === 'string') {
-            return hotel.amenities.toLowerCase().includes(searchTerm);
-          }
-          
-          return false;
-        };
-        
-        return currentFilters.amenities.every(amenitiesIncludes);
-      });
-    }
-
+  // Apply location filter from sidebar (if set)
+  if (currentFilters.location) {
+    const filterLocation = currentFilters.location.toLowerCase();
     filtered = filtered.filter(hotel => {
-      const searchLocationLower = searchLocation.toLowerCase();
       const hotelCity = (hotel.city || '').toLowerCase();
       const hotelLocation = (hotel.hotel_location || '').toLowerCase();
-      return hotelCity.includes(searchLocationLower) || hotelLocation.includes(searchLocationLower);
+      const hotelName = (hotel.hotel_name || '').toLowerCase();
+      return hotelCity.includes(filterLocation) || 
+             hotelLocation.includes(filterLocation) || 
+             hotelName.includes(filterLocation);
     });
+  }
 
+  // Apply price range filters
+  if (currentFilters.priceRanges.length > 0) {
     filtered = filtered.filter(hotel => {
-      let dateMatch = true;
-      if (searchCheckIn && hotel.check_in_date) {
-        const hotelCheckIn = new Date(hotel.check_in_date);
-        const searchCheckInDate = new Date(searchCheckIn);
-        hotelCheckIn.setHours(0, 0, 0, 0);
-        searchCheckInDate.setHours(0, 0, 0, 0);
-        dateMatch = hotelCheckIn.getTime() === searchCheckInDate.getTime();
-      }
-      if (dateMatch && searchCheckOut && hotel.check_out_date) {
-        const hotelCheckOut = new Date(hotel.check_out_date);
-        const searchCheckOutDate = new Date(searchCheckOut);
-        hotelCheckOut.setHours(0, 0, 0, 0);
-        searchCheckOutDate.setHours(0, 0, 0, 0);
-        dateMatch = hotelCheckOut.getTime() === searchCheckOutDate.getTime();
-      }
-      return dateMatch;
+      const price = getEffectivePrice(hotel);
+      return currentFilters.priceRanges.some(rangeKey => {
+        const [min, max] = rangeKey.split('-').map(v => v === 'inf' ? Infinity : Number(v));
+        return price >= min && price <= max;
+      });
     });
+  }
 
+  // Apply custom budget filter
+  if (currentFilters.customBudget.min) {
+    filtered = filtered.filter(hotel => getEffectivePrice(hotel) >= Number(currentFilters.customBudget.min));
+  }
+  if (currentFilters.customBudget.max) {
+    filtered = filtered.filter(hotel => getEffectivePrice(hotel) <= Number(currentFilters.customBudget.max));
+  }
+
+  // Apply star rating filter
+  if (currentFilters.stars.length > 0) {
+    filtered = filtered.filter(hotel => currentFilters.stars.includes(hotel.star_rating));
+  }
+
+  // Apply guest rating filter
+  if (currentFilters.minRating > 0) {
+    filtered = filtered.filter(hotel => Number(hotel.rating) >= currentFilters.minRating);
+  }
+
+  // Apply amenities filter
+  if (currentFilters.amenities.length > 0) {
     filtered = filtered.filter(hotel => {
-      let guestMatch = true;
-      if (searchTravellers) {
-        if (hotel.rooms && hotel.rooms < searchTravellers.rooms) guestMatch = false;
-        if (hotel.adults && hotel.adults < searchTravellers.adults) guestMatch = false;
-        if (hotel.children !== undefined && hotel.children < searchTravellers.children) guestMatch = false;
-      }
-      return guestMatch;
+      if (!hotel.amenities) return false;
+      
+      const amenitiesIncludes = (amenity: string): boolean => {
+        const searchTerm = amenity.toLowerCase().trim();
+        
+        if (Array.isArray(hotel.amenities)) {
+          return hotel.amenities.some(a => 
+            String(a).trim().toLowerCase() === searchTerm
+          );
+        }
+        
+        if (typeof hotel.amenities === 'string') {
+          return hotel.amenities.split(',').some(a => 
+            a.trim().toLowerCase() === searchTerm
+          );
+        }
+        
+        return false;
+      };
+      
+      return currentFilters.amenities.every(amenitiesIncludes);
     });
+  }
 
-    return filtered;
-  };
+  // Apply location search from main search bar
+  const searchLocationLower = searchLocation.toLowerCase();
+  filtered = filtered.filter(hotel => {
+    const hotelCity = (hotel.city || '').toLowerCase();
+    const hotelLocation = (hotel.hotel_location || '').toLowerCase();
+    const hotelName = (hotel.hotel_name || '').toLowerCase();
+    return hotelCity.includes(searchLocationLower) || 
+           hotelLocation.includes(searchLocationLower) || 
+           hotelName.includes(searchLocationLower);
+  });
+
+  // Apply date filters
+  filtered = filtered.filter(hotel => {
+    let dateMatch = true;
+    if (searchCheckIn && hotel.check_in_date) {
+      const hotelCheckIn = new Date(hotel.check_in_date);
+      const searchCheckInDate = new Date(searchCheckIn);
+      hotelCheckIn.setHours(0, 0, 0, 0);
+      searchCheckInDate.setHours(0, 0, 0, 0);
+      dateMatch = hotelCheckIn.getTime() === searchCheckInDate.getTime();
+    }
+    if (dateMatch && searchCheckOut && hotel.check_out_date) {
+      const hotelCheckOut = new Date(hotel.check_out_date);
+      const searchCheckOutDate = new Date(searchCheckOut);
+      hotelCheckOut.setHours(0, 0, 0, 0);
+      searchCheckOutDate.setHours(0, 0, 0, 0);
+      dateMatch = hotelCheckOut.getTime() === searchCheckOutDate.getTime();
+    }
+    return dateMatch;
+  });
+
+  // FIXED: Apply guest capacity filters - Hotel must have >= capacity than requested
+  filtered = filtered.filter(hotel => {
+    // If no travellers data is provided, show the hotel
+    if (!searchTravellers) return true;
+    
+    // Check rooms capacity - hotel must have at least the number of rooms requested
+    if (hotel.rooms !== undefined && hotel.rooms !== null) {
+      if (hotel.rooms < searchTravellers.rooms) return false;
+    }
+    
+    // Check adults capacity - hotel must have at least the number of adults requested
+    if (hotel.adults !== undefined && hotel.adults !== null) {
+      if (hotel.adults < searchTravellers.adults) return false;
+    }
+    
+    // Check children capacity - hotel must have at least the number of children requested
+    if (hotel.children !== undefined && hotel.children !== null) {
+      if (hotel.children < searchTravellers.children) return false;
+    }
+    
+    // Check pets - if pets are requested, hotel must allow pets
+    if (searchTravellers.infants === 1) { // Using infants as pets flag if needed
+      if (hotel.pets !== 1 && hotel.pets !== true) return false;
+    }
+    
+    return true;
+  });
+
+  return filtered;
+};
 
   useEffect(() => {
     if (hotels.length > 0) {

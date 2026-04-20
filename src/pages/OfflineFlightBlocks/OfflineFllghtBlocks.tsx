@@ -706,80 +706,99 @@ const FlightResults = ({ searchData, onBack, travellers }: { searchData: any; on
     mealsIncluded: false
   });
 
-  useEffect(() => {
-    const fetchFlights = async () => {
-      if (!searchData) return;
-      
-      setLoading(true);
-      setError(null);
-      
-      try {
-        const response = await fetch(`${BASE_URL}/api/offline-flights`);
-        const result = await response.json();
-        
-        if (result.success && result.data) {
-          const searchTripType = searchData.tripType === 'one-way' ? 'oneWay' : 'roundTrip';
-          
-          const filteredFlights = result.data.filter((flight: Flight) => {
-            const fromCityMatch = flight.from_city?.toLowerCase() === searchData.fromCity?.name?.toLowerCase();
-            const toCityMatch = flight.to_city?.toLowerCase() === searchData.toCity?.name?.toLowerCase();
-            
-            const flightDepartureDate = flight.departure_date ? new Date(flight.departure_date) : null;
-            const searchDepartureDate = searchData.departureDate;
-            
-            let dateMatch = false;
-            if (flightDepartureDate && searchDepartureDate) {
-              const flightDateStr = format(flightDepartureDate, 'yyyy-MM-dd');
-              const searchDateStr = format(searchDepartureDate, 'yyyy-MM-dd');
-              dateMatch = flightDateStr === searchDateStr;
-            }
-            
-            const bookingTypeMatch = flight.booking_type === searchTripType;
-            
-            let returnDateMatch = true;
-            if (searchTripType === 'roundTrip' && searchData.returnDate) {
-              if (flight.return_date) {
-                const flightReturnDate = new Date(flight.return_date);
-                const searchReturnDate = searchData.returnDate;
-                const flightReturnDateStr = format(flightReturnDate, 'yyyy-MM-dd');
-                const searchReturnDateStr = format(searchReturnDate, 'yyyy-MM-dd');
-                returnDateMatch = flightReturnDateStr === searchReturnDateStr;
-              } else {
-                returnDateMatch = false;
-              }
-            }
-            
-            return fromCityMatch && toCityMatch && dateMatch && bookingTypeMatch && returnDateMatch;
-          });
-          
-          setFlights(filteredFlights);
-          setFilteredFlights(filteredFlights);
-          
-          const airlineFilters: Record<string, boolean> = {};
-          filteredFlights.forEach((flight: Flight) => {
-            if (flight.airline && !airlineFilters[flight.airline]) {
-              airlineFilters[flight.airline] = true;
-            }
-          });
-          setFilters(prev => ({ ...prev, airlines: airlineFilters }));
-          
-          if (filteredFlights.length > 0) {
-            const maxPrice = Math.max(...filteredFlights.map(f => parseFloat(f.price_per_adult)));
-            setFilters(prev => ({ ...prev, priceRange: { ...prev.priceRange, max: maxPrice } }));
-          }
-        } else {
-          setError('No flights found');
-        }
-      } catch (err) {
-        console.error('Error fetching flights:', err);
-        setError('Failed to fetch flights. Please try again.');
-      } finally {
-        setLoading(false);
-      }
-    };
+ // Inside FlightResults component, update the fetchFlights function:
 
-    fetchFlights();
-  }, [searchData]);
+useEffect(() => {
+  const fetchFlights = async () => {
+    if (!searchData) return;
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const response = await fetch(`${BASE_URL}/api/offline-flights`);
+      const result = await response.json();
+      
+      if (result.success && result.data) {
+        const searchTripType = searchData.tripType === 'one-way' ? 'oneWay' : 'roundTrip';
+        
+        const filteredFlights = result.data.filter((flight: Flight) => {
+          const fromCityMatch = flight.from_city?.toLowerCase() === searchData.fromCity?.name?.toLowerCase();
+          const toCityMatch = flight.to_city?.toLowerCase() === searchData.toCity?.name?.toLowerCase();
+          
+          const flightDepartureDate = flight.departure_date ? new Date(flight.departure_date) : null;
+          const searchDepartureDate = searchData.departureDate;
+          
+          let dateMatch = false;
+          if (flightDepartureDate && searchDepartureDate) {
+            const flightDateStr = format(flightDepartureDate, 'yyyy-MM-dd');
+            const searchDateStr = format(searchDepartureDate, 'yyyy-MM-dd');
+            dateMatch = flightDateStr === searchDateStr;
+          }
+          
+          const bookingTypeMatch = flight.booking_type === searchTripType;
+          
+          let returnDateMatch = true;
+          if (searchTripType === 'roundTrip' && searchData.returnDate) {
+            if (flight.return_date) {
+              const flightReturnDate = new Date(flight.return_date);
+              const searchReturnDate = searchData.returnDate;
+              const flightReturnDateStr = format(flightReturnDate, 'yyyy-MM-dd');
+              const searchReturnDateStr = format(searchReturnDate, 'yyyy-MM-dd');
+              returnDateMatch = flightReturnDateStr === searchReturnDateStr;
+            } else {
+              returnDateMatch = false;
+            }
+          }
+          
+          // FIXED: Apply guest capacity filters - Flight must have >= capacity than requested
+          const requestedAdults = travellers.adults;
+          const requestedChildren = travellers.children;
+          const requestedInfants = travellers.infants;
+          
+          // Check adults capacity - flight must have at least the number of adults requested
+          const adultsMatch = flight.adults >= requestedAdults;
+          
+          // Check children capacity - flight must have at least the number of children requested
+          const childrenMatch = flight.children >= requestedChildren;
+          
+          // Check infants capacity - flight must have at least the number of infants requested
+          const infantsMatch = flight.infants >= requestedInfants;
+          
+          // All capacity checks must pass
+          const capacityMatch = adultsMatch && childrenMatch && infantsMatch;
+          
+          return fromCityMatch && toCityMatch && dateMatch && bookingTypeMatch && returnDateMatch && capacityMatch;
+        });
+        
+        setFlights(filteredFlights);
+        setFilteredFlights(filteredFlights);
+        
+        const airlineFilters: Record<string, boolean> = {};
+        filteredFlights.forEach((flight: Flight) => {
+          if (flight.airline && !airlineFilters[flight.airline]) {
+            airlineFilters[flight.airline] = true;
+          }
+        });
+        setFilters(prev => ({ ...prev, airlines: airlineFilters }));
+        
+        if (filteredFlights.length > 0) {
+          const maxPrice = Math.max(...filteredFlights.map(f => parseFloat(f.price_per_adult)));
+          setFilters(prev => ({ ...prev, priceRange: { ...prev.priceRange, max: maxPrice } }));
+        }
+      } else {
+        setError('No flights found');
+      }
+    } catch (err) {
+      console.error('Error fetching flights:', err);
+      setError('Failed to fetch flights. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchFlights();
+}, [searchData, travellers]); // Add travellers to dependency array
 
   // Apply filters and sorting
   useEffect(() => {
