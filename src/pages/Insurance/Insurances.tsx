@@ -864,7 +864,7 @@ export default function InsuranceProposalForm() {
             )}
 
             {/* Book Now Button - Disabled until form is submitted */}
-            <button
+            {/* <button
               onClick={handleBook}
               disabled={!isFormSubmitted}
               className={`px-4 py-2 font-bold flex items-center justify-center gap-2 rounded-lg transition-colors text-sm ${
@@ -875,7 +875,7 @@ export default function InsuranceProposalForm() {
               title={!isFormSubmitted ? "Please submit the application form first" : "Proceed to payment"}
             >
               Book Now
-            </button>
+            </button> */}
           </div>
           
           {/* Helper text for Book Now button */}
