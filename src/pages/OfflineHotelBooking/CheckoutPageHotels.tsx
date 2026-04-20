@@ -1,4 +1,4 @@
-// src/pages/OfflineHotelBooking/CheckoutPageHotels.tsx - Fixed guest details
+// src/pages/OfflineHotelBooking/CheckoutPageHotels.tsx - COMPLETELY FIXED
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { BASE_URL } from '@/ApiUrls';
 import axios from 'axios';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { AlertCircle, Star, MapPin, Hotel, Home, Sparkles, Crown, Users, Calendar, Clock, Bed, Maximize, Check, User, Baby } from "lucide-react";
+import { AlertCircle, Star, MapPin, Hotel, Home, Sparkles, Crown, Users, Calendar, Check, User, Baby, Bed, Maximize } from "lucide-react";
 
 // Guest interface
 interface GuestDetails {
@@ -74,22 +74,18 @@ const CheckoutPageHotels = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Get hotel data from navigation state or localStorage
   const [hotelData, setHotelData] = useState<HotelData | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  // State for payment amount
   const [showCustomAmountModal, setShowCustomAmountModal] = useState(false);
   const [customPaymentAmount, setCustomPaymentAmount] = useState('');
   const [paymentType, setPaymentType] = useState('full');
   const [isPartialPayment, setIsPartialPayment] = useState(false);
 
-  // Guest details state
   const [guestDetails, setGuestDetails] = useState<GuestDetails[]>([]);
   const [showGuestDetails, setShowGuestDetails] = useState(true);
 
-  // Form state
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -104,101 +100,82 @@ const CheckoutPageHotels = () => {
     termsAccepted: false
   });
 
-  // Initialize hotel data and guest details
   useEffect(() => {
     const initializeData = () => {
       let hotel: HotelData | null = null;
-      
+
       if (location.state?.hotel) {
         hotel = location.state.hotel;
-        console.log('Hotel data from state:', hotel); // Debug log
+        console.log('Hotel data from state:', hotel);
       } else {
         const savedHotel = localStorage.getItem('selectedHotel');
         if (savedHotel) {
           hotel = JSON.parse(savedHotel);
-          console.log('Hotel data from localStorage:', hotel); // Debug log
+          console.log('Hotel data from localStorage:', hotel);
         }
       }
 
       if (hotel) {
-        setHotelData(hotel);
+        // IMPORTANT: Override total_price_value with direct room price (no multiplication)
+        if (hotel.selectedRoom) {
+          const directRoomPrice = Number(hotel.selectedRoom.price);
+          const childPriceValue = hotel.selectedRoom.pricePerChild ? Number(hotel.selectedRoom.pricePerChild) : Number(hotel.price_per_child || 0);
+          const childrenCountValue = hotel.children || 0;
+          const taxesValue = Number(hotel.taxes || 0);
+          
+          // DIRECT CALCULATION - NO NIGHTS MULTIPLICATION
+          hotel.total_price_value = directRoomPrice + (childPriceValue * childrenCountValue) + taxesValue;
+          hotel.basePrice = directRoomPrice;
+          hotel.childPrice = childPriceValue;
+          hotel.totalChildrenPrice = childPriceValue * childrenCountValue;
+          hotel.nights = 1; // Force to 1
+        } else {
+          const directRoomPrice = Number(hotel.price);
+          const childPriceValue = Number(hotel.price_per_child || 0);
+          const childrenCountValue = hotel.children || 0;
+          const taxesValue = Number(hotel.taxes || 0);
+          
+          // DIRECT CALCULATION - NO NIGHTS MULTIPLICATION
+          hotel.total_price_value = directRoomPrice + (childPriceValue * childrenCountValue) + taxesValue;
+          hotel.basePrice = directRoomPrice;
+          hotel.childPrice = childPriceValue;
+          hotel.totalChildrenPrice = childPriceValue * childrenCountValue;
+          hotel.nights = 1; // Force to 1
+        }
         
-        // Calculate total cost based on selected room if available
-        const totalCost = calculateTotalCost(hotel);
+        console.log('OVERRIDDEN total_price_value:', hotel.total_price_value);
+        setHotelData(hotel);
+
+        const totalCost = hotel.total_price_value;
         setCustomPaymentAmount(totalCost.toString());
         setPaymentType('full');
-        
-        // Initialize guest details with correct counts from API
+
         initializeGuestDetails(hotel);
       }
-      
+
       setLoading(false);
     };
 
     initializeData();
   }, [location]);
 
-  const calculateTotalCost = (hotel: HotelData): number => {
-    // If total_price_value is already calculated, use it
-    if (hotel.total_price_value) {
-      return hotel.total_price_value;
+  // SIMPLE TOTAL COST - Just return the pre-calculated value
+  const getTotalHotelCost = () => {
+    if (!hotelData) return 0;
+    if (hotelData.total_price_value) {
+      return hotelData.total_price_value;
     }
-
-    // Calculate based on selected room
-    if (hotel.selectedRoom) {
-      const roomPrice = Number(hotel.selectedRoom.price);
-      const childPrice = hotel.selectedRoom.pricePerChild 
-        ? Number(hotel.selectedRoom.pricePerChild) 
-        : Number(hotel.price_per_child || 0);
-      const childrenCount = hotel.children || 0;
-      const totalChildrenPrice = childPrice * childrenCount;
-      const nights = calculateNights(hotel);
-      const totalRoomPrice = roomPrice * nights;
-      const taxes = Number(hotel.taxes || 0);
-      
-      return totalRoomPrice + totalChildrenPrice + taxes;
-    }
-
-    // Fallback to base calculation
-    const basePrice = Number(hotel.price);
-    const childPrice = Number(hotel.price_per_child || 0);
-    const childrenCount = hotel.children || 0;
-    const totalChildrenPrice = childPrice * childrenCount;
-    const nights = calculateNights(hotel);
-    const totalRoomPrice = basePrice * nights;
-    const taxes = Number(hotel.taxes || 0);
-    
-    return totalRoomPrice + totalChildrenPrice + taxes;
+    return 0;
   };
 
-  const calculateNights = (hotel: HotelData): number => {
-    if (hotel.nights) return hotel.nights;
-    
-    const checkIn = hotel.check_in_date ? new Date(hotel.check_in_date) : new Date();
-    const checkOut = hotel.check_out_date ? new Date(hotel.check_out_date) : new Date();
-    
-    // If check-out is same as check-in, add 1 day
-    if (checkOut.getTime() === checkIn.getTime()) {
-      checkOut.setDate(checkOut.getDate() + 1);
-    }
-    
-    const nights = Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
-    return nights > 0 ? nights : 1;
-  };
-
-  // FIXED: Initialize guest details correctly from API data
   const initializeGuestDetails = (hotel: HotelData) => {
-    // Use exact values from API - no fallback defaults that override API data
     const adults = hotel.adults !== undefined ? hotel.adults : 2;
     const children = hotel.children !== undefined ? hotel.children : 0;
     const childrenAges = hotel.children_ages || [];
-    
-    console.log('Initializing guests:', { adults, children, childrenAges }); // Debug log
-    
+
     const details: GuestDetails[] = [];
     let id = 1;
 
-    // Create adult entries
     for (let i = 0; i < adults; i++) {
       details.push({
         id: id++,
@@ -206,13 +183,11 @@ const CheckoutPageHotels = () => {
         name: '',
         firstName: '',
         lastName: '',
-        age: 18 // Minimum adult age
+        age: 18
       });
     }
 
-    // Create child entries with their ages from API
     for (let i = 0; i < children; i++) {
-      // Use the age from children_ages array if available, otherwise default to 8
       const childAge = childrenAges[i] !== undefined ? childrenAges[i] : 8;
       details.push({
         id: id++,
@@ -224,7 +199,6 @@ const CheckoutPageHotels = () => {
       });
     }
 
-    console.log('Created guest details:', details); // Debug log
     setGuestDetails(details);
   };
 
@@ -258,12 +232,10 @@ const CheckoutPageHotels = () => {
         alert(`Please enter valid age for ${guest.type} #${guest.id}`);
         return false;
       }
-      // Validate child age (0-17)
       if (guest.type === 'child' && guest.age > 17) {
         alert(`Child age must be 17 or younger for guest #${guest.id}`);
         return false;
       }
-      // Validate adult age (18+)
       if (guest.type === 'adult' && guest.age < 18) {
         alert(`Adult age must be 18 or older for guest #${guest.id}`);
         return false;
@@ -285,11 +257,6 @@ const CheckoutPageHotels = () => {
         setIsPartialPayment(true);
       }
     }
-  };
-
-  const getTotalHotelCost = () => {
-    if (!hotelData) return 0;
-    return calculateTotalCost(hotelData);
   };
 
   const getCurrentPaymentAmount = () => {
@@ -337,12 +304,6 @@ const CheckoutPageHotels = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const parsePrice = (priceString: string | number | undefined) => {
-    if (!priceString) return 0;
-    const numericString = priceString.toString().replace(/[₹$,]/g, '').replace(/\s+/g, '').trim();
-    return parseFloat(numericString) || 0;
   };
 
   const formatPrice = (price: number | string) => {
@@ -441,47 +402,27 @@ const CheckoutPageHotels = () => {
         ? `Full Payment for ${hotelData?.hotel_name}`
         : `${paymentPercentage}% Partial Payment for ${hotelData?.hotel_name}`;
 
-      // Prepare guest details as JSON string for notes
-      const guestDetailsJSON = JSON.stringify(guestDetails.map(g => ({
-        id: g.id,
-        type: g.type,
-        first_name: g.firstName,
-        last_name: g.lastName,
-        age: g.age
-      })));
+      const roomPriceValue = hotelData?.selectedRoom ? Number(hotelData.selectedRoom.price) : Number(hotelData?.price || 0);
+      const childPriceValue = Number(hotelData?.selectedRoom?.pricePerChild || hotelData?.price_per_child || 0);
+      const childrenCountValue = hotelData?.children || 0;
+      const taxesValue = Number(hotelData?.taxes || 0);
 
-      // Prepare room details if selected
-      const roomDetails = hotelData?.selectedRoom ? {
-        room_id: hotelData.selectedRoom.id,
-        room_type: hotelData.selectedRoom.roomType,
-        room_category: hotelData.selectedRoomCategory,
-        room_price: hotelData.selectedRoom.price,
-        price_per_child: hotelData.selectedRoom.pricePerChild,
-        max_occupancy: hotelData.selectedRoom.maxOccupancy,
-        bed_type: hotelData.selectedRoom.bedType,
-        room_size: hotelData.selectedRoom.roomSize
-      } : null;
-
-      const nights = calculateNights(hotelData!);
-
-      // Save checkout record to database with source='hotels'
+      // Save checkout record to database
       const checkoutResponse = await axios.post(
         `${BASE_URL}/api/checkout`,
         {
           tour_id: hotelData?.id?.toString() || '',
           tour_code: `HTL-${hotelData?.id}`,
           tour_title: hotelData?.hotel_name || '',
-          tour_duration: `${nights} night${nights > 1 ? 's' : ''}, ${hotelData?.rooms || 1} room(s)`,
+          tour_duration: `1 night, ${hotelData?.rooms || 1} room(s)`,
           tour_locations: `${hotelData?.hotel_location}, ${hotelData?.city || ''}`,
           tour_image_url: hotelData?.main_image || '',
 
-          // Price details
           total_tour_cost: totalHotelCost,
           advance_percentage: paymentPercentage,
           advance_amount: paymentAmount,
           emi_price: 0,
 
-          // Customer details from form
           first_name: formData.firstName.trim(),
           last_name: formData.lastName.trim(),
           email: formData.email.trim(),
@@ -515,19 +456,24 @@ const CheckoutPageHotels = () => {
               children: hotelData?.children || 0,
               children_ages: hotelData?.children_ages || [],
               check_in_date: hotelData?.check_in_date,
-              check_out_date: hotelData?.check_out_date,
-              nights: nights
+              check_out_date: hotelData?.check_out_date
             },
-            room_details: roomDetails,
+            room_details: hotelData?.selectedRoom ? {
+              room_id: hotelData.selectedRoom.id,
+              room_type: hotelData.selectedRoom.roomType,
+              room_category: hotelData.selectedRoomCategory,
+              room_price: hotelData.selectedRoom.price,
+              price_per_child: hotelData.selectedRoom.pricePerChild,
+              max_occupancy: hotelData.selectedRoom.maxOccupancy,
+              bed_type: hotelData.selectedRoom.bedType,
+              room_size: hotelData.selectedRoom.roomSize
+            } : null,
             price_breakdown: {
-              base_price: hotelData?.selectedRoom ? Number(hotelData.selectedRoom.price) : Number(hotelData?.price || 0),
-              price_per_night: hotelData?.selectedRoom ? Number(hotelData.selectedRoom.price) : Number(hotelData?.price || 0),
-              child_price_per_night: Number(hotelData?.selectedRoom?.pricePerChild || hotelData?.price_per_child || 0),
-              children_count: hotelData?.children || 0,
-              total_children_price: (Number(hotelData?.selectedRoom?.pricePerChild || hotelData?.price_per_child || 0) * (hotelData?.children || 0)),
-              nights: nights,
-              room_total: (hotelData?.selectedRoom ? Number(hotelData.selectedRoom.price) : Number(hotelData?.price || 0)) * nights,
-              taxes: Number(hotelData?.taxes || 0),
+              base_price: roomPriceValue,
+              child_price: childPriceValue,
+              children_count: childrenCountValue,
+              total_children_price: childPriceValue * childrenCountValue,
+              taxes: taxesValue,
               total_amount: totalHotelCost
             }
           })
@@ -539,8 +485,6 @@ const CheckoutPageHotels = () => {
       }
 
       const checkoutId = checkoutResponse.data.checkout_id;
-
-      // Create PhonePe order
       const merchantOrderId = `HTL_${checkoutId}_${Date.now()}`;
       const baseUrl = window.location.origin;
       const redirectUrl = `${baseUrl}/payment-result`;
@@ -566,14 +510,12 @@ const CheckoutPageHotels = () => {
             guest_count: guestDetails.length,
             hotel_location: hotelData?.hotel_location,
             selected_room: hotelData?.selectedRoom?.roomType || 'Standard',
-            room_category: hotelData?.selectedRoomCategory || 'standard',
-            nights: nights
+            room_category: hotelData?.selectedRoomCategory || 'standard'
           }
         }
       );
 
       if (paymentResponse.data.success) {
-        // Update checkout with PhonePe order ID
         await axios.put(
           `${BASE_URL}/api/checkout/${checkoutId}/payment`,
           {
@@ -582,7 +524,6 @@ const CheckoutPageHotels = () => {
           }
         );
 
-        // Save booking details to localStorage
         const bookingData = {
           hotel: hotelData,
           guest_details: guestDetails,
@@ -596,17 +537,13 @@ const CheckoutPageHotels = () => {
           merchant_order_id: paymentResponse.data.merchantOrderId,
           payment_type: isFullPayment ? 'full' : 'partial',
           custom_amount: paymentType === 'custom' || paymentType === 'partial' ? customPaymentAmount : null,
-          source: 'hotels',
-          nights: nights
+          source: 'hotels'
         };
 
         localStorage.setItem('currentHotelBooking', JSON.stringify(bookingData));
         localStorage.setItem('phonePeOrderId', paymentResponse.data.merchantOrderId);
         localStorage.setItem('checkoutId', checkoutId.toString());
 
-        console.log('Redirecting to PhonePe:', paymentResponse.data.checkoutPageUrl);
-
-        // Redirect to PhonePe payment page
         window.location.href = paymentResponse.data.checkoutPageUrl;
       } else {
         throw new Error(paymentResponse.data.message || 'Failed to initialize payment. Please try again.');
@@ -648,20 +585,15 @@ const CheckoutPageHotels = () => {
   const paymentPercentage = calculatePercentage(paymentAmount);
   const balanceAmount = totalHotelCost - paymentAmount;
   const isFullPayment = paymentAmount >= totalHotelCost;
-  const nights = calculateNights(hotelData);
-  const basePricePerNight = hotelData.selectedRoom 
-    ? Number(hotelData.selectedRoom.price) 
-    : Number(hotelData.price);
-  const childPricePerNight = hotelData.selectedRoom?.pricePerChild 
-    ? Number(hotelData.selectedRoom.pricePerChild) 
-    : Number(hotelData.price_per_child || 0);
+  
+  // DIRECT VALUES - NO MULTIPLICATION
+  const basePrice = hotelData.basePrice || (hotelData.selectedRoom ? Number(hotelData.selectedRoom.price) : Number(hotelData.price));
+  const childPriceValue = hotelData.childPrice || (hotelData.selectedRoom?.pricePerChild ? Number(hotelData.selectedRoom.pricePerChild) : Number(hotelData.price_per_child || 0));
   const childrenCount = hotelData.children || 0;
   const adultsCount = hotelData.adults || 1;
-  const totalChildrenPrice = childPricePerNight * childrenCount;
-  const roomTotal = basePricePerNight * nights;
+  const totalChildrenPrice = hotelData.totalChildrenPrice || (childPriceValue * childrenCount);
   const taxes = Number(hotelData.taxes || 0);
 
-  // Count guests by type for display
   const adultGuests = guestDetails.filter(g => g.type === 'adult');
   const childGuests = guestDetails.filter(g => g.type === 'child');
 
@@ -700,9 +632,8 @@ const CheckoutPageHotels = () => {
                     <Hotel className="h-5 w-5 text-blue-600" />
                     Hotel Summary
                   </h2>
-                  
+
                   <div className="flex flex-col md:flex-row gap-4">
-                    {/* Hotel Image */}
                     {hotelData.main_image && (
                       <div className="md:w-48 h-32 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
                         <img
@@ -712,7 +643,7 @@ const CheckoutPageHotels = () => {
                         />
                       </div>
                     )}
-                    
+
                     <div className="flex-1">
                       <h3 className="font-bold text-lg text-gray-800 mb-2">{hotelData.hotel_name}</h3>
                       <p className="text-gray-600 flex items-center gap-1 mb-3">
@@ -742,9 +673,6 @@ const CheckoutPageHotels = () => {
                             {childrenCount} Child{childrenCount !== 1 ? 'ren' : ''}
                           </span>
                         )}
-                        <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
-                          {nights} Night{nights > 1 ? 's' : ''}
-                        </span>
                       </div>
                     </div>
                   </div>
@@ -760,7 +688,7 @@ const CheckoutPageHotels = () => {
                         ({hotelData.selectedRoomCategory})
                       </span>
                     </h2>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
@@ -774,6 +702,9 @@ const CheckoutPageHotels = () => {
                         <div className="flex items-center gap-2">
                           <Users className="w-4 h-4 text-gray-500" />
                           <span className="text-sm">Max {hotelData.selectedRoom.maxOccupancy} guests</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg font-bold text-gray-800">Price: {formatPrice(hotelData.selectedRoom.price)}</span>
                         </div>
                       </div>
                       <div className="space-y-2">
@@ -804,7 +735,7 @@ const CheckoutPageHotels = () => {
                       <div>
                         <p className="text-sm text-gray-500">Check-in</p>
                         <p className="font-semibold">
-                          {hotelData.check_in_date 
+                          {hotelData.check_in_date
                             ? new Date(hotelData.check_in_date).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
                             : 'To be confirmed'}
                         </p>
@@ -818,20 +749,11 @@ const CheckoutPageHotels = () => {
                       <div>
                         <p className="text-sm text-gray-500">Check-out</p>
                         <p className="font-semibold">
-                          {hotelData.check_out_date 
+                          {hotelData.check_out_date
                             ? new Date(hotelData.check_out_date).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
                             : 'To be confirmed'}
                         </p>
                         <p className="text-xs text-gray-500">Until 12:00 PM</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="bg-blue-100 p-2 rounded-lg">
-                        <Clock className="w-4 h-4 text-blue-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500">Duration</p>
-                        <p className="font-semibold">{nights} Night{nights > 1 ? 's' : ''}</p>
                       </div>
                     </div>
                   </div>
@@ -847,7 +769,6 @@ const CheckoutPageHotels = () => {
                     Payment Amount
                   </h2>
 
-                  {/* Full Payment Option */}
                   <div className="mb-4">
                     <div className={`flex items-center justify-between p-4 border rounded-lg cursor-pointer transition-all ${paymentType === 'full' ? 'border-[#2E4D98] bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}
                       onClick={() => {
@@ -871,7 +792,6 @@ const CheckoutPageHotels = () => {
                     </div>
                   </div>
 
-                  {/* Custom Amount Option */}
                   <div>
                     <div className={`p-4 border rounded-lg transition-all cursor-pointer ${paymentType === 'partial' || paymentType === 'custom' ? 'border-[#2E4D98] bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}
                       onClick={() => setShowCustomAmountModal(true)}>
@@ -923,7 +843,7 @@ const CheckoutPageHotels = () => {
                   </p>
                 </div>
 
-                {/* Guest Details Section - FIXED */}
+                {/* Guest Details Section */}
                 <div className="bg-white border border-gray-200 rounded-xl p-5 mb-8">
                   <div className="flex justify-between items-center mb-4">
                     <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
@@ -938,7 +858,6 @@ const CheckoutPageHotels = () => {
                     </button>
                   </div>
 
-                  {/* Guest Type Summary */}
                   <div className="flex gap-4 mb-4 p-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center gap-2">
                       <User className="w-4 h-4 text-blue-600" />
@@ -973,11 +892,10 @@ const CheckoutPageHotels = () => {
                               <tr key={guest.id} className="border-b border-gray-100 hover:bg-gray-50">
                                 <td className="p-3 text-gray-500">{index + 1}</td>
                                 <td className="p-3 align-top">
-                                  <span className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 w-fit ${
-                                    guest.type === 'adult' 
-                                      ? 'bg-blue-100 text-blue-700' 
+                                  <span className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 w-fit ${guest.type === 'adult'
+                                      ? 'bg-blue-100 text-blue-700'
                                       : 'bg-yellow-100 text-yellow-700'
-                                  }`}>
+                                    }`}>
                                     {guest.type === 'adult' ? (
                                       <><User className="w-3 h-3" /> Adult</>
                                     ) : (
@@ -1023,7 +941,6 @@ const CheckoutPageHotels = () => {
                         </table>
                       </div>
 
-                      {/* Children Ages from API Display */}
                       {hotelData.children_ages && hotelData.children_ages.length > 0 && (
                         <div className="mt-4 p-3 bg-blue-50 rounded-lg">
                           <p className="text-sm text-blue-700">
@@ -1035,7 +952,6 @@ const CheckoutPageHotels = () => {
                   )}
                 </div>
 
-                {/* Payment Information Notice */}
                 {isPartialPayment && (
                   <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8">
                     <div className="flex">
@@ -1052,7 +968,6 @@ const CheckoutPageHotels = () => {
 
                 {/* Booking Form */}
                 <form onSubmit={handlePhonePePayment} className="space-y-8">
-                  {/* Personal Details */}
                   <div>
                     <h2 className="text-xl font-semibold text-gray-800 mb-6 pb-3 border-b">Personal Details</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1075,7 +990,6 @@ const CheckoutPageHotels = () => {
                     </div>
                   </div>
 
-                  {/* Address Details */}
                   <div>
                     <h2 className="text-xl font-semibold text-gray-800 mb-6 pb-3 border-b">Address Details</h2>
                     <div className="space-y-6">
@@ -1115,7 +1029,6 @@ const CheckoutPageHotels = () => {
                     </div>
                   </div>
 
-                  {/* Terms and Conditions */}
                   <div className="flex items-start space-x-3 p-4 bg-gray-50 rounded-lg">
                     <Checkbox
                       id="terms"
@@ -1132,7 +1045,6 @@ const CheckoutPageHotels = () => {
                     </Label>
                   </div>
 
-                  {/* Submit Button */}
                   <div className="pt-4">
                     <Button
                       type="submit"
@@ -1162,45 +1074,32 @@ const CheckoutPageHotels = () => {
                 <h2 className="text-xl font-semibold text-gray-800 mb-6 pb-3 border-b">Price Breakdown</h2>
 
                 <div className="space-y-4 mb-8">
-                  {/* Room Charges */}
                   <div className="flex justify-between items-center py-2">
-                    <span className="text-gray-600">
-                      Room Charges ({nights} night{nights > 1 ? 's' : ''})
-                    </span>
-                    <span className="font-medium">{formatPrice(roomTotal)}</span>
-                  </div>
-                  <div className="text-xs text-gray-500 pl-4">
-                    {formatPrice(basePricePerNight)} × {nights} night{nights > 1 ? 's' : ''}
+                    <span className="text-gray-600">Room Price</span>
+                    <span className="font-medium">{formatPrice(basePrice)}</span>
                   </div>
 
-                  {/* Children Charges */}
                   {childrenCount > 0 && (
-                    <>
-                      <div className="flex justify-between items-center py-2 border-t">
-                        <span className="text-gray-600">
-                          Children Charges ({childrenCount} child{childrenCount !== 1 ? 'ren' : ''})
-                        </span>
-                        <span className="font-medium">{formatPrice(totalChildrenPrice)}</span>
-                      </div>
-                      <div className="text-xs text-gray-500 pl-4">
-                        {formatPrice(childPricePerNight)} × {childrenCount} child{childrenCount !== 1 ? 'ren' : ''}
-                      </div>
-                    </>
+                    <div className="flex justify-between items-center py-2 border-t">
+                      <span className="text-gray-600">
+                        Children Charges ({childrenCount} child{childrenCount !== 1 ? 'ren' : ''})
+                      </span>
+                      <span className="font-medium">{formatPrice(totalChildrenPrice)}</span>
+                    </div>
                   )}
 
-                  {/* Taxes */}
-                  <div className="flex justify-between items-center py-2 border-t">
-                    <span className="text-gray-600">Taxes & Fees</span>
-                    <span className="font-medium">{formatPrice(taxes)}</span>
-                  </div>
+                  {taxes > 0 && (
+                    <div className="flex justify-between items-center py-2 border-t">
+                      <span className="text-gray-600">Taxes & Fees</span>
+                      <span className="font-medium">{formatPrice(taxes)}</span>
+                    </div>
+                  )}
 
-                  {/* Total */}
                   <div className="flex justify-between items-center py-3 border-t-2">
                     <span className="text-gray-800 font-semibold">Total Hotel Cost</span>
                     <span className="text-xl font-bold text-gray-900">{formatPrice(totalHotelCost)}</span>
                   </div>
 
-                  {/* Payment Summary */}
                   <div className="bg-blue-50 rounded-xl p-4 mt-6 border border-blue-100">
                     <div className="flex justify-between items-center">
                       <span className="text-blue-600 font-semibold">
@@ -1231,7 +1130,6 @@ const CheckoutPageHotels = () => {
                   </div>
                 </div>
 
-                {/* Guest Summary */}
                 <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 mb-6">
                   <h3 className="font-semibold text-purple-800 mb-3 flex items-center gap-2">
                     <Users className="h-5 w-5" />
@@ -1260,14 +1158,9 @@ const CheckoutPageHotels = () => {
                       <span className="text-purple-700">Rooms:</span>
                       <span className="font-semibold text-purple-900">{hotelData.rooms || 1}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-purple-700">Nights:</span>
-                      <span className="font-semibold text-purple-900">{nights}</span>
-                    </div>
                   </div>
                 </div>
 
-                {/* Hotel Quick Info */}
                 <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-6">
                   <h3 className="font-semibold text-gray-800 mb-3">Hotel Information</h3>
                   <div className="space-y-2 text-sm">
@@ -1284,7 +1177,6 @@ const CheckoutPageHotels = () => {
                   </div>
                 </div>
 
-                {/* Need Help Section */}
                 <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
                   <div className="flex items-start gap-3">
                     <div className="bg-blue-100 p-2 rounded-lg">

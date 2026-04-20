@@ -1,3 +1,4 @@
+// src/pages/OfflineHotelBooking/HotelDetailPage.tsx
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -107,13 +108,6 @@ interface RoomVariant {
   images: string[];
 }
 
-interface TravellerCount {
-  rooms: number;
-  adults: number;
-  children: number;
-  infants?: number;
-}
-
 interface RoomTypeDisplay {
   id: string;
   name: string;
@@ -134,15 +128,7 @@ const HotelDetailPage = () => {
   const [imageError, setImageError] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState<Record<string, number>>({});
 
-  // Travellers from search or default - USE API DATA
-  const [travellers, setTravellers] = useState<TravellerCount>({
-    rooms: 1,
-    adults: 2,
-    children: 0,
-    infants: 0
-  });
-
-  // Dates from API or default
+  // Dates from API
   const [checkIn, setCheckIn] = useState<Date>(new Date());
   const [checkOut, setCheckOut] = useState<Date>(new Date());
 
@@ -159,14 +145,6 @@ const HotelDetailPage = () => {
         const hotelData = response.data.data;
         setHotel(hotelData);
         setSelectedImage(hotelData.main_image || "");
-        
-        // Set travellers from API data
-        setTravellers({
-          rooms: hotelData.rooms || 1,
-          adults: hotelData.adults || 2,
-          children: hotelData.children || 0,
-          infants: 0
-        });
         
         // Set dates from API data
         if (hotelData.check_in_date) {
@@ -219,9 +197,9 @@ const HotelDetailPage = () => {
   const calculateTotalPrice = () => {
     if (!hotel || !selectedRoomVariant) return 0;
     
-    const nights = calculateNights();
     const roomPrice = Number(selectedRoomVariant.price);
-    const totalRoomPrice = roomPrice * nights;
+    // const nights = calculateNights();
+    const totalRoomPrice = roomPrice;
     
     // Calculate children price
     const childPrice = selectedRoomVariant.pricePerChild 
@@ -244,7 +222,7 @@ const HotelDetailPage = () => {
       ? Number(selectedRoomVariant.pricePerChild) 
       : Number(hotel.price_per_child || 0);
     const childrenCount = hotel.children || 0;
-    const totalChildrenPrice = childPrice * childrenCount;
+    const totalChildrenPrice = childPrice * childrenCount * nights;
     const totalRoomPrice = roomPrice * nights;
     const taxes = Number(hotel.taxes || 0);
     const totalPrice = totalRoomPrice + totalChildrenPrice + taxes;
@@ -422,11 +400,13 @@ const HotelDetailPage = () => {
               <div className="bg-white/10 backdrop-blur-sm rounded-xl p-5">
                 <div className="text-center">
                   <div className="text-3xl font-bold">₹{formatPrice(totalPrice)}</div>
-                  <div className="text-sm text-white/70">for {nights} night{nights > 1 ? 's' : ''}</div>
-                  {hotel.original_price && Number(hotel.original_price) > Number(hotel.price) && (
+                  {/* <div className="text-sm text-white/70">for {nights} night{nights > 1 ? 's' : ''}</div> */}
+                  {hotel.sale_price && Number(hotel.sale_price) < Number(hotel.original_price) && (
                     <div className="mt-1">
                       <span className="text-sm line-through text-white/50">₹{formatPrice(hotel.original_price)}</span>
-                      <span className="ml-2 text-green-400 text-sm">Save {Math.round((1 - Number(hotel.price)/Number(hotel.original_price)) * 100)}%</span>
+                      <span className="ml-2 text-green-400 text-sm">
+                        Save {Math.round((1 - Number(hotel.sale_price)/Number(hotel.original_price)) * 100)}%
+                      </span>
                     </div>
                   )}
                   <button 
@@ -462,7 +442,13 @@ const HotelDetailPage = () => {
               {additionalImages.length > 0 && (
                 <div className="grid grid-cols-4 gap-2 p-2">
                   {additionalImages.slice(0, 4).map((img, idx) => (
-                    <img key={idx} src={img || ''} alt={`Gallery ${idx + 1}`} className="h-24 w-full object-cover rounded cursor-pointer hover:opacity-80 transition" />
+                    <img 
+                      key={idx} 
+                      src={img || ''} 
+                      alt={`Gallery ${idx + 1}`} 
+                      className="h-24 w-full object-cover rounded cursor-pointer hover:opacity-80 transition"
+                      onClick={() => setSelectedImage(img || '')}
+                    />
                   ))}
                 </div>
               )}
@@ -517,7 +503,7 @@ const HotelDetailPage = () => {
                     <div key={roomType.id} className="space-y-3">
                       <h3 className="text-xl font-semibold text-gray-800">{roomType.name}</h3>
                       <div className="grid grid-cols-1 gap-4">
-                        {roomType.variants.map((variant, idx) => (
+                        {roomType.variants.map((variant) => (
                           <div
                             key={variant.id}
                             className={`border rounded-xl overflow-hidden cursor-pointer transition-all ${
@@ -610,12 +596,6 @@ const HotelDetailPage = () => {
                                       <span>👥 Max {variant.maxOccupancy} Guests</span>
                                       <span className="text-orange-600 font-semibold">₹{formatPrice(variant.price)}/night</span>
                                     </div>
-                                    {/* Show child price if available */}
-                                    {(variant.pricePerChild || hotel.price_per_child) && hotel.children > 0 && (
-                                      <div className="text-sm text-gray-600 mb-3">
-                                        <span>👶 Child price: ₹{formatPrice(variant.pricePerChild || hotel.price_per_child)} per child</span>
-                                      </div>
-                                    )}
                                     <div className="flex flex-wrap gap-2">
                                       {variant.amenities?.slice(0, 4).map((amenity, amenityIdx) => (
                                         <span key={amenityIdx} className="text-xs bg-gray-100 px-2 py-1 rounded">✓ {amenity}</span>
@@ -731,24 +711,29 @@ const HotelDetailPage = () => {
               
               <div className="space-y-4 mb-6">
                 <div className="flex justify-between text-gray-700">
-                  <span>Room Price ({nights} night{nights > 1 ? 's' : ''})</span>
-                  <span className="font-semibold">₹{formatPrice((Number(selectedRoomVariant?.price || hotel.price) * nights))}</span>
+                  <span>Room Price (per night)</span>
+                  <span className="font-semibold">₹{formatPrice(selectedRoomVariant?.price || hotel.price)}</span>
                 </div>
                 
+                {/* <div className="flex justify-between text-gray-700">
+                  <span>× {nights} night{nights > 1 ? 's' : ''}</span>
+                  <span className="font-semibold">₹{formatPrice(Number(selectedRoomVariant?.price || hotel.price) * nights)}</span>
+                </div> */}
+                
                 {/* Children Charges */}
-                {hotel.children > 0 && (
+                {/* {hotel.children > 0 && (
                   <div className="flex justify-between text-gray-700">
-                    <span>Children ({hotel.children} child{hotel.children > 1 ? 'ren' : ''})</span>
+                    <span>Children ({hotel.children} child{hotel.children > 1 ? 'ren' : ''} × {nights} night{nights > 1 ? 's' : ''})</span>
                     <span className="font-semibold">
-                      ₹{formatPrice(Number(selectedRoomVariant?.pricePerChild || hotel.price_per_child || 0) * hotel.children)}
+                      ₹{formatPrice(Number(selectedRoomVariant?.pricePerChild || hotel.price_per_child || 0) * hotel.children * nights)}
                     </span>
                   </div>
                 )}
-                
-                <div className="flex justify-between text-gray-700">
+                 */}
+                {/* <div className="flex justify-between text-gray-700">
                   <span>Taxes & Fees</span>
                   <span className="font-semibold">₹{formatPrice(hotel.taxes || 0)}</span>
-                </div>
+                </div> */}
                 
                 {hotel.free_stay_for_kids === 1 && (
                   <div className="flex justify-between text-green-600">

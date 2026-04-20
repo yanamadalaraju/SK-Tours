@@ -786,13 +786,13 @@ const FlightResults = ({ searchData, onBack, travellers }: { searchData: any; on
     let result = [...flights];
 
     const selectedStops = [];
-    if (filters.stops.nonstop) selectedStops.push('Non-stop');
+    if (filters.stops.nonstop) selectedStops.push('Non Stop');
     if (filters.stops.oneStop) selectedStops.push('1 Stop');
     if (filters.stops.twoPlusStops) selectedStops.push('2+ Stops');
     
     if (selectedStops.length > 0) {
       result = result.filter(flight => {
-        if (selectedStops.includes('Non-stop') && flight.flight_type === 'Non-stop') return true;
+        if (selectedStops.includes('Non Stop') && flight.flight_type === 'Non Stop') return true;
         if (selectedStops.includes('1 Stop') && flight.flight_type === '1 Stop') return true;
         if (selectedStops.includes('2+ Stops') && (flight.flight_type === '2 Stops' || flight.flight_type === '3 Stops')) return true;
         return false;
@@ -1069,7 +1069,7 @@ const FlightResults = ({ searchData, onBack, travellers }: { searchData: any; on
                   </h3>
                   <div className="space-y-3">
                     {[
-                      { id: 'nonstop', label: 'Non-stop only', count: flights.filter(f => f.flight_type === 'Non-stop').length },
+                      { id: 'nonstop', label: 'Non Stop', count: flights.filter(f => f.flight_type === 'Non Stop').length },
                       { id: 'oneStop', label: '1 Stop', count: flights.filter(f => f.flight_type === '1 Stop').length },
                       { id: 'twoPlusStops', label: '2+ Stops', count: flights.filter(f => f.flight_type?.includes('Stop') && !f.flight_type.includes('Non') && f.flight_type !== '1 Stop').length }
                     ].map((stop) => (

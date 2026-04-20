@@ -84,6 +84,44 @@ const cities = [
   { name: "Ahmedabad", country: "India", popular: true }
 ];
 
+// Helper function to get effective price from hotel data
+const getEffectivePrice = (hotel: Hotel): number => {
+  // Priority: sale_price > price > 0
+  if (hotel.sale_price && Number(hotel.sale_price) > 0) {
+    return Number(hotel.sale_price);
+  }
+  if (hotel.price && Number(hotel.price) > 0) {
+    return Number(hotel.price);
+  }
+  return 0;
+};
+
+// Helper function to get effective original price
+const getEffectiveOriginalPrice = (hotel: Hotel): number | null => {
+  if (hotel.original_price && Number(hotel.original_price) > 0) {
+    return Number(hotel.original_price);
+  }
+  return null;
+};
+
+// Helper function to get effective taxes
+const getEffectiveTaxes = (hotel: Hotel): number => {
+  if (hotel.taxes && Number(hotel.taxes) > 0) {
+    return Number(hotel.taxes);
+  }
+  return 0;
+};
+
+// Helper function to get total amount
+const getTotalAmount = (hotel: Hotel): number => {
+  if (hotel.total_amount && Number(hotel.total_amount) > 0) {
+    return Number(hotel.total_amount);
+  }
+  const effectivePrice = getEffectivePrice(hotel);
+  const effectiveTaxes = getEffectiveTaxes(hotel);
+  return effectivePrice + effectiveTaxes;
+};
+
 // ==================== Location Dropdown Component ====================
 const LocationDropdown = ({ 
   isOpen,
@@ -511,7 +549,7 @@ const FilterSidebar = ({
 }) => {
   const getPriceRangeCount = (min: number, max: number | null) => {
     return hotels.filter(hotel => {
-      const price = Number(hotel.price);
+      const price = getEffectivePrice(hotel);
       if (max === null) return price >= min;
       return price >= min && price <= max;
     }).length;
@@ -857,15 +895,15 @@ const HotelCard = ({ hotel, onBookNow, checkIn, checkOut, travellers }: {
         ) : (
           <div className="space-y-2">
             {[
-              { label: 'Base Price', amount: `₹${formatPrice(hotel.price)}` },
-              { label: 'Taxes & Fees', amount: hotel.taxes ? `₹${formatPrice(hotel.taxes)}` : '₹315' }
+              { label: 'Base Price', amount: `₹${formatPrice(getEffectivePrice(hotel))}` },
+              // { label: 'Taxes & Fees', amount: hotel.taxes ? `₹${formatPrice(hotel.taxes)}` : '₹315' }
             ].map((item, idx) => (
               <div key={idx} className="flex justify-between text-sm border-b pb-2"><span>{item.label}</span><span className="font-medium">{item.amount}</span></div>
             ))}
             <div className="flex justify-between text-sm font-bold pt-2">
               <span>Total Amount</span>
               <span className="text-lg text-orange-600">
-                ₹{formatPrice(hotel.total_amount || (Number(hotel.price) + Number(hotel.taxes || 0)))}
+                ₹{formatPrice(getTotalAmount(hotel))}
               </span>
             </div>
           </div>
@@ -880,8 +918,11 @@ const HotelCard = ({ hotel, onBookNow, checkIn, checkOut, travellers }: {
     navigate(`/hotel-detail/${hotel.id}`);
   };
 
-  // Calculate display price (use total_amount if available, otherwise calculate)
-  const displayPrice = hotel.total_amount || (Number(hotel.price) + Number(hotel.taxes || 0));
+  // Get effective prices
+  const displayPrice = getEffectivePrice(hotel);
+  const originalPrice = getEffectiveOriginalPrice(hotel);
+  const totalAmount = getTotalAmount(hotel);
+  const hasDiscount = originalPrice && originalPrice > displayPrice;
 
   return (
     <div className="bg-white rounded-xl shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-300 mb-6 overflow-hidden">
@@ -974,14 +1015,17 @@ const HotelCard = ({ hotel, onBookNow, checkIn, checkOut, travellers }: {
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mt-4 pt-4 border-t border-gray-100">
             <div className="mb-4 sm:mb-0">
               <div>
-                {hotel.original_price && Number(hotel.original_price) > Number(hotel.price) && (
+                {hasDiscount && (
                   <div className="mb-1">
-                    <span className="text-gray-400 line-through text-sm">₹{formatPrice(hotel.original_price)}</span>
+                    <span className="text-gray-400 line-through text-sm">₹{formatPrice(originalPrice)}</span>
+                    <span className="ml-2 bg-green-100 text-green-700 text-xs font-semibold px-2 py-0.5 rounded-full">
+                      Save ₹{formatPrice(originalPrice - displayPrice)}
+                    </span>
                   </div>
                 )}
                 <div className="flex items-baseline flex-wrap gap-2">
-                  <span className="text-2xl font-bold text-gray-800">₹{formatPrice(displayPrice)}</span>
-                  {hotel.taxes && (
+                  <span className="text-2xl font-bold text-gray-800">₹{formatPrice(totalAmount)}</span>
+                  {hotel.taxes && Number(hotel.taxes) > 0 && (
                     <span className="text-gray-500 text-sm">incl. taxes</span>
                   )}
                 </div>
@@ -1103,7 +1147,7 @@ const HotelSearchMain = () => {
 
     if (currentFilters.priceRanges.length > 0) {
       filtered = filtered.filter(hotel => {
-        const price = Number(hotel.price);
+        const price = getEffectivePrice(hotel);
         return currentFilters.priceRanges.some(rangeKey => {
           const [min, max] = rangeKey.split('-').map(v => v === 'inf' ? Infinity : Number(v));
           return price >= min && price <= max;
@@ -1112,10 +1156,10 @@ const HotelSearchMain = () => {
     }
 
     if (currentFilters.customBudget.min) {
-      filtered = filtered.filter(hotel => Number(hotel.price) >= Number(currentFilters.customBudget.min));
+      filtered = filtered.filter(hotel => getEffectivePrice(hotel) >= Number(currentFilters.customBudget.min));
     }
     if (currentFilters.customBudget.max) {
-      filtered = filtered.filter(hotel => Number(hotel.price) <= Number(currentFilters.customBudget.max));
+      filtered = filtered.filter(hotel => getEffectivePrice(hotel) <= Number(currentFilters.customBudget.max));
     }
 
     if (currentFilters.stars.length > 0) {
@@ -1257,8 +1301,8 @@ const HotelSearchMain = () => {
   const handleBookNow = (hotel: Hotel) => {
     const nights = checkOut && checkIn ? Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)) : 1;
     
-    // Use total_amount from API or calculate
-    const totalAmount = hotel.total_amount || (Number(hotel.price) + Number(hotel.taxes || 0));
+    // Use effective total amount
+    const totalAmount = getTotalAmount(hotel);
     
     const hotelForCheckout = {
       ...hotel,
