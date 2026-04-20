@@ -611,8 +611,7 @@ const validateForm = (): boolean => {
                 </header>
 
                 <div className="p-2 md:p-4 pb-10 max-w-[1300px] mx-auto bg-[#fbeedf] overflow-x-auto">
-                    {/* Form fields remain the same ... */}
-                    {/* Applicant For / Type / Booklet */}
+                
                     <div className="flex flex-col md:grid md:grid-cols-[150px_auto_auto_auto_170px_auto_auto_200px_auto_auto] gap-2 items-start md:items-center mb-1">
                         <div className="bg-[#5d3b13] text-white p-2 font-bold text-sm w-full md:w-auto">Applicant For</div>
 

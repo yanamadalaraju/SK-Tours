@@ -1413,11 +1413,11 @@ if (!defaultVisible.includes(data.basic_details?.primary_destination_name)) {
 
                   {/* ===== SECOND ROW: VALUES ===== */}
                   <div className="grid grid-cols-8 border-black border-black">
-                    <div className="border-r border-black px-1 lg:px-4 py-2 lg:py-3 bg-blue-50">
-                      <p className="text-sm lg:text-lg font-bold text-[#2E4D98] text-center tracking-wide">
-                        {tour.code}
-                      </p>
-                    </div>
+               <div className="border-r border-black px-1 lg:px-4 py-2 lg:py-3 bg-blue-50 flex items-center justify-center">
+  <p className="text-sm lg:text-lg font-bold text-[#2E4D98] tracking-wide">
+    {tour.code}
+  </p>
+</div>
 
                     <div className="col-span-6 border-r border-black px-2 lg:px-4 py-2 lg:py-3 bg-gray-50">
                       <p className="text-sm lg:text-lg font-semibold text-gray-900 text-left break-words">
