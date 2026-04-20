@@ -3,8 +3,12 @@ import axios from 'axios';
 import { BASE_URL } from "@/ApiUrls";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { CheckCircle, AlertCircle, Download, Mail } from 'lucide-react';
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import EmailModal from '../EmailModal';
+import InsuranceProposalPDF from './InsuranceProposalPDF';
+import { useNavigate } from "react-router-dom";
 
-import { CheckCircle, AlertCircle } from 'lucide-react';
 type Sex = "Male" | "Female" | "Others";
 type SumInsured = "50,000" | "1,00,000" | "3,00,000" | "5,00,000" | "10,00,000";
 
@@ -54,10 +58,18 @@ interface FormState {
   declaration: boolean;
 }
 
+interface EmailFormData {
+    from: string;
+    to: string;
+    subject: string;
+    message: string;
+}
+
 const LABEL = "bg-[#5c3a1e] text-[#f5e6c8] font-semibold text-sm px-3 py-2 whitespace-nowrap";
 const INPUT = "bg-[#f5e6c8] border border-[#c8a97e] text-[#3a2000] text-sm px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-[#8b5e2e] placeholder-[#b09060]";
 
 export default function InsuranceProposalForm() {
+  const navigate = useNavigate();
   const [form, setForm] = useState<FormState>({
     firstName: "", middleName: "", lastName: "",
     sex: "", dateOfBirth: "", age: "", cellNo: "",
@@ -75,8 +87,13 @@ export default function InsuranceProposalForm() {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitStatus, setSubmitStatus] = useState<{ type: 'success' | 'error' | null; message: string }>({ type: null, message: '' });
-
-
+  
+  // New states for PDF and Email functionality
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [submittedData, setSubmittedData] = useState<{ form: FormState; familyMembers: FamilyMember[] } | null>(null);
+  const [isFormSubmitted, setIsFormSubmitted] = useState(false);
+  const [submittedApplicationId, setSubmittedApplicationId] = useState<string | null>(null);
 
   const setSex = (sex: Sex) => setForm(f => ({ ...f, sex }));
   const setSumInsured = (val: SumInsured) => setForm(f => ({ ...f, sumInsured: val }));
@@ -94,29 +111,16 @@ export default function InsuranceProposalForm() {
   };
 
   const set = (field: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement>) => {
-  let value: string | boolean = e.target.type === "checkbox" ? e.target.checked : e.target.value;
-  
-  // Auto-calculate age when date of birth changes
-  if (field === "dateOfBirth" && value) {
-    const age = calculateAge(value as string);
-    setForm(f => ({ ...f, [field]: value, age: age.toString() }));
-  } 
-  // REMOVE or COMMENT OUT this entire else-if block for auto-calculating days
-  /*
-  else if ((field === "dateOfTravel" || field === "returnDate") && value) {
-    setForm(f => ({ ...f, [field]: value }));
-    if (form.dateOfTravel && form.returnDate) {
-      const days = calculateDays(form.dateOfTravel, form.returnDate);
-      if (days > 0) {
-        setForm(prev => ({ ...prev, noOfDays: days.toString() }));
-      }
+    let value: string | boolean = e.target.type === "checkbox" ? e.target.checked : e.target.value;
+    
+    if (field === "dateOfBirth" && value) {
+      const age = calculateAge(value as string);
+      setForm(f => ({ ...f, [field]: value, age: age.toString() }));
+    } else {
+      setForm(f => ({ ...f, [field]: value }));
     }
-  }
-  */
-  else {
-    setForm(f => ({ ...f, [field]: value }));
-  }
-};
+  };
+
   // Helper function to calculate number of days between two dates
   const calculateDays = (startDate: string, endDate: string): number => {
     const start = new Date(startDate);
@@ -150,7 +154,6 @@ export default function InsuranceProposalForm() {
     if (!form.dateOfIssue) newErrors.dateOfIssue = "Date of issue is required";
     if (!form.dateOfExpiry) newErrors.dateOfExpiry = "Date of expiry is required";
     
-    // Validate expiry date is after issue date
     if (form.dateOfIssue && form.dateOfExpiry && new Date(form.dateOfExpiry) <= new Date(form.dateOfIssue)) {
       newErrors.dateOfExpiry = "Expiry date must be after issue date";
     }
@@ -162,7 +165,6 @@ export default function InsuranceProposalForm() {
     if (!form.dateOfTravel) newErrors.dateOfTravel = "Date of travel is required";
     if (!form.returnDate) newErrors.returnDate = "Return date is required";
     
-    // Validate return date is after travel date
     if (form.dateOfTravel && form.returnDate && new Date(form.returnDate) <= new Date(form.dateOfTravel)) {
       newErrors.returnDate = "Return date must be after travel date";
     }
@@ -212,6 +214,23 @@ export default function InsuranceProposalForm() {
 
   const sumOptions: SumInsured[] = ["50,000", "1,00,000", "3,00,000", "5,00,000", "10,00,000"];
 
+  const resetForm = () => {
+    setForm({
+      firstName: "", middleName: "", lastName: "",
+      sex: "", dateOfBirth: "", age: "50", cellNo: "",
+      address: "", landmark: "", city: "", pincode: "", state: "", country: "",
+      passportNumber: "", dateOfIssue: "", dateOfExpiry: "", placeOfIssue: "",
+      purposeOfTravel: "", anyExistingIllness: "",
+      includeUSACanada: false, excludeUSACanada: false,
+      dateOfTravel: "", returnDate: "", noOfDays: "", countriesToVisit: "",
+      sumInsured: "",
+      nomineeName: "", nomineeRelationship: "", nomineeAge: "50", nomineeMobile: "",
+      declaration: false,
+    });
+    setFamilyMembers([]);
+    setErrors({});
+  };
+
   // POST API Function
   const submitForm = async () => {
     if (!validateForm()) {
@@ -230,10 +249,26 @@ export default function InsuranceProposalForm() {
       });
       
       if (response.data.success) {
+        const applicationId = response.data.insurance_id || `INS_${Date.now()}`;
+        setSubmittedApplicationId(applicationId);
+        
         setSubmitStatus({ 
           type: 'success', 
-          message: `✅ Insurance form created successfully!\nInsurance ID: ${response.data.insurance_id}` 
+          message: `✅ Insurance form created successfully!\nInsurance ID: ${applicationId}` 
         });
+        
+        // Store submitted data for PDF generation
+        setSubmittedData({ form, familyMembers });
+        setIsFormSubmitted(true);
+        
+        // Save to localStorage for checkout page
+        localStorage.setItem('insuranceFormData', JSON.stringify({
+          form,
+          familyMembers,
+          application_id: applicationId,
+          submitted_at: new Date().toISOString()
+        }));
+        
         resetForm();
       } else {
         setSubmitStatus({ type: 'error', message: 'Failed to submit form' });
@@ -250,73 +285,166 @@ export default function InsuranceProposalForm() {
     }
   };
 
-  const resetForm = () => {
-    setForm({
-      firstName: "", middleName: "", lastName: "",
-      sex: "", dateOfBirth: "", age: "50", cellNo: "",
-      address: "", landmark: "", city: "", pincode: "", state: "", country: "",
-      passportNumber: "", dateOfIssue: "", dateOfExpiry: "", placeOfIssue: "",
-      purposeOfTravel: "", anyExistingIllness: "",
-      includeUSACanada: false, excludeUSACanada: false,
-      dateOfTravel: "", returnDate: "", noOfDays: "", countriesToVisit: "",
-      sumInsured: "",
-      nomineeName: "", nomineeRelationship: "", nomineeAge: "50", nomineeMobile: "",
-      declaration: false,
+  const handleEmailSubmit = async (emailData: EmailFormData) => {
+    try {
+      const { pdf } = await import('@react-pdf/renderer');
+      
+      const pdfInstance = (
+        <InsuranceProposalPDF
+          formData={submittedData?.form || form}
+          familyMembers={submittedData?.familyMembers || familyMembers}
+        />
+      );
+
+      const pdfBlob = await pdf(pdfInstance).toBlob();
+
+      const formDataToSend = new FormData();
+      formDataToSend.append('to', emailData.to);
+      formDataToSend.append('subject', emailData.subject);
+      formDataToSend.append('message', emailData.message);
+      formDataToSend.append('tourTitle', `Insurance Application - ${submittedData?.form.firstName || form.firstName} ${submittedData?.form.lastName || form.lastName}`);
+      formDataToSend.append('tourCode', `INS_${Date.now()}`);
+      formDataToSend.append('pdf', pdfBlob, `insurance_application_${submittedData?.form.firstName || 'form'}.pdf`);
+
+      const response = await fetch(`${BASE_URL}/api/send-tour-pdf`, {
+        method: 'POST',
+        body: formDataToSend,
+      });
+
+      let result;
+      const contentType = response.headers.get('content-type');
+      
+      if (contentType && contentType.includes('application/json')) {
+        result = await response.json();
+      } else {
+        const textResponse = await response.text();
+        console.error('Non-JSON response:', textResponse);
+        throw new Error(`Server error: ${response.status} ${response.statusText}`);
+      }
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'Failed to send email');
+      }
+
+      setShowEmailModal(false);
+      alert('Email sent successfully!');
+
+    } catch (error: any) {
+      console.error('Error sending email:', error);
+      alert(`Failed to send email: ${error.message || 'Unknown error'}`);
+    }
+  };
+
+  const handleDownloadPdf = () => {
+    setIsGeneratingPdf(true);
+    setTimeout(() => {
+      setIsGeneratingPdf(false);
+    }, 1000);
+  };
+
+  // Handle Book Now - Only works after form submission
+  const handleBook = () => {
+    if (!isFormSubmitted) {
+      setSubmitStatus({ 
+        type: 'error', 
+        message: "Please submit the application form first before proceeding to payment." 
+      });
+      setTimeout(() => setSubmitStatus({ type: null, message: '' }), 5000);
+      return;
+    }
+
+    navigate("/checkout-insurance", {
+      state: {
+        application: {
+          form: submittedData?.form || form,
+          familyMembers: submittedData?.familyMembers || familyMembers,
+          application_id: submittedApplicationId || `INS_${Date.now()}`,
+          submitted_data: submittedData
+        },
+        source: 'insurance'
+      }
     });
-    setFamilyMembers([]);
-    setErrors({});
   };
 
   return (
     <div>
       <Header />
+      
+      {/* Success Message Toast */}
+      {submitStatus.type === 'success' && (
+        <div className="fixed top-20 right-4 md:right-8 z-50 animate-slide-in max-w-[90%] sm:max-w-md">
+          <div className="bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-lg p-4 md:p-6 shadow-2xl border border-emerald-400">
+            <div className="flex items-start gap-3 md:gap-4">
+              <CheckCircle className="w-6 h-6 md:w-8 md:h-8 flex-shrink-0 mt-1" />
+              <div className="flex-1">
+                <h3 className="text-base md:text-lg font-bold mb-1">✓ Application Submitted Successfully!</h3>
+                <p className="text-sm opacity-90 mb-2">{submitStatus.message}</p>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 h-1 bg-white/30 rounded-full overflow-hidden">
+                    <div className="h-full bg-white rounded-full animate-progress"></div>
+                  </div>
+                </div>
+              </div>
+              <button 
+                onClick={() => setSubmitStatus({ type: null, message: '' })}
+                className="text-white/80 hover:text-white transition"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Error Message Toast */}
+      {submitStatus.type === 'error' && (
+        <div className="fixed top-20 right-4 md:right-8 z-50 animate-slide-in max-w-[90%] sm:max-w-md">
+          <div className="bg-gradient-to-r from-red-500 to-orange-600 text-white rounded-lg p-4 md:p-6 shadow-2xl border border-red-400">
+            <div className="flex items-center gap-3 md:gap-4">
+              <AlertCircle className="w-6 h-6 md:w-8 md:h-8 flex-shrink-0" />
+              <div>
+                <h3 className="text-base md:text-lg font-bold mb-1">Action Required</h3>
+                <p className="text-sm opacity-90">{submitStatus.message}</p>
+                <p className="text-xs opacity-75 mt-1">Please check the form and try again.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CSS for animations */}
+      <style>{`
+        @keyframes slideIn {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        @keyframes progress {
+          from {
+            width: 100%;
+          }
+          to {
+            width: 0%;
+          }
+        }
+        .animate-slide-in {
+          animation: slideIn 0.3s ease-out;
+        }
+        .animate-progress {
+          animation: progress 5s linear forwards;
+        }
+      `}</style>
+
       <div style={{ backgroundColor: "#1a2744", padding: "18px 0", textAlign: "center" }}>
         <h1 style={{ color: "#fff", fontSize: "24px", fontWeight: "bold", margin: 0, letterSpacing: "1px" }}>
           Insurance Proposal Form
         </h1>
       </div>
-
- {/* Success Message Toast */}
-{submitStatus.type === 'success' && (
-  <div className="fixed top-20 right-4 md:right-8 z-50 animate-slide-in max-w-[90%] sm:max-w-md">
-    <div className="bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-lg p-4 md:p-6 shadow-2xl border border-emerald-400">
-      <div className="flex items-start gap-3 md:gap-4">
-        <CheckCircle className="w-6 h-6 md:w-8 md:h-8 flex-shrink-0 mt-1" />
-        <div className="flex-1">
-          <h3 className="text-base md:text-lg font-bold mb-1">✓ Application Submitted Successfully!</h3>
-          <p className="text-sm opacity-90 mb-2">{submitStatus.message}</p>
-          <div className="flex items-center gap-2">
-            <div className="flex-1 h-1 bg-white/30 rounded-full overflow-hidden">
-              <div className="h-full bg-white rounded-full animate-progress"></div>
-            </div>
-          </div>
-        </div>
-        <button 
-          onClick={() => setSubmitStatus({ type: null, message: '' })}
-          className="text-white/80 hover:text-white transition"
-        >
-          ✕
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
-{/* Error Message Toast */}
-{submitStatus.type === 'error' && (
-  <div className="fixed top-20 right-4 md:right-8 z-50 animate-slide-in max-w-[90%] sm:max-w-md">
-    <div className="bg-gradient-to-r from-red-500 to-orange-600 text-white rounded-lg p-4 md:p-6 shadow-2xl border border-red-400">
-      <div className="flex items-center gap-3 md:gap-4">
-        <AlertCircle className="w-6 h-6 md:w-8 md:h-8 flex-shrink-0" />
-        <div>
-          <h3 className="text-base md:text-lg font-bold mb-1">Action Required</h3>
-          <p className="text-sm opacity-90">{submitStatus.message}</p>
-          <p className="text-xs opacity-75 mt-1">Please check the form and try again.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-)}
 
       {/* Main Form */}
       <div style={{ backgroundColor: "#fbeedf", margin: "24px", padding: "24px", border: "1px solid #c8a97e" }}>
@@ -441,13 +569,14 @@ export default function InsuranceProposalForm() {
             <div style={{ backgroundColor: "#5c3a1e", color: "#f5e6c8", fontWeight: "bold", fontSize: "13px", padding: "10px 14px", display: "flex", alignItems: "center", borderLeft: "2px solid #f5e6c8" }}>Return Date</div>
             <input type="date" className={INPUT} value={form.returnDate} onChange={set("returnDate")} style={{ flex: 1, borderLeft: "none" }} />
             <div style={{ backgroundColor: "#5c3a1e", color: "#f5e6c8", fontWeight: "bold", fontSize: "13px", padding: "10px 14px", display: "flex", alignItems: "center", borderLeft: "2px solid #f5e6c8" }}>No of Days</div>
-<input 
-  className={INPUT} 
-  value={form.noOfDays} 
-  onChange={set("noOfDays")}
-  placeholder="Enter number of days"
-  style={{ flex: 1, borderLeft: "none" }}
-/>            <div style={{ backgroundColor: "#5c3a1e", color: "#f5e6c8", fontWeight: "bold", fontSize: "13px", padding: "10px 14px", display: "flex", alignItems: "center", borderLeft: "2px solid #f5e6c8" }}>Countries to Visit</div>
+            <input 
+              className={INPUT} 
+              value={form.noOfDays} 
+              onChange={set("noOfDays")}
+              placeholder="Enter number of days"
+              style={{ flex: 1, borderLeft: "none" }}
+            />
+            <div style={{ backgroundColor: "#5c3a1e", color: "#f5e6c8", fontWeight: "bold", fontSize: "13px", padding: "10px 14px", display: "flex", alignItems: "center", borderLeft: "2px solid #f5e6c8" }}>Countries to Visit</div>
             <input className={INPUT} value={form.countriesToVisit} onChange={set("countriesToVisit")} style={{ flex: 1.5, borderLeft: "none" }} />
           </div>
           {errors.dateOfTravel && <div style={{ color: "#dc2626", fontSize: "12px", marginTop: "4px" }}>{errors.dateOfTravel}</div>}
@@ -669,25 +798,92 @@ export default function InsuranceProposalForm() {
           </div>
         )}
 
-        {/* Submit Button */}
-        <div style={{ display: "flex", justifyContent: "center", marginTop: "24px", marginBottom: "16px" }}>
-          <button
-            onClick={submitForm}
-            disabled={loading}
-            style={{
-              backgroundColor: "#cc2200",
-              color: "white",
-              border: "none",
-              padding: "12px 40px",
-              fontSize: "16px",
-              fontWeight: "bold",
-              cursor: loading ? "not-allowed" : "pointer",
-              borderRadius: "4px",
-              opacity: loading ? 0.6 : 1
-            }}
-          >
-            {loading ? "Submitting..." : "Submit Form"}
-          </button>
+        {/* Action Buttons Container */}
+        <div className="text-center mt-4">
+          <div className="flex flex-wrap justify-center items-center gap-3">
+            {/* Submit Button */}
+            <button
+              className="px-6 py-2 font-bold text-sm text-white bg-[#0c2b66] hover:bg-[#1a3a7a] transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 rounded-lg"
+              onClick={submitForm}
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+                  Submitting...
+                </>
+              ) : (
+                "Submit Application"
+              )}
+            </button>
+
+            {/* Download PDF Button - Enabled after submission */}
+            {isFormSubmitted && (
+              <div className="border border-green-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                <PDFDownloadLink
+                  document={
+                    <InsuranceProposalPDF
+                      formData={submittedData?.form || form}
+                      familyMembers={submittedData?.familyMembers || familyMembers}
+                    />
+                  }
+                  fileName={`insurance_application_${submittedData?.form.firstName || 'form'}_${new Date().toISOString().split('T')[0]}.pdf`}
+                  onClick={() => setIsGeneratingPdf(true)}
+                >
+                  {({ loading, error }) => (
+                    <button
+                      className={`px-4 py-2 ${loading || isGeneratingPdf ? 'bg-green-900' : 'bg-green-700 hover:bg-green-800'} text-white font-bold flex items-center justify-center gap-2 transition-colors text-sm rounded-lg`}
+                      disabled={loading || isGeneratingPdf}
+                    >
+                      {loading || isGeneratingPdf ? (
+                        <>
+                          <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <Download className="h-4 w-4" />
+                          Download PDF
+                        </>
+                      )}
+                    </button>
+                  )}
+                </PDFDownloadLink>
+              </div>
+            )}
+
+            {/* Email Button - Enabled after submission */}
+            {isFormSubmitted && (
+              <button
+                onClick={() => setShowEmailModal(true)}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold flex items-center justify-center gap-2 rounded-lg transition-colors text-sm"
+              >
+                <Mail className="h-4 w-4" />
+                Mail
+              </button>
+            )}
+
+            {/* Book Now Button - Disabled until form is submitted */}
+            {/* <button
+              onClick={handleBook}
+              disabled={!isFormSubmitted}
+              className={`px-4 py-2 font-bold flex items-center justify-center gap-2 rounded-lg transition-colors text-sm ${
+                isFormSubmitted 
+                  ? 'bg-red-600 hover:bg-red-700 text-white' 
+                  : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+              }`}
+              title={!isFormSubmitted ? "Please submit the application form first" : "Proceed to payment"}
+            >
+              Book Now
+            </button> */}
+          </div>
+          
+          {/* Helper text for Book Now button */}
+          {!isFormSubmitted && (
+            <p className="text-xs text-gray-500 mt-2">
+              Submit the application form to enable booking and payment
+            </p>
+          )}
         </div>
 
         {/* Declaration */}
@@ -704,35 +900,19 @@ export default function InsuranceProposalForm() {
           {errors.declaration && <div style={{ color: "#dc2626", fontSize: "12px", marginTop: "8px" }}>{errors.declaration}</div>}
         </div>
       </div>
+
+      {/* Email Modal */}
+      <EmailModal
+        isOpen={showEmailModal}
+        onClose={() => setShowEmailModal(false)}
+        onSubmit={handleEmailSubmit}
+        tour={{
+          name: `Insurance Application - ${submittedData?.form.firstName || form.firstName} ${submittedData?.form.lastName || form.lastName}`,
+          bungalow_code: `INS_${Date.now()}`
+        }}
+      />
+      
       <Footer />
     </div>
   );
 }
-
-{/* CSS for animations */}
-<style>{`
-  @keyframes slideIn {
-    from {
-      transform: translateX(100%);
-      opacity: 0;
-    }
-    to {
-      transform: translateX(0);
-      opacity: 1;
-    }
-  }
-  @keyframes progress {
-    from {
-      width: 100%;
-    }
-    to {
-      width: 0%;
-    }
-  }
-  .animate-slide-in {
-    animation: slideIn 0.3s ease-out;
-  }
-  .animate-progress {
-    animation: progress 5s linear forwards;
-  }
-`}</style>
