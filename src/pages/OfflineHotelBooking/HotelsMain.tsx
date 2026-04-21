@@ -25,13 +25,12 @@ import Footer from "@/components/Footer";
 import { BASE_URL } from "@/ApiUrls";
 
 // Types
-// Updated Types
 interface TravellerCount {
   rooms: number;
   adults: number;
   children: number;
   infants?: number;
-  pets?: boolean; // Add pets flag
+  pets?: boolean;
 }
 
 interface Hotel {
@@ -63,6 +62,8 @@ interface Hotel {
   pay_later?: boolean | number;
   status?: string;
   city?: string;
+  property_name?: string;
+  country?: string;
   check_in_date?: string;
   check_out_date?: string;
   rooms?: number;
@@ -72,23 +73,8 @@ interface Hotel {
   children_ages?: number[];
 }
 
-// Popular cities
-const cities = [
-  { name: "Goa", country: "India", popular: true },
-  { name: "Delhi", country: "India", popular: true },
-  { name: "Mumbai", country: "India", popular: true },
-  { name: "Bengaluru", country: "India", popular: true },
-  { name: "Chennai", country: "India", popular: true },
-  { name: "Kolkata", country: "India", popular: true },
-  { name: "Hyderabad", country: "India", popular: true },
-  { name: "Pune", country: "India", popular: true },
-  { name: "Jaipur", country: "India", popular: true },
-  { name: "Ahmedabad", country: "India", popular: true }
-];
-
 // Helper function to get effective price from hotel data
 const getEffectivePrice = (hotel: Hotel): number => {
-  // Priority: sale_price > price > 0
   if (hotel.sale_price && Number(hotel.sale_price) > 0) {
     return Number(hotel.sale_price);
   }
@@ -128,11 +114,13 @@ const getTotalAmount = (hotel: Hotel): number => {
 const LocationDropdown = ({ 
   isOpen,
   onClose, 
-  onSelectCity 
+  onSelectCity,
+  availableCities
 }: { 
   isOpen: boolean;
   onClose: () => void; 
   onSelectCity: (city: string) => void;
+  availableCities: string[];
 }) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -149,8 +137,8 @@ const LocationDropdown = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen, onClose]);
 
-  const filteredCities = cities.filter(city =>
-    city.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredCities = availableCities.filter(city =>
+    city.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleCitySelect = (city: string) => {
@@ -173,7 +161,7 @@ const LocationDropdown = ({
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
         <input
           type="text"
-          placeholder="Search: 'Beachfront stays Goa'"
+          placeholder="Search city..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/30"
@@ -181,32 +169,27 @@ const LocationDropdown = ({
         />
       </div>
 
-      <div className="mb-6">
-        <h4 className="font-semibold text-gray-700 mb-2 text-xs">RECENT SEARCHES</h4>
-        <div
-          className="flex items-center justify-between p-3 hover:bg-gray-50 rounded cursor-pointer"
-          onClick={() => handleCitySelect("Goa")}
-        >
-          <div>
-            <p className="font-medium">Goa</p>
-            <p className="text-sm text-gray-600">10 Feb - 11 Feb | 2 Guests | 1 Room</p>
-          </div>
-          <button className="text-blue-600 text-sm">Search</button>
-        </div>
-      </div>
-
       <div>
-        <h4 className="font-semibold text-gray-700 mb-2 text-xs">POPULAR</h4>
-        <div className="grid grid-cols-2 gap-2">
-          {filteredCities.map((city) => (
-            <button
-              key={city.name}
-              className="text-left p-3 border border-gray-200 rounded hover:border-orange-500 hover:bg-orange-50 transition-colors"
-              onClick={() => handleCitySelect(city.name)}
-            >
-              {city.name}
-            </button>
-          ))}
+        <h4 className="font-semibold text-gray-700 mb-2 text-xs">AVAILABLE CITIES</h4>
+        <div className="max-h-64 overflow-y-auto">
+          {filteredCities.length === 0 ? (
+            <p className="text-center text-gray-500 py-4">No cities found</p>
+          ) : (
+            <div className="grid grid-cols-1 gap-1">
+              {filteredCities.map((city) => (
+                <button
+                  key={city}
+                  className="text-left p-3 border border-gray-200 rounded hover:border-orange-500 hover:bg-orange-50 transition-colors"
+                  onClick={() => handleCitySelect(city)}
+                >
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-gray-400" />
+                    <span className="font-medium">{city}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -221,7 +204,8 @@ const DatePickerDropdown = ({
   nextStep,
   selectedDate,
   autoOpen,
-  availableDates = []
+  availableDates = [],
+  minDate
 }: {
   title: string;
   onClose: () => void;
@@ -230,6 +214,7 @@ const DatePickerDropdown = ({
   selectedDate?: Date | null;
   autoOpen?: boolean;
   availableDates?: string[];
+  minDate?: Date;
 }) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const weekDays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
@@ -349,7 +334,7 @@ const DatePickerDropdown = ({
         {days.map((day, index) => {
           const isSelected = selected && day.date.toDateString() === selected.toDateString();
           const isToday = day.date.toDateString() === new Date().toDateString();
-          const isPast = day.date < new Date(new Date().setHours(0, 0, 0, 0));
+          const isPast = minDate ? day.date < minDate : day.date < new Date(new Date().setHours(0, 0, 0, 0));
           const isAvailable = isDateAvailable(day.date);
           
           const isDisabled = !day.currentMonth || isPast || (hasAvailableDates && !isAvailable);
@@ -406,7 +391,7 @@ const GuestsDropdown = ({
   const [adults, setAdults] = useState(travellers.adults || 2);
   const [children, setChildren] = useState(travellers.children || 0);
   const [childrenAges, setChildrenAges] = useState<number[]>([5, 8].slice(0, children));
-  const [withPets, setWithPets] = useState(false);
+  const [withPets, setWithPets] = useState(travellers.pets || false);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -418,16 +403,15 @@ const GuestsDropdown = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [onClose]);
 
- // Inside GuestsDropdown component, update the useEffect that syncs with parent
-useEffect(() => {
-  onTravellersChange({
-    rooms,
-    adults,
-    children,
-    infants: 0,
-    pets: withPets // Pass pets selection to parent
-  });
-}, [rooms, adults, children, withPets, onTravellersChange]);
+  useEffect(() => {
+    onTravellersChange({
+      rooms,
+      adults,
+      children,
+      infants: 0,
+      pets: withPets
+    });
+  }, [rooms, adults, children, withPets, onTravellersChange]);
 
   const updateChildrenAge = (index: number, age: number) => {
     const newAges = [...childrenAges];
@@ -540,7 +524,6 @@ useEffect(() => {
 };
 
 // ==================== Filter Sidebar Component ====================
-// ==================== Filter Sidebar Component ====================
 const FilterSidebar = ({ 
   hotels, 
   onFilterChange,
@@ -552,7 +535,6 @@ const FilterSidebar = ({
   selectedFilters: any;
   onClearFilters: () => void;
 }) => {
-  // Extract all unique amenities from the actual hotel data
   const getAvailableAmenities = () => {
     const amenitySet = new Set<string>();
     hotels.forEach(hotel => {
@@ -573,7 +555,6 @@ const FilterSidebar = ({
     return Array.from(amenitySet).sort();
   };
 
-  // Extract unique cities/locations from hotel data
   const getAvailableLocations = () => {
     const locationSet = new Set<string>();
     hotels.forEach(hotel => {
@@ -600,14 +581,12 @@ const FilterSidebar = ({
       if (!hotel.amenities) return false;
       
       if (Array.isArray(hotel.amenities)) {
-        // Exact match for array items
         return hotel.amenities.some(a => 
           String(a).trim().toLowerCase() === amenity.toLowerCase()
         );
       }
       
       if (typeof hotel.amenities === 'string') {
-        // Split by comma and check for exact match
         return hotel.amenities.split(',').some(a => 
           a.trim().toLowerCase() === amenity.toLowerCase()
         );
@@ -633,10 +612,8 @@ const FilterSidebar = ({
 
   const starCategories = [3, 4, 5];
   
-  // Get actual amenities from hotel data
   const actualAmenities = getAvailableAmenities();
   
-  // Fallback amenities if none found in data
   const amenitiesList = actualAmenities.length > 0 
     ? actualAmenities 
     : ['Free WiFi', 'Air Conditioning', 'TV', 'Tea/Coffee Maker', 'Mini Fridge', 'Bathtub', 'Mini Bar'];
@@ -1065,7 +1042,6 @@ const HotelCard = ({ hotel, onBookNow, checkIn, checkOut, travellers }: {
           <div className="space-y-2">
             {[
               { label: 'Base Price', amount: `₹${formatPrice(getEffectivePrice(hotel))}` },
-              // { label: 'Taxes & Fees', amount: hotel.taxes ? `₹${formatPrice(hotel.taxes)}` : '₹315' }
             ].map((item, idx) => (
               <div key={idx} className="flex justify-between text-sm border-b pb-2"><span>{item.label}</span><span className="font-medium">{item.amount}</span></div>
             ))}
@@ -1087,7 +1063,6 @@ const HotelCard = ({ hotel, onBookNow, checkIn, checkOut, travellers }: {
     navigate(`/hotel-detail/${hotel.id}`);
   };
 
-  // Get effective prices
   const displayPrice = getEffectivePrice(hotel);
   const originalPrice = getEffectiveOriginalPrice(hotel);
   const totalAmount = getTotalAmount(hotel);
@@ -1234,35 +1209,32 @@ const HotelSearchMain = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
+  // Dynamic cities from API
+  const [availableCities, setAvailableCities] = useState<string[]>([]);
   const [availableCheckInDates, setAvailableCheckInDates] = useState<string[]>([]);
   const [availableCheckOutDates, setAvailableCheckOutDates] = useState<string[]>([]);
+  const [filteredCheckInDates, setFilteredCheckInDates] = useState<string[]>([]);
+  const [filteredCheckOutDates, setFilteredCheckOutDates] = useState<string[]>([]);
   
   const [filters, setFilters] = useState({
     priceRanges: [] as string[],
     stars: [] as number[],
     amenities: [] as string[],
     minRating: 0,
-    customBudget: { min: '', max: '' }
+    customBudget: { min: '', max: '' },
+    location: ''
   });
 
-  const [location, setLocation] = useState("Goa");
-  const [checkIn, setCheckIn] = useState<Date>(() => {
-    const d = new Date();
-    d.setDate(d.getDate() + 1);
-    return d;
-  });
-  const [checkOut, setCheckOut] = useState<Date | undefined>(() => {
-    const d = new Date();
-    d.setDate(d.getDate() + 3);
-    return d;
-  });
+  const [location, setLocation] = useState("");
+  const [checkIn, setCheckIn] = useState<Date | undefined>(undefined);
+  const [checkOut, setCheckOut] = useState<Date | undefined>(undefined);
   const [travellers, setTravellers] = useState<TravellerCount>({
-  rooms: 1,
-  adults: 2,
-  children: 0,
-  infants: 0,
-  pets: false
-});
+    rooms: 1,
+    adults: 2,
+    children: 0,
+    infants: 0,
+    pets: false
+  });
 
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
   const [showCheckInDropdown, setShowCheckInDropdown] = useState(false);
@@ -1273,11 +1245,12 @@ const HotelSearchMain = () => {
   const [autoOpenCheckOut, setAutoOpenCheckOut] = useState(false);
   const [autoOpenGuests, setAutoOpenGuests] = useState(false);
 
+  // Fetch hotels and extract unique cities
   useEffect(() => {
-    fetchHotelsAndDates();
+    fetchHotels();
   }, []);
 
-  const fetchHotelsAndDates = async () => {
+  const fetchHotels = async () => {
     setLoading(true);
     setError('');
     try {
@@ -1287,20 +1260,41 @@ const HotelSearchMain = () => {
         setHotels(hotelsData);
         setFilteredHotels(hotelsData);
         
-        const checkInDates: string[] = [...new Set(
+        // Extract unique cities from hotels
+        const cities = [...new Set(
+          hotelsData
+            .filter((hotel: Hotel) => hotel.city)
+            .map((hotel: Hotel) => hotel.city as string)
+        )].sort();
+        
+        setAvailableCities(cities);
+        
+        // Set default location to first city if available
+        if (cities.length > 0 && !location) {
+          setLocation(cities[0]);
+        }
+        
+        // Extract all check-in dates
+        const allCheckInDates: string[] = [...new Set(
           hotelsData
             .filter((hotel: Hotel) => hotel.check_in_date)
             .map((hotel: Hotel) => hotel.check_in_date as string)
-        )];
+        )].sort();
         
-        const checkOutDates: string[] = [...new Set(
+        setAvailableCheckInDates(allCheckInDates);
+        
+        // Extract all check-out dates
+        const allCheckOutDates: string[] = [...new Set(
           hotelsData
             .filter((hotel: Hotel) => hotel.check_out_date)
             .map((hotel: Hotel) => hotel.check_out_date as string)
-        )];
+        )].sort();
         
-        setAvailableCheckInDates(checkInDates);
-        setAvailableCheckOutDates(checkOutDates);
+        setAvailableCheckOutDates(allCheckOutDates);
+        
+        // Initially show all dates
+        setFilteredCheckInDates(allCheckInDates);
+        setFilteredCheckOutDates(allCheckOutDates);
       } else {
         setError('Failed to fetch hotels');
       }
@@ -1312,141 +1306,184 @@ const HotelSearchMain = () => {
     }
   };
 
-  // Update the applyFilters function to include location filter
-// Update the applyFilters function with correct guest capacity logic
-const applyFilters = (hotelList: Hotel[], currentFilters: typeof filters, searchLocation: string, searchCheckIn: Date | undefined, searchCheckOut: Date | undefined, searchTravellers: TravellerCount) => {
-  let filtered = [...hotelList];
+  // Update available check-in dates when location changes
+  useEffect(() => {
+    if (!location || hotels.length === 0) return;
+    
+    const hotelsInCity = hotels.filter(hotel => 
+      hotel.city?.toLowerCase() === location.toLowerCase()
+    );
+    
+    const cityCheckInDates = [...new Set(
+      hotelsInCity
+        .filter(hotel => hotel.check_in_date)
+        .map(hotel => hotel.check_in_date as string)
+    )].sort();
+    
+    setFilteredCheckInDates(cityCheckInDates);
+    
+    // Clear check-in if it's not available for selected city
+    if (checkIn && cityCheckInDates.length > 0) {
+      const checkInStr = format(checkIn, 'yyyy-MM-dd');
+      if (!cityCheckInDates.includes(checkInStr)) {
+        setCheckIn(undefined);
+      }
+    }
+  }, [location, hotels]);
 
-  // Apply location filter from sidebar (if set)
-  if (currentFilters.location) {
-    const filterLocation = currentFilters.location.toLowerCase();
-    filtered = filtered.filter(hotel => {
-      const hotelCity = (hotel.city || '').toLowerCase();
-      const hotelLocation = (hotel.hotel_location || '').toLowerCase();
-      const hotelName = (hotel.hotel_name || '').toLowerCase();
-      return hotelCity.includes(filterLocation) || 
-             hotelLocation.includes(filterLocation) || 
-             hotelName.includes(filterLocation);
-    });
-  }
+  // Update available check-out dates when check-in changes
+  useEffect(() => {
+    if (!location || !checkIn || hotels.length === 0) return;
+    
+    const checkInStr = format(checkIn, 'yyyy-MM-dd');
+    
+    const hotelsMatching = hotels.filter(hotel => 
+      hotel.city?.toLowerCase() === location.toLowerCase() &&
+      hotel.check_in_date === checkInStr
+    );
+    
+    const cityCheckOutDates = [...new Set(
+      hotelsMatching
+        .filter(hotel => hotel.check_out_date)
+        .map(hotel => hotel.check_out_date as string)
+    )].sort();
+    
+    setFilteredCheckOutDates(cityCheckOutDates);
+    
+    // Clear check-out if it's not available for selected check-in
+    if (checkOut && cityCheckOutDates.length > 0) {
+      const checkOutStr = format(checkOut, 'yyyy-MM-dd');
+      if (!cityCheckOutDates.includes(checkOutStr)) {
+        setCheckOut(undefined);
+      }
+    }
+  }, [location, checkIn, hotels]);
 
-  // Apply price range filters
-  if (currentFilters.priceRanges.length > 0) {
-    filtered = filtered.filter(hotel => {
-      const price = getEffectivePrice(hotel);
-      return currentFilters.priceRanges.some(rangeKey => {
-        const [min, max] = rangeKey.split('-').map(v => v === 'inf' ? Infinity : Number(v));
-        return price >= min && price <= max;
+  const applyFilters = (hotelList: Hotel[], currentFilters: typeof filters, searchLocation: string, searchCheckIn: Date | undefined, searchCheckOut: Date | undefined, searchTravellers: TravellerCount) => {
+    let filtered = [...hotelList];
+
+    // Apply location filter from sidebar (if set)
+    if (currentFilters.location) {
+      const filterLocation = currentFilters.location.toLowerCase();
+      filtered = filtered.filter(hotel => {
+        const hotelCity = (hotel.city || '').toLowerCase();
+        const hotelLocation = (hotel.hotel_location || '').toLowerCase();
+        const hotelName = (hotel.hotel_name || '').toLowerCase();
+        return hotelCity.includes(filterLocation) || 
+               hotelLocation.includes(filterLocation) || 
+               hotelName.includes(filterLocation);
       });
-    });
-  }
+    }
 
-  // Apply custom budget filter
-  if (currentFilters.customBudget.min) {
-    filtered = filtered.filter(hotel => getEffectivePrice(hotel) >= Number(currentFilters.customBudget.min));
-  }
-  if (currentFilters.customBudget.max) {
-    filtered = filtered.filter(hotel => getEffectivePrice(hotel) <= Number(currentFilters.customBudget.max));
-  }
+    // Apply price range filters
+    if (currentFilters.priceRanges.length > 0) {
+      filtered = filtered.filter(hotel => {
+        const price = getEffectivePrice(hotel);
+        return currentFilters.priceRanges.some(rangeKey => {
+          const [min, max] = rangeKey.split('-').map(v => v === 'inf' ? Infinity : Number(v));
+          return price >= min && price <= max;
+        });
+      });
+    }
 
-  // Apply star rating filter
-  if (currentFilters.stars.length > 0) {
-    filtered = filtered.filter(hotel => currentFilters.stars.includes(hotel.star_rating));
-  }
+    // Apply custom budget filter
+    if (currentFilters.customBudget.min) {
+      filtered = filtered.filter(hotel => getEffectivePrice(hotel) >= Number(currentFilters.customBudget.min));
+    }
+    if (currentFilters.customBudget.max) {
+      filtered = filtered.filter(hotel => getEffectivePrice(hotel) <= Number(currentFilters.customBudget.max));
+    }
 
-  // Apply guest rating filter
-  if (currentFilters.minRating > 0) {
-    filtered = filtered.filter(hotel => Number(hotel.rating) >= currentFilters.minRating);
-  }
+    // Apply star rating filter
+    if (currentFilters.stars.length > 0) {
+      filtered = filtered.filter(hotel => currentFilters.stars.includes(hotel.star_rating));
+    }
 
-  // Apply amenities filter
-  if (currentFilters.amenities.length > 0) {
-    filtered = filtered.filter(hotel => {
-      if (!hotel.amenities) return false;
-      
-      const amenitiesIncludes = (amenity: string): boolean => {
-        const searchTerm = amenity.toLowerCase().trim();
+    // Apply guest rating filter
+    if (currentFilters.minRating > 0) {
+      filtered = filtered.filter(hotel => Number(hotel.rating) >= currentFilters.minRating);
+    }
+
+    // Apply amenities filter
+    if (currentFilters.amenities.length > 0) {
+      filtered = filtered.filter(hotel => {
+        if (!hotel.amenities) return false;
         
-        if (Array.isArray(hotel.amenities)) {
-          return hotel.amenities.some(a => 
-            String(a).trim().toLowerCase() === searchTerm
-          );
+        const amenitiesIncludes = (amenity: string): boolean => {
+          const searchTerm = amenity.toLowerCase().trim();
+          
+          if (Array.isArray(hotel.amenities)) {
+            return hotel.amenities.some(a => 
+              String(a).trim().toLowerCase() === searchTerm
+            );
+          }
+          
+          if (typeof hotel.amenities === 'string') {
+            return hotel.amenities.split(',').some(a => 
+              a.trim().toLowerCase() === searchTerm
+            );
+          }
+          
+          return false;
+        };
+        
+        return currentFilters.amenities.every(amenitiesIncludes);
+      });
+    }
+
+    // Apply location search from main search bar
+    if (searchLocation) {
+      const searchLocationLower = searchLocation.toLowerCase();
+      filtered = filtered.filter(hotel => {
+        const hotelCity = (hotel.city || '').toLowerCase();
+        const hotelLocation = (hotel.hotel_location || '').toLowerCase();
+        const hotelName = (hotel.hotel_name || '').toLowerCase();
+        return hotelCity.includes(searchLocationLower) || 
+               hotelLocation.includes(searchLocationLower) || 
+               hotelName.includes(searchLocationLower);
+      });
+    }
+
+    // Apply date filters
+    if (searchCheckIn) {
+      const checkInStr = format(searchCheckIn, 'yyyy-MM-dd');
+      filtered = filtered.filter(hotel => hotel.check_in_date === checkInStr);
+    }
+    
+    if (searchCheckOut) {
+      const checkOutStr = format(searchCheckOut, 'yyyy-MM-dd');
+      filtered = filtered.filter(hotel => hotel.check_out_date === checkOutStr);
+    }
+
+    // Apply guest capacity filters - EXACT MATCH
+    if (searchTravellers) {
+      filtered = filtered.filter(hotel => {
+        // Exact match for rooms
+        if (hotel.rooms !== undefined && hotel.rooms !== null) {
+          if (hotel.rooms !== searchTravellers.rooms) return false;
         }
         
-        if (typeof hotel.amenities === 'string') {
-          return hotel.amenities.split(',').some(a => 
-            a.trim().toLowerCase() === searchTerm
-          );
+        // Exact match for adults
+        if (hotel.adults !== undefined && hotel.adults !== null) {
+          if (hotel.adults !== searchTravellers.adults) return false;
         }
         
-        return false;
-      };
-      
-      return currentFilters.amenities.every(amenitiesIncludes);
-    });
-  }
+        // Exact match for children
+        if (hotel.children !== undefined && hotel.children !== null) {
+          if (hotel.children !== searchTravellers.children) return false;
+        }
+        
+        // Check pets
+        if (searchTravellers.pets) {
+          if (hotel.pets !== 1 && hotel.pets !== true) return false;
+        }
+        
+        return true;
+      });
+    }
 
-  // Apply location search from main search bar
-  const searchLocationLower = searchLocation.toLowerCase();
-  filtered = filtered.filter(hotel => {
-    const hotelCity = (hotel.city || '').toLowerCase();
-    const hotelLocation = (hotel.hotel_location || '').toLowerCase();
-    const hotelName = (hotel.hotel_name || '').toLowerCase();
-    return hotelCity.includes(searchLocationLower) || 
-           hotelLocation.includes(searchLocationLower) || 
-           hotelName.includes(searchLocationLower);
-  });
-
-  // Apply date filters
-  filtered = filtered.filter(hotel => {
-    let dateMatch = true;
-    if (searchCheckIn && hotel.check_in_date) {
-      const hotelCheckIn = new Date(hotel.check_in_date);
-      const searchCheckInDate = new Date(searchCheckIn);
-      hotelCheckIn.setHours(0, 0, 0, 0);
-      searchCheckInDate.setHours(0, 0, 0, 0);
-      dateMatch = hotelCheckIn.getTime() === searchCheckInDate.getTime();
-    }
-    if (dateMatch && searchCheckOut && hotel.check_out_date) {
-      const hotelCheckOut = new Date(hotel.check_out_date);
-      const searchCheckOutDate = new Date(searchCheckOut);
-      hotelCheckOut.setHours(0, 0, 0, 0);
-      searchCheckOutDate.setHours(0, 0, 0, 0);
-      dateMatch = hotelCheckOut.getTime() === searchCheckOutDate.getTime();
-    }
-    return dateMatch;
-  });
-
-  // FIXED: Apply guest capacity filters - Hotel must have >= capacity than requested
-  filtered = filtered.filter(hotel => {
-    // If no travellers data is provided, show the hotel
-    if (!searchTravellers) return true;
-    
-    // Check rooms capacity - hotel must have at least the number of rooms requested
-    if (hotel.rooms !== undefined && hotel.rooms !== null) {
-      if (hotel.rooms < searchTravellers.rooms) return false;
-    }
-    
-    // Check adults capacity - hotel must have at least the number of adults requested
-    if (hotel.adults !== undefined && hotel.adults !== null) {
-      if (hotel.adults < searchTravellers.adults) return false;
-    }
-    
-    // Check children capacity - hotel must have at least the number of children requested
-    if (hotel.children !== undefined && hotel.children !== null) {
-      if (hotel.children < searchTravellers.children) return false;
-    }
-    
-    // Check pets - if pets are requested, hotel must allow pets
-    if (searchTravellers.infants === 1) { // Using infants as pets flag if needed
-      if (hotel.pets !== 1 && hotel.pets !== true) return false;
-    }
-    
-    return true;
-  });
-
-  return filtered;
-};
+    return filtered;
+  };
 
   useEffect(() => {
     if (hotels.length > 0) {
@@ -1465,7 +1502,8 @@ const applyFilters = (hotelList: Hotel[], currentFilters: typeof filters, search
       stars: [],
       amenities: [],
       minRating: 0,
-      customBudget: { min: '', max: '' }
+      customBudget: { min: '', max: '' },
+      location: ''
     });
   };
 
@@ -1516,7 +1554,6 @@ const applyFilters = (hotelList: Hotel[], currentFilters: typeof filters, search
   const handleBookNow = (hotel: Hotel) => {
     const nights = checkOut && checkIn ? Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)) : 1;
     
-    // Use effective total amount
     const totalAmount = getTotalAmount(hotel);
     
     const hotelForCheckout = {
@@ -1528,7 +1565,7 @@ const applyFilters = (hotelList: Hotel[], currentFilters: typeof filters, search
       children: travellers.children,
       nights: nights,
       total_price_value: Number(totalAmount),
-      selectedRoomType: null // No room type selected from search page
+      selectedRoomType: null
     };
     localStorage.setItem('selectedHotel', JSON.stringify(hotelForCheckout));
     navigate('/checkout-hotels', { state: { hotel: hotelForCheckout } });
@@ -1577,7 +1614,7 @@ const applyFilters = (hotelList: Hotel[], currentFilters: typeof filters, search
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs text-gray-500 uppercase tracking-wide">CITY / HOTEL</p>
-                        <p className="font-semibold text-gray-900 truncate">{location}</p>
+                        <p className="font-semibold text-gray-900 truncate">{location || "Select City"}</p>
                         <p className="text-xs text-gray-500 truncate">India</p>
                       </div>
                       <ChevronDown className="w-4 h-4 text-gray-500 shrink-0" />
@@ -1589,6 +1626,7 @@ const applyFilters = (hotelList: Hotel[], currentFilters: typeof filters, search
                         isOpen={showLocationDropdown}
                         onClose={handleLocationClose} 
                         onSelectCity={handleLocationSelect} 
+                        availableCities={availableCities}
                       />
                     </div>
                   )}
@@ -1625,7 +1663,7 @@ const applyFilters = (hotelList: Hotel[], currentFilters: typeof filters, search
                         nextStep={() => setShowCheckOutDropdown(true)} 
                         selectedDate={checkIn} 
                         autoOpen={autoOpenCheckIn}
-                        availableDates={availableCheckInDates}
+                        availableDates={filteredCheckInDates}
                       />
                     </div>
                   )}
@@ -1662,7 +1700,8 @@ const applyFilters = (hotelList: Hotel[], currentFilters: typeof filters, search
                         nextStep={() => setShowGuestsDropdown(true)} 
                         selectedDate={checkOut} 
                         autoOpen={autoOpenCheckOut}
-                        availableDates={availableCheckOutDates}
+                        availableDates={filteredCheckOutDates}
+                        minDate={checkIn}
                       />
                     </div>
                   )}
