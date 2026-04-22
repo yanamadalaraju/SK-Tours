@@ -1,4 +1,4 @@
-// src/pages/OfflineHotelBooking/CheckoutPageHotels.tsx - COMPLETELY FIXED
+// src/pages/OfflineHotelBooking/CheckoutPageHotels.tsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -47,6 +47,7 @@ interface HotelData {
   taxes?: string | number;
   total_amount?: string | number;
   price_per_child?: string | number;
+  sale_price?: string | number;
   main_image?: string;
   additional_images?: string[];
   amenities?: string[];
@@ -67,12 +68,9 @@ interface HotelData {
   totalChildrenPrice?: number;
   basePrice?: number;
   nights?: number;
+  hasRoomSelected?: boolean;
   [key: string]: any;
 }
-
-
-
-
 
 const CheckoutPageHotels = () => {
   const navigate = useNavigate();
@@ -110,44 +108,78 @@ const CheckoutPageHotels = () => {
 
       if (location.state?.hotel) {
         hotel = location.state.hotel;
-        console.log('Hotel data from state:', hotel);
+        console.log('🏨 Hotel data from state:', hotel);
       } else {
         const savedHotel = localStorage.getItem('selectedHotel');
         if (savedHotel) {
           hotel = JSON.parse(savedHotel);
-          console.log('Hotel data from localStorage:', hotel);
+          console.log('💾 Hotel data from localStorage:', hotel);
         }
       }
 
       if (hotel) {
-        // IMPORTANT: Override total_price_value with direct room price (no multiplication)
-        if (hotel.selectedRoom) {
+        // Check if a room was actually selected
+        const hasRoomSelected = hotel.selectedRoom !== null && hotel.selectedRoom !== undefined;
+        
+        console.log('🔍 Room selection status:', {
+          hasRoomSelected,
+          hasRoomSelectedFlag: hotel.hasRoomSelected,
+          selectedRoom: hotel.selectedRoom?.roomType || 'None',
+          selectedRoomCategory: hotel.selectedRoomCategory || 'None'
+        });
+        
+        if (hasRoomSelected && hotel.selectedRoom) {
+          // USER SELECTED A SPECIFIC ROOM - use room pricing
           const directRoomPrice = Number(hotel.selectedRoom.price);
-          const childPriceValue = hotel.selectedRoom.pricePerChild ? Number(hotel.selectedRoom.pricePerChild) : Number(hotel.price_per_child || 0);
+          const childPriceValue = hotel.selectedRoom.pricePerChild 
+            ? Number(hotel.selectedRoom.pricePerChild) 
+            : Number(hotel.price_per_child || 0);
           const childrenCountValue = hotel.children || 0;
           const taxesValue = Number(hotel.taxes || 0);
           
-          // DIRECT CALCULATION - NO NIGHTS MULTIPLICATION
           hotel.total_price_value = directRoomPrice + (childPriceValue * childrenCountValue) + taxesValue;
           hotel.basePrice = directRoomPrice;
           hotel.childPrice = childPriceValue;
           hotel.totalChildrenPrice = childPriceValue * childrenCountValue;
-          hotel.nights = 1; // Force to 1
+          hotel.nights = 1;
+          
+          console.log('✅ Using SELECTED ROOM pricing:', {
+            roomType: hotel.selectedRoom.roomType,
+            roomPrice: directRoomPrice,
+            childPrice: childPriceValue,
+            childrenCount: childrenCountValue,
+            taxes: taxesValue,
+            total: hotel.total_price_value
+          });
         } else {
-          const directRoomPrice = Number(hotel.price);
+          // NO ROOM SELECTED - use parent component sale price
+          // Priority: sale_price > price
+          const effectivePrice = hotel.sale_price && Number(hotel.sale_price) > 0 
+            ? Number(hotel.sale_price) 
+            : Number(hotel.price || 0);
+          
           const childPriceValue = Number(hotel.price_per_child || 0);
           const childrenCountValue = hotel.children || 0;
           const taxesValue = Number(hotel.taxes || 0);
           
-          // DIRECT CALCULATION - NO NIGHTS MULTIPLICATION
-          hotel.total_price_value = directRoomPrice + (childPriceValue * childrenCountValue) + taxesValue;
-          hotel.basePrice = directRoomPrice;
+          hotel.total_price_value = effectivePrice + (childPriceValue * childrenCountValue) + taxesValue;
+          hotel.basePrice = effectivePrice;
           hotel.childPrice = childPriceValue;
           hotel.totalChildrenPrice = childPriceValue * childrenCountValue;
-          hotel.nights = 1; // Force to 1
+          hotel.nights = 1;
+          
+          console.log('💰 Using PARENT SALE PRICE (no room selected):', {
+            salePrice: hotel.sale_price,
+            regularPrice: hotel.price,
+            effectivePrice: effectivePrice,
+            childPrice: childPriceValue,
+            childrenCount: childrenCountValue,
+            taxes: taxesValue,
+            total: hotel.total_price_value
+          });
         }
         
-        console.log('OVERRIDDEN total_price_value:', hotel.total_price_value);
+        console.log('📊 Final total_price_value:', hotel.total_price_value);
         setHotelData(hotel);
 
         const totalCost = hotel.total_price_value;
@@ -162,7 +194,6 @@ const CheckoutPageHotels = () => {
 
     initializeData();
   }, [location]);
-  
 
   // SIMPLE TOTAL COST - Just return the pre-calculated value
   const getTotalHotelCost = () => {

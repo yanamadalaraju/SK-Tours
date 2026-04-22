@@ -140,7 +140,7 @@ const HotelDetailPage = () => {
   const [hotel, setHotel] = useState<HotelDetail | null>(null);
   const [selectedImage, setSelectedImage] = useState<string>("");
   const [showFullDescription, setShowFullDescription] = useState(false);
-  const [selectedRoomType, setSelectedRoomType] = useState<string>("standard");
+  const [selectedRoomType, setSelectedRoomType] = useState<string>("");
   const [selectedRoomVariant, setSelectedRoomVariant] = useState<RoomVariant | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -173,17 +173,9 @@ const HotelDetailPage = () => {
           setCheckOut(new Date(hotelData.check_out_date));
         }
         
-        // Set default selected room variant
-        if (hotelData.room_types_data?.standard?.enabled && hotelData.room_types_data.standard.hotels.length > 0) {
-          setSelectedRoomType("standard");
-          setSelectedRoomVariant(hotelData.room_types_data.standard.hotels[0]);
-        } else if (hotelData.room_types_data?.deluxe?.enabled && hotelData.room_types_data.deluxe.hotels.length > 0) {
-          setSelectedRoomType("deluxe");
-          setSelectedRoomVariant(hotelData.room_types_data.deluxe.hotels[0]);
-        } else if (hotelData.room_types_data?.luxury?.enabled && hotelData.room_types_data.luxury.hotels.length > 0) {
-          setSelectedRoomType("luxury");
-          setSelectedRoomVariant(hotelData.room_types_data.luxury.hotels[0]);
-        }
+        // FIXED: DO NOT auto-select any room - let user choose or use default sale price
+        setSelectedRoomType("");
+        setSelectedRoomVariant(null);
       } else {
         setError("Failed to fetch hotel details");
       }
@@ -254,15 +246,13 @@ const HotelDetailPage = () => {
     return Math.round((1 - effectivePrice / originalPrice) * 100);
   };
 
- // Replace the existing handleBookNow function with this fixed version
-
-const handleBookNow = () => {
+ const handleBookNow = () => {
   if (!hotel) return;
   
   const nights = calculateNights();
   
-  // Check if a room type is selected
-  const hasSelectedRoom = selectedRoomVariant !== null;
+  // Check if a room type is ACTUALLY selected
+  const hasSelectedRoom = selectedRoomVariant !== null && selectedRoomType !== "";
   
   let roomPrice: number;
   let childPrice: number;
@@ -270,7 +260,7 @@ const handleBookNow = () => {
   let totalChildrenPrice: number;
   let taxes: number;
   let totalPrice: number;
-  let roomData: SelectedRoom | null = null;
+  let roomData: RoomVariant | null = null;
   
   if (hasSelectedRoom && selectedRoomVariant) {
     // USE SELECTED ROOM PRICE
@@ -278,7 +268,7 @@ const handleBookNow = () => {
     childPrice = selectedRoomVariant.pricePerChild 
       ? Number(selectedRoomVariant.pricePerChild) 
       : Number(hotel.price_per_child || 0);
-    totalRoomPrice = roomPrice; // Direct price, no multiplication by nights
+    totalRoomPrice = roomPrice;
     taxes = Number(hotel.taxes || 0);
     
     const childrenCount = hotel.children || 0;
@@ -287,7 +277,8 @@ const handleBookNow = () => {
     totalPrice = totalRoomPrice + totalChildrenPrice + taxes;
     roomData = selectedRoomVariant;
     
-    console.log('Using SELECTED ROOM price:', {
+    console.log('✅ Using SELECTED ROOM price:', {
+      roomType: selectedRoomType,
       roomPrice,
       childPrice,
       totalChildrenPrice,
@@ -296,10 +287,9 @@ const handleBookNow = () => {
     });
   } else {
     // USE PARENT COMPONENT SALE PRICE (NO ROOM SELECTED)
-    // Priority: sale_price > price
     roomPrice = getEffectivePrice(hotel);
     childPrice = Number(hotel.price_per_child || 0);
-    totalRoomPrice = roomPrice; // Direct price, no multiplication by nights
+    totalRoomPrice = roomPrice;
     taxes = Number(hotel.taxes || 0);
     
     const childrenCount = hotel.children || 0;
@@ -308,7 +298,7 @@ const handleBookNow = () => {
     totalPrice = totalRoomPrice + totalChildrenPrice + taxes;
     roomData = null;
     
-    console.log('Using PARENT SALE PRICE (no room selected):', {
+    console.log('💰 Using PARENT SALE PRICE (no room selected):', {
       salePrice: hotel.sale_price,
       regularPrice: hotel.price,
       effectivePrice: roomPrice,
@@ -327,9 +317,9 @@ const handleBookNow = () => {
     adults: hotel.adults || 2,
     children: hotel.children || 0,
     children_ages: hotel.children_ages || [],
-    selectedRoom: roomData, // Will be null if no room selected
+    selectedRoom: roomData,
     selectedRoomCategory: hasSelectedRoom ? selectedRoomType : null,
-    nights: 1, // Force to 1 for direct pricing
+    nights: 1,
     roomPrice: roomPrice,
     childPrice: childPrice,
     totalChildrenPrice: totalChildrenPrice,
@@ -337,11 +327,14 @@ const handleBookNow = () => {
     basePrice: roomPrice,
     taxes: taxes,
     total_amount: totalPrice,
-    // Add flag to indicate if room was selected
-    hasRoomSelected: hasSelectedRoom
+    hasRoomSelected: hasSelectedRoom  // FIXED: Use correct variable name
   };
   
-  console.log('Final hotelForCheckout:', hotelForCheckout);
+  console.log('📦 Final hotelForCheckout:', {
+    hasRoomSelected: hasSelectedRoom,  // FIXED: Use correct variable name
+    selectedRoom: roomData?.roomType || 'None',
+    totalPrice
+  });
   
   localStorage.setItem('selectedHotel', JSON.stringify(hotelForCheckout));
   navigate('/checkout-hotels', { state: { hotel: hotelForCheckout } });
@@ -396,6 +389,7 @@ const handleBookNow = () => {
   const handleRoomTypeSelect = (typeId: string, variant: RoomVariant) => {
     setSelectedRoomType(typeId);
     setSelectedRoomVariant(variant);
+    console.log('🏨 Room selected:', { typeId, roomType: variant.roomType, price: variant.price });
   };
 
   const amenitiesList = [
@@ -497,13 +491,11 @@ const handleBookNow = () => {
                 </div>
               </div>
               
-              {/* FIXED: Price Display Section - Now shows sale_price with discount if applicable */}
+              {/* Price Display Section */}
               <div className="bg-white/10 backdrop-blur-sm rounded-xl p-5">
                 <div className="text-center">
-                  {/* Display Sale Price */}
                   <div className="text-3xl font-bold">₹{formatPrice(displayPrice)}</div>
                   
-                  {/* Show original price and discount if sale price exists and is lower than original */}
                   {showDiscount && originalPriceValue && (
                     <div className="mt-1 flex items-center justify-center gap-2">
                       <span className="text-sm line-through text-white/50">₹{formatPrice(originalPriceValue)}</span>
@@ -513,7 +505,6 @@ const handleBookNow = () => {
                     </div>
                   )}
                   
-                  {/* Show limited time sale badge if applicable */}
                   {hotel.limited_time_sale === 1 && (
                     <div className="mt-2">
                       <span className="bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full">
@@ -810,200 +801,200 @@ const handleBookNow = () => {
 
           {/* Right Column - Booking Sidebar */}
           <div className="space-y-6">
-  {/* Price Summary */}
-  <div className="bg-white rounded-xl shadow-sm p-6 sticky top-24">
-    <h3 className="text-xl font-bold mb-4">Your Booking Summary</h3>
-    
-    {/* Selected Room or Default Hotel Info */}
-    <div className="mb-4 p-3 bg-orange-50 rounded-lg">
-      {selectedRoomVariant ? (
-        <>
-          <p className="text-sm text-gray-600">Selected Room</p>
-          <p className="font-semibold text-orange-600">{selectedRoomVariant.roomType}</p>
-          <p className="text-xs text-gray-500 mt-1">Max {selectedRoomVariant.maxOccupancy} guests • {selectedRoomVariant.bedType}</p>
-        </>
-      ) : (
-        <>
-          <p className="text-sm text-gray-600">Hotel Price (Base Rate)</p>
-          <p className="font-semibold text-orange-600">Standard Room</p>
-          <p className="text-xs text-gray-500 mt-1">Select a room type above for specific pricing</p>
-        </>
-      )}
-    </div>
-    
-    <div className="space-y-4 mb-6">
-      {/* Room Price */}
-      <div className="flex justify-between text-gray-700">
-        <span>Room Price (per night)</span>
-        <span className="font-semibold">
-          ₹{formatPrice(selectedRoomVariant?.price || getEffectivePrice(hotel))}
-        </span>
-      </div>
-      
-      {/* Show Original Price with Discount if no room selected and sale price applies */}
-      {!selectedRoomVariant && showDiscount && originalPriceValue && (
-        <div className="flex justify-between text-gray-500 text-sm">
-          <span>Original Price</span>
-          <span className="line-through">₹{formatPrice(originalPriceValue)}</span>
-        </div>
-      )}
-      
-      {/* Children Charges - show if children exist */}
-      {hotel.children > 0 && (
-        <div className="flex justify-between text-gray-700">
-          <span>
-            Children ({hotel.children} child{hotel.children > 1 ? 'ren' : ''})
-          </span>
-          <span className="font-semibold">
-            ₹{formatPrice(
-              Number(selectedRoomVariant?.pricePerChild || hotel.price_per_child || 0) * hotel.children
-            )}
-          </span>
-        </div>
-      )}
-      
-      {/* Taxes */}
-      {Number(hotel.taxes || 0) > 0 && (
-        <div className="flex justify-between text-gray-700">
-          <span>Taxes & Fees</span>
-          <span className="font-semibold">₹{formatPrice(hotel.taxes || 0)}</span>
-        </div>
-      )}
-      
-      {/* Kids Stay Free badge */}
-      {hotel.free_stay_for_kids === 1 && (
-        <div className="flex justify-between text-green-600">
-          <span>Kids Stay Free</span>
-          <span>✓</span>
-        </div>
-      )}
-      
-      {/* Limited Time Sale badge - show only when no room selected and sale is active */}
-      {!selectedRoomVariant && hotel.limited_time_sale === 1 && (
-        <div className="flex justify-between text-red-600">
-          <span>Limited Time Sale</span>
-          <span className="bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded-full">
-            Active
-          </span>
-        </div>
-      )}
-      
-      {/* Total Amount */}
-      <div className="border-t pt-4">
-        <div className="flex justify-between text-xl font-bold text-orange-600">
-          <span>Total Amount</span>
-          <span>
-            ₹{formatPrice(
-              selectedRoomVariant 
-                ? calculateTotalPrice() 
-                : (getEffectivePrice(hotel) + (Number(hotel.price_per_child || 0) * (hotel.children || 0)) + Number(hotel.taxes || 0))
-            )}
-          </span>
-        </div>
-        <p className="text-xs text-gray-500 mt-1">All taxes included</p>
-      </div>
-    </div>
+            {/* Price Summary */}
+            <div className="bg-white rounded-xl shadow-sm p-6 sticky top-24">
+              <h3 className="text-xl font-bold mb-4">Your Booking Summary</h3>
+              
+              {/* Selected Room or Default Hotel Info */}
+              <div className="mb-4 p-3 bg-orange-50 rounded-lg">
+                {selectedRoomVariant ? (
+                  <>
+                    <p className="text-sm text-gray-600">Selected Room</p>
+                    <p className="font-semibold text-orange-600">{selectedRoomVariant.roomType}</p>
+                    <p className="text-xs text-gray-500 mt-1">Max {selectedRoomVariant.maxOccupancy} guests • {selectedRoomVariant.bedType}</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm text-gray-600">Hotel Price (Base Rate)</p>
+                    <p className="font-semibold text-orange-600">Standard Room</p>
+                    <p className="text-xs text-gray-500 mt-1">Select a room type above for specific pricing</p>
+                  </>
+                )}
+              </div>
+              
+              <div className="space-y-4 mb-6">
+                {/* Room Price */}
+                <div className="flex justify-between text-gray-700">
+                  <span>Room Price (per night)</span>
+                  <span className="font-semibold">
+                    ₹{formatPrice(selectedRoomVariant?.price || getEffectivePrice(hotel))}
+                  </span>
+                </div>
+                
+                {/* Show Original Price with Discount if no room selected and sale price applies */}
+                {!selectedRoomVariant && showDiscount && originalPriceValue && (
+                  <div className="flex justify-between text-gray-500 text-sm">
+                    <span>Original Price</span>
+                    <span className="line-through">₹{formatPrice(originalPriceValue)}</span>
+                  </div>
+                )}
+                
+                {/* Children Charges */}
+                {hotel.children > 0 && (
+                  <div className="flex justify-between text-gray-700">
+                    <span>
+                      Children ({hotel.children} child{hotel.children > 1 ? 'ren' : ''})
+                    </span>
+                    <span className="font-semibold">
+                      ₹{formatPrice(
+                        Number(selectedRoomVariant?.pricePerChild || hotel.price_per_child || 0) * hotel.children
+                      )}
+                    </span>
+                  </div>
+                )}
+                
+                {/* Taxes */}
+                {Number(hotel.taxes || 0) > 0 && (
+                  <div className="flex justify-between text-gray-700">
+                    <span>Taxes & Fees</span>
+                    <span className="font-semibold">₹{formatPrice(hotel.taxes || 0)}</span>
+                  </div>
+                )}
+                
+                {/* Kids Stay Free badge */}
+                {hotel.free_stay_for_kids === 1 && (
+                  <div className="flex justify-between text-green-600">
+                    <span>Kids Stay Free</span>
+                    <span>✓</span>
+                  </div>
+                )}
+                
+                {/* Limited Time Sale badge */}
+                {!selectedRoomVariant && hotel.limited_time_sale === 1 && (
+                  <div className="flex justify-between text-red-600">
+                    <span>Limited Time Sale</span>
+                    <span className="bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded-full">
+                      Active
+                    </span>
+                  </div>
+                )}
+                
+                {/* Total Amount */}
+                <div className="border-t pt-4">
+                  <div className="flex justify-between text-xl font-bold text-orange-600">
+                    <span>Total Amount</span>
+                    <span>
+                      ₹{formatPrice(
+                        selectedRoomVariant 
+                          ? calculateTotalPrice() 
+                          : (getEffectivePrice(hotel) + (Number(hotel.price_per_child || 0) * (hotel.children || 0)) + Number(hotel.taxes || 0))
+                      )}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">All taxes included</p>
+                </div>
+              </div>
 
-    {/* Date Selection */}
-    <div className="mb-6">
-      <label className="block text-sm font-semibold mb-2">Check-in Date</label>
-      <div className="border rounded-lg p-3 flex items-center gap-2 bg-gray-50">
-        <Calendar size={18} className="text-gray-500" />
-        <span className="font-medium">{format(checkIn, "dd MMM yyyy")}</span>
-      </div>
-      <p className="text-xs text-gray-500 mt-1">Check-in: 2:00 PM</p>
-    </div>
+              {/* Date Selection */}
+              <div className="mb-6">
+                <label className="block text-sm font-semibold mb-2">Check-in Date</label>
+                <div className="border rounded-lg p-3 flex items-center gap-2 bg-gray-50">
+                  <Calendar size={18} className="text-gray-500" />
+                  <span className="font-medium">{format(checkIn, "dd MMM yyyy")}</span>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Check-in: 2:00 PM</p>
+              </div>
 
-    <div className="mb-6">
-      <label className="block text-sm font-semibold mb-2">Check-out Date</label>
-      <div className="border rounded-lg p-3 flex items-center gap-2 bg-gray-50">
-        <Calendar size={18} className="text-gray-500" />
-        <span className="font-medium">{format(checkOut, "dd MMM yyyy")}</span>
-      </div>
-      <p className="text-xs text-gray-500 mt-1">Check-out: 12:00 PM</p>
-    </div>
+              <div className="mb-6">
+                <label className="block text-sm font-semibold mb-2">Check-out Date</label>
+                <div className="border rounded-lg p-3 flex items-center gap-2 bg-gray-50">
+                  <Calendar size={18} className="text-gray-500" />
+                  <span className="font-medium">{format(checkOut, "dd MMM yyyy")}</span>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Check-out: 12:00 PM</p>
+              </div>
 
-    {/* Guest Details - FROM API */}
-    <div className="mb-6">
-      <label className="block text-sm font-semibold mb-2">Guests</label>
-      <div className="border rounded-lg p-3 flex items-center gap-2 bg-gray-50">
-        <Users size={18} className="text-gray-500" />
-        <span>
-          {hotel.rooms} Room{hotel.rooms > 1 ? 's' : ''}, 
-          {hotel.adults} Adult{hotel.adults > 1 ? 's' : ''}
-          {hotel.children > 0 ? `, ${hotel.children} Child${hotel.children > 1 ? 'ren' : ''}` : ''}
-        </span>
-      </div>
-      {hotel.children_ages && hotel.children_ages.length > 0 && (
-        <p className="text-xs text-gray-500 mt-1">
-          Children ages: {hotel.children_ages.join(', ')}
-        </p>
-      )}
-    </div>
+              {/* Guest Details */}
+              <div className="mb-6">
+                <label className="block text-sm font-semibold mb-2">Guests</label>
+                <div className="border rounded-lg p-3 flex items-center gap-2 bg-gray-50">
+                  <Users size={18} className="text-gray-500" />
+                  <span>
+                    {hotel.rooms} Room{hotel.rooms > 1 ? 's' : ''}, 
+                    {hotel.adults} Adult{hotel.adults > 1 ? 's' : ''}
+                    {hotel.children > 0 ? `, ${hotel.children} Child${hotel.children > 1 ? 'ren' : ''}` : ''}
+                  </span>
+                </div>
+                {hotel.children_ages && hotel.children_ages.length > 0 && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Children ages: {hotel.children_ages.join(', ')}
+                  </p>
+                )}
+              </div>
 
-    {/* Cancellation Policy */}
-    <div className="mb-6 p-4 bg-green-50 rounded-lg">
-      <div className="flex items-center gap-2 mb-2">
-        <ShieldCheck size={18} className="text-green-600" />
-        <span className="font-semibold text-green-800">Free Cancellation</span>
-      </div>
-      <p className="text-sm text-green-700">Cancel before {format(new Date(checkIn.getTime() - 7 * 24 * 60 * 60 * 1000), "dd MMM yyyy")} for full refund</p>
-    </div>
+              {/* Cancellation Policy */}
+              <div className="mb-6 p-4 bg-green-50 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <ShieldCheck size={18} className="text-green-600" />
+                  <span className="font-semibold text-green-800">Free Cancellation</span>
+                </div>
+                <p className="text-sm text-green-700">Cancel before {format(new Date(checkIn.getTime() - 7 * 24 * 60 * 60 * 1000), "dd MMM yyyy")} for full refund</p>
+              </div>
 
-    {/* Payment Options */}
-    <div className="mb-6">
-      <h4 className="font-semibold mb-3 flex items-center gap-2">
-        <CreditCard size={18} />
-        Payment Options
-      </h4>
-      <div className="space-y-2">
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          <Check size={16} className="text-green-600" />
-          <span>Pay at Hotel</span>
-        </div>
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          <Check size={16} className="text-green-600" />
-          <span>Credit/Debit Card</span>
-        </div>
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          <Check size={16} className="text-green-600" />
-          <span>UPI / Net Banking</span>
-        </div>
-      </div>
-    </div>
+              {/* Payment Options */}
+              <div className="mb-6">
+                <h4 className="font-semibold mb-3 flex items-center gap-2">
+                  <CreditCard size={18} />
+                  Payment Options
+                </h4>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <Check size={16} className="text-green-600" />
+                    <span>Pay at Hotel</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <Check size={16} className="text-green-600" />
+                    <span>Credit/Debit Card</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <Check size={16} className="text-green-600" />
+                    <span>UPI / Net Banking</span>
+                  </div>
+                </div>
+              </div>
 
-    {/* Book Button */}
-    <button 
-      onClick={handleBookNow}
-      className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 rounded-lg transition-all text-lg"
-    >
-      Book Now
-    </button>
-    
-    <p className="text-xs text-center text-gray-500 mt-4">
-      By proceeding, you agree to our Terms & Conditions and Privacy Policy
-    </p>
-  </div>
+              {/* Book Button */}
+              <button 
+                onClick={handleBookNow}
+                className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 rounded-lg transition-all text-lg"
+              >
+                Book Now
+              </button>
+              
+              <p className="text-xs text-center text-gray-500 mt-4">
+                By proceeding, you agree to our Terms & Conditions and Privacy Policy
+              </p>
+            </div>
 
-  {/* Why Book With Us */}
-  <div className="bg-white rounded-xl shadow-sm p-6">
-    <h4 className="font-bold mb-3">Why book with us?</h4>
-    <div className="space-y-3">
-      <div className="flex items-center gap-2 text-sm">
-        <Gift size={16} className="text-orange-600" />
-        <span>Best price guarantee</span>
-      </div>
-      <div className="flex items-center gap-2 text-sm">
-        <Ticket size={16} className="text-orange-600" />
-        <span>No booking fees</span>
-      </div>
-      <div className="flex items-center gap-2 text-sm">
-        <Clock8 size={16} className="text-orange-600" />
-        <span>24/7 customer support</span>
-      </div>
-    </div>
-  </div>
-</div>
+            {/* Why Book With Us */}
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <h4 className="font-bold mb-3">Why book with us?</h4>
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-sm">
+                  <Gift size={16} className="text-orange-600" />
+                  <span>Best price guarantee</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <Ticket size={16} className="text-orange-600" />
+                  <span>No booking fees</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <Clock8 size={16} className="text-orange-600" />
+                  <span>24/7 customer support</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
