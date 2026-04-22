@@ -451,18 +451,46 @@ const Micedomesticdetail = () => {
       };
     };
     
-    const processBooking = () => {
-      if (bookingpoi && bookingpoi.length > 0) {
-        return {
-          items: bookingpoi.map((item: any) => item.item || ''),
-          amountDetails: bookingpoi.map((item: any) => formatPriceExhibition(item.amount_details))
-        };
-      }
-      return {
-        items: ["Standard booking terms apply"],
-        amountDetails: ["0"]
-      };
+const processBooking = () => {
+  if (bookingpoi && bookingpoi.length > 0) {
+    return {
+      items: bookingpoi.map((item: any) => item.item || ''),
+      amountDetails: bookingpoi.map((item: any) => {
+        const amount = item.amount_details;
+        
+        // If amount is empty or null
+        if (!amount) return 'N/A';
+        
+        // If it's a pure number string (like "5000")
+        if (/^\d+(\.\d+)?$/.test(amount.toString())) {
+          return `₹${parseFloat(amount).toLocaleString('en-IN')}`;
+        }
+        
+        // If it contains percentage (like "50 % of the tour cost")
+        if (amount.includes('%')) {
+          return amount;
+        }
+        
+        // If it contains words like "Balance amount to pay"
+        if (amount.toLowerCase().includes('balance') || amount.toLowerCase().includes('pay')) {
+          return amount;
+        }
+        
+        // If it contains "of the tour cost" pattern
+        if (amount.toLowerCase().includes('of the tour cost')) {
+          return amount;
+        }
+        
+        // Return as is for other cases
+        return amount;
+      })
     };
+  }
+  return {
+    items: ["Standard booking terms apply"],
+    amountDetails: ["N/A"]
+  };
+};
 
     const processHotels = () => {
       if (hotels && hotels.length > 0) {

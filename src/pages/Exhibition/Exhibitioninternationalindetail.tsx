@@ -505,15 +505,43 @@ const Exhibitioninternationalindetail = () => {
       return { loanAmount: "N/A", options: [] };
     };
 
-    const processBooking = (arr) => {
-      if (arr?.length && arr[0]?.item && arr[0]?.item !== "Departures Description") {
-        return {
-          items: arr.map(item => item.item || ''),
-          amountDetails: arr.map(item => formatPriceExhibition(item.amount_details))
-        };
-      }
-      return { items: ["Standard booking terms apply"], amountDetails: ["0"] };
+const processBooking = (arr) => {
+  if (arr?.length && arr[0]?.item && arr[0]?.item !== "Departures Description") {
+    return {
+      items: arr.map(item => item.item || ''),
+      amountDetails: arr.map(item => {
+        const amount = item.amount_details;
+        
+        // If amount is empty or null
+        if (!amount) return 'N/A';
+        
+        // If it's a pure number string (like "5000")
+        if (/^\d+(\.\d+)?$/.test(amount.toString())) {
+          return `₹${parseFloat(amount).toLocaleString('en-IN')}`;
+        }
+        
+        // If it contains percentage (like "50 % of the tour cost")
+        if (amount.includes('%')) {
+          return amount;
+        }
+        
+        // If it contains words like "Balance amount to pay"
+        if (amount.toLowerCase().includes('balance') || amount.toLowerCase().includes('pay')) {
+          return amount;
+        }
+        
+        // If it contains "of the tour cost" pattern
+        if (amount.toLowerCase().includes('of the tour cost')) {
+          return amount;
+        }
+        
+        // Return as is for other cases
+        return amount;
+      })
     };
+  }
+  return { items: ["Standard booking terms apply"], amountDetails: ["N/A"] };
+};
 
     const processHotels = (arr) => {
       if (arr?.length && arr[0]?.city && arr[0]?.city !== "Departures Description") {
