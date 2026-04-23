@@ -640,7 +640,7 @@ const WeekendGetawaysSection: React.FC = () => {
           {/* Content */}
           <div className="relative z-10">
             {/* Carousel Header */}
-            <div className="flex items-center justify-between mb-6 mt-1">
+            <div className="flex items-center justify-between mb-8 mt-1">
               <div>
                 <h3 className="text-xl font-bold text-white drop-shadow-lg">
                   Weekend Getaways
@@ -775,11 +775,11 @@ const WeekendGetawaysSection: React.FC = () => {
 
         {/* Bottom CTA */}
         <div className="text-center">
-          <button className="inline-flex mb-10 items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-xl shadow transition-all duration-300 transform hover:scale-105 border border-white/20">
+          {/* <button className="inline-flex mb-10 items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-xl shadow transition-all duration-300 transform hover:scale-105 border border-white/20">
             <MapPin className="h-4 w-4" />
             Explore All Getaways
             <ChevronRight className="h-4 w-4" />
-          </button>
+          </button> */}
         </div>
       </div>
     </section>

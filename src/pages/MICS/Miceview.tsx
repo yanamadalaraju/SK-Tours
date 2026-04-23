@@ -24,6 +24,14 @@ interface MiceMain {
   questions: Array<{ question: string; answer: string }>;
 }
 
+// Interface for checkbox items
+interface CheckboxItem {
+  value: string;
+  display: string;
+  city: City;
+  type: 'domestic' | 'international';
+}
+
 const Miceview: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -43,10 +51,15 @@ const Miceview: React.FC = () => {
   const [domesticCities, setDomesticCities] = useState<City[]>([]);
   const [internationalCities, setInternationalCities] = useState<City[]>([]);
 
+  // Checkbox items with display text
+  const [domesticCheckboxItems, setDomesticCheckboxItems] = useState<CheckboxItem[]>([]);
+  const [internationalCheckboxItems, setInternationalCheckboxItems] = useState<CheckboxItem[]>([]);
+
   // State for MICE main data
   const [miceMain, setMiceMain] = useState<MiceMain | null>(null);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [bannerImage, setBannerImage] = useState('');
+  
   // Filter states
   const [priceRange, setPriceRange] = useState([0, 200000]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -57,8 +70,7 @@ const Miceview: React.FC = () => {
   const [showMoreDomestic, setShowMoreDomestic] = useState(false);
   const [showMoreInternational, setShowMoreInternational] = useState(false);
   const [selectedDepartureMonths, setSelectedDepartureMonths] = useState<string[]>([]);
-  const [selectedDomesticCities, setSelectedDomesticCities] = useState<string[]>([]);
-  const [selectedInternationalCities, setSelectedInternationalCities] = useState<string[]>([]);
+  const [selectedCheckboxItems, setSelectedCheckboxItems] = useState<string[]>([]);
   const [showAllDepartureMonths, setShowAllDepartureMonths] = useState(false);
   const [durationRange, setDurationRange] = useState([0, 10]);
 
@@ -67,6 +79,45 @@ const Miceview: React.FC = () => {
     international: false,
     exhibitions: false,
   });
+// 🔹 For filtering only - extract number for price range comparison
+const extractNumericPrice = (priceString: string): number => {
+  if (!priceString) return 0;
+  
+  const str = priceString.toString().trim();
+  
+  const withoutCommas = str.replace(/,/g, '');
+  
+  const match = withoutCommas.match(/[\d.]+/);
+  if (match) {
+    const num = parseFloat(match[0]);
+    return isNaN(num) ? 0 : num;
+  }
+  
+  return 0;
+};
+
+const formatPriceForDisplay = (priceString: string): string => {
+  if (!priceString) return '';
+  
+  let str = priceString.toString().trim();
+  
+  str = str.replace(/\.00$/, '').replace(/\.0$/, '');
+  
+  return str;
+};
+  const getDomesticDisplayText = (city: City): string => {
+    if (city.state_name) {
+      return `${city.city_name} - ${city.state_name}`;
+    }
+    return city.city_name;
+  };
+
+  const getInternationalDisplayText = (city: City): string => {
+    if (city.country_name) {
+      return `${city.city_name} - ${city.country_name}`;
+    }
+    return city.city_name;
+  };
 
   // Fetch MICE main data
   useEffect(() => {
@@ -76,7 +127,6 @@ const Miceview: React.FC = () => {
         const result = await res.json();
         console.log("MICE Main data:", result);
 
-        // Set the banner image URL
         if (result && result.banner_image) {
           const bannerImageUrl = `${BASE_URL}/uploads/mice/main/${result.banner_image}`;
           setBannerImage(bannerImageUrl);
@@ -105,16 +155,23 @@ const Miceview: React.FC = () => {
       try {
         const response = await fetch(`${BASE_URL}/api/mice/domestic`);
         if (!response.ok) throw new Error(`Failed: ${response.status}`);
-        const data = await response.json();
+        const data: City[] = await response.json();
 
         if (Array.isArray(data) && data.length > 0) {
-          const processedData = data.map((city: City) => ({
-            ...city,
-            type: 'domestic' as const
+          setDomesticCities(data);
+          
+          const items: CheckboxItem[] = data.map(city => ({
+            value: `domestic_${city.id}`,
+            display: getDomesticDisplayText(city),
+            city: city,
+            type: 'domestic'
           }));
-          setDomesticCities(processedData);
+          
+          items.sort((a, b) => a.display.localeCompare(b.display));
+          setDomesticCheckboxItems(items);
         } else {
           setDomesticCities([]);
+          setDomesticCheckboxItems([]);
         }
       } catch (error) {
         console.error("Error fetching domestic:", error);
@@ -132,16 +189,25 @@ const Miceview: React.FC = () => {
       try {
         const response = await fetch(`${BASE_URL}/api/mice/international`);
         if (!response.ok) throw new Error(`Failed: ${response.status}`);
-        const data = await response.json();
+        const data: City[] = await response.json();
+
+        console.log("International data received:", data);
 
         if (Array.isArray(data) && data.length > 0) {
-          const processedData = data.map((city: City) => ({
-            ...city,
-            type: 'international' as const
+          setInternationalCities(data);
+          
+          const items: CheckboxItem[] = data.map(city => ({
+            value: `international_${city.id}`,
+            display: getInternationalDisplayText(city),
+            city: city,
+            type: 'international'
           }));
-          setInternationalCities(processedData);
+          
+          items.sort((a, b) => a.display.localeCompare(b.display));
+          setInternationalCheckboxItems(items);
         } else {
           setInternationalCities([]);
+          setInternationalCheckboxItems([]);
         }
       } catch (error) {
         console.error("Error fetching international:", error);
@@ -154,26 +220,28 @@ const Miceview: React.FC = () => {
 
   // Handle pre-selected city from navigation
   useEffect(() => {
-    if (preSelectedCity && preSelectedType) {
-      if (preSelectedType === 'domestic' && domesticCities.length > 0) {
-        const cityExists = domesticCities.some(city => city.city_name === preSelectedCity);
-        if (cityExists) {
+    if (preSelectedCity && preSelectedType && domesticCheckboxItems.length > 0 && internationalCheckboxItems.length > 0) {
+      if (preSelectedType === 'domestic') {
+        const matchingItem = domesticCheckboxItems.find(
+          item => item.city.city_name === preSelectedCity
+        );
+        if (matchingItem) {
           setShowHome(false);
-          setSelectedDomesticCities([preSelectedCity]);
-          setSelectedInternationalCities([]);
+          setSelectedCheckboxItems([matchingItem.value]);
           setSelectedType('domestic');
         }
-      } else if (preSelectedType === 'international' && internationalCities.length > 0) {
-        const cityExists = internationalCities.some(city => city.city_name === preSelectedCity);
-        if (cityExists) {
+      } else if (preSelectedType === 'international') {
+        const matchingItem = internationalCheckboxItems.find(
+          item => item.city.city_name === preSelectedCity
+        );
+        if (matchingItem) {
           setShowHome(false);
-          setSelectedInternationalCities([preSelectedCity]);
-          setSelectedDomesticCities([]);
+          setSelectedCheckboxItems([matchingItem.value]);
           setSelectedType('international');
         }
       }
     }
-  }, [preSelectedCity, preSelectedType, domesticCities, internationalCities]);
+  }, [preSelectedCity, preSelectedType, domesticCheckboxItems, internationalCheckboxItems]);
 
   // Extract unique departure months from cities
   useEffect(() => {
@@ -187,29 +255,31 @@ const Miceview: React.FC = () => {
     setDepartureMonths(Array.from(monthsSet).sort());
   }, [domesticCities, internationalCities]);
 
-  // Filter cities based on selections
+  // 🔹 FIXED: Filter cities based on selected checkbox items
   useEffect(() => {
+    console.log("Filter effect running with selectedCheckboxItems:", selectedCheckboxItems);
+    console.log("internationalCheckboxItems length:", internationalCheckboxItems.length);
+    
     let allCities: City[] = [];
 
-    // Add selected domestic cities
-    if (selectedDomesticCities.length > 0) {
-      selectedDomesticCities.forEach(cityName => {
-        const foundCity = domesticCities.find(city => city.city_name === cityName);
-        if (foundCity) {
-          allCities.push(foundCity);
+    if (selectedCheckboxItems.length > 0) {
+      selectedCheckboxItems.forEach(itemValue => {
+        // Check domestic items
+        const domesticItem = domesticCheckboxItems.find(item => item.value === itemValue);
+        if (domesticItem) {
+          allCities.push(domesticItem.city);
+        }
+        
+        // Check international items
+        const internationalItem = internationalCheckboxItems.find(item => item.value === itemValue);
+        if (internationalItem) {
+          console.log("Found international item:", internationalItem);
+          allCities.push(internationalItem.city);
         }
       });
     }
 
-    // Add selected international cities
-    if (selectedInternationalCities.length > 0) {
-      selectedInternationalCities.forEach(cityName => {
-        const foundCity = internationalCities.find(city => city.city_name === cityName);
-        if (foundCity) {
-          allCities.push(foundCity);
-        }
-      });
-    }
+    console.log("allCities before filtering:", allCities.length);
 
     if (allCities.length === 0) {
       setFilteredCities([]);
@@ -218,16 +288,21 @@ const Miceview: React.FC = () => {
 
     let result = [...allCities];
 
-    result = result.filter(city =>
-      (city.duration_days || 0) >= durationRange[0] &&
-      (city.duration_days || 0) <= durationRange[1]
-    );
+    // Duration Range filter
+    result = result.filter(city => {
+      const duration = city.duration_days || 0;
+      return duration >= durationRange[0] && duration <= durationRange[1];
+    });
 
-    result = result.filter(city =>
-      parseFloat(city.price) >= priceRange[0] &&
-      parseFloat(city.price) <= priceRange[1]
-    );
+    // 🔹 FIXED: Price filter with robust numeric extraction
+    result = result.filter(city => {
+      const priceNum = extractNumericPrice(city.price);
+      // If price is 0 or can't be parsed, include it (don't filter out)
+      if (priceNum === 0) return true;
+      return priceNum >= priceRange[0] && priceNum <= priceRange[1];
+    });
 
+    // Departure Months filter
     if (selectedDepartureMonths.length > 0) {
       result = result.filter((city) => {
         if (city.start_date && selectedDepartureMonths.includes(formatMonthYear(city.start_date))) {
@@ -237,19 +312,22 @@ const Miceview: React.FC = () => {
       });
     }
 
+    // Search filter
     if (isSearchActive && searchQuery.trim() !== "") {
       const query = searchQuery.trim().toLowerCase();
-      result = result.filter(city =>
-        (city.country_name || city.city_name).toLowerCase().includes(query)
-      );
+      result = result.filter(city => {
+        const cityName = (city.country_name || city.city_name).toLowerCase();
+        const stateName = (city.state_name || '').toLowerCase();
+        return cityName.includes(query) || stateName.includes(query);
+      });
     }
 
+    console.log("Filtered cities result:", result.length);
     setFilteredCities(result);
   }, [
-    selectedDomesticCities,
-    selectedInternationalCities,
-    domesticCities,
-    internationalCities,
+    selectedCheckboxItems,
+    domesticCheckboxItems,
+    internationalCheckboxItems,
     priceRange,
     searchQuery,
     isSearchActive,
@@ -257,33 +335,27 @@ const Miceview: React.FC = () => {
     selectedDepartureMonths,
   ]);
 
-  const handleDomesticCheckboxChange = (cityName: string, checked: boolean) => {
+  const handleCheckboxChange = (itemValue: string, checked: boolean) => {
+    console.log("Checkbox changed:", itemValue, checked);
     setShowHome(false);
     if (checked) {
-      setSelectedDomesticCities([cityName]);
-      setSelectedInternationalCities([]);
-      setSelectedType('domestic');
-    } else {
-      setSelectedDomesticCities([]);
-      if (selectedInternationalCities.length === 0) {
-        setSelectedType(null);
-        setShowHome(true);
+      setSelectedCheckboxItems([itemValue]);
+      
+      const domesticItem = domesticCheckboxItems.find(item => item.value === itemValue);
+      if (domesticItem) {
+        setSelectedType('domestic');
+        console.log("Selected domestic:", domesticItem.display);
+      } else {
+        const internationalItem = internationalCheckboxItems.find(item => item.value === itemValue);
+        if (internationalItem) {
+          setSelectedType('international');
+          console.log("Selected international:", internationalItem.display);
+        }
       }
-    }
-  };
-
-  const handleInternationalCheckboxChange = (cityName: string, checked: boolean) => {
-    setShowHome(false);
-    if (checked) {
-      setSelectedInternationalCities([cityName]);
-      setSelectedDomesticCities([]);
-      setSelectedType('international');
     } else {
-      setSelectedInternationalCities([]);
-      if (selectedDomesticCities.length === 0) {
-        setSelectedType(null);
-        setShowHome(true);
-      }
+      setSelectedCheckboxItems([]);
+      setSelectedType(null);
+      setShowHome(true);
     }
   };
 
@@ -292,8 +364,7 @@ const Miceview: React.FC = () => {
     setSearchQuery("");
     setShowSearchBtn(false);
     setIsSearchActive(false);
-    setSelectedDomesticCities([]);
-    setSelectedInternationalCities([]);
+    setSelectedCheckboxItems([]);
     setSelectedCategory(null);
     setSelectedType(null);
     setActiveMenu(null);
@@ -332,39 +403,28 @@ const Miceview: React.FC = () => {
     );
   };
 
- // Add this function inside the Miceview component
-const parsePrice = (priceString) => {
-  if (!priceString) return 0;
-  const numericString = priceString.toString().replace(/[₹$,]/g, '').replace(/\s+/g, '').trim();
-  return parseFloat(numericString) || 0;
-};
-
-const handleBookNowClick = (city) => {
-  // Prepare MICE data for checkout
-  const miceData = {
-    id: city.id,
-    code: city.mice_code || `MICE_${city.id}`,
-    title: city.city_name || city.country_name,
-    city_name: city.city_name,
-    state_name: city.state_name,
-    country_name: city.country_name,
-    price: city.price,
-    total_price_value: parsePrice(city.price),
-    priceValue: parsePrice(city.price),
-    emi_price: city.emi_price,
-    emiPriceValue: parsePrice(city.emi_price || '0'),
-    duration_days: city.duration_days,
-    duration: city.duration_days ? `${city.duration_days - 1}N/${city.duration_days}D` : '',
-    image: city.image,
-    start_date: city.start_date
+  const handleBookNowClick = (city: City) => {
+    const miceData = {
+      id: city.id,
+      code: `MICE_${city.id}`,
+      title: city.city_name || city.country_name,
+      city_name: city.city_name,
+      state_name: city.state_name,
+      country_name: city.country_name,
+      price: city.price,
+      total_price_value: extractNumericPrice(city.price),
+      priceValue: extractNumericPrice(city.price),
+      emi_price: city.emi_price,
+      emiPriceValue: extractNumericPrice(city.emi_price || '0'),
+      duration_days: city.duration_days,
+      duration: city.duration_days ? `${city.duration_days - 1}N/${city.duration_days}D` : '',
+      image: city.image,
+      start_date: city.start_date
+    };
+    
+    localStorage.setItem('selectedMice', JSON.stringify(miceData));
+    navigate('/checkout-mice', { state: { mice: miceData } });
   };
-  
-  // Save to localStorage for persistence
-  localStorage.setItem('selectedMice', JSON.stringify(miceData));
-  
-  // Navigate to checkout page
-  navigate('/checkout-mice', { state: { mice: miceData } });
-};
 
   const handleDepartureMonthChange = (month: string, checked: boolean) => {
     setSelectedDepartureMonths(prev =>
@@ -375,8 +435,7 @@ const handleBookNowClick = (city) => {
   const handleHomeClick = () => {
     setShowHome(true);
     setSelectedCategory(null);
-    setSelectedDomesticCities([]);
-    setSelectedInternationalCities([]);
+    setSelectedCheckboxItems([]);
     setSelectedType(null);
     setActiveMenu(null);
     setPriceRange([0, 200000]);
@@ -387,13 +446,6 @@ const handleBookNowClick = (city) => {
   };
 
   const renderMiceHomeSection = () => {
-    const subItems: Record<string, string[]> = {
-      Meeting: ["Board Meeting", "Team Meeting", "Annual Meeting"],
-      Incentives: ["Staff Incentives", "Sales Incentives", "Travel Incentives"],
-      Conference: ["Tech Conference", "Business Conference", "Global Conference"],
-      Events: ["Corporate Events", "Social Events", "MiceEvents"],
-    };
-
     return (
       <div className="flex flex-col gap-6">
         <div className="flex flex-col md:flex-row w-full h-auto md:h-[480px] overflow-hidden rounded-2xl shadow-md">
@@ -417,17 +469,14 @@ const handleBookNowClick = (city) => {
             {["Meeting", "Incentives", "Conference", "Events"].map((menu) => {
               const subItems = {
                 Meeting: [
-                  "Meetings play a crucial role in facilitating effective communication among team members. They help in sharing ideas, discussing challenges, and making informed decisions while ensuring that everyone stays aligned with the organization’s goals and objectives."
+                  "Meetings play a crucial role in facilitating effective communication among team members. They help in sharing ideas, discussing challenges, and making informed decisions while ensuring that everyone stays aligned with the organization's goals and objectives."
                 ],
-
                 Incentives: [
                   "Incentives are essential for motivating employees to perform better and achieve their targets. They enhance job satisfaction, encourage healthy competition, and contribute to increased productivity and long-term employee retention."
                 ],
-
                 Conference: [
                   "Conferences provide valuable opportunities for learning, networking, and professional growth. They bring together experts and participants to share industry knowledge, discuss trends, and explore new innovations that drive business success."
                 ],
-
                 Events: [
                   "Events are designed to bring people together for a specific purpose, fostering engagement and meaningful connections. They create memorable experiences, strengthen relationships, and help in building brand awareness and visibility."
                 ]
@@ -507,7 +556,18 @@ const handleBookNowClick = (city) => {
   };
 
   const renderExhibitionCards = () => {
-    if (filteredCities.length === 0 && (selectedDomesticCities.length > 0 || selectedInternationalCities.length > 0)) {
+    if (loading.exhibitions && selectedCheckboxItems.length === 0) {
+      return (
+        <div className="flex items-center justify-center h-full py-16">
+          <div className="flex flex-col items-center gap-2">
+            <span className="animate-spin h-8 w-8 border-4 border-gray-300 border-t-blue-600 rounded-full" />
+            <span className="text-gray-500">Loading exhibition details...</span>
+          </div>
+        </div>
+      );
+    }
+
+    if (filteredCities.length === 0 && selectedCheckboxItems.length > 0) {
       return (
         <div className="text-center py-12">
           <h3 className="text-xl font-semibold text-gray-600">No exhibitions found for the selected filters</h3>
@@ -519,9 +579,11 @@ const handleBookNowClick = (city) => {
       );
     }
 
-    if (filteredCities.length === 0 && (selectedDomesticCities.length === 0 && selectedInternationalCities.length === 0)) {
+    if (filteredCities.length === 0 && selectedCheckboxItems.length === 0) {
       return null;
     }
+
+    console.log("Rendering cards for filteredCities:", filteredCities);
 
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -540,7 +602,6 @@ const handleBookNowClick = (city) => {
                       {isDomestic ? city.city_name : (city.country_name || city.city_name)}
                     </div>
                   </div>
-
                 </div>
               </div>
 
@@ -570,57 +631,56 @@ const handleBookNowClick = (city) => {
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
                 </div>
-<div className="p-5 flex-1 flex flex-col min-h-0">
 
-  <div className="mb-3 flex items-center">
-    <span className="w-[150px] text-sm text-[#2E4D98] font-bold">
-      Duration Days
-    </span>
-    <p className="text-2lg font-bold text-gray-900 ml-auto text-right">
-      {city.duration_days
-        ? `${city.duration_days - 1}N/${city.duration_days}D`
-        : 'N/A'}
-    </p>
-  </div>
+                <div className="p-5 flex-1 flex flex-col min-h-0">
+                  <div className="mb-3 flex items-center">
+                    <span className="w-[150px] text-sm text-[#2E4D98] font-bold">
+                      Duration Days
+                    </span>
+                    <p className="text-2lg font-bold text-gray-900 ml-auto text-right">
+                      {city.duration_days
+                        ? `${city.duration_days - 1}N/${city.duration_days}D`
+                        : 'N/A'}
+                    </p>
+                  </div>
 
-  <div className="mb-3 flex items-center">
-    <span className="w-[150px] text-sm text-[#2E4D98] font-bold">
-      Per Person Price
-    </span>
-    <p className="text-2lg font-bold text-gray-900 ml-auto text-right">
-      ₹{parseFloat(city.price).toLocaleString('en-IN')}
-    </p>
-  </div>
+                  <div className="mb-3 flex items-center">
+                    <span className="w-[150px] text-sm text-[#2E4D98] font-bold">
+                      Per Person Price
+                    </span>
+                    <p className="text-2lg font-bold text-gray-900 ml-auto text-right">
+                      {formatPriceForDisplay(city.price)}
+                    </p>
+                  </div>
 
-  <div className="mb-3 flex items-center">
-    <span className="w-[150px] text-sm text-[#2E4D98] font-bold">
-      EMI Price
-    </span>
-    <p className="text-2lg font-bold text-gray-900 ml-auto text-right">
-      ₹{parseFloat(city.emi_price).toLocaleString('en-IN')}
-    </p>
-  </div>
+                  <div className="mb-3 flex items-center">
+                    <span className="w-[150px] text-sm text-[#2E4D98] font-bold">
+                      EMI Price
+                    </span>
+                    <p className="text-2lg font-bold text-gray-900 ml-auto text-right">
+                      {formatPriceForDisplay(city.emi_price || '0')}
+                    </p>
+                  </div>
 
-  <div className="flex gap-2">
-    <Button
-      size="sm"
-      variant="outline"
-      className="flex-1 border-[#2E4D98] text-[#2E4D98] hover:bg-[#2E4D98] hover:text-white"
-      onClick={() => handleViewDetails(city.id, isDomestic ? 'domestic' : 'international')}
-    >
-      View Details
-    </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1 border-[#2E4D98] text-[#2E4D98] hover:bg-[#2E4D98] hover:text-white"
+                      onClick={() => handleViewDetails(city.id, isDomestic ? 'domestic' : 'international')}
+                    >
+                      View Details
+                    </Button>
 
-    <Button
-      size="sm"
-      className="flex-1 bg-[#E53C42] hover:bg-[#E53C42] hover:opacity-90 text-white"
-      onClick={() => handleBookNowClick(city)}
-    >
-      Book Now
-    </Button>
-  </div>
-
-</div>
+                    <Button
+                      size="sm"
+                      className="flex-1 bg-[#E53C42] hover:bg-[#E53C42] hover:opacity-90 text-white"
+                      onClick={() => handleBookNowClick(city)}
+                    >
+                      Book Now
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
           );
@@ -634,11 +694,20 @@ const handleBookNowClick = (city) => {
       return renderMiceHomeSection();
     }
 
-    if (selectedDomesticCities.length > 0 || selectedInternationalCities.length > 0) {
+    if (selectedCheckboxItems.length > 0) {
       return renderExhibitionCards();
     }
 
     return renderMiceHomeSection();
+  };
+
+  const getHeaderTitle = () => {
+    if (selectedCheckboxItems.length === 0) return "Selected Mice Packages";
+    
+    const selectedItem = domesticCheckboxItems.find(item => item.value === selectedCheckboxItems[0]) ||
+                         internationalCheckboxItems.find(item => item.value === selectedCheckboxItems[0]);
+    
+    return selectedItem ? selectedItem.display : "Selected Mice Packages";
   };
 
   return (
@@ -651,7 +720,7 @@ const handleBookNowClick = (city) => {
           <aside className="lg:w-80">
             <div className="bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl shadow-lg p-6 border border-blue-200 sticky top-24">
               <div className="flex justify-between items-center mb-6 bg-[#2E4D98] p-2 rounded-lg border border-black">
-                <h2 className="text-2xl font-bold text-white">Mice</h2>
+                <h2 className="text-2xl font-bold text-white">MICE</h2>
                 <button onClick={clearAllFilters} className="text-sm text-white hover:underline">
                   Clear All
                 </button>
@@ -662,11 +731,11 @@ const handleBookNowClick = (city) => {
                 onClick={handleHomeClick}
                 className="flex justify-between items-center mb-4 bg-white p-3 rounded-lg border border-black cursor-pointer hover:bg-gray-50 transition-colors"
               >
-                <h2 className="text-xl font-bold text-[#2E4D98]">About Mice</h2>
+                <h2 className="text-xl font-bold text-[#2E4D98]">About MICE</h2>
                 <span>{showHome ? "▼" : "▶"}</span>
               </div>
 
-              {/* MiceRange */}
+              {/* Duration Range */}
               <div className="mb-8">
                 <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Duration Range</h3>
                 <div className="flex justify-between text-sm text-gray-600 mb-3">
@@ -685,37 +754,6 @@ const handleBookNowClick = (city) => {
                 </div>
                 <Slider value={priceRange} onValueChange={setPriceRange} min={0} max={200000} step={1000} className="w-full" />
               </div>
-
-              {/* Departure Months */}
-              {/* <div className="mb-8">
-                <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Departure Months</h3>
-                <div className="space-y-3">
-                  {departureMonths.length === 0 ? (
-                    <p className="text-sm text-gray-500">Loading departure months...</p>
-                  ) : (
-                    departureMonths
-                      .slice(0, showAllDepartureMonths ? departureMonths.length : 6)
-                      .map((month) => (
-                        <label key={month} className="flex items-center gap-3 cursor-pointer">
-                          <Checkbox
-                            checked={selectedDepartureMonths.includes(month)}
-                            onCheckedChange={(checked) => handleDepartureMonthChange(month, checked as boolean)}
-                            className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
-                          />
-                          <span className="text-gray-700">{month}</span>
-                        </label>
-                      ))
-                  )}
-                </div>
-                {departureMonths.length > 6 && (
-                  <button
-                    onClick={() => setShowAllDepartureMonths(!showAllDepartureMonths)}
-                    className="mt-4 text-[#2E4D98] font-medium hover:text-[#1E3A8A]"
-                  >
-                    {showAllDepartureMonths ? "Show Less" : `Show ${departureMonths.length - 6} More`}
-                  </button>
-                )}
-              </div> */}
 
               {/* Search */}
               <div className="mb-4">
@@ -742,135 +780,130 @@ const handleBookNowClick = (city) => {
                 </form>
               </div>
 
-              {/* Domestic Mice Checkboxes */}
+              {/* Domestic MICE Checkboxes */}
               <div className="mb-6">
                 <div className="flex justify-between items-center mb-3 bg-white p-2 rounded-lg border border-black">
-                  <h2 className="text-xl font-bold text-[#2E4D98]">Domestic Mice</h2>
+                  <h2 className="text-xl font-bold text-[#2E4D98]">Domestic MICE</h2>
                 </div>
                 <div className="space-y-3">
                   {loading.domestic ? (
                     <div className="flex justify-center py-4">
                       <span className="animate-spin h-5 w-5 border-2 border-gray-300 border-t-blue-600 rounded-full" />
                     </div>
-                  ) : domesticCities.length > 0 ? (
-                    domesticCities
-                      .slice(0, showMoreDomestic ? domesticCities.length : 6)
-                      .map((city) => (
-                        <div key={city.id} className="flex items-center gap-3 cursor-pointer">
+                  ) : domesticCheckboxItems.length > 0 ? (
+                    domesticCheckboxItems
+                      .slice(0, showMoreDomestic ? domesticCheckboxItems.length : 6)
+                      .map((item) => (
+                        <div key={item.value} className="flex items-center gap-3 cursor-pointer">
                           <Checkbox
-                            checked={selectedDomesticCities.includes(city.city_name)}
-                            onCheckedChange={(checked) => handleDomesticCheckboxChange(city.city_name, checked as boolean)}
+                            checked={selectedCheckboxItems.includes(item.value)}
+                            onCheckedChange={(checked) => handleCheckboxChange(item.value, checked as boolean)}
                             className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
                           />
                           <span
-                            className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${selectedDomesticCities.includes(city.city_name) ? 'font-bold text-[#2E4D98]' : ''}`}
-                            onClick={() => handleDomesticCheckboxChange(city.city_name, !selectedDomesticCities.includes(city.city_name))}
+                            className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${
+                              selectedCheckboxItems.includes(item.value) ? 'font-bold text-[#2E4D98]' : ''
+                            }`}
+                            onClick={() => handleCheckboxChange(item.value, !selectedCheckboxItems.includes(item.value))}
                           >
-                            {city.city_name}
+                            {item.display}
                           </span>
                         </div>
                       ))
                   ) : (
-                    <div className="text-sm text-gray-400">No domestic mice available</div>
+                    <div className="text-sm text-gray-400">No domestic MICE available</div>
                   )}
                 </div>
-                {domesticCities.length > 6 && (
+                {domesticCheckboxItems.length > 6 && (
                   <button onClick={() => setShowMoreDomestic(!showMoreDomestic)} className="mt-4 text-[#2E4D98] text-sm font-semibold hover:underline">
-                    {showMoreDomestic ? "Show Less" : `Show ${domesticCities.length - 6} More`}
+                    {showMoreDomestic ? "Show Less" : `Show ${domesticCheckboxItems.length - 6} More`}
                   </button>
                 )}
               </div>
 
-              {/* International Mice Checkboxes */}
-              <div  className="mb-4">
+              {/* International MICE Checkboxes */}
+              <div className="mb-4">
                 <div className="flex justify-between items-center mb-3 bg-white p-2 rounded-lg border border-black">
-                  <h2 className="text-xl font-bold text-[#2E4D98]">International Mice</h2>
+                  <h2 className="text-xl font-bold text-[#2E4D98]">International MICE</h2>
                 </div>
                 <div className="space-y-3">
                   {loading.international ? (
                     <div className="flex justify-center py-4">
                       <span className="animate-spin h-5 w-5 border-2 border-gray-300 border-t-blue-600 rounded-full" />
                     </div>
-                  ) : internationalCities.length > 0 ? (
-                    internationalCities
-                      .slice(0, showMoreInternational ? internationalCities.length : 6)
-                      .map((city) => (
-                        <div key={city.id} className="flex items-center gap-3 cursor-pointer">
+                  ) : internationalCheckboxItems.length > 0 ? (
+                    internationalCheckboxItems
+                      .slice(0, showMoreInternational ? internationalCheckboxItems.length : 6)
+                      .map((item) => (
+                        <div key={item.value} className="flex items-center gap-3 cursor-pointer">
                           <Checkbox
-                            checked={selectedInternationalCities.includes(city.city_name)}
-                            onCheckedChange={(checked) => handleInternationalCheckboxChange(city.city_name, checked as boolean)}
+                            checked={selectedCheckboxItems.includes(item.value)}
+                            onCheckedChange={(checked) => handleCheckboxChange(item.value, checked as boolean)}
                             className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
                           />
                           <span
-                            className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${selectedInternationalCities.includes(city.city_name) ? 'font-bold text-[#2E4D98]' : ''}`}
-                            onClick={() => handleInternationalCheckboxChange(city.city_name, !selectedInternationalCities.includes(city.city_name))}
+                            className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${
+                              selectedCheckboxItems.includes(item.value) ? 'font-bold text-[#2E4D98]' : ''
+                            }`}
+                            onClick={() => handleCheckboxChange(item.value, !selectedCheckboxItems.includes(item.value))}
                           >
-                            {city.city_name}
+                            {item.display}
                           </span>
                         </div>
                       ))
                   ) : (
-                    <div className="text-sm text-gray-400">No international mice available</div>
+                    <div className="text-sm text-gray-400">No international MICE available</div>
                   )}
                 </div>
-                {internationalCities.length > 6 && (
+                {internationalCheckboxItems.length > 6 && (
                   <button onClick={() => setShowMoreInternational(!showMoreInternational)} className="mt-4 text-[#2E4D98] text-sm font-semibold hover:underline">
-                    {showMoreInternational ? "Show Less" : `Show ${internationalCities.length - 6} More`}
+                    {showMoreInternational ? "Show Less" : `Show ${internationalCheckboxItems.length - 6} More`}
                   </button>
                 )}
               </div>
 
               {/* Menu Items Section */}
-<div className="mt-0 pt-0 border-t border-gray-300">
-  <div className="mb-4">
-    <div
-      onClick={() => {
-        navigate("/enquiryformmic");
-      }}
-      className="flex justify-between items-center p-2 rounded-lg cursor-pointer border border-black transition shadow-sm bg-white text-[#2E4D98] hover:bg-gray-50"
-    >
-      <h3 className="text-lg font-semibold">Enquiry Form</h3>
-    </div>
-  </div>
-  <div className="mb-4">
-    <div
-      onClick={() => {
-        navigate("/bankgallery");
-      }}
-      className="flex justify-between items-center p-2 rounded-lg cursor-pointer border border-black transition shadow-sm bg-white text-[#2E4D98] hover:bg-gray-50"
-    >
-      <h3 className="text-lg font-semibold">Our Clients</h3>
-    </div>
-  </div>
-  <div className="mb-4">
-    <div
-      onClick={() => {
-        navigate("/venuephotos");
-      }}
-      className="flex justify-between items-center p-2 rounded-lg cursor-pointer border border-black transition shadow-sm bg-white text-[#2E4D98] hover:bg-gray-50"
-    >
-      <h3 className="text-lg font-semibold">Venue Photos</h3>
-    </div>
-  </div>
-  <div className="mb-4">
-    <div
-      onClick={() => {
-        navigate("/micgallery");
-      }}
-      className="flex justify-between items-center p-2 rounded-lg cursor-pointer border border-black transition shadow-sm bg-white text-[#2E4D98] hover:bg-gray-50"
-    >
-      <h3 className="text-lg font-semibold">Mice Gallery</h3>
-    </div>
-  </div>
-</div>
+              <div className="mt-0 pt-0 border-t border-gray-300">
+                <div className="mb-4">
+                  <div
+                    onClick={() => navigate("/enquiryformmic")}
+                    className="flex justify-between items-center p-2 rounded-lg cursor-pointer border border-black transition shadow-sm bg-white text-[#2E4D98] hover:bg-gray-50"
+                  >
+                    <h3 className="text-lg font-semibold">Enquiry Form</h3>
+                  </div>
+                </div>
+                <div className="mb-4">
+                  <div
+                    onClick={() => navigate("/bankgallery")}
+                    className="flex justify-between items-center p-2 rounded-lg cursor-pointer border border-black transition shadow-sm bg-white text-[#2E4D98] hover:bg-gray-50"
+                  >
+                    <h3 className="text-lg font-semibold">Our Clients</h3>
+                  </div>
+                </div>
+                <div className="mb-4">
+                  <div
+                    onClick={() => navigate("/venuephotos")}
+                    className="flex justify-between items-center p-2 rounded-lg cursor-pointer border border-black transition shadow-sm bg-white text-[#2E4D98] hover:bg-gray-50"
+                  >
+                    <h3 className="text-lg font-semibold">Venue Photos</h3>
+                  </div>
+                </div>
+                <div className="mb-4">
+                  <div
+                    onClick={() => navigate("/micgallery")}
+                    className="flex justify-between items-center p-2 rounded-lg cursor-pointer border border-black transition shadow-sm bg-white text-[#2E4D98] hover:bg-gray-50"
+                  >
+                    <h3 className="text-lg font-semibold">MICE Gallery</h3>
+                  </div>
+                </div>
+              </div>
             </div>
-            
           </aside>
 
           {/* Main Content */}
           <main className="flex-1">
             {/* Header banner */}
-            {(selectedDomesticCities.length > 0 || selectedInternationalCities.length > 0) && !showHome && (
+            {selectedCheckboxItems.length > 0 && !showHome && (
               <>
                 <div
                   className="relative rounded-2xl overflow-hidden mb-6 bg-cover bg-center bg-no-repeat"
@@ -879,13 +912,13 @@ const handleBookNowClick = (city) => {
                   <div className="p-8 min-h-[180px] flex items-center">
                     <div className="text-white">
                       <h1 className="text-3xl font-bold mb-2" style={{ textShadow: "2px 2px 4px rgb(0,0,0)" }}>
-                        Selected Mice Packages
+                        {getHeaderTitle()}
                       </h1>
                       <p className="text-base opacity-90 max-w-2xl" style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.5)" }}>
-                        {selectedType === 'domestic' ? 'Domestic' : 'International'} Mice Packages
+                        Explore our exclusive MICE package
                       </p>
                       <p className="text-sm opacity-80 mt-2" style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.5)" }}>
-                        Showing {filteredCities.length} exhibition packages
+                        Showing {filteredCities.length} exhibition package
                       </p>
                     </div>
                   </div>
@@ -893,9 +926,9 @@ const handleBookNowClick = (city) => {
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                   <div>
                     <h2 className="text-3xl font-bold text-gray-800">
-                      {selectedType === 'domestic' ? 'Domestic' : 'International'} Mice Packages
+                      {getHeaderTitle()}
                     </h2>
-                    <p className="text-gray-600 mt-1">Showing {filteredCities.length} exhibition packages • Best prices guaranteed</p>
+                    <p className="text-gray-600 mt-1">Showing {filteredCities.length} exhibition package • Best prices guaranteed</p>
                   </div>
                 </div>
               </>

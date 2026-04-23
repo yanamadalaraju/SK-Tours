@@ -199,7 +199,7 @@ import {
   FileText,
   Heart
 } from "lucide-react";
-
+import { useNavigate } from "react-router-dom";
 const reasons = [
   {
     id: 1,
@@ -264,6 +264,7 @@ const reasons = [
 ];
 
 const WhyChooseUsSection = () => {
+    const navigate = useNavigate();
   return (
     <section className="py-0 bg-gradient-to-br from-sky-200 via-sky-200 to-sky-200">
       {/* Full Width Header Strip */}
@@ -357,7 +358,9 @@ const WhyChooseUsSection = () => {
 
         {/* Bottom CTA */}
         <div className="text-center">
-          <button className="inline-flex mb-10 items-center gap-3 bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white font-semibold px-8 py-3 rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105 border border-white/20 text-lg">
+          <button 
+           onClick={() => navigate("/contact")}
+          className="inline-flex mb-10 items-center gap-3 bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white font-semibold px-8 py-3 rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105 border border-white/20 text-lg">
             <Handshake className="h-5 w-5" />
             Start Your Journey With Us
             <Heart className="h-5 w-5" />
