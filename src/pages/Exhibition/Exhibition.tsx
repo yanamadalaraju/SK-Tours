@@ -25,6 +25,12 @@ interface CategoryItem {
   display: string;
   categoryName: string;
   cityName: string;
+  exhibitionId?: number;
+  price?: string;
+  emi_price?: string;
+  start_date?: string;
+  end_date?: string;
+  duration_days?: number;
 }
 
 interface CategoryDataState {
@@ -84,7 +90,13 @@ const Exhibition = () => {
       state: { 
         category: item.category,
         city: item.city,
-        display: item.display
+        display: item.display,
+        exhibitionId: item.exhibitionId,
+        price: item.price,
+        emi_price: item.emi_price,
+        start_date: item.start_date,
+        end_date: item.end_date,
+        duration_days: item.duration_days
       } 
     });
   };
@@ -158,8 +170,80 @@ const Exhibition = () => {
         if (!response.ok) throw new Error('Failed to fetch domestic data');
         const data = await response.json();
         
-        if (Array.isArray(data)) {
+        // Handle the new grouped response format
+        if (data && typeof data === 'object' && !Array.isArray(data)) {
           // Create an array of objects with category and city info
+          const categoryCityPairs: CategoryItem[] = [];
+          
+          // Iterate through each category group
+          Object.keys(data).forEach(categoryName => {
+            const exhibitions = data[categoryName];
+            
+            exhibitions.forEach((exhibition: any) => {
+              const cities = exhibition.cities || [];
+              
+              if (cities.length > 0) {
+                cities.forEach((city: any) => {
+                  categoryCityPairs.push({
+                    category: categoryName,
+                    city: city.city_name,
+                    display: categoryName,
+                    categoryName: categoryName,
+                    cityName: city.city_name,
+                    exhibitionId: exhibition.id,
+                    price: city.price || exhibition.price,
+                    emi_price: exhibition.emi_price,
+                    start_date: exhibition.start_date,
+                    end_date: exhibition.end_date,
+                    duration_days: exhibition.duration_days
+                  });
+                });
+              } else {
+                // If no cities, just show category
+                categoryCityPairs.push({
+                  category: categoryName,
+                  city: '',
+                  display: categoryName,
+                  categoryName: categoryName,
+                  cityName: '',
+                  exhibitionId: exhibition.id,
+                  price: exhibition.price,
+                  emi_price: exhibition.emi_price,
+                  start_date: exhibition.start_date,
+                  end_date: exhibition.end_date,
+                  duration_days: exhibition.duration_days
+                });
+              }
+            });
+          });
+          
+          // Remove duplicates based on display string
+          const uniquePairs = categoryCityPairs.filter((pair, index, self) => 
+            index === self.findIndex(p => p.display === pair.display)
+          );
+          
+          // Format into rows of 5 for grid display
+          const formattedData: CategoryItem[][] = [];
+          for (let i = 0; i < uniquePairs.length; i += 5) {
+            const row = uniquePairs.slice(i, i + 5);
+            while (row.length < 5) {
+              row.push({ 
+                display: "", 
+                category: "", 
+                city: "",
+                categoryName: "",
+                cityName: ""
+              });
+            }
+            formattedData.push(row);
+          }
+          
+          setCategoryData(prev => ({
+            ...prev,
+            Domestic: formattedData
+          }));
+        } else if (Array.isArray(data)) {
+          // Fallback for old array format
           const categoryCityPairs: CategoryItem[] = [];
           
           data.forEach((exhibition: any) => {
@@ -171,29 +255,38 @@ const Exhibition = () => {
                 categoryCityPairs.push({
                   category: categoryName,
                   city: city.city_name,
-                  display: `${categoryName} (${city.city_name})`,
+                display: categoryName,
                   categoryName: categoryName,
-                  cityName: city.city_name
+                  cityName: city.city_name,
+                  exhibitionId: exhibition.id,
+                  price: city.price || exhibition.price,
+                  emi_price: exhibition.emi_price,
+                  start_date: exhibition.start_date,
+                  end_date: exhibition.end_date,
+                  duration_days: exhibition.duration_days
                 });
               });
             } else {
-              // If no cities, just show category
               categoryCityPairs.push({
                 category: categoryName,
                 city: '',
                 display: categoryName,
                 categoryName: categoryName,
-                cityName: ''
+                cityName: '',
+                exhibitionId: exhibition.id,
+                price: exhibition.price,
+                emi_price: exhibition.emi_price,
+                start_date: exhibition.start_date,
+                end_date: exhibition.end_date,
+                duration_days: exhibition.duration_days
               });
             }
           });
           
-          // Remove duplicates based on display string
           const uniquePairs = categoryCityPairs.filter((pair, index, self) => 
             index === self.findIndex(p => p.display === pair.display)
           );
           
-          // Format into rows of 5 for grid display
           const formattedData: CategoryItem[][] = [];
           for (let i = 0; i < uniquePairs.length; i += 5) {
             const row = uniquePairs.slice(i, i + 5);
@@ -243,8 +336,75 @@ const Exhibition = () => {
         if (!response.ok) throw new Error('Failed to fetch international data');
         const data = await response.json();
         
-        if (Array.isArray(data)) {
-          // Create an array of objects with category and city info
+        // Handle the new grouped response format
+        if (data && typeof data === 'object' && !Array.isArray(data)) {
+          const categoryCityPairs: CategoryItem[] = [];
+          
+          Object.keys(data).forEach(categoryName => {
+            const exhibitions = data[categoryName];
+            
+            exhibitions.forEach((exhibition: any) => {
+              const cities = exhibition.cities || [];
+              
+              if (cities.length > 0) {
+                cities.forEach((city: any) => {
+                  categoryCityPairs.push({
+                    category: categoryName,
+                    city: city.city_name,
+                    display: categoryName,  
+                    categoryName: categoryName,
+                    cityName: city.city_name,
+                    exhibitionId: exhibition.id,
+                    price: city.price || exhibition.price,
+                    emi_price: exhibition.emi_price,
+                    start_date: exhibition.start_date,
+                    end_date: exhibition.end_date,
+                    duration_days: exhibition.duration_days
+                  });
+                });
+              } else {
+                categoryCityPairs.push({
+                  category: categoryName,
+                  city: '',
+                  display: categoryName,
+                  categoryName: categoryName,
+                  cityName: '',
+                  exhibitionId: exhibition.id,
+                  price: exhibition.price,
+                  emi_price: exhibition.emi_price,
+                  start_date: exhibition.start_date,
+                  end_date: exhibition.end_date,
+                  duration_days: exhibition.duration_days
+                });
+              }
+            });
+          });
+          
+          const uniquePairs = categoryCityPairs.filter((pair, index, self) => 
+            index === self.findIndex(p => p.display === pair.display)
+          );
+          
+          const formattedData: CategoryItem[][] = [];
+          for (let i = 0; i < uniquePairs.length; i += 5) {
+            const row = uniquePairs.slice(i, i + 5);
+            while (row.length < 5) {
+              row.push({ 
+                display: "", 
+                category: "", 
+                city: "",
+                categoryName: "",
+                cityName: ""
+              });
+            }
+            formattedData.push(row);
+          }
+          
+          setCategoryData(prev => ({
+            ...prev,
+            International: formattedData
+          }));
+        } else if (Array.isArray(data)) {
+          // Fallback for old array format
           const categoryCityPairs: CategoryItem[] = [];
           
           data.forEach((exhibition: any) => {
@@ -256,29 +416,38 @@ const Exhibition = () => {
                 categoryCityPairs.push({
                   category: categoryName,
                   city: city.city_name,
-                  display: `${categoryName} (${city.city_name})`,
+                   display: categoryName,
                   categoryName: categoryName,
-                  cityName: city.city_name
+                  cityName: city.city_name,
+                  exhibitionId: exhibition.id,
+                  price: city.price || exhibition.price,
+                  emi_price: exhibition.emi_price,
+                  start_date: exhibition.start_date,
+                  end_date: exhibition.end_date,
+                  duration_days: exhibition.duration_days
                 });
               });
             } else {
-              // If no cities, just show category
               categoryCityPairs.push({
                 category: categoryName,
                 city: '',
                 display: categoryName,
                 categoryName: categoryName,
-                cityName: ''
+                cityName: '',
+                exhibitionId: exhibition.id,
+                price: exhibition.price,
+                emi_price: exhibition.emi_price,
+                start_date: exhibition.start_date,
+                end_date: exhibition.end_date,
+                duration_days: exhibition.duration_days
               });
             }
           });
           
-          // Remove duplicates based on display string
           const uniquePairs = categoryCityPairs.filter((pair, index, self) => 
             index === self.findIndex(p => p.display === pair.display)
           );
           
-          // Format into rows of 5 for grid display
           const formattedData: CategoryItem[][] = [];
           for (let i = 0; i < uniquePairs.length; i += 5) {
             const row = uniquePairs.slice(i, i + 5);
@@ -529,7 +698,7 @@ const Exhibition = () => {
                         ? "Learn more about our exhibition tours and frequently asked questions"
                         : (activeCategory 
                           ? `Explore our exclusive ${activeCategory} exhibition categories`
-                          : "Explore our exclusive funtite exhibition packages")}
+                          : "Explore our exclusive exhibition packages")}
                     </p>
                   </div>
                 </div>
@@ -651,7 +820,7 @@ const Exhibition = () => {
                     <div className="relative w-[365px] bg-blue-100">
                       <input
                         type="text"
-                        placeholder="Search categories or cities..."
+                        placeholder="Search categories..."
                         value={searchQuery}
                         onChange={(e) => {
                           setSearchQuery(e.target.value);
@@ -741,7 +910,7 @@ const Exhibition = () => {
                     <div className="relative w-[365px] bg-blue-100">
                       <input
                         type="text"
-                        placeholder="Search categories or cities..."
+                        placeholder="Search categories..."
                         value={searchQuery}
                         onChange={(e) => {
                           setSearchQuery(e.target.value);

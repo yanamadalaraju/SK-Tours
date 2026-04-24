@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import Pagination from '../Tablelayouts/Pagination';
 
 interface City {
   id: number;
@@ -28,8 +29,10 @@ interface MiceMain {
 interface CheckboxItem {
   value: string;
   display: string;
-  city: City;
+  stateName?: string;
+  countryName?: string;
   type: 'domestic' | 'international';
+  cities: City[]; // Store all cities under this state/country
 }
 
 const Miceview: React.FC = () => {
@@ -48,19 +51,19 @@ const Miceview: React.FC = () => {
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(passedCategory);
   const [selectedType, setSelectedType] = useState<'domestic' | 'international' | null>(passedType);
-  const [domesticCities, setDomesticCities] = useState<City[]>([]);
-  const [internationalCities, setInternationalCities] = useState<City[]>([]);
+  
+  const [allDomesticCities, setAllDomesticCities] = useState<City[]>([]);
+  const [allInternationalCities, setAllInternationalCities] = useState<City[]>([]);
 
-  // Checkbox items with display text
   const [domesticCheckboxItems, setDomesticCheckboxItems] = useState<CheckboxItem[]>([]);
   const [internationalCheckboxItems, setInternationalCheckboxItems] = useState<CheckboxItem[]>([]);
 
-  // State for MICE main data
   const [miceMain, setMiceMain] = useState<MiceMain | null>(null);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [bannerImage, setBannerImage] = useState('');
-  
-  // Filter states
+  const [currentPage, setCurrentPage] = useState(1);
+const [itemsPerPage, setItemsPerPage] = useState(9);
+const [paginatedCities, setPaginatedCities] = useState<City[]>([]);
   const [priceRange, setPriceRange] = useState([0, 200000]);
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearchBtn, setShowSearchBtn] = useState(false);
@@ -71,7 +74,6 @@ const Miceview: React.FC = () => {
   const [showMoreInternational, setShowMoreInternational] = useState(false);
   const [selectedDepartureMonths, setSelectedDepartureMonths] = useState<string[]>([]);
   const [selectedCheckboxItems, setSelectedCheckboxItems] = useState<string[]>([]);
-  const [showAllDepartureMonths, setShowAllDepartureMonths] = useState(false);
   const [durationRange, setDurationRange] = useState([0, 10]);
 
   const [loading, setLoading] = useState({
@@ -79,100 +81,71 @@ const Miceview: React.FC = () => {
     international: false,
     exhibitions: false,
   });
-// 🔹 For filtering only - extract number for price range comparison
-const extractNumericPrice = (priceString: string): number => {
-  if (!priceString) return 0;
-  
-  const str = priceString.toString().trim();
-  
-  const withoutCommas = str.replace(/,/g, '');
-  
-  const match = withoutCommas.match(/[\d.]+/);
-  if (match) {
-    const num = parseFloat(match[0]);
-    return isNaN(num) ? 0 : num;
-  }
-  
-  return 0;
-};
 
-const formatPriceForDisplay = (priceString: string): string => {
-  if (!priceString) return '';
-  
-  let str = priceString.toString().trim();
-  
-  str = str.replace(/\.00$/, '').replace(/\.0$/, '');
-  
-  return str;
-};
-  const getDomesticDisplayText = (city: City): string => {
-    if (city.state_name) {
-      return `${city.city_name} - ${city.state_name}`;
+  // For filtering only - extract number for price range comparison
+  const extractNumericPrice = (priceString: string): number => {
+    if (!priceString) return 0;
+    
+    const str = priceString.toString().trim();
+    const withoutCommas = str.replace(/,/g, '');
+    const match = withoutCommas.match(/[\d.]+/);
+    if (match) {
+      const num = parseFloat(match[0]);
+      return isNaN(num) ? 0 : num;
     }
-    return city.city_name;
+    return 0;
   };
 
-  const getInternationalDisplayText = (city: City): string => {
-    if (city.country_name) {
-      return `${city.city_name} - ${city.country_name}`;
-    }
-    return city.city_name;
+  const formatPriceForDisplay = (priceString: string): string => {
+    if (!priceString) return '';
+    let str = priceString.toString().trim();
+    str = str.replace(/\.00$/, '').replace(/\.0$/, '');
+    return str;
   };
+const getDomesticDisplayText = (stateName: string, cityCount: number): string => {
+  return stateName; // Just return the state name without count
+};
 
-  // Fetch MICE main data
-  useEffect(() => {
-    const fetchMiceMain = async () => {
-      try {
-        const res = await fetch(`${BASE_URL}/api/mice/main`);
-        const result = await res.json();
-        console.log("MICE Main data:", result);
+const getInternationalDisplayText = (countryName: string, cityCount: number): string => {
+  return countryName; // Just return the country name without count
+};
 
-        if (result && result.banner_image) {
-          const bannerImageUrl = `${BASE_URL}/uploads/mice/main/${result.banner_image}`;
-          setBannerImage(bannerImageUrl);
-        }
-
-        setMiceMain(result);
-      } catch (error) {
-        console.error("Error fetching MICE main:", error);
-      }
-    };
-    fetchMiceMain();
-  }, []);
-
-  // Check mobile screen
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  // Fetch Domestic Cities
+  // Fetch Domestic Cities (grouped by state)
   useEffect(() => {
     const fetchDomesticData = async () => {
       setLoading((prev) => ({ ...prev, domestic: true }));
       try {
         const response = await fetch(`${BASE_URL}/api/mice/domestic`);
         if (!response.ok) throw new Error(`Failed: ${response.status}`);
-        const data: City[] = await response.json();
+        const result = await response.json();
 
-        if (Array.isArray(data) && data.length > 0) {
-          setDomesticCities(data);
-          
-          const items: CheckboxItem[] = data.map(city => ({
-            value: `domestic_${city.id}`,
-            display: getDomesticDisplayText(city),
-            city: city,
-            type: 'domestic'
+        // Store all cities for filtering
+        let allCities: City[] = [];
+        const checkboxItems: CheckboxItem[] = [];
+        
+        Object.entries(result || {}).forEach(([state, cities]: [string, any]) => {
+          // Add state name to each city
+          const citiesWithState = cities.map((city: City) => ({
+            ...city,
+            state_name: state
           }));
           
-          items.sort((a, b) => a.display.localeCompare(b.display));
-          setDomesticCheckboxItems(items);
-        } else {
-          setDomesticCities([]);
-          setDomesticCheckboxItems([]);
-        }
+          // Add to all cities array
+          allCities = [...allCities, ...citiesWithState];
+          
+          // Create checkbox item for this state
+          checkboxItems.push({
+            value: `domestic_${state}`,
+            display: getDomesticDisplayText(state, cities.length),
+            stateName: state,
+            type: 'domestic',
+            cities: citiesWithState
+          });
+        });
+        
+        checkboxItems.sort((a, b) => (a.stateName || '').localeCompare(b.stateName || ''));
+        setAllDomesticCities(allCities);
+        setDomesticCheckboxItems(checkboxItems);
       } catch (error) {
         console.error("Error fetching domestic:", error);
       } finally {
@@ -182,33 +155,42 @@ const formatPriceForDisplay = (priceString: string): string => {
     fetchDomesticData();
   }, []);
 
-  // Fetch International Cities
+  // Fetch International Cities (grouped by country)
   useEffect(() => {
     const fetchInternationalData = async () => {
       setLoading((prev) => ({ ...prev, international: true }));
       try {
         const response = await fetch(`${BASE_URL}/api/mice/international`);
         if (!response.ok) throw new Error(`Failed: ${response.status}`);
-        const data: City[] = await response.json();
+        const result = await response.json();
 
-        console.log("International data received:", data);
-
-        if (Array.isArray(data) && data.length > 0) {
-          setInternationalCities(data);
-          
-          const items: CheckboxItem[] = data.map(city => ({
-            value: `international_${city.id}`,
-            display: getInternationalDisplayText(city),
-            city: city,
-            type: 'international'
+        // Store all cities for filtering
+        let allCities: City[] = [];
+        const checkboxItems: CheckboxItem[] = [];
+        
+        Object.entries(result || {}).forEach(([country, cities]: [string, any]) => {
+          // Add country name to each city
+          const citiesWithCountry = cities.map((city: City) => ({
+            ...city,
+            country_name: country
           }));
           
-          items.sort((a, b) => a.display.localeCompare(b.display));
-          setInternationalCheckboxItems(items);
-        } else {
-          setInternationalCities([]);
-          setInternationalCheckboxItems([]);
-        }
+          // Add to all cities array
+          allCities = [...allCities, ...citiesWithCountry];
+          
+          // Create checkbox item for this country
+          checkboxItems.push({
+            value: `international_${country}`,
+            display: getInternationalDisplayText(country, cities.length),
+            countryName: country,
+            type: 'international',
+            cities: citiesWithCountry
+          });
+        });
+        
+        checkboxItems.sort((a, b) => (a.countryName || '').localeCompare(b.countryName || ''));
+        setAllInternationalCities(allCities);
+        setInternationalCheckboxItems(checkboxItems);
       } catch (error) {
         console.error("Error fetching international:", error);
       } finally {
@@ -218,75 +200,88 @@ const formatPriceForDisplay = (priceString: string): string => {
     fetchInternationalData();
   }, []);
 
-  // Handle pre-selected city from navigation
-  useEffect(() => {
-    if (preSelectedCity && preSelectedType && domesticCheckboxItems.length > 0 && internationalCheckboxItems.length > 0) {
-      if (preSelectedType === 'domestic') {
-        const matchingItem = domesticCheckboxItems.find(
-          item => item.city.city_name === preSelectedCity
+useEffect(() => {
+  if (preSelectedCity && preSelectedType && domesticCheckboxItems.length > 0 && internationalCheckboxItems.length > 0) {
+    if (preSelectedType === 'domestic') {
+      // Match by state_name (not city_name)
+      const matchingItem = domesticCheckboxItems.find(
+        item => item.stateName === preSelectedCity
+      );
+      if (matchingItem) {
+        setShowHome(false);
+        setSelectedCheckboxItems([matchingItem.value]);
+        setSelectedType('domestic');
+      } else {
+        const fallbackItem = domesticCheckboxItems.find(
+          item => item.cities.some(city => city.city_name === preSelectedCity)
         );
-        if (matchingItem) {
+        if (fallbackItem) {
           setShowHome(false);
-          setSelectedCheckboxItems([matchingItem.value]);
+          setSelectedCheckboxItems([fallbackItem.value]);
           setSelectedType('domestic');
         }
-      } else if (preSelectedType === 'international') {
-        const matchingItem = internationalCheckboxItems.find(
-          item => item.city.city_name === preSelectedCity
+      }
+    } else if (preSelectedType === 'international') {
+      const matchingItem = internationalCheckboxItems.find(
+        item => item.countryName === preSelectedCity
+      );
+      if (matchingItem) {
+        setShowHome(false);
+        setSelectedCheckboxItems([matchingItem.value]);
+        setSelectedType('international');
+      } else {
+        // Fallback: try to match by city_name (for backward compatibility)
+        const fallbackItem = internationalCheckboxItems.find(
+          item => item.cities.some(city => city.city_name === preSelectedCity)
         );
-        if (matchingItem) {
+        if (fallbackItem) {
           setShowHome(false);
-          setSelectedCheckboxItems([matchingItem.value]);
+          setSelectedCheckboxItems([fallbackItem.value]);
           setSelectedType('international');
         }
       }
     }
-  }, [preSelectedCity, preSelectedType, domesticCheckboxItems, internationalCheckboxItems]);
+  }
+}, [preSelectedCity, preSelectedType, domesticCheckboxItems, internationalCheckboxItems]);
 
-  // Extract unique departure months from cities
+  // Extract unique departure months from all cities
   useEffect(() => {
     const monthsSet = new Set<string>();
-    domesticCities.forEach(city => {
+    allDomesticCities.forEach(city => {
       if (city.start_date) monthsSet.add(formatMonthYear(city.start_date));
     });
-    internationalCities.forEach(city => {
+    allInternationalCities.forEach(city => {
       if (city.start_date) monthsSet.add(formatMonthYear(city.start_date));
     });
     setDepartureMonths(Array.from(monthsSet).sort());
-  }, [domesticCities, internationalCities]);
+  }, [allDomesticCities, allInternationalCities]);
 
-  // 🔹 FIXED: Filter cities based on selected checkbox items
+  // Filter cities based on selected checkbox items
   useEffect(() => {
-    console.log("Filter effect running with selectedCheckboxItems:", selectedCheckboxItems);
-    console.log("internationalCheckboxItems length:", internationalCheckboxItems.length);
-    
-    let allCities: City[] = [];
+    let allCitiesToShow: City[] = [];
 
     if (selectedCheckboxItems.length > 0) {
       selectedCheckboxItems.forEach(itemValue => {
         // Check domestic items
         const domesticItem = domesticCheckboxItems.find(item => item.value === itemValue);
         if (domesticItem) {
-          allCities.push(domesticItem.city);
+          allCitiesToShow = [...allCitiesToShow, ...domesticItem.cities];
         }
         
         // Check international items
         const internationalItem = internationalCheckboxItems.find(item => item.value === itemValue);
         if (internationalItem) {
-          console.log("Found international item:", internationalItem);
-          allCities.push(internationalItem.city);
+          allCitiesToShow = [...allCitiesToShow, ...internationalItem.cities];
         }
       });
     }
 
-    console.log("allCities before filtering:", allCities.length);
-
-    if (allCities.length === 0) {
+    if (allCitiesToShow.length === 0) {
       setFilteredCities([]);
       return;
     }
 
-    let result = [...allCities];
+    let result = [...allCitiesToShow];
 
     // Duration Range filter
     result = result.filter(city => {
@@ -294,10 +289,9 @@ const formatPriceForDisplay = (priceString: string): string => {
       return duration >= durationRange[0] && duration <= durationRange[1];
     });
 
-    // 🔹 FIXED: Price filter with robust numeric extraction
+    // Price filter
     result = result.filter(city => {
       const priceNum = extractNumericPrice(city.price);
-      // If price is 0 or can't be parsed, include it (don't filter out)
       if (priceNum === 0) return true;
       return priceNum >= priceRange[0] && priceNum <= priceRange[1];
     });
@@ -316,13 +310,13 @@ const formatPriceForDisplay = (priceString: string): string => {
     if (isSearchActive && searchQuery.trim() !== "") {
       const query = searchQuery.trim().toLowerCase();
       result = result.filter(city => {
-        const cityName = (city.country_name || city.city_name).toLowerCase();
+        const cityName = (city.city_name || '').toLowerCase();
         const stateName = (city.state_name || '').toLowerCase();
-        return cityName.includes(query) || stateName.includes(query);
+        const countryName = (city.country_name || '').toLowerCase();
+        return cityName.includes(query) || stateName.includes(query) || countryName.includes(query);
       });
     }
 
-    console.log("Filtered cities result:", result.length);
     setFilteredCities(result);
   }, [
     selectedCheckboxItems,
@@ -336,7 +330,6 @@ const formatPriceForDisplay = (priceString: string): string => {
   ]);
 
   const handleCheckboxChange = (itemValue: string, checked: boolean) => {
-    console.log("Checkbox changed:", itemValue, checked);
     setShowHome(false);
     if (checked) {
       setSelectedCheckboxItems([itemValue]);
@@ -344,12 +337,10 @@ const formatPriceForDisplay = (priceString: string): string => {
       const domesticItem = domesticCheckboxItems.find(item => item.value === itemValue);
       if (domesticItem) {
         setSelectedType('domestic');
-        console.log("Selected domestic:", domesticItem.display);
       } else {
         const internationalItem = internationalCheckboxItems.find(item => item.value === itemValue);
         if (internationalItem) {
           setSelectedType('international');
-          console.log("Selected international:", internationalItem.display);
         }
       }
     } else {
@@ -371,6 +362,7 @@ const formatPriceForDisplay = (priceString: string): string => {
     setShowHome(true);
     setDurationRange([0, 10]);
     setSelectedDepartureMonths([]);
+    
   };
 
   const clearSearch = () => {
@@ -378,6 +370,19 @@ const formatPriceForDisplay = (priceString: string): string => {
     setShowSearchBtn(false);
     setIsSearchActive(false);
   };
+  useEffect(() => {
+  if (filteredCities.length > 0) {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    setPaginatedCities(filteredCities.slice(startIndex, endIndex));
+  } else {
+    setPaginatedCities([]);
+  }
+}, [filteredCities, currentPage, itemsPerPage]);
+
+useEffect(() => {
+  setCurrentPage(1);
+}, [priceRange, durationRange, searchQuery, isSearchActive, selectedCheckboxItems, selectedDepartureMonths]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -407,7 +412,7 @@ const formatPriceForDisplay = (priceString: string): string => {
     const miceData = {
       id: city.id,
       code: `MICE_${city.id}`,
-      title: city.city_name || city.country_name,
+      title: city.city_name,
       city_name: city.city_name,
       state_name: city.state_name,
       country_name: city.country_name,
@@ -555,39 +560,55 @@ const formatPriceForDisplay = (priceString: string): string => {
     );
   };
 
-  const renderExhibitionCards = () => {
-    if (loading.exhibitions && selectedCheckboxItems.length === 0) {
-      return (
-        <div className="flex items-center justify-center h-full py-16">
-          <div className="flex flex-col items-center gap-2">
-            <span className="animate-spin h-8 w-8 border-4 border-gray-300 border-t-blue-600 rounded-full" />
-            <span className="text-gray-500">Loading exhibition details...</span>
-          </div>
-        </div>
-      );
-    }
-
-    if (filteredCities.length === 0 && selectedCheckboxItems.length > 0) {
-      return (
-        <div className="text-center py-12">
-          <h3 className="text-xl font-semibold text-gray-600">No exhibitions found for the selected filters</h3>
-          <p className="text-gray-500 mt-2">Try adjusting your filters or search criteria</p>
-          <Button onClick={clearAllFilters} className="mt-4 bg-[#2E4D98] hover:bg-[#2E4D98] hover:opacity-90 text-white">
-            Clear All Filters
-          </Button>
-        </div>
-      );
-    }
-
-    if (filteredCities.length === 0 && selectedCheckboxItems.length === 0) {
-      return null;
-    }
-
-    console.log("Rendering cards for filteredCities:", filteredCities);
-
+const renderExhibitionCards = () => {
+  if (filteredCities.length === 0 && selectedCheckboxItems.length > 0) {
     return (
+      <div className="text-center py-12">
+        <h3 className="text-xl font-semibold text-gray-600">No exhibitions found for the selected filters</h3>
+        <p className="text-gray-500 mt-2">Try adjusting your filters or search criteria</p>
+        <Button onClick={clearAllFilters} className="mt-4 bg-[#2E4D98] hover:bg-[#2E4D98] hover:opacity-90 text-white">
+          Clear All Filters
+        </Button>
+      </div>
+    );
+  }
+
+  if (filteredCities.length === 0 && selectedCheckboxItems.length === 0) {
+    return null;
+  }
+
+  const totalPages = Math.ceil(filteredCities.length / itemsPerPage);
+
+  return (
+    <div>
+      {/* Items Per Page Selector */}
+      <div className="flex justify-between items-center mb-2">
+        <div className="text-sm text-gray-600">
+          Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredCities.length)} of {filteredCities.length} packages
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="text-sm text-gray-600">Show:</label>
+          <select
+            value={itemsPerPage}
+            onChange={(e) => {
+              setItemsPerPage(Number(e.target.value));
+              setCurrentPage(1);
+            }}
+            className="border rounded-md px-2 py-1 text-sm"
+          >
+            <option value={6}>6</option>
+            <option value={9}>9</option>
+            <option value={12}>12</option>
+            <option value={18}>18</option>
+            <option value={24}>24</option>
+          </select>
+          <span className="text-sm text-gray-600">per page</span>
+        </div>
+      </div>
+
+      {/* Packages Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredCities.map((city) => {
+        {paginatedCities.map((city) => {
           const isDomestic = city.state_name !== undefined;
 
           return (
@@ -595,11 +616,11 @@ const formatPriceForDisplay = (priceString: string): string => {
               <div className="bg-white border-2 border-gray-300 rounded-lg p-3 mb-3 shadow-sm">
                 <div className="grid grid-cols-2 gap-0 border border-gray-400 rounded overflow-hidden">
                   <div className="bg-[#2E4D98] border-r border-gray-400 p-2 flex items-center justify-center">
-                    <div className="text-sm font-bold text-white text-center">{isDomestic ? 'CITY' : 'COUNTRY'}</div>
+                    <div className="text-sm font-bold text-white text-center">CITY</div>
                   </div>
                   <div className="bg-gradient-to-br from-blue-100 to-blue-50 border-r border-gray-400 p-2 flex items-center justify-center">
                     <div className="text-sm font-bold text-gray-900 text-center">
-                      {isDomestic ? city.city_name : (city.country_name || city.city_name)}
+                      {city.city_name}
                     </div>
                   </div>
                 </div>
@@ -610,7 +631,7 @@ const formatPriceForDisplay = (priceString: string): string => {
                   {city.image ? (
                     <img
                       src={getFullImageUrl(city.image, isDomestic ? 'domestic' : 'international')}
-                      alt={isDomestic ? city.city_name : city.country_name || city.city_name}
+                      alt={city.city_name}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       onError={(e) => {
                         e.currentTarget.style.display = "none";
@@ -618,14 +639,14 @@ const formatPriceForDisplay = (priceString: string): string => {
                         if (parent) {
                           const errorDiv = document.createElement('div');
                           errorDiv.className = "flex flex-col items-center justify-center w-full h-full text-gray-700 p-4 bg-blue-50";
-                          errorDiv.innerHTML = `<span class="text-center text-sm">${isDomestic ? city.city_name : city.country_name || city.city_name}</span><span class="text-center text-xs text-gray-600 mt-2">Image not available</span>`;
+                          errorDiv.innerHTML = `<span class="text-center text-sm">${city.city_name}</span><span class="text-center text-xs text-gray-600 mt-2">Image not available</span>`;
                           parent.appendChild(errorDiv);
                         }
                       }}
                     />
                   ) : (
                     <div className="flex flex-col items-center justify-center w-full h-full text-gray-700 p-4 bg-blue-50">
-                      <span className="text-center text-sm">{isDomestic ? city.city_name : city.country_name || city.city_name}</span>
+                      <span className="text-center text-sm">{city.city_name}</span>
                       <span className="text-center text-xs text-gray-600 mt-2">No image available</span>
                     </div>
                   )}
@@ -686,8 +707,21 @@ const formatPriceForDisplay = (priceString: string): string => {
           );
         })}
       </div>
-    );
-  };
+
+      {/* Pagination Component */}
+      {totalPages > 1 && (
+        <div className="mt-8">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            maxVisiblePages={3}
+          />
+        </div>
+      )}
+    </div>
+  );
+};
 
   const renderContent = () => {
     if (showHome) {
@@ -780,7 +814,7 @@ const formatPriceForDisplay = (priceString: string): string => {
                 </form>
               </div>
 
-              {/* Domestic MICE Checkboxes */}
+              {/* Domestic MICE Checkboxes - Show States with city count */}
               <div className="mb-6">
                 <div className="flex justify-between items-center mb-3 bg-white p-2 rounded-lg border border-black">
                   <h2 className="text-xl font-bold text-[#2E4D98]">Domestic MICE</h2>
@@ -821,7 +855,6 @@ const formatPriceForDisplay = (priceString: string): string => {
                 )}
               </div>
 
-              {/* International MICE Checkboxes */}
               <div className="mb-4">
                 <div className="flex justify-between items-center mb-3 bg-white p-2 rounded-lg border border-black">
                   <h2 className="text-xl font-bold text-[#2E4D98]">International MICE</h2>
@@ -918,17 +951,17 @@ const formatPriceForDisplay = (priceString: string): string => {
                         Explore our exclusive MICE package
                       </p>
                       <p className="text-sm opacity-80 mt-2" style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.5)" }}>
-                        Showing {filteredCities.length} exhibition package
+                        Showing {filteredCities.length} exhibition package{filteredCities.length !== 1 ? 's' : ''}
                       </p>
                     </div>
                   </div>
                 </div>
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 gap-4">
                   <div>
                     <h2 className="text-3xl font-bold text-gray-800">
                       {getHeaderTitle()}
                     </h2>
-                    <p className="text-gray-600 mt-1">Showing {filteredCities.length} exhibition package • Best prices guaranteed</p>
+                    <p className="text-gray-600 mt-1">Showing {filteredCities.length} exhibition package{filteredCities.length !== 1 ? 's' : ''} • Best prices guaranteed</p>
                   </div>
                 </div>
               </>

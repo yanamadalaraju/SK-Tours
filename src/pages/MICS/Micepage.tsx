@@ -28,10 +28,11 @@ const MicePage: React.FC = () => {
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [loading, setLoading] = useState({ domestic: false, international: false });
   
-  const [domesticCities, setDomesticCities] = useState<any[]>([]);
-  const [internationalCities, setInternationalCities] = useState<any[]>([]);
-  const [filteredDomesticCities, setFilteredDomesticCities] = useState<any[]>([]);
-  const [filteredInternationalCities, setFilteredInternationalCities] = useState<any[]>([]);
+  const [domesticStates, setDomesticStates] = useState<any[]>([]);
+  const [internationalCountries, setInternationalCountries] = useState<any[]>([]);
+  const [filteredDomesticStates, setFilteredDomesticStates] = useState<any[]>([]);
+  const [filteredInternationalCountries, setFilteredInternationalCountries] = useState<any[]>([]);
+  
   const [bannerImage, setBannerImage] = useState('');
   const [rightSideView, setRightSideView] = useState<'micpage' | 'domestic' | 'international' | 'home'>('micpage');
 
@@ -56,74 +57,90 @@ const MicePage: React.FC = () => {
     fetchData();
   }, []);
 
-  // Fetch domestic cities
+  // Fetch domestic states
   useEffect(() => {
     if (rightSideView === 'domestic') {
-      fetchDomesticCities();
+      fetchDomesticStates();
     }
   }, [rightSideView]);
 
-  // Fetch international cities
+  // Fetch international countries
   useEffect(() => {
     if (rightSideView === 'international') {
-      fetchInternationalCities();
+      fetchInternationalCountries();
     }
   }, [rightSideView]);
 
-  // Filter cities when search query changes
+  // Filter states when search query changes
   useEffect(() => {
     if (rightSideView === 'domestic') {
       if (searchQuery.trim() === "") {
-        setFilteredDomesticCities(domesticCities);
+        setFilteredDomesticStates(domesticStates);
       } else {
-        const query = searchQuery.toLowerCase();
-        const filtered = domesticCities.filter(city =>
-          city.city_name.toLowerCase().includes(query) ||
-          city.state_name.toLowerCase().includes(query) ||
-          `${city.city_name} - ${city.state_name}`.toLowerCase().includes(query)
+        const filtered = domesticStates.filter(state =>
+          state.state_name.toLowerCase().includes(searchQuery.toLowerCase())
         );
-        setFilteredDomesticCities(filtered);
+        setFilteredDomesticStates(filtered);
       }
     } else if (rightSideView === 'international') {
       if (searchQuery.trim() === "") {
-        setFilteredInternationalCities(internationalCities);
+        setFilteredInternationalCountries(internationalCountries);
       } else {
-        const query = searchQuery.toLowerCase();
-        const filtered = internationalCities.filter(city =>
-          city.city_name.toLowerCase().includes(query) ||
-          city.country_name.toLowerCase().includes(query) ||
-          `${city.city_name} - ${city.country_name}`.toLowerCase().includes(query)
+        const filtered = internationalCountries.filter(country =>
+          country.country_name.toLowerCase().includes(searchQuery.toLowerCase())
         );
-        setFilteredInternationalCities(filtered);
+        setFilteredInternationalCountries(filtered);
       }
     }
-  }, [searchQuery, domesticCities, internationalCities, rightSideView]);
+  }, [searchQuery, domesticStates, internationalCountries, rightSideView]);
 
-  const fetchDomesticCities = async () => {
+  const fetchDomesticStates = async () => {
     setLoading(prev => ({ ...prev, domestic: true }));
     try {
       const response = await fetch(`${BASE_URL}/api/mice/domestic`);
       const result = await response.json();
-      console.log("Domestic cities data:", result);
-      setDomesticCities(result || []);
-      setFilteredDomesticCities(result || []);
+      console.log("Domestic states data:", result);
+      
+      // Convert to unique state array (one entry per state)
+      let uniqueStates: any[] = [];
+      Object.entries(result || {}).forEach(([state, cities]: [string, any]) => {
+        uniqueStates.push({
+          state_name: state,
+          id: state,
+          total_cities: cities.length
+        });
+      });
+      
+      setDomesticStates(uniqueStates);
+      setFilteredDomesticStates(uniqueStates);
     } catch (error) {
-      console.error("Error fetching domestic cities:", error);
+      console.error("Error fetching domestic states:", error);
     } finally {
       setLoading(prev => ({ ...prev, domestic: false }));
     }
   };
 
-  const fetchInternationalCities = async () => {
+  const fetchInternationalCountries = async () => {
     setLoading(prev => ({ ...prev, international: true }));
     try {
       const response = await fetch(`${BASE_URL}/api/mice/international`);
       const result = await response.json();
-      console.log("International cities data:", result);
-      setInternationalCities(result || []);
-      setFilteredInternationalCities(result || []);
+      console.log("International countries data:", result);
+      
+      // Convert to unique country array (one entry per country)
+      let uniqueCountries: any[] = [];
+      Object.entries(result || {}).forEach(([country, cities]: [string, any]) => {
+        uniqueCountries.push({
+          country_name: country,
+          id: country,
+          total_cities: cities.length
+        });
+      });
+      
+      setInternationalCountries(uniqueCountries);
+      setFilteredInternationalCountries(uniqueCountries);
     } catch (error) {
-      console.error("Error fetching international cities:", error);
+      console.error("Error fetching international countries:", error);
     } finally {
       setLoading(prev => ({ ...prev, international: false }));
     }
@@ -201,15 +218,28 @@ const MicePage: React.FC = () => {
     fetchMiceMain();
   }, []);
 
-  const handleCityClick = (city: any, type: string) => {
-    if (!city || city === "") return;
+  const handleStateClick = (state: any, type: string) => {
+    if (!state || state === "") return;
     navigate("/miceview", { 
       state: { 
-        category: city, 
+        category: state, 
         type: type,
-        preSelectedCity: city.city_name,
+        preSelectedCity: state.state_name,
         preSelectedType: type,
-        cityData: city
+        cityData: state
+      } 
+    });
+  };
+
+  const handleCountryClick = (country: any, type: string) => {
+    if (!country || country === "") return;
+    navigate("/miceview", { 
+      state: { 
+        category: country, 
+        type: type,
+        preSelectedCity: country.country_name,
+        preSelectedType: type,
+        cityData: country
       } 
     });
   };
@@ -249,22 +279,6 @@ const MicePage: React.FC = () => {
     { label: "MICE Gallery", path: "/micgallery" },
   ];
 
-  // Get display text for domestic (City - State)
-  const getDomesticDisplayText = (city: any) => {
-    if (city.state_name) {
-      return `${city.city_name} - ${city.state_name}`;
-    }
-    return city.city_name;
-  };
-
-  // Get display text for international (City - Country)
-  const getInternationalDisplayText = (city: any) => {
-    if (city.country_name) {
-      return `${city.city_name} - ${city.country_name}`;
-    }
-    return city.city_name;
-  };
-
   // Render Home content
   const renderHomeContent = () => {
     return (
@@ -277,10 +291,10 @@ const MicePage: React.FC = () => {
         <div className="p-8 min-h-[180px] flex items-center">
           <div className="text-white">
             <h1 className="text-3xl font-bold mb-2" style={{ textShadow: "2px 2px 4px rgb(0, 0, 0)" }}>
-              About MICE
+              Mice
             </h1>
             <p className="text-base opacity-90 max-w-2xl" style={{ textShadow: "1px 1px 2px rgba(0, 0, 0, 0.5)" }}>
-              Learn more about MICE and what we offer
+              Explore our exclusive Mice cities
             </p>
           </div>
         </div>
@@ -305,10 +319,10 @@ const MicePage: React.FC = () => {
               <div className="p-8 min-h-[180px] flex items-center">
                 <div className="text-white">
                   <h1 className="text-3xl font-bold mb-2" style={{ textShadow: "2px 2px 4px rgb(0, 0, 0)" }}>
-                    Domestic MICE
+                    Domestic Mice
                   </h1>
                   <p className="text-base opacity-90 max-w-2xl" style={{ textShadow: "1px 1px 2px rgba(0, 0, 0, 0.5)" }}>
-                    Explore our exclusive Domestic MICE destinations
+                    Explore our exclusive Domestic Mice states
                   </p>
                 </div>
               </div>
@@ -317,12 +331,12 @@ const MicePage: React.FC = () => {
             <div className="p-0">
               <div className="flex items-center mb-2 gap-1">
                 <div className="border border-black w-[355px] h-[45px] flex items-center justify-center font-semibold" style={{ backgroundColor: "#2E4D98", color: "white" }}>
-                  Domestic Destinations
+                  Domestic States
                 </div>
                 <div className="relative w-[365px]">
                   <input
                     type="text"
-                    placeholder="Search by city or state..."
+                    placeholder="Search states..."
                     value={searchQuery}
                     onChange={(e) => {
                       setSearchQuery(e.target.value);
@@ -358,33 +372,32 @@ const MicePage: React.FC = () => {
 
               {loading.domestic ? (
                 <div className="flex justify-center py-8">
-                  <span className="animate-spin h-8 w-8 border-4 border-gray-300 border-t-blue-600 rounded-full" />
+                  <span className="animate-spin h-4 w-8 border-4 border-gray-300 border-t-blue-600 rounded-full" />
                 </div>
-              ) : filteredDomesticCities.length > 0 ? (
+              ) : filteredDomesticStates.length > 0 ? (
                 <div className="grid grid-cols-5 gap-1">
-                  {filteredDomesticCities.map((city, index) => (
+                  {filteredDomesticStates.map((state, index) => (
                     <div
-                      key={city.id || index}
-                      onClick={() => handleCityClick(city, 'domestic')}
+                      key={state.id || index}
+                      onClick={() => handleStateClick(state, 'domestic')}
                       className="
                         border border-black
-                        w-full min-h-[40px]
+                        w-full h-[40px]
                         flex items-center justify-center
                         text-center text-sm
                         cursor-pointer bg-blue-100 hover:bg-blue-200
                         transition-colors duration-200
-                        px-2 py-1
                       "
                     >
-                      <span className="font-medium">{getDomesticDisplayText(city)}</span>
+                      <span className="font-medium">{state.state_name}</span>
                     </div>
                   ))}
                 </div>
               ) : (
                 <div className="text-center py-8 text-gray-500">
                   {isSearchActive 
-                    ? `No destinations found matching "${searchQuery}"`
-                    : "No domestic destinations available"}
+                    ? `No states found matching "${searchQuery}"`
+                    : "No domestic states available"}
                 </div>
               )}
             </div>
@@ -403,10 +416,10 @@ const MicePage: React.FC = () => {
               <div className="p-8 min-h-[180px] flex items-center">
                 <div className="text-white">
                   <h1 className="text-3xl font-bold mb-2" style={{ textShadow: "2px 2px 4px rgb(0, 0, 0)" }}>
-                    International MICE
+                    International Mice
                   </h1>
                   <p className="text-base opacity-90 max-w-2xl" style={{ textShadow: "1px 1px 2px rgba(0, 0, 0, 0.5)" }}>
-                    Explore our exclusive International MICE destinations
+                    Explore our exclusive International Mice countries
                   </p>
                 </div>
               </div>
@@ -415,12 +428,12 @@ const MicePage: React.FC = () => {
             <div className="p-1">
               <div className="flex items-center mb-2 gap-1">
                 <div className="border border-black w-[360px] h-[45px] flex items-center justify-center font-semibold" style={{ backgroundColor: "#2E4D98", color: "white" }}>
-                  International Destinations
+                  International Countries
                 </div>
                 <div className="relative w-[355px]">
                   <input
                     type="text"
-                    placeholder="Search by city or country..."
+                    placeholder="Search countries..."
                     value={searchQuery}
                     onChange={(e) => {
                       setSearchQuery(e.target.value);
@@ -456,33 +469,32 @@ const MicePage: React.FC = () => {
 
               {loading.international ? (
                 <div className="flex justify-center py-8">
-                  <span className="animate-spin h-8 w-8 border-4 border-gray-300 border-t-blue-600 rounded-full" />
+                  <span className="animate-spin h-2 w-8 border-4 border-gray-300 border-t-blue-600 rounded-full" />
                 </div>
-              ) : filteredInternationalCities.length > 0 ? (
+              ) : filteredInternationalCountries.length > 0 ? (
                 <div className="grid grid-cols-5 gap-1">
-                  {filteredInternationalCities.map((city, index) => (
+                  {filteredInternationalCountries.map((country, index) => (
                     <div
-                      key={city.id || index}
-                      onClick={() => handleCityClick(city, 'international')}
+                      key={country.id || index}
+                      onClick={() => handleCountryClick(country, 'international')}
                       className="
                         border border-black
-                        w-full min-h-[40px]
+                        w-full h-[40px]
                         flex items-center justify-center
                         text-center text-sm
                         cursor-pointer bg-blue-100 hover:bg-blue-200
                         transition-colors duration-200
-                        px-2 py-1
                       "
                     >
-                      <span className="font-medium">{getInternationalDisplayText(city)}</span>
+                      <span className="font-medium">{country.country_name}</span>
                     </div>
                   ))}
                 </div>
               ) : (
                 <div className="text-center py-8 text-gray-500">
                   {isSearchActive 
-                    ? `No destinations found matching "${searchQuery}"`
-                    : "No international destinations available"}
+                    ? `No countries found matching "${searchQuery}"`
+                    : "No international countries available"}
                 </div>
               )}
             </div>
@@ -585,14 +597,14 @@ const MicePage: React.FC = () => {
                     }}
                     className="flex justify-between items-center p-3 rounded-lg cursor-pointer border border-black transition bg-white hover:bg-gray-50 shadow-sm"
                   >
-                    <h3 className="text-xl font-bold text-[#2E4D98]">About MICE</h3>
+                    <h3 className="text-xl font-bold text-[#2E4D98]">About Mice</h3>
                     <span className="text-xs text-gray-600">{isHomeOpen ? "▼" : "▶"}</span>
                   </div>
                 </div>
 
                 {/* Duration Range Filter */}
                 <div className="mb-4">
-                  <h3 className="font-semibold text-lg mb-3 text-[#2E4D98]">MICE Range</h3>
+                  <h3 className="font-semibold text-lg mb-3 text-[#2E4D98]">Mice Range</h3>
                   <div className="flex justify-between text-sm text-gray-600 mb-3">
                     <span>{durationRange[0]} days</span>
                     <span>{durationRange[1]} days</span>
@@ -629,7 +641,7 @@ const MicePage: React.FC = () => {
                     <h2 className="text-xl font-bold text-[#2E4D98]">Categories</h2>
                   </div>
                   
-                  {/* Domestic MICE */}
+                  {/* Domestic Exhibition */}
                   <div className="mb-4">
                     <div
                       onClick={() => handleCategoryClick("Domestic")}
@@ -639,12 +651,12 @@ const MicePage: React.FC = () => {
                           : 'bg-white text-[#2E4D98] hover:bg-gray-50'
                       }`}
                     >
-                      <h3 className="text-lg font-semibold">Domestic MICE</h3>
+                      <h3 className="text-lg font-semibold">Domestic Mice</h3>
                       <span className="text-xs">{isDomesticOpen ? "▼" : "▶"}</span>
                     </div>
                   </div>
 
-                  {/* International MICE */}
+                  {/* International Exhibition */}
                   <div className="mb-4">
                     <div
                       onClick={() => handleCategoryClick("International")}
@@ -654,7 +666,7 @@ const MicePage: React.FC = () => {
                           : 'bg-white text-[#2E4D98] hover:bg-gray-50'
                       }`}
                     >
-                      <h3 className="text-lg font-semibold">International MICE</h3>
+                      <h3 className="text-lg font-semibold">International Mice</h3>
                       <span className="text-xs">{isInternationalOpen ? "▼" : "▶"}</span>
                     </div>
                   </div>
@@ -704,7 +716,7 @@ const MicePage: React.FC = () => {
 
                   <div className="w-full md:w-[45%] h-full bg-[#00205b] flex flex-col items-start justify-center gap-3 md:gap-5 px-4 md:px-6 py-4 md:py-0">
                     {["Meeting", "Incentives", "Conference", "Events"].map((menu) => {
-                      const subItems = {
+                      const subItems: Record<string, string[]> = {
                         Meeting: [
                           "Meetings play a crucial role in facilitating effective communication among team members. They help in sharing ideas, discussing challenges, and making informed decisions while ensuring that everyone stays aligned with the organization's goals and objectives."
                         ],
@@ -731,7 +743,7 @@ const MicePage: React.FC = () => {
 
                           {activeMenu === menu && (
                             <div className="absolute left-0 top-full mt-1 flex flex-col bg-white shadow-lg w-full md:w-[430px] z-50">
-                              {subItems[menu].map((sub) => (
+                              {subItems[menu]?.map((sub) => (
                                 <a
                                   key={sub}
                                   href="#"

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import Pagination from '../Tablelayouts/Pagination';
 
 interface AboutData {
   banner_image: string;
@@ -49,12 +50,20 @@ interface InternationalExhibition {
   emi_price?: string;
 }
 
-// Interface for checkbox items with display text
+// Interface for grouped data
+interface GroupedDomesticData {
+  [categoryName: string]: DomesticExhibition[];
+}
+
+interface GroupedInternationalData {
+  [categoryName: string]: InternationalExhibition[];
+}
+
 interface CheckboxItem {
-  value: string;           // Unique identifier (category + city)
-  category: string;        // Category name
-  city: string;           // City/Country name
-  display: string;        // Display text: "Category (City)"
+  value: string;           
+  category: string;        
+  city: string;           
+  display: string;        
   type: 'domestic' | 'international';
   exhibitionId: number;
   cityData: City;
@@ -89,7 +98,9 @@ const ExhibitionView: React.FC = () => {
   const [filteredCities, setFilteredCities] = useState<City[]>([]);
   
   const [departureMonths, setDepartureMonths] = useState<string[]>([]);
-  
+  const [currentPage, setCurrentPage] = useState(1);
+const [itemsPerPage, setItemsPerPage] = useState(9);
+const [paginatedCities, setPaginatedCities] = useState<City[]>([]);
   const [showMoreDomestic, setShowMoreDomestic] = useState(false);
   const [showMoreInternational, setShowMoreInternational] = useState(false);
   const [selectedDepartureMonths, setSelectedDepartureMonths] = useState<string[]>([]);
@@ -185,242 +196,406 @@ const ExhibitionView: React.FC = () => {
     }
   }, [location.state]);
 
-  // ── Fetch Domestic Data and create checkbox items ──────────────────────────
-  useEffect(() => {
-    const fetchDomesticData = async () => {
-      setLoading((prev) => ({ ...prev, domestic: true }));
-      try {
-        const response = await fetch(`${BASE_URL}/api/exhibitions/domestic`);
-        if (!response.ok) throw new Error(`Failed: ${response.status}`);
-        const data: DomesticExhibition[] = await response.json();
+// ── Fetch Domestic Data and create checkbox items (Category only) ──────────
+useEffect(() => {
+  const fetchDomesticData = async () => {
+    setLoading((prev) => ({ ...prev, domestic: true }));
+    try {
+      const response = await fetch(`${BASE_URL}/api/exhibitions/domestic`);
+      if (!response.ok) throw new Error(`Failed: ${response.status}`);
+      const data = await response.json();
+      
+      // Handle the new grouped response format
+      let exhibitionsArray: DomesticExhibition[] = [];
+      
+      if (data && typeof data === 'object' && !Array.isArray(data)) {
+        // New grouped format: { "Pharma": [...], "Furniture": [...], etc. }
+        Object.keys(data).forEach(categoryName => {
+          exhibitionsArray.push(...data[categoryName]);
+        });
+      } else if (Array.isArray(data)) {
+        // Old array format (backward compatibility)
+        exhibitionsArray = data;
+      }
+      
+      if (exhibitionsArray.length > 0) {
+        setDomesticExhibitionData(exhibitionsArray);
         
-        if (Array.isArray(data) && data.length > 0) {
-          setDomesticExhibitionData(data);
+        // Create checkbox items by category only (deduplicate categories)
+        const itemsMap = new Map<string, CheckboxItem>();
+        
+        exhibitionsArray.forEach((exhibition) => {
+          const categoryName = exhibition.domestic_category_name;
           
-          // Create checkbox items with category and city
-          const items: CheckboxItem[] = [];
-          data.forEach((exhibition) => {
-            const categoryName = exhibition.domestic_category_name;
-            const cities = exhibition.cities || [];
+          // Only add if category not already present
+          if (!itemsMap.has(categoryName)) {
+            // Get all cities for this category
+            const allCitiesForCategory = exhibitionsArray
+              .filter(ex => ex.domestic_category_name === categoryName)
+              .flatMap(ex => ex.cities || []);
             
-            cities.forEach((city) => {
-              items.push({
-                value: `domestic_${exhibition.id}_${city.id}`,
-                category: categoryName,
-                city: city.city_name,
-                display: `${categoryName} (${city.city_name})`,
-                type: 'domestic',
-                exhibitionId: exhibition.id,
-                cityData: city
-              });
+            itemsMap.set(categoryName, {
+              value: `domestic_${categoryName}`,
+              category: categoryName,
+              city: '', // No specific city
+              display: categoryName, // Just show category name
+              type: 'domestic',
+              exhibitionId: exhibition.id,
+              cityData: allCitiesForCategory[0] || {} as City // Store first city as reference
             });
-          });
-          
-          // Sort by display text
-          items.sort((a, b) => a.display.localeCompare(b.display));
-          setDomesticCheckboxItems(items);
-        } else {
-          setDomesticExhibitionData([]);
-          setDomesticCheckboxItems([]);
-        }
-      } catch (error) {
-        console.error("Error fetching domestic:", error);
+          }
+        });
+        
+        // Convert Map to array and sort
+        const items = Array.from(itemsMap.values());
+        items.sort((a, b) => a.display.localeCompare(b.display));
+        setDomesticCheckboxItems(items);
+      } else {
         setDomesticExhibitionData([]);
         setDomesticCheckboxItems([]);
-      } finally {
-        setLoading((prev) => ({ ...prev, domestic: false }));
       }
-    };
-    fetchDomesticData();
-  }, []);
+    } catch (error) {
+      console.error("Error fetching domestic:", error);
+      setDomesticExhibitionData([]);
+      setDomesticCheckboxItems([]);
+    } finally {
+      setLoading((prev) => ({ ...prev, domestic: false }));
+    }
+  };
+  fetchDomesticData();
+}, []);
 
-  // ── Fetch International Data and create checkbox items ─────────────────────
-  useEffect(() => {
-    const fetchInternationalData = async () => {
-      setLoading((prev) => ({ ...prev, international: true }));
-      try {
-        const response = await fetch(`${BASE_URL}/api/exhibitions/international`);
-        if (!response.ok) throw new Error(`Failed: ${response.status}`);
-        const data: InternationalExhibition[] = await response.json();
+// ── Fetch International Data and create checkbox items (Category only) ─────
+useEffect(() => {
+  const fetchInternationalData = async () => {
+    setLoading((prev) => ({ ...prev, international: true }));
+    try {
+      const response = await fetch(`${BASE_URL}/api/exhibitions/international`);
+      if (!response.ok) throw new Error(`Failed: ${response.status}`);
+      const data = await response.json();
+      
+      // Handle the new grouped response format
+      let exhibitionsArray: InternationalExhibition[] = [];
+      
+      if (data && typeof data === 'object' && !Array.isArray(data)) {
+        // New grouped format
+        Object.keys(data).forEach(categoryName => {
+          exhibitionsArray.push(...data[categoryName]);
+        });
+      } else if (Array.isArray(data)) {
+        // Old array format (backward compatibility)
+        exhibitionsArray = data;
+      }
+      
+      if (exhibitionsArray.length > 0) {
+        setInternationalExhibitionData(exhibitionsArray);
         
-        if (Array.isArray(data) && data.length > 0) {
-          setInternationalExhibitionData(data);
+        // Create checkbox items by category only (deduplicate categories)
+        const itemsMap = new Map<string, CheckboxItem>();
+        
+        exhibitionsArray.forEach((exhibition) => {
+          const categoryName = exhibition.international_category_name;
           
-          // Create checkbox items with category and city
-          // 🔹 FIXED: For international, use city_name (not country_name) in display
-          const items: CheckboxItem[] = [];
-          data.forEach((exhibition) => {
-            const categoryName = exhibition.international_category_name;
-            const cities = exhibition.cities || [];
+          // Only add if category not already present
+          if (!itemsMap.has(categoryName)) {
+            // Get all cities for this category
+            const allCitiesForCategory = exhibitionsArray
+              .filter(ex => ex.international_category_name === categoryName)
+              .flatMap(ex => ex.cities || []);
             
-            cities.forEach((city) => {
-              // 🔹 Use city_name for display, not country_name
-              items.push({
-                value: `international_${exhibition.id}_${city.id}`,
-                category: categoryName,
-                city: city.city_name, // Store city name
-                display: `${categoryName} (${city.city_name})`, // Show Category (City)
-                type: 'international',
-                exhibitionId: exhibition.id,
-                cityData: city
-              });
+            itemsMap.set(categoryName, {
+              value: `international_${categoryName}`,
+              category: categoryName,
+              city: '', // No specific city
+              display: categoryName, // Just show category name
+              type: 'international',
+              exhibitionId: exhibition.id,
+              cityData: allCitiesForCategory[0] || {} as City
             });
-          });
-          
-          // Sort by display text
-          items.sort((a, b) => a.display.localeCompare(b.display));
-          setInternationalCheckboxItems(items);
-        } else {
-          setInternationalExhibitionData([]);
-          setInternationalCheckboxItems([]);
-        }
-      } catch (error) {
-        console.error("Error fetching international:", error);
+          }
+        });
+        
+        // Convert Map to array and sort
+        const items = Array.from(itemsMap.values());
+        items.sort((a, b) => a.display.localeCompare(b.display));
+        setInternationalCheckboxItems(items);
+      } else {
         setInternationalExhibitionData([]);
         setInternationalCheckboxItems([]);
-      } finally {
-        setLoading((prev) => ({ ...prev, international: false }));
       }
-    };
-    fetchInternationalData();
-  }, []);
-
-  // Auto-select checkbox for passed category and city
-  useEffect(() => {
-    if (passedCategory && passedCity && domesticCheckboxItems.length > 0) {
-      // Find matching domestic item
-      const domesticMatch = domesticCheckboxItems.find(
-        item => item.category === passedCategory && item.city === passedCity
-      );
-      if (domesticMatch) {
-        setSelectedCheckboxItems([domesticMatch.value]);
-        setSelectedType('domestic');
-        return;
-      }
+    } catch (error) {
+      console.error("Error fetching international:", error);
+      setInternationalExhibitionData([]);
+      setInternationalCheckboxItems([]);
+    } finally {
+      setLoading((prev) => ({ ...prev, international: false }));
     }
-    
-    if (passedCategory && passedCity && internationalCheckboxItems.length > 0) {
-      // Find matching international item
-      const internationalMatch = internationalCheckboxItems.find(
-        item => item.category === passedCategory && item.city === passedCity
-      );
-      if (internationalMatch) {
-        setSelectedCheckboxItems([internationalMatch.value]);
-        setSelectedType('international');
-        return;
+  };
+  fetchInternationalData();
+}, []);
+// ── Fetch Domestic Data and create checkbox items (Category only) ──────────
+useEffect(() => {
+  const fetchDomesticData = async () => {
+    setLoading((prev) => ({ ...prev, domestic: true }));
+    try {
+      const response = await fetch(`${BASE_URL}/api/exhibitions/domestic`);
+      if (!response.ok) throw new Error(`Failed: ${response.status}`);
+      const data = await response.json();
+      
+      // Handle the new grouped response format
+      let exhibitionsArray: DomesticExhibition[] = [];
+      
+      if (data && typeof data === 'object' && !Array.isArray(data)) {
+        // New grouped format: { "Pharma": [...], "Furniture": [...], etc. }
+        Object.keys(data).forEach(categoryName => {
+          exhibitionsArray.push(...data[categoryName]);
+        });
+      } else if (Array.isArray(data)) {
+        // Old array format (backward compatibility)
+        exhibitionsArray = data;
       }
-    }
-  }, [passedCategory, passedCity, domesticCheckboxItems, internationalCheckboxItems]);
-
-  // Filter cities based on selected checkbox items
-  useEffect(() => {
-    let allCities: City[] = [];
-    
-    if (selectedCheckboxItems.length > 0) {
-      // Get selected domestic items
-      selectedCheckboxItems.forEach(itemValue => {
-        const domesticItem = domesticCheckboxItems.find(item => item.value === itemValue);
-        if (domesticItem) {
-          const exhibition = domesticExhibitionData.find(e => e.id === domesticItem.exhibitionId);
-          if (exhibition) {
-            const city = exhibition.cities?.find(c => 
-              c.id === domesticItem.cityData.id || c.city_name === domesticItem.city
-            );
-            if (city) {
-              allCities.push({
-                ...city,
-                duration_days: exhibition.duration_days,
-                emi_price: exhibition.emi_price
-              });
-            }
-          }
-        }
+      
+      if (exhibitionsArray.length > 0) {
+        setDomesticExhibitionData(exhibitionsArray);
         
-        const internationalItem = internationalCheckboxItems.find(item => item.value === itemValue);
-        if (internationalItem) {
-          const exhibition = internationalExhibitionData.find(e => e.id === internationalItem.exhibitionId);
-          if (exhibition) {
-            // 🔹 FIXED: Match by city_name, not country_name
-            const city = exhibition.cities?.find(c => 
-              c.id === internationalItem.cityData.id || c.city_name === internationalItem.city
-            );
-            if (city) {
-              allCities.push({
-                ...city,
-                duration_days: exhibition.duration_days,
-                emi_price: exhibition.emi_price
-              });
-            }
+        // Create checkbox items by category only (deduplicate categories)
+        const itemsMap = new Map<string, CheckboxItem>();
+        
+        exhibitionsArray.forEach((exhibition) => {
+          const categoryName = exhibition.domestic_category_name;
+          
+          // Only add if category not already present
+          if (!itemsMap.has(categoryName)) {
+            // Get all cities for this category
+            const allCitiesForCategory = exhibitionsArray
+              .filter(ex => ex.domestic_category_name === categoryName)
+              .flatMap(ex => ex.cities || []);
+            
+            itemsMap.set(categoryName, {
+              value: `domestic_${categoryName}`,
+              category: categoryName,
+              city: '', // No specific city
+              display: categoryName, // Just show category name
+              type: 'domestic',
+              exhibitionId: exhibition.id,
+              cityData: allCitiesForCategory[0] || {} as City // Store first city as reference
+            });
           }
-        }
-      });
+        });
+        
+        // Convert Map to array and sort
+        const items = Array.from(itemsMap.values());
+        items.sort((a, b) => a.display.localeCompare(b.display));
+        setDomesticCheckboxItems(items);
+      } else {
+        setDomesticExhibitionData([]);
+        setDomesticCheckboxItems([]);
+      }
+    } catch (error) {
+      console.error("Error fetching domestic:", error);
+      setDomesticExhibitionData([]);
+      setDomesticCheckboxItems([]);
+    } finally {
+      setLoading((prev) => ({ ...prev, domestic: false }));
     }
+  };
+  fetchDomesticData();
+}, []);
 
-    if (allCities.length === 0) {
-      setFilteredCities([]);
+// ── Fetch International Data and create checkbox items (Category only) ─────
+useEffect(() => {
+  const fetchInternationalData = async () => {
+    setLoading((prev) => ({ ...prev, international: true }));
+    try {
+      const response = await fetch(`${BASE_URL}/api/exhibitions/international`);
+      if (!response.ok) throw new Error(`Failed: ${response.status}`);
+      const data = await response.json();
+      
+      // Handle the new grouped response format
+      let exhibitionsArray: InternationalExhibition[] = [];
+      
+      if (data && typeof data === 'object' && !Array.isArray(data)) {
+        // New grouped format
+        Object.keys(data).forEach(categoryName => {
+          exhibitionsArray.push(...data[categoryName]);
+        });
+      } else if (Array.isArray(data)) {
+        // Old array format (backward compatibility)
+        exhibitionsArray = data;
+      }
+      
+      if (exhibitionsArray.length > 0) {
+        setInternationalExhibitionData(exhibitionsArray);
+        
+        // Create checkbox items by category only (deduplicate categories)
+        const itemsMap = new Map<string, CheckboxItem>();
+        
+        exhibitionsArray.forEach((exhibition) => {
+          const categoryName = exhibition.international_category_name;
+          
+          // Only add if category not already present
+          if (!itemsMap.has(categoryName)) {
+            // Get all cities for this category
+            const allCitiesForCategory = exhibitionsArray
+              .filter(ex => ex.international_category_name === categoryName)
+              .flatMap(ex => ex.cities || []);
+            
+            itemsMap.set(categoryName, {
+              value: `international_${categoryName}`,
+              category: categoryName,
+              city: '', // No specific city
+              display: categoryName, // Just show category name
+              type: 'international',
+              exhibitionId: exhibition.id,
+              cityData: allCitiesForCategory[0] || {} as City
+            });
+          }
+        });
+        
+        // Convert Map to array and sort
+        const items = Array.from(itemsMap.values());
+        items.sort((a, b) => a.display.localeCompare(b.display));
+        setInternationalCheckboxItems(items);
+      } else {
+        setInternationalExhibitionData([]);
+        setInternationalCheckboxItems([]);
+      }
+    } catch (error) {
+      console.error("Error fetching international:", error);
+      setInternationalExhibitionData([]);
+      setInternationalCheckboxItems([]);
+    } finally {
+      setLoading((prev) => ({ ...prev, international: false }));
+    }
+  };
+  fetchInternationalData();
+}, []);
+
+
+useEffect(() => {
+  if (passedCategory && domesticCheckboxItems.length > 0) {
+    const domesticMatch = domesticCheckboxItems.find(
+      item => item.category === passedCategory
+    );
+    if (domesticMatch) {
+      setSelectedCheckboxItems([domesticMatch.value]);
+      setSelectedType('domestic');
+      setHeaderTitle(passedCategory);
       return;
     }
-
-    let result = [...allCities];
-
-    // Exhibition Range filter
-    result = result.filter(
-      (city) => (city.duration_days || 0) >= durationRange[0] && 
-                 (city.duration_days || 0) <= durationRange[1]
+  }
+  
+  if (passedCategory && internationalCheckboxItems.length > 0) {
+   
+    const internationalMatch = internationalCheckboxItems.find(
+      item => item.category === passedCategory
     );
-
-    // Price filter
-    result = result.filter(
-      (city) => parseFloat(city.price) >= priceRange[0] && 
-                parseFloat(city.price) <= priceRange[1]
-    );
-
-    // Departure Months filter
-    if (selectedDepartureMonths.length > 0) {
-      result = result.filter((city) => {
-        if (city.start_date) {
-          const cityMonth = formatMonthYear(city.start_date);
-          if (selectedDepartureMonths.includes(cityMonth)) return true;
-        }
-
-        const parentDomestic = domesticExhibitionData.find(d =>
-          d.cities.some(c => c.id === city.id)
-        );
-        const parentInternational = internationalExhibitionData.find(i =>
-          i.cities.some(c => c.id === city.id)
-        );
-        const parent = parentDomestic || parentInternational;
-
-        if (parent?.start_date) {
-          const parentMonth = formatMonthYear(parent.start_date);
-          return selectedDepartureMonths.includes(parentMonth);
-        }
-        return false;
-      });
+    if (internationalMatch) {
+      setSelectedCheckboxItems([internationalMatch.value]);
+      setSelectedType('international');
+      setHeaderTitle(passedCategory);
+      return;
     }
+  }
+}, [passedCategory, domesticCheckboxItems, internationalCheckboxItems]);
 
-    // Search filter - only apply if search is active
-    if (isSearchActive && searchQuery.trim() !== "") {
-      const query = searchQuery.trim().toLowerCase();
-      result = result.filter(city => {
-        const cityName = (city.country_name || city.city_name).toLowerCase();
-        return cityName.includes(query);
-      });
-    }
+useEffect(() => {
+  let allCities: City[] = [];
+  
+  if (selectedCheckboxItems.length > 0) {
+    selectedCheckboxItems.forEach(itemValue => {
+      const [type, category] = itemValue.split('_');
+      
+      if (type === 'domestic') {
+        // Find ALL domestic exhibitions with this category
+        const matchingExhibitions = domesticExhibitionData.filter(exhibition => 
+          exhibition.domestic_category_name === category
+        );
+        
+        matchingExhibitions.forEach(exhibition => {
+          const cities = exhibition.cities || [];
+          cities.forEach(city => {
+            allCities.push({
+              ...city,
+              duration_days: exhibition.duration_days,
+              emi_price: exhibition.emi_price,
+              start_date: exhibition.start_date,
+              exhibition_code: `DOM_${exhibition.id}`
+            });
+          });
+        });
+      } else if (type === 'international') {
+        // Find ALL international exhibitions with this category
+        const matchingExhibitions = internationalExhibitionData.filter(exhibition => 
+          exhibition.international_category_name === category
+        );
+        
+        matchingExhibitions.forEach(exhibition => {
+          const cities = exhibition.cities || [];
+          cities.forEach(city => {
+            allCities.push({
+              ...city,
+              duration_days: exhibition.duration_days,
+              emi_price: exhibition.emi_price,
+              start_date: exhibition.start_date,
+              exhibition_code: `INT_${exhibition.id}`
+            });
+          });
+        });
+      }
+    });
+  }
 
-    setFilteredCities(result);
-  }, [
-    selectedCheckboxItems,
-    domesticCheckboxItems,
-    internationalCheckboxItems,
-    domesticExhibitionData, 
-    internationalExhibitionData, 
-    priceRange, 
-    searchQuery, 
-    isSearchActive,
-    durationRange,
-    selectedDepartureMonths
-  ]);
+  if (allCities.length === 0) {
+    setFilteredCities([]);
+    return;
+  }
+
+  let result = [...allCities];
+
+  // Exhibition Range filter
+  result = result.filter(
+    (city) => (city.duration_days || 0) >= durationRange[0] && 
+               (city.duration_days || 0) <= durationRange[1]
+  );
+
+  // Price filter
+  result = result.filter(
+    (city) => parseFloat(city.price) >= priceRange[0] && 
+              parseFloat(city.price) <= priceRange[1]
+  );
+
+  // Departure Months filter
+  if (selectedDepartureMonths.length > 0) {
+    result = result.filter((city) => {
+      if (city.start_date) {
+        const cityMonth = formatMonthYear(city.start_date);
+        if (selectedDepartureMonths.includes(cityMonth)) return true;
+      }
+      return false;
+    });
+  }
+
+  // Search filter - only apply if search is active
+  if (isSearchActive && searchQuery.trim() !== "") {
+    const query = searchQuery.trim().toLowerCase();
+    result = result.filter(city => {
+      const cityName = (city.country_name || city.city_name).toLowerCase();
+      return cityName.includes(query);
+    });
+  }
+
+  setFilteredCities(result);
+}, [
+  selectedCheckboxItems,
+  domesticExhibitionData, 
+  internationalExhibitionData, 
+  priceRange, 
+  searchQuery, 
+  isSearchActive,
+  durationRange,
+  selectedDepartureMonths
+]);
 
   const handleAboutClick = () => {
     const next = activeMenu === "About Exhibition" ? null : "About Exhibition";
@@ -440,58 +615,53 @@ const ExhibitionView: React.FC = () => {
     setSelectedDepartureMonths([]);
   };
 
-  const handleCheckboxChange = (itemValue: string, checked: boolean) => {
-    if (checked) {
-      // Single selection - clear others and select this one
-      setSelectedCheckboxItems([itemValue]);
-      
-      // Determine type and set
-      const domesticItem = domesticCheckboxItems.find(item => item.value === itemValue);
-      if (domesticItem) {
-        setSelectedType('domestic');
-        setSelectedCategory(domesticItem.category);
-        setSelectedCity(domesticItem.city);
-        setHeaderTitle(domesticItem.display);
-      } else {
-        const internationalItem = internationalCheckboxItems.find(item => item.value === itemValue);
-        if (internationalItem) {
-          setSelectedType('international');
-          setSelectedCategory(internationalItem.category);
-          setSelectedCity(internationalItem.city);
-          setHeaderTitle(internationalItem.display);
-        }
-      }
+const handleCheckboxChange = (itemValue: string, checked: boolean) => {
+  if (checked) {
+    // Single selection - clear others and select this one
+    setSelectedCheckboxItems([itemValue]);
+    
+    // Extract category from the value
+    const [, category] = itemValue.split('_');
+    setSelectedCategory(category);
+    setSelectedCity(null); // No specific city
+    setHeaderTitle(category);
+    
+    // Determine type
+    if (itemValue.startsWith('domestic')) {
+      setSelectedType('domestic');
     } else {
-      setSelectedCheckboxItems([]);
-      setSelectedType(null);
-      setSelectedCategory(null);
-      setSelectedCity(null);
+      setSelectedType('international');
     }
-  };
+  } else {
+    setSelectedCheckboxItems([]);
+    setSelectedType(null);
+    setSelectedCategory(null);
+    setSelectedCity(null);
+  }
+};
 
   const handleQAClick = (index: number) => {
     setOpenQA(openQA === index ? null : index);
   };
-
-  const clearAllFilters = () => {
-    setPriceRange([0, 200000]);
-    setDurationRange([0, 10]);
-    setSearchQuery("");
-    setShowSearchBtn(false);
-    setIsSearchActive(false);
-    setSelectedCheckboxItems([]);
-    setSelectedCategory(null);
-    setSelectedCity(null);
-    setSelectedType(null);
-    setSelectedDepartureMonths([]);
-    
-    // Open About Exhibition dropdown
-    setActiveMenu("About Exhibition");
-    setHeaderTitle("About Exhibition");
-    setOpenQA(null);
-    
-    if (isMobile) setIsMobileMenuOpen(false);
-  };
+const clearAllFilters = () => {
+  setPriceRange([0, 200000]);
+  setDurationRange([0, 10]);
+  setSearchQuery("");
+  setShowSearchBtn(false);
+  setIsSearchActive(false);
+  setSelectedCheckboxItems([]);
+  setSelectedCategory(null);
+  setSelectedCity(null);
+  setSelectedType(null);
+  setSelectedDepartureMonths([]);
+  
+  // Open About Exhibition dropdown
+  setActiveMenu("About Exhibition");
+  setHeaderTitle("About Exhibition");
+  setOpenQA(null);
+  
+  if (isMobile) setIsMobileMenuOpen(false);
+};
 
   const clearSearch = () => {
     setSearchQuery("");
@@ -605,6 +775,19 @@ const ExhibitionView: React.FC = () => {
     return parseFloat(numericString) || 0;
   };
 
+  useEffect(() => {
+  if (filteredCities.length > 0) {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    setPaginatedCities(filteredCities.slice(startIndex, endIndex));
+  } else {
+    setPaginatedCities([]);
+  }
+}, [filteredCities, currentPage, itemsPerPage]);
+useEffect(() => {
+  setCurrentPage(1);
+}, [priceRange, durationRange,  selectedCity, searchQuery, isSearchActive, selectedCheckboxItems, selectedDepartureMonths]);
+
   const renderAboutContent = () => {
     if (loading.about) {
       return (
@@ -703,151 +886,191 @@ const ExhibitionView: React.FC = () => {
     );
   };
 
-  const renderExhibitionCards = () => {
-    if (loading.exhibitions && selectedCheckboxItems.length === 0) {
-      return (
-        <div className="flex items-center justify-center h-full py-16">
-          <div className="flex flex-col items-center gap-2">
-            <span className="animate-spin h-8 w-8 border-4 border-gray-300 border-t-blue-600 rounded-full" />
-            <span className="text-gray-500">Loading exhibition details...</span>
-          </div>
-        </div>
-      );
-    }
-    
-    if (filteredCities.length === 0 && selectedCheckboxItems.length > 0) {
-      return (
-        <div className="text-center py-12">
-          <h3 className="text-xl font-semibold text-gray-600">No exhibitions found for the selected filters</h3>
-          <p className="text-gray-500 mt-2">
-            Try adjusting your filters or search criteria
-          </p>
-          <Button
-            onClick={clearAllFilters}
-            className="mt-4 bg-[#2E4D98] hover:bg-[#2E4D98] hover:opacity-90 text-white"
-          >
-            Clear All Filters
-          </Button>
-        </div>
-      );
-    }
-    
-    if (filteredCities.length === 0 && selectedCheckboxItems.length === 0) {
-      return (
-        <div className="flex items-center justify-center h-full text-gray-400 py-16">
-          <p className="text-sm md:text-base text-center px-4">
-            Select an exhibition from the sidebar to view details
-          </p>
-        </div>
-      );
-    }
-    
+const renderExhibitionCards = () => {
+  if (loading.exhibitions && selectedCheckboxItems.length === 0) {
     return (
-      <div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCities.map((city) => {
-            const isDomestic = city.state_name !== undefined;
-            const exhibitionId = isDomestic 
-              ? domesticExhibitionData.find(d => d.cities.some(c => c.id === city.id))?.id
-              : internationalExhibitionData.find(i => i.cities.some(c => c.id === city.id))?.id;
-            
-            return (
-              <div key={city.id} className="flex flex-col">
-                <div className="bg-white border-2 border-gray-300 rounded-lg p-3 mb-3 shadow-sm">
-                  <div className="grid grid-cols-3 gap-0 border border-gray-400 rounded overflow-hidden">
-                    <div className="bg-[#2E4D98] border-r border-gray-400 p-2 flex items-center justify-center">
-                      <div className="text-sm font-bold text-white text-center">
-                        {isDomestic ? 'CITY' : 'COUNTRY'}
-                      </div>
-                    </div>
-                    <div className="bg-gradient-to-br from-blue-100 to-blue-50 border-r border-gray-400 p-2 flex items-center justify-center">
-                      <div className="text-sm font-bold text-gray-900 text-center">
-                        {isDomestic ? city.city_name : (city.country_name || city.city_name)}
-                      </div>
-                    </div>
-                    <div className="bg-[#2E4D98] p-2 flex items-center justify-center">
-                      <div className="text-sm font-bold text-white text-center">
-                        {city.duration_days 
-                          ? `${city.duration_days - 1}N/${city.duration_days}D`
-                          : 'N/A'}
-                      </div>
+      <div className="flex items-center justify-center h-full py-16">
+        <div className="flex flex-col items-center gap-2">
+          <span className="animate-spin h-8 w-8 border-4 border-gray-300 border-t-blue-600 rounded-full" />
+          <span className="text-gray-500">Loading exhibition details...</span>
+        </div>
+      </div>
+    );
+  }
+  
+  if (filteredCities.length === 0 && selectedCheckboxItems.length > 0) {
+    return (
+      <div className="text-center py-12">
+        <h3 className="text-xl font-semibold text-gray-600">No exhibitions found for the selected filters</h3>
+        <p className="text-gray-500 mt-2">
+          Try adjusting your filters or search criteria
+        </p>
+        <Button
+          onClick={clearAllFilters}
+          className="mt-4 bg-[#2E4D98] hover:bg-[#2E4D98] hover:opacity-90 text-white"
+        >
+          Clear All Filters
+        </Button>
+      </div>
+    );
+  }
+  
+  if (filteredCities.length === 0 && selectedCheckboxItems.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-full text-gray-400 py-16">
+        <p className="text-sm md:text-base text-center px-4">
+          Select an exhibition from the sidebar to view details
+        </p>
+      </div>
+    );
+  }
+  
+  const totalPages = Math.ceil(filteredCities.length / itemsPerPage);
+  
+  return (
+    <div>
+      {/* Items Per Page Selector */}
+      <div className="flex justify-between items-center mb-2">
+        <div className="text-sm text-gray-600">
+          Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredCities.length)} of {filteredCities.length} exhibitions
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="text-sm text-gray-600">Show:</label>
+          <select
+            value={itemsPerPage}
+            onChange={(e) => {
+              setItemsPerPage(Number(e.target.value));
+              setCurrentPage(1);
+            }}
+            className="border rounded-md px-2 py-1 text-sm"
+          >
+            <option value={6}>6</option>
+            <option value={9}>9</option>
+            <option value={12}>12</option>
+            <option value={18}>18</option>
+            <option value={24}>24</option>
+          </select>
+          <span className="text-sm text-gray-600">per page</span>
+        </div>
+      </div>
+
+      {/* Exhibitions Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {paginatedCities.map((city) => {
+          const isDomestic = city.state_name !== undefined;
+          const exhibitionId = isDomestic 
+            ? domesticExhibitionData.find(d => d.cities.some(c => c.id === city.id))?.id
+            : internationalExhibitionData.find(i => i.cities.some(c => c.id === city.id))?.id;
+          
+          return (
+            <div key={city.id} className="flex flex-col">
+              <div className="bg-white border-2 border-gray-300 rounded-lg p-3 mb-3 shadow-sm">
+                <div className="grid grid-cols-3 gap-0 border border-gray-400 rounded overflow-hidden">
+                  <div className="bg-[#2E4D98] border-r border-gray-400 p-2 flex items-center justify-center">
+                    <div className="text-sm font-bold text-white text-center">
+                      {isDomestic ? 'CITY' : 'COUNTRY'}
                     </div>
                   </div>
-                </div>
-
-                <div className="group bg-blue-50 rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer border border-blue-100 flex flex-col flex-1 min-h-0">
-                  <div className="relative h-56 overflow-hidden flex-shrink-0">
-                    {city.image ? (
-                      <img
-                        src={getFullImageUrl(city.image)}
-                        alt={isDomestic ? city.city_name : city.country_name || city.city_name}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                        onError={(e) => {
-                          e.currentTarget.style.display = "none";
-                          const parent = e.currentTarget.parentElement;
-                          if (parent) {
-                            const errorDiv = document.createElement('div');
-                            errorDiv.className = "flex flex-col items-center justify-center w-full h-full text-gray-700 p-2 md:p-4 bg-blue-50";
-                            errorDiv.innerHTML = `
-                              <span class="text-center text-xs md:text-sm">${isDomestic ? city.city_name : city.country_name || city.city_name}</span>
-                              <span class="text-center text-xs text-gray-600 mt-1 md:mt-2">Image not available</span>
-                            `;
-                            parent.appendChild(errorDiv);
-                          }
-                        }}
-                      />
-                    ) : (
-                      <div className="flex flex-col items-center justify-center w-full h-full text-gray-700 p-2 md:p-4 bg-blue-50">
-                        <span className="text-center text-xs md:text-sm">
-                          {isDomestic ? city.city_name : city.country_name || city.city_name}
-                        </span>
-                        <span className="text-center text-xs text-gray-600 mt-1 md:mt-2">No image available</span>
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                  <div className="bg-gradient-to-br from-blue-100 to-blue-50 border-r border-gray-400 p-2 flex items-center justify-center">
+                    <div className="text-sm font-bold text-gray-900 text-center">
+                      {isDomestic ? city.city_name : (city.country_name || city.city_name)}
+                    </div>
                   </div>
-
-                  <div className="p-5 flex-1 flex flex-col min-h-0">
-                    <div className="mb-3">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm text-[#2E4D98] font-bold">Exhibition Price</span>
-                        <p className="text-2xl font-bold text-gray-900">₹{parseFloat(city.price).toLocaleString('en-IN')}</p>
-                      </div>
-                    </div>
-                    <div className="mb-3">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm text-[#2E4D98] font-bold">EMI Price</span>
-                        <p className="text-2xl font-bold text-gray-900">₹{parseFloat(city.emi_price || '0').toLocaleString('en-IN')}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2 mt-auto">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="flex-1 border-[#2E4D98] text-[#2E4D98] hover:bg-[#2E4D98] hover:text-white"
-                        onClick={() => handleViewDetails(exhibitionId!, isDomestic ? 'domestic' : 'international')}
-                      >
-                        View Details
-                      </Button>
-                      
-                      <Button
-                        size="sm"
-                        className="flex-1 bg-[#E53C42] hover:bg-[#E53C42] hover:opacity-90 text-white"
-                        onClick={() => handleBookNowClick(city)}
-                      >
-                        Book Now
-                      </Button>
+                  <div className="bg-[#2E4D98] p-2 flex items-center justify-center">
+                    <div className="text-sm font-bold text-white text-center">
+                      {city.duration_days 
+                        ? `${city.duration_days - 1}N/${city.duration_days}D`
+                        : 'N/A'}
                     </div>
                   </div>
                 </div>
               </div>
-            );
-          })}
-        </div>
+
+              <div className="group bg-blue-50 rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer border border-blue-100 flex flex-col flex-1 min-h-0">
+                <div className="relative h-56 overflow-hidden flex-shrink-0">
+                  {city.image ? (
+                    <img
+                      src={getFullImageUrl(city.image)}
+                      alt={isDomestic ? city.city_name : city.country_name || city.city_name}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                        const parent = e.currentTarget.parentElement;
+                        if (parent) {
+                          const errorDiv = document.createElement('div');
+                          errorDiv.className = "flex flex-col items-center justify-center w-full h-full text-gray-700 p-2 md:p-4 bg-blue-50";
+                          errorDiv.innerHTML = `
+                            <span class="text-center text-xs md:text-sm">${isDomestic ? city.city_name : city.country_name || city.city_name}</span>
+                            <span class="text-center text-xs text-gray-600 mt-1 md:mt-2">Image not available</span>
+                          `;
+                          parent.appendChild(errorDiv);
+                        }
+                      }}
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center w-full h-full text-gray-700 p-2 md:p-4 bg-blue-50">
+                      <span className="text-center text-xs md:text-sm">
+                        {isDomestic ? city.city_name : city.country_name || city.city_name}
+                      </span>
+                      <span className="text-center text-xs text-gray-600 mt-1 md:mt-2">No image available</span>
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                </div>
+
+                <div className="p-5 flex-1 flex flex-col min-h-0">
+                  <div className="mb-3">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm text-[#2E4D98] font-bold">Exhibition Price</span>
+                      <p className="text-2xl font-bold text-gray-900">₹{parseFloat(city.price).toLocaleString('en-IN')}</p>
+                    </div>
+                  </div>
+                  <div className="mb-3">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm text-[#2E4D98] font-bold">EMI Price</span>
+                      <p className="text-2xl font-bold text-gray-900">₹{parseFloat(city.emi_price || '0').toLocaleString('en-IN')}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 mt-auto">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1 border-[#2E4D98] text-[#2E4D98] hover:bg-[#2E4D98] hover:text-white"
+                      onClick={() => handleViewDetails(exhibitionId!, isDomestic ? 'domestic' : 'international')}
+                    >
+                      View Details
+                    </Button>
+                    
+                    <Button
+                      size="sm"
+                      className="flex-1 bg-[#E53C42] hover:bg-[#E53C42] hover:opacity-90 text-white"
+                      onClick={() => handleBookNowClick(city)}
+                    >
+                      Book Now
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
-    );
-  };
+
+      {/* Pagination Component */}
+      {totalPages > 1 && (
+        <div className="mt-8">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            maxVisiblePages={3}
+          />
+        </div>
+      )}
+    </div>
+  );
+};
 
   const renderContent = () => {
     if (selectedCheckboxItems.length > 0) return renderExhibitionCards();
@@ -1115,7 +1338,7 @@ const ExhibitionView: React.FC = () => {
                       ? `Explore our exclusive ${headerTitle} exhibition package`
                       : (activeMenu === "About Exhibition" 
                         ? "Learn more about our exhibition tours and frequently asked questions"
-                        : "Explore our exclusive funtite exhibition packages")}
+                        : "Explore our exclusive exhibition packages")}
                   </p>
                   {selectedCheckboxItems.length > 0 && (
                     <p className="text-sm opacity-80 mt-2" style={{ textShadow: "1px 1px 2px rgba(0, 0, 0, 0.5)" }}>
@@ -1128,7 +1351,7 @@ const ExhibitionView: React.FC = () => {
 
             {/* Content Header */}
             {selectedCheckboxItems.length > 0 && (
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 gap-4">
                 <div>
                   <h2 className="text-3xl font-bold text-gray-800">
                     {headerTitle}
