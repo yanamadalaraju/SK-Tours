@@ -533,7 +533,7 @@ const WeekendGetawaysSection: React.FC = () => {
   // Loading state
   if (loading) {
     return (
-      <section className="py-0 bg-gradient-to-br from-sky-200 via-sky-200 to-sky-200">
+      <section className="py-1 bg-gradient-to-br from-sky-200 via-sky-200 to-sky-200">
         <div className="w-full bg-gradient-to-r from-[#0F1F5C] via-[#1F3F93] to-[#0F1F5C] py-8 mb-10 shadow-lg">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
@@ -555,7 +555,7 @@ const WeekendGetawaysSection: React.FC = () => {
   // Error state
   if (error) {
     return (
-      <section className="py-0 bg-gradient-to-br from-sky-200 via-sky-200 to-sky-200">
+      <section className="py-1 bg-gradient-to-br from-sky-200 via-sky-200 to-sky-200">
         <div className="w-full bg-gradient-to-r from-[#0F1F5C] via-[#1F3F93] to-[#0F1F5C] py-8 mb-10 shadow-lg">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
@@ -577,7 +577,7 @@ const WeekendGetawaysSection: React.FC = () => {
   // If no getaways found
   if (weekendGetaways.length === 0) {
     return (
-      <section className="py-0 bg-gradient-to-br from-sky-200 via-sky-200 to-sky-200">
+      <section className="py-1 bg-gradient-to-br from-sky-200 via-sky-200 to-sky-200">
         <div className="w-full bg-gradient-to-r from-[#0F1F5C] via-[#1F3F93] to-[#0F1F5C] py-8 mb-10 shadow-lg">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
@@ -597,7 +597,7 @@ const WeekendGetawaysSection: React.FC = () => {
   }
 
   return (
-    <section className="py-0 bg-gradient-to-br from-sky-200 via-sky-200 to-sky-200">
+    <section className="py-1 bg-gradient-to-br from-sky-200 via-sky-200 to-sky-200">
       {/* Full Width Header Strip */}
       <div className="w-full bg-gradient-to-r from-[#0F1F5C] via-[#1F3F93] to-[#0F1F5C] py-8 mb-10 shadow-lg">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">

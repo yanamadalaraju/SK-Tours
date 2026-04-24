@@ -722,8 +722,11 @@ const HotelDetailPage = () => {
                                       <span>📏 {variant.roomSize} sq.ft</span>
                                       <span>🛏️ {variant.bedType}</span>
                                       <span>👥 Max {variant.maxOccupancy} Guests</span>
-                                      <span className="text-orange-600 font-semibold">₹{formatPrice(variant.price)}/night</span>
+                                      {/* <span className="text-orange-600 font-semibold">₹{formatPrice(variant.price)}/night</span> */}
+                                      {/* <span className="text-orange-600 font-semibold">₹{formatPrice(variant.price)}</span> */}
+                                 
                                     </div>
+
                                     <div className="flex flex-wrap gap-2">
                                       {variant.amenities?.slice(0, 4).map((amenity, amenityIdx) => (
                                         <span key={amenityIdx} className="text-xs bg-gray-100 px-2 py-1 rounded">✓ {amenity}</span>
@@ -733,19 +736,29 @@ const HotelDetailPage = () => {
                                       )}
                                     </div>
                                   </div>
-                                  <button
-                                    className={`px-6 py-2 rounded-lg font-medium whitespace-nowrap transition-all ${
-                                      selectedRoomType === roomType.id && selectedRoomVariant?.id === variant.id
-                                        ? "bg-orange-600 text-white"
-                                        : "bg-gray-100 text-gray-700 hover:bg-orange-100 hover:text-orange-600"
-                                    }`}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleRoomTypeSelect(roomType.id, variant);
-                                    }}
-                                  >
-                                    {selectedRoomType === roomType.id && selectedRoomVariant?.id === variant.id ? "Selected" : "Select"}
-                                  </button>
+                          <div className="flex flex-col items-end gap-2">
+  {/* SELECT BUTTON */}
+  <button
+    className={`w-28 h-10 flex items-center justify-center rounded-lg font-medium whitespace-nowrap transition-all ${
+      selectedRoomType === roomType.id && selectedRoomVariant?.id === variant.id
+        ? "bg-orange-600 text-white"
+        : "bg-gray-100 text-gray-700 hover:bg-orange-100 hover:text-orange-600"
+    }`}
+    onClick={(e) => {
+      e.stopPropagation();
+      handleRoomTypeSelect(roomType.id, variant);
+    }}
+  >
+    {selectedRoomType === roomType.id && selectedRoomVariant?.id === variant.id
+      ? "Selected"
+      : "Select"}
+  </button>
+
+  {/* PRICE (same size as button) */}
+  <span className="w-28 h-10 flex items-center justify-center rounded-lg bg-orange-100 text-orange-700 font-semibold text-sm">
+    ₹{formatPrice(variant.price)}
+  </span>
+</div>
                                 </div>
                               </div>
                             </div>
