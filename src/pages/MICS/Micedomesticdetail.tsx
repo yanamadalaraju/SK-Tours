@@ -451,18 +451,46 @@ const Micedomesticdetail = () => {
       };
     };
     
-    const processBooking = () => {
-      if (bookingpoi && bookingpoi.length > 0) {
-        return {
-          items: bookingpoi.map((item: any) => item.item || ''),
-          amountDetails: bookingpoi.map((item: any) => formatPriceExhibition(item.amount_details))
-        };
-      }
-      return {
-        items: ["Standard booking terms apply"],
-        amountDetails: ["0"]
-      };
+const processBooking = () => {
+  if (bookingpoi && bookingpoi.length > 0) {
+    return {
+      items: bookingpoi.map((item: any) => item.item || ''),
+      amountDetails: bookingpoi.map((item: any) => {
+        const amount = item.amount_details;
+        
+        // If amount is empty or null
+        if (!amount) return 'N/A';
+        
+        // If it's a pure number string (like "5000")
+        if (/^\d+(\.\d+)?$/.test(amount.toString())) {
+          return `₹${parseFloat(amount).toLocaleString('en-IN')}`;
+        }
+        
+        // If it contains percentage (like "50 % of the tour cost")
+        if (amount.includes('%')) {
+          return amount;
+        }
+        
+        // If it contains words like "Balance amount to pay"
+        if (amount.toLowerCase().includes('balance') || amount.toLowerCase().includes('pay')) {
+          return amount;
+        }
+        
+        // If it contains "of the tour cost" pattern
+        if (amount.toLowerCase().includes('of the tour cost')) {
+          return amount;
+        }
+        
+        // Return as is for other cases
+        return amount;
+      })
     };
+  }
+  return {
+    items: ["Standard booking terms apply"],
+    amountDetails: ["N/A"]
+  };
+};
 
     const processHotels = () => {
       if (hotels && hotels.length > 0) {
@@ -629,33 +657,29 @@ const fetchExhibitionDetails = async () => {
     }
   }, [tourId]);
 
-// Fix for Domestic Data
+// Fix for Domestic Data - Get unique states
 useEffect(() => {
   const fetchDomesticData = async () => {
     setLoadingDomestic(true);
     try {
       const response = await fetch(`${BASE_URL}/api/mice/domestic`);
       if (!response.ok) throw new Error(`Failed: ${response.status}`);
-      const data = await response.json();
-      if (Array.isArray(data) && data.length > 0) {
-        // Transform the data to match expected structure
-        const transformedData = data.map((item: any) => ({
-          id: item.id,
-          domestic_category_name: item.city_name, // Map city_name to domestic_category_name
-          ...item
-        }));
-        
-        const categories = transformedData
-          .map((item: any) => item.domestic_category_name)
-          .filter((category: string) => category && category.trim() !== '');
-        
-        setDomesticList(categories);
-        setDomesticExhibitionData(transformedData);
-        setExhibitionData(transformedData);
-      } else {
-        setDomesticList([]);
-        setExhibitionData([]);
-      }
+      const result = await response.json();
+      
+      const uniqueStates = Object.keys(result || {});
+      console.log("Unique states:", uniqueStates);
+      
+      setDomesticList(uniqueStates);
+      
+      const transformedData = uniqueStates.map((state, index) => ({
+        id: index + 1,
+        domestic_category_name: state,
+        created_at: new Date().toISOString(), // Add required field
+        updated_at: new Date().toISOString(), // Add required field
+        cities: [] // Add required field (empty array as fallback)
+      }));
+      setDomesticExhibitionData(transformedData);
+      setExhibitionData(transformedData); // Now this matches ExhibitionItem type
     } catch (error) {
       console.error("Error fetching domestic:", error);
       setDomesticList([]);
@@ -667,28 +691,27 @@ useEffect(() => {
   fetchDomesticData();
 }, []);
 
-// Fix for International Data
+// Fix for International Data - Get unique countries
 useEffect(() => {
   const fetchInternationalData = async () => {
     setLoadingInternational(true);
     try {
       const response = await fetch(`${BASE_URL}/api/mice/international`);
       if (!response.ok) throw new Error(`Failed: ${response.status}`);
-      const data = await response.json();
-      if (Array.isArray(data) && data.length > 0) {
-        // Transform the data to match expected structure
-        const transformedData = data.map((item: any) => ({
-          id: item.id,
-          international_category_name: item.city_name, // Map city_name to international_category_name
-          ...item
-        }));
-        
-        setInternationalList(transformedData.map(item => item.international_category_name));
-        setInternationalExhibitionData(transformedData);
-      } else {
-        setInternationalList([]);
-        setInternationalExhibitionData([]);
-      }
+      const result = await response.json();
+      
+      // Get unique country names from the grouped data
+      const uniqueCountries = Object.keys(result || {});
+      console.log("Unique countries:", uniqueCountries);
+      
+      setInternationalList(uniqueCountries);
+      
+      // Create exhibition data with unique country IDs
+      const transformedData = uniqueCountries.map((country, index) => ({
+        id: index + 1,
+        international_category_name: country,
+      }));
+      setInternationalExhibitionData(transformedData);
     } catch (error) {
       console.error("Error fetching international:", error);
       setInternationalList([]);
@@ -700,25 +723,25 @@ useEffect(() => {
   fetchInternationalData();
 }, []);
 
-  const handleInternationalClick = (category: string) => {
-    const found = internationalExhibitionData.find(
-      (item) => item.international_category_name === category
-    );
-    if (found) {
-      navigate(`/miceinternationaldetail/${found.id}`);
-    }
-  };
+const handleInternationalClick = (category: string) => {
+  // Find the country in the original data
+  const found = internationalExhibitionData.find(
+    (item) => item.international_category_name === category
+  );
+  if (found) {
+    navigate(`/miceinternationaldetail/${found.id}`);
+  }
+};
 
-  const handleDomesticClick = (category: string) => {
-    const found = domesticExhibitionData.find(
-      (item) => item.domestic_category_name === category
-    );
-    if (found) {
-      navigate(`/micedomesticdetail/${found.id}`);
-    } else {
-      navigate('/exhibition', { state: { category } });
-    }
-  };
+const handleDomesticClick = (category: string) => {
+  // Find the state in the original data
+  const found = domesticExhibitionData.find(
+    (item) => item.domestic_category_name === category
+  );
+  if (found) {
+    navigate(`/micedomesticdetail/${found.id}`);
+  }
+};
 
   // Helper function to toggle tables
   const toggleTable = (index: number) => {
@@ -977,135 +1000,138 @@ useEffect(() => {
                   />
                 </div>
 
-                {/* Domestic Mice Section with Checkboxes */}
-                <div className="mb-6">
-                  <div className="flex justify-between items-center mb-3 bg-white p-2 rounded-lg border border-black">
-                    <h2 className="text-xl font-bold text-[#2E4D98]">Domestic Mice</h2>
-                  </div>
-                  
-                  <div className={`${showMoreDomestic ? "max-h-64 overflow-y-auto pr-1" : ""} space-y-3`}>
-                    {loadingDomestic ? (
-                      <div className="flex justify-center py-4">
-                        <span className="animate-spin h-5 w-5 border-2 border-gray-300 border-t-blue-600 rounded-full" />
-                      </div>
-                    ) : domesticList.length > 0 ? (
-                      domesticList
-                        .slice(0, showMoreDomestic ? domesticList.length : 6)
-                        .sort((a, b) => a.localeCompare(b))
-                        .map((category) => {
-                          const found = domesticExhibitionData.find(
-                            item => item.domestic_category_name === category
-                          );
-                          const isActive = found?.id === currentExhibitionId;
-                          return (
-                            <div key={category} className="flex items-center gap-3 cursor-pointer">
-                              <Checkbox
-                                checked={selectedDomesticCategories.includes(category) || isActive}
-                                onCheckedChange={(checked) => {
-                                  if (checked) {
-                                    setSelectedDomesticCategories([category]);
-                                    setSelectedInternationalCategories([]);
-                                    handleDomesticClick(category);
-                                  } else {
-                                    setSelectedDomesticCategories([]);
-                                  }
-                                }}
-                                className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
-                              />
-                              <span
-                                className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${
-                                  isActive ? 'font-bold text-[#2E4D98]' : ''
-                                }`}
-                                onClick={() => {
-                                  setSelectedDomesticCategories([category]);
-                                  setSelectedInternationalCategories([]);
-                                  handleDomesticClick(category);
-                                }}
-                              >
-                                {category}
-                              </span>
-                            </div>
-                          );
-                        })
-                    ) : (
-                      <div className="text-sm text-gray-400">No domestic Mice available</div>
-                    )}
-                  </div>
-                  
-                  {domesticList.length > 6 && (
-                    <button
-                      onClick={() => setShowMoreDomestic(!showMoreDomestic)}
-                      className="mt-4 text-[#2E4D98] text-sm font-semibold hover:underline"
-                    >
-                      {showMoreDomestic ? "Show Less" : "Show More"}
-                    </button>
-                  )}
-                </div>
+ {/* Domestic Mice Section with Unique States */}
+<div className="mb-6">
+  <div className="flex justify-between items-center mb-3 bg-white p-2 rounded-lg border border-black">
+    <h2 className="text-xl font-bold text-[#2E4D98]">Domestic Mice</h2>
+  </div>
+  
+  <div className={`${showMoreDomestic ? "max-h-64 overflow-y-auto pr-1" : ""} space-y-3`}>
+    {loadingDomestic ? (
+      <div className="flex justify-center py-4">
+        <span className="animate-spin h-5 w-5 border-2 border-gray-300 border-t-blue-600 rounded-full" />
+      </div>
+    ) : domesticList.length > 0 ? (
+      domesticList
+        .slice(0, showMoreDomestic ? domesticList.length : 6)
+        .sort((a, b) => a.localeCompare(b))
+        .map((category) => {
+          const found = domesticExhibitionData.find(
+            item => item.domestic_category_name === category
+          );
+          // Compare the state name with tour.stateName to highlight active
+          const isActive = tour?.stateName === category;
+          return (
+            <div key={category} className="flex items-center gap-3 cursor-pointer">
+              <Checkbox
+                checked={selectedDomesticCategories.includes(category) || isActive}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    setSelectedDomesticCategories([category]);
+                    setSelectedInternationalCategories([]);
+                    handleDomesticClick(category);
+                  } else {
+                    setSelectedDomesticCategories([]);
+                  }
+                }}
+                className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
+              />
+              <span
+                className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${
+                  isActive ? 'font-bold text-[#2E4D98]' : ''
+                }`}
+                onClick={() => {
+                  setSelectedDomesticCategories([category]);
+                  setSelectedInternationalCategories([]);
+                  handleDomesticClick(category);
+                }}
+              >
+                {category}
+              </span>
+            </div>
+          );
+        })
+    ) : (
+      <div className="text-sm text-gray-400">No domestic Mice available</div>
+    )}
+  </div>
+  
+  {domesticList.length > 6 && (
+    <button
+      onClick={() => setShowMoreDomestic(!showMoreDomestic)}
+      className="mt-4 text-[#2E4D98] text-sm font-semibold hover:underline"
+    >
+      {showMoreDomestic ? "Show Less" : `Show ${domesticList.length - 6} More`}
+    </button>
+  )}
+</div>
                 
-                {/* International Exhibition Section */}
-                <div className='mb-3'>
-                  <div className="flex justify-between items-center mb-3 bg-white p-2 rounded-lg border border-black">
-                    <h2 className="text-xl font-bold text-[#2E4D98]">International Mice</h2>
-                  </div>
-                  
-                  <div className={`${showMoreInternational ? "max-h-64 overflow-y-auto pr-1" : ""} space-y-3`}>
-                    {loadingInternational ? (
-                      <div className="flex justify-center py-4">
-                        <span className="animate-spin h-5 w-5 border-2 border-gray-300 border-t-blue-600 rounded-full" />
-                      </div>
-                    ) : internationalList.length > 0 ? (
-                      internationalList
-                        .slice(0, showMoreInternational ? internationalList.length : 6)
-                        .sort((a, b) => a.localeCompare(b))
-                        .map((category) => {
-                          const found = internationalExhibitionData.find(
-                            item => item.international_category_name === category
-                          );
-                          const isActive = found?.id === currentExhibitionId;
-                          return (
-                            <div key={category} className="flex items-center gap-3 cursor-pointer">
-                              <Checkbox
-                                checked={selectedInternationalCategories.includes(category) || isActive}
-                                onCheckedChange={(checked) => {
-                                  if (checked) {
-                                    setSelectedInternationalCategories([category]);
-                                    setSelectedDomesticCategories([]);
-                                    handleInternationalClick(category);
-                                  } else {
-                                    setSelectedInternationalCategories([]);
-                                  }
-                                }}
-                                className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
-                              />
-                              <span
-                                className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${
-                                  isActive ? 'font-bold text-[#2E4D98]' : ''
-                                }`}
-                                onClick={() => {
-                                  setSelectedInternationalCategories([category]);
-                                  setSelectedDomesticCategories([]);
-                                  handleInternationalClick(category);
-                                }}
-                              >
-                                {category}
-                              </span>
-                            </div>
-                          );
-                        })
-                    ) : (
-                      <div className="text-sm text-gray-400">No international exhibitions available</div>
-                    )}
-                  </div>
-                  
-                  {internationalList.length > 6 && (
-                    <button
-                      onClick={() => setShowMoreInternational(!showMoreInternational)}
-                      className="mt-4 text-[#2E4D98] text-sm font-semibold hover:underline"
-                    >
-                      {showMoreInternational ? "Show Less" : "Show More"}
-                    </button>
-                  )}
-                </div>
+ {/* International Mice Section with Unique Countries */}
+<div className='mb-3'>
+  <div className="flex justify-between items-center mb-3 bg-white p-2 rounded-lg border border-black">
+    <h2 className="text-xl font-bold text-[#2E4D98]">International Mice</h2>
+  </div>
+  
+  <div className={`${showMoreInternational ? "max-h-64 overflow-y-auto pr-1" : ""} space-y-3`}>
+    {loadingInternational ? (
+      <div className="flex justify-center py-4">
+        <span className="animate-spin h-5 w-5 border-2 border-gray-300 border-t-blue-600 rounded-full" />
+      </div>
+    ) : internationalList.length > 0 ? (
+      internationalList
+        .slice(0, showMoreInternational ? internationalList.length : 6)
+        .sort((a, b) => a.localeCompare(b))
+        .map((category) => {
+          const found = internationalExhibitionData.find(
+            item => item.international_category_name === category
+          );
+          // For international, we need to compare the country name with tour.countryName
+          // Since this is domestic detail page, international won't be active here
+          const isActive = false; // Not active on domestic page
+          return (
+            <div key={category} className="flex items-center gap-3 cursor-pointer">
+              <Checkbox
+                checked={selectedInternationalCategories.includes(category) || isActive}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    setSelectedInternationalCategories([category]);
+                    setSelectedDomesticCategories([]);
+                    handleInternationalClick(category);
+                  } else {
+                    setSelectedInternationalCategories([]);
+                  }
+                }}
+                className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
+              />
+              <span
+                className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${
+                  isActive ? 'font-bold text-[#2E4D98]' : ''
+                }`}
+                onClick={() => {
+                  setSelectedInternationalCategories([category]);
+                  setSelectedDomesticCategories([]);
+                  handleInternationalClick(category);
+                }}
+              >
+                {category}
+              </span>
+            </div>
+          );
+        })
+    ) : (
+      <div className="text-sm text-gray-400">No international exhibitions available</div>
+    )}
+  </div>
+  
+  {internationalList.length > 6 && (
+    <button
+      onClick={() => setShowMoreInternational(!showMoreInternational)}
+      className="mt-4 text-[#2E4D98] text-sm font-semibold hover:underline"
+    >
+      {showMoreInternational ? "Show Less" : `Show ${internationalList.length - 6} More`}
+    </button>
+  )}
+</div>
                             
 <div className="mt-0 pt-0 border-t border-gray-300">
   <div className="mb-4">

@@ -753,11 +753,10 @@ const CustomerReviewsSection = () => {
 
         {/* Bottom CTA */}
         <div className="text-center">
-          <button className="inline-flex mb-10 items-center gap-3 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white font-semibold px-8 py-4 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105 border border-white/20">
-            <Star className="h-5 w-5" />
-            Share Your Experience
-            <ChevronRight className="h-5 w-5" />
-          </button>
+          {/* <button className="inline-flex mb-10 items-center gap-3 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white font-semibold px-8 py-4 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105 border border-white/20"> */}
+            {/* <Star className="h-5 w-5" /> */}
+            {/* <ChevronRight className="h-5 w-5" /> */}
+          {/* </button> */}
           
         </div>
       </div>

@@ -12,9 +12,9 @@ const ExhibitionSection: React.FC = () => {
             <h2 className="exhibition-title">
               Upcoming <span className="exhibition-highlight">Exhibitions</span>
             </h2>
-            <p className="exhibition-subtitle">
+            {/* <p className="exhibition-subtitle">
               Discover world-class exhibitions happening around the globe
-            </p>
+            </p> */}
           </div>
         </div>
       </div>

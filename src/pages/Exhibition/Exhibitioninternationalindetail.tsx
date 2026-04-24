@@ -23,13 +23,21 @@ interface EmailFormData {
 interface DomesticExhibition {
   id: number;
   domestic_category_name: string;
+   cities?: City[];
 }
 
 interface InternationalExhibition {
   id: number;
   international_category_name: string;
+   cities?: City[]; 
 }
 
+interface City {
+  id: number;
+  city_name: string;
+  image?: string;
+  price?: string;
+}
 // DayCard Component
 const DayCard = ({ dayNumber, headerColor, bodyColor, dayData }) => {
   const [meals, setMeals] = useState({ B: false, L: false, D: false });
@@ -184,25 +192,6 @@ const Exhibitioninternationalindetail = () => {
   // ── Sidebar Handlers ─────────────────────────────────────────────────────
   const handleAboutClick = () => navigate('/exhibition', { state: { category: null } });
 
-  const handleDomesticClick = (category: string) => {
-    const found = domesticExhibitionData.find(
-      (item) => item.domestic_category_name === category
-    );
-    if (found) {
-      navigate(`/exhibitiondetail/${found.id}`);
-    } else {
-      navigate('/exhibition', { state: { category } });
-    }
-  };
-
-  const handleInternationalClick = (category: string) => {
-    const found = internationalExhibitionData.find(
-      (item) => item.international_category_name === category
-    );
-    if (found) {
-      navigate(`/exhibitioninternationalindetail/${found.id}`);
-    }
-  };
 
 
   const transformDeparturesToGroupFormat = (departures: any[]) => {
@@ -505,15 +494,43 @@ const Exhibitioninternationalindetail = () => {
       return { loanAmount: "N/A", options: [] };
     };
 
-    const processBooking = (arr) => {
-      if (arr?.length && arr[0]?.item && arr[0]?.item !== "Departures Description") {
-        return {
-          items: arr.map(item => item.item || ''),
-          amountDetails: arr.map(item => formatPriceExhibition(item.amount_details))
-        };
-      }
-      return { items: ["Standard booking terms apply"], amountDetails: ["0"] };
+const processBooking = (arr) => {
+  if (arr?.length && arr[0]?.item && arr[0]?.item !== "Departures Description") {
+    return {
+      items: arr.map(item => item.item || ''),
+      amountDetails: arr.map(item => {
+        const amount = item.amount_details;
+        
+        // If amount is empty or null
+        if (!amount) return 'N/A';
+        
+        // If it's a pure number string (like "5000")
+        if (/^\d+(\.\d+)?$/.test(amount.toString())) {
+          return `₹${parseFloat(amount).toLocaleString('en-IN')}`;
+        }
+        
+        // If it contains percentage (like "50 % of the tour cost")
+        if (amount.includes('%')) {
+          return amount;
+        }
+        
+        // If it contains words like "Balance amount to pay"
+        if (amount.toLowerCase().includes('balance') || amount.toLowerCase().includes('pay')) {
+          return amount;
+        }
+        
+        // If it contains "of the tour cost" pattern
+        if (amount.toLowerCase().includes('of the tour cost')) {
+          return amount;
+        }
+        
+        // Return as is for other cases
+        return amount;
+      })
     };
+  }
+  return { items: ["Standard booking terms apply"], amountDetails: ["N/A"] };
+};
 
     const processHotels = (arr) => {
       if (arr?.length && arr[0]?.city && arr[0]?.city !== "Departures Description") {
@@ -712,52 +729,83 @@ emi: basicDetails.emi_price
       setLoading(false);
     }
   };
-
-  // ── API: Domestic sidebar list ─────────────────────────────────────────────
-  const fetchDomesticData = async () => {
-    setLoadingDomestic(true);
-    try {
-      const response = await fetch(`${BASE_URL}/api/exhibitions/domestic`);
-      if (!response.ok) throw new Error(`Failed: ${response.status}`);
-      const data: DomesticExhibition[] = await response.json();
-      if (Array.isArray(data) && data.length > 0) {
-        setDomesticList(data.map(item => item.domestic_category_name));
-        setDomesticExhibitionData(data);
-      } else {
-        setDomesticList([]);
-        setDomesticExhibitionData([]);
-      }
-    } catch (error) {
-      console.error("Error fetching domestic:", error);
-      setDomesticList([]);
+// Update the fetchDomesticData function
+const fetchDomesticData = async () => {
+  setLoadingDomestic(true);
+  try {
+    const response = await fetch(`${BASE_URL}/api/exhibitions/domestic`);
+    if (!response.ok) throw new Error(`Failed: ${response.status}`);
+    const data = await response.json();
+    
+    // Handle grouped response format
+    let exhibitionsArray: DomesticExhibition[] = [];
+    
+    if (data && typeof data === 'object' && !Array.isArray(data)) {
+      // New grouped format: { "Pharma": [...], "Furniture": [...], etc. }
+      Object.keys(data).forEach(categoryName => {
+        exhibitionsArray.push(...data[categoryName]);
+      });
+    } else if (Array.isArray(data)) {
+      // Old array format (backward compatibility)
+      exhibitionsArray = data;
+    }
+    
+    if (exhibitionsArray.length > 0) {
+      setDomesticExhibitionData(exhibitionsArray);
+    } else {
       setDomesticExhibitionData([]);
-    } finally {
-      setLoadingDomestic(false);
     }
-  };
+  } catch (error) {
+    console.error("Error fetching domestic:", error);
+    setDomesticExhibitionData([]);
+  } finally {
+    setLoadingDomestic(false);
+  }
+};
 
-  // ── API: International sidebar list ───────────────────────────────────────
-  const fetchInternationalData = async () => {
-    setLoadingInternational(true);
-    try {
-      const response = await fetch(`${BASE_URL}/api/exhibitions/international`);
-      if (!response.ok) throw new Error(`Failed: ${response.status}`);
-      const data: InternationalExhibition[] = await response.json();
-      if (Array.isArray(data) && data.length > 0) {
-        setInternationalList(data.map(item => item.international_category_name));
-        setInternationalExhibitionData(data);
-      } else {
-        setInternationalList([]);
-        setInternationalExhibitionData([]);
-      }
-    } catch (error) {
-      console.error("Error fetching international:", error);
-      setInternationalList([]);
-      setInternationalExhibitionData([]);
-    } finally {
-      setLoadingInternational(false);
+// Update the fetchInternationalData function
+const fetchInternationalData = async () => {
+  setLoadingInternational(true);
+  try {
+    const response = await fetch(`${BASE_URL}/api/exhibitions/international`);
+    if (!response.ok) throw new Error(`Failed: ${response.status}`);
+    const data = await response.json();
+    
+    // Handle grouped response format
+    let exhibitionsArray: InternationalExhibition[] = [];
+    
+    if (data && typeof data === 'object' && !Array.isArray(data)) {
+      // New grouped format
+      Object.keys(data).forEach(categoryName => {
+        exhibitionsArray.push(...data[categoryName]);
+      });
+    } else if (Array.isArray(data)) {
+      // Old array format (backward compatibility)
+      exhibitionsArray = data;
     }
-  };
+    
+    if (exhibitionsArray.length > 0) {
+      setInternationalExhibitionData(exhibitionsArray);
+    } else {
+      setInternationalExhibitionData([]);
+    }
+  } catch (error) {
+    console.error("Error fetching international:", error);
+    setInternationalExhibitionData([]);
+  } finally {
+    setLoadingInternational(false);
+  }
+};
+
+// Update handleDomesticClick function
+const handleDomesticClick = (category: string, exhibitionId: number) => {
+  navigate(`/exhibitiondetail/${exhibitionId}`);
+};
+
+// Update handleInternationalClick function
+const handleInternationalClick = (category: string, exhibitionId: number) => {
+  navigate(`/exhibitioninternationalindetail/${exhibitionId}`);
+};
 
   // ── Mail Handler ──────────────────────────────────────────────────────────
   const handleEmailSubmit = async (emailData: EmailFormData) => {
@@ -876,161 +924,233 @@ emi: basicDetails.emi_price
         <Header />
         <div className="container mx-auto px-4 py-6">
 
-          {/* Page layout: sidebar + main content */}
           <div className="flex gap-4">
+{/* ── LEFT SIDEBAR ── */}
+<div className="w-80 flex-shrink-0 bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl shadow-lg p-6 border border-blue-200 self-start sticky top-24">
+  <div className="flex justify-between items-center mb-4 bg-[#2E4D98] p-2 rounded-lg border border-black">
+    <h2 className="text-2xl font-bold text-white">Exhibitions</h2>
+    <button
+      onClick={clearAllFilters}
+      className="text-sm text-white hover:underline"
+    >
+      Clear All
+    </button>
+  </div>
 
-            {/* ── LEFT SIDEBAR ── */}
-            <div className="w-80 flex-shrink-0 bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl shadow-lg p-6 border border-blue-200 self-start sticky top-24">
-              <div className="flex justify-between items-center mb-4 bg-[#2E4D98] p-2 rounded-lg border border-black">
-                <h2 className="text-2xl font-bold text-white">Exhibitions</h2>
-                <button
-                  onClick={clearAllFilters}
-                  className="text-sm text-white hover:underline"
-                >
-                  Clear All
-                </button>
-              </div>
+  {/* About Exhibition */}
+  <div className="mt-3 mb-4">
+    <div
+      onClick={handleAboutClick}
+      className="flex justify-between items-center p-2 rounded-lg cursor-pointer border border-black bg-white text-[#2E4D98]"
+    >
+      <h2 className="text-xl font-bold text-[#2E4D98]">About Exhibition</h2>
+      <span className="text-xs">▶</span>
+    </div>
+  </div>
 
-              {/* About Exhibition */}
-              <div className="mt-3 mb-4">
-                <div
-                  onClick={handleAboutClick}
-                  className="flex justify-between items-center p-2 rounded-lg cursor-pointer border border-black bg-white text-[#2E4D98]"
-                >
-                  <h2 className="text-xl font-bold text-[#2E4D98]">About Exhibition</h2>
-                  <span className="text-xs">▶</span>
-                </div>
-              </div>
+  {/* Exhibition Range Filter */}
+  <div className="mb-6">
+    <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Exhibition Range</h3>
+    <div className="flex justify-between text-sm text-gray-600 mb-3">
+      <span>{durationRange[0]} days</span>
+      <span>{durationRange[1]} days</span>
+    </div>
+    <Slider
+      value={durationRange}
+      onValueChange={setDurationRange}
+      max={10}
+      step={1}
+      className="w-full"
+    />
+  </div>
+  
+  {/* Price Filter */}
+  <div className="mb-6">
+    <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Price Range</h3>
+    <div className="flex justify-between text-sm text-gray-600 mb-3">
+      <span>₹{priceRange[0].toLocaleString()}</span>
+      <span>₹{priceRange[1].toLocaleString()}</span>
+    </div>
+    <Slider
+      value={priceRange}
+      onValueChange={setPriceRange}
+      min={0}
+      max={200000}
+      step={1000}
+      className="w-full"
+    />
+  </div>
 
-              <div className="mb-6">
-                <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Exhibition Range</h3>
-                <div className="flex justify-between text-sm text-gray-600 mb-3">
-                  <span>{durationRange[0]} days</span>
-                  <span>{durationRange[1]} days</span>
-                </div>
-                <Slider
-                  value={durationRange}
-                  onValueChange={setDurationRange}
-                  max={10}
-                  step={1}
-                  className="w-full"
-                />
-              </div>
-              {/* Price Filter */}
-              <div className="mb-6">
-                <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Price Range</h3>
-                <div className="flex justify-between text-sm text-gray-600 mb-3">
-                  <span>₹{priceRange[0].toLocaleString()}</span>
-                  <span>₹{priceRange[1].toLocaleString()}</span>
-                </div>
-                <Slider
-                  value={priceRange}
-                  onValueChange={setPriceRange}
-                  min={0}
-                  max={200000}
-                  step={1000}
-                  className="w-full"
-                />
-              </div>
+  {/* 🔹 Domestic Exhibition Section */}
+  <div className="mb-6">
+    <div className="flex justify-between items-center mb-3 bg-white p-2 rounded-lg border border-black">
+      <h2 className="text-xl font-bold text-[#2E4D98]">Domestic Exhibition</h2>
+    </div>
 
-              {/* Domestic Exhibition Section with Checkboxes */}
-              <div className="mb-6">
-                <div className="flex justify-between items-center mb-3 bg-white p-2 rounded-lg border border-black">
-                  <h2 className="text-xl font-bold text-[#2E4D98]">Domestic Exhibition</h2>
-                </div>
-
-                <div className={`${showMoreDomestic ? "max-h-64 overflow-y-auto pr-1" : ""} space-y-3`}>
-                  {loadingDomestic ? (
-                    <div className="flex justify-center py-4">
-                      <span className="animate-spin h-5 w-5 border-2 border-gray-300 border-t-blue-600 rounded-full" />
-                    </div>
-                  ) : domesticList.length > 0 ? (
-                    domesticList
-                      .slice(0, showMoreDomestic ? domesticList.length : 6)
-                      .sort((a, b) => a.localeCompare(b))
-                      .map((category) => (
-                        <div key={category} className="flex items-center gap-3 cursor-pointer">
-                          <Checkbox
-                            checked={selectedDomesticCategories.includes(category)}
-                            onCheckedChange={(checked) => handleDomesticCheckboxChange(category, checked as boolean)}
-                            className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
-                          />
-                          <span
-                            className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${selectedDomesticCategories.includes(category) ? 'font-bold text-[#2E4D98]' : ''
-                              }`}
-                            onClick={() => handleDomesticCheckboxChange(category, !selectedDomesticCategories.includes(category))}
-                          >
-                            {category}
-                          </span>
-                        </div>
-                      ))
-                  ) : (
-                    <div className="text-sm text-gray-400">No domestic exhibitions available</div>
-                  )}
-                </div>
-
-                {domesticList.length > 6 && (
-                  <button
-                    onClick={() => setShowMoreDomestic(!showMoreDomestic)}
-                    className="mt-4 text-[#2E4D98] text-sm font-semibold hover:underline"
+    <div className={`${showMoreDomestic ? "max-h-64 overflow-y-auto pr-1" : ""} space-y-3`}>
+      {loadingDomestic ? (
+        <div className="flex justify-center py-4">
+          <span className="animate-spin h-5 w-5 border-2 border-gray-300 border-t-blue-600 rounded-full" />
+        </div>
+      ) : domesticExhibitionData.length > 0 ? (
+        (() => {
+          // Build array of items with category name and exhibition ID
+          const itemsMap = new Map();
+          domesticExhibitionData.forEach((exhibition) => {
+            const categoryName = exhibition.domestic_category_name;
+            if (!itemsMap.has(categoryName)) {
+              itemsMap.set(categoryName, {
+                category: categoryName,
+                exhibitionId: exhibition.id,
+                display: categoryName
+              });
+            }
+          });
+          
+          const allItems = Array.from(itemsMap.values());
+          allItems.sort((a, b) => a.display.localeCompare(b.display));
+          
+          return allItems
+            .slice(0, showMoreDomestic ? allItems.length : 6)
+            .map((item) => {
+              const isActive = item.exhibitionId === Number(exhibitionId);
+              
+              return (
+                <div key={item.exhibitionId} className="flex items-center gap-3 cursor-pointer">
+                  <Checkbox
+                    checked={isActive}
+                    onCheckedChange={(checked) => {
+                      if (checked && !isActive) {
+                        setSelectedDomesticCategories([item.category]);
+                        setSelectedInternationalCategories([]);
+                        navigate(`/exhibitiondetail/${item.exhibitionId}`);
+                      }
+                    }}
+                    className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
+                  />
+                  <span
+                    className={`cursor-pointer ${
+                      isActive ? 'font-bold text-[#2E4D98]' : 'text-gray-700 hover:text-[#2E4D98]'
+                    }`}
+                    onClick={() => {
+                      if (!isActive) {
+                        setSelectedDomesticCategories([item.category]);
+                        setSelectedInternationalCategories([]);
+                        navigate(`/exhibitiondetail/${item.exhibitionId}`);
+                      }
+                    }}
                   >
-                    {showMoreDomestic ? "Show Less" : "Show More"}
-                  </button>
-                )}
-              </div>
-
-              {/* International Exhibition Section with Checkboxes */}
-              <div>
-                <div className="flex justify-between items-center mb-3 bg-white p-2 rounded-lg border border-black">
-                  <h2 className="text-xl font-bold text-[#2E4D98]">International Exhibition</h2>
+                    {item.display}
+                  </span>
                 </div>
+              );
+            });
+        })()
+      ) : (
+        <div className="text-sm text-gray-400">No domestic exhibitions available</div>
+      )}
+    </div>
 
-                <div className={`${showMoreInternational ? "max-h-64 overflow-y-auto pr-1" : ""} space-y-3`}>
-                  {loadingInternational ? (
-                    <div className="flex justify-center py-4">
-                      <span className="animate-spin h-5 w-5 border-2 border-gray-300 border-t-blue-600 rounded-full" />
-                    </div>
-                  ) : internationalList.length > 0 ? (
-                    internationalList
-                      .slice(0, showMoreInternational ? internationalList.length : 6)
-                      .sort((a, b) => a.localeCompare(b))
-                      .map((category) => {
-                        const found = internationalExhibitionData.find(
-                          item => item.international_category_name === category
-                        );
-                        const isActive = found?.id === Number(exhibitionId);
-                        return (
-                          <div key={category} className="flex items-center gap-3 cursor-pointer">
-                            <Checkbox
-                              checked={selectedInternationalCategories.includes(category) || isActive}
-                              onCheckedChange={(checked) => handleInternationalCheckboxChange(category, checked as boolean)}
-                              className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
-                            />
-                            <span
-                              className={`cursor-pointer ${isActive ? 'font-bold text-[#2E4D98]' : 'text-gray-700 hover:text-[#2E4D98]'
-                                }`}
-                              onClick={() => handleInternationalCheckboxChange(category, !selectedInternationalCategories.includes(category) && !isActive)}
-                            >
-                              {category}
-                            </span>
-                          </div>
-                        );
-                      })
-                  ) : (
-                    <div className="text-sm text-gray-400">No international exhibitions available</div>
-                  )}
-                </div>
+    {domesticExhibitionData.length > 0 && (() => {
+      // Count unique categories
+      const uniqueCategories = new Set(domesticExhibitionData.map(ex => ex.domestic_category_name));
+      const totalItems = uniqueCategories.size;
+      return totalItems > 6 && (
+        <button
+          onClick={() => setShowMoreDomestic(!showMoreDomestic)}
+          className="mt-4 text-[#2E4D98] text-sm font-semibold hover:underline"
+        >
+          {showMoreDomestic ? "Show Less" : `Show ${totalItems - 6} More`}
+        </button>
+      );
+    })()}
+  </div>
 
-                {internationalList.length > 6 && (
-                  <button
-                    onClick={() => setShowMoreInternational(!showMoreInternational)}
-                    className="mt-4 text-[#2E4D98] text-sm font-semibold hover:underline"
+  {/* 🔹 International Exhibition Section */}
+  <div>
+    <div className="flex justify-between items-center mb-3 bg-white p-2 rounded-lg border border-black">
+      <h2 className="text-xl font-bold text-[#2E4D98]">International Exhibition</h2>
+    </div>
+
+    <div className={`${showMoreInternational ? "max-h-64 overflow-y-auto pr-1" : ""} space-y-3`}>
+      {loadingInternational ? (
+        <div className="flex justify-center py-4">
+          <span className="animate-spin h-5 w-5 border-2 border-gray-300 border-t-blue-600 rounded-full" />
+        </div>
+      ) : internationalExhibitionData.length > 0 ? (
+        (() => {
+          // Build array of items with category name and exhibition ID
+          const itemsMap = new Map();
+          internationalExhibitionData.forEach((exhibition) => {
+            const categoryName = exhibition.international_category_name;
+            if (!itemsMap.has(categoryName)) {
+              itemsMap.set(categoryName, {
+                category: categoryName,
+                exhibitionId: exhibition.id,
+                display: categoryName
+              });
+            }
+          });
+          
+          const allItems = Array.from(itemsMap.values());
+          allItems.sort((a, b) => a.display.localeCompare(b.display));
+          
+          return allItems
+            .slice(0, showMoreInternational ? allItems.length : 6)
+            .map((item) => {
+              const isActive = item.exhibitionId === Number(exhibitionId);
+              
+              return (
+                <div key={item.exhibitionId} className="flex items-center gap-3 cursor-pointer">
+                  <Checkbox
+                    checked={isActive}
+                    onCheckedChange={(checked) => {
+                      if (checked && !isActive) {
+                        setSelectedInternationalCategories([item.category]);
+                        setSelectedDomesticCategories([]);
+                        navigate(`/exhibitioninternationalindetail/${item.exhibitionId}`);
+                      }
+                    }}
+                    className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
+                  />
+                  <span
+                    className={`cursor-pointer ${
+                      isActive ? 'font-bold text-[#2E4D98]' : 'text-gray-700 hover:text-[#2E4D98]'
+                    }`}
+                    onClick={() => {
+                      if (!isActive) {
+                        setSelectedInternationalCategories([item.category]);
+                        setSelectedDomesticCategories([]);
+                        navigate(`/exhibitioninternationalindetail/${item.exhibitionId}`);
+                      }
+                    }}
                   >
-                    {showMoreInternational ? "Show Less" : "Show More"}
-                  </button>
-                )}
-              </div>
-            </div>
+                    {item.display}
+                  </span>
+                </div>
+              );
+            });
+        })()
+      ) : (
+        <div className="text-sm text-gray-400">No international exhibitions available</div>
+      )}
+    </div>
+
+    {internationalExhibitionData.length > 0 && (() => {
+      // Count unique categories
+      const uniqueCategories = new Set(internationalExhibitionData.map(ex => ex.international_category_name));
+      const totalItems = uniqueCategories.size;
+      return totalItems > 6 && (
+        <button
+          onClick={() => setShowMoreInternational(!showMoreInternational)}
+          className="mt-4 text-[#2E4D98] text-sm font-semibold hover:underline"
+        >
+          {showMoreInternational ? "Show Less" : `Show ${totalItems - 6} More`}
+        </button>
+      );
+    })()}
+  </div>
+</div>
 
             {/* ── MAIN CONTENT ── */}
             <main className="flex-1 min-w-0">

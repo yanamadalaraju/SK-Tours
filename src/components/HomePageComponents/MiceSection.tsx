@@ -1,6 +1,6 @@
 // MICESection.tsx
 import React from "react";
-import MICECarousel from "./MICECarousel";
+import MICECarousel from "./MiceCarousel";
 import "./MICESection.css";
 
 const MICESection: React.FC = () => {
@@ -12,9 +12,9 @@ const MICESection: React.FC = () => {
             <h2 className="mice-title">
               MICE <span className="mice-highlight">Destinations</span>
             </h2>
-            <p className="mice-subtitle">
+            {/* <p className="mice-subtitle">
               Plan your next corporate event, conference, or incentive trip
-            </p>
+            </p> */}
           </div>
         </div>
       </div>

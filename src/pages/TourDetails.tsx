@@ -596,19 +596,42 @@ const [tourType, setTourType] = useState<'Individual' | 'Group' | 'Ladies Specia
         options: []
       };
     };
-    // Process booking POI
-    const processBooking = (bookingArray: any[]) => {
-      if (bookingArray && bookingArray.length > 0) {
-        return {
-          items: bookingArray.map(item => item.item || ''),
-          amountDetails: bookingArray.map(item => item.amount_details || '0')
-        };
-      }
-      return {
-        items: ["Standard booking terms apply"],
-        amountDetails: ["0"]
-      };
+ // Process booking POI - FIXED VERSION
+const processBooking = (bookingArray: any[]) => {
+  if (bookingArray && bookingArray.length > 0) {
+    return {
+      items: bookingArray.map(item => item.item || ''),
+      amountDetails: bookingArray.map(item => {
+        const amount = item.amount_details;
+        
+        // If amount is empty or null
+        if (!amount) return 'N/A';
+        
+        // If it's a pure number string (like "5000")
+        if (/^\d+(\.\d+)?$/.test(amount.toString())) {
+          return `₹${parseFloat(amount).toLocaleString('en-IN')}`;
+        }
+        
+        // If it contains percentage (like "50 % of the tour cost")
+        if (amount.includes('%')) {
+          return amount;
+        }
+        
+        // If it contains words like "Balance amount to pay"
+        if (amount.toLowerCase().includes('balance') || amount.toLowerCase().includes('pay')) {
+          return amount;
+        }
+        
+        // Return as is for other cases
+        return amount;
+      })
     };
+  }
+  return {
+    items: ["Standard booking terms apply"],
+    amountDetails: ["N/A"]
+  };
+};
 
     const processHotels = (hotelsArray: any[], basicDetails: any) => {
       if (hotelsArray && hotelsArray.length > 0) {

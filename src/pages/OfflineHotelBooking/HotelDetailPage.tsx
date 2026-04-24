@@ -126,7 +126,6 @@ const getEffectivePrice = (hotel: HotelDetail): number => {
   return 0;
 };
 
-// Helper function to get original price for discount display
 const getOriginalPrice = (hotel: HotelDetail): number | null => {
   if (hotel.original_price && Number(hotel.original_price) > 0) {
     return Number(hotel.original_price);
@@ -532,31 +531,56 @@ const HotelDetailPage = () => {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Left Column - Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Image Gallery */}
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-              <div className="relative h-96">
-                {mainImageUrl ? (
-                  <img src={mainImageUrl} alt={hotel.hotel_name} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center">
-                    <Hotel className="w-24 h-24 text-white/50" />
-                  </div>
-                )}
-              </div>
-              {additionalImages.length > 0 && (
-                <div className="grid grid-cols-4 gap-2 p-2">
-                  {additionalImages.slice(0, 4).map((img, idx) => (
-                    <img 
-                      key={idx} 
-                      src={img || ''} 
-                      alt={`Gallery ${idx + 1}`} 
-                      className="h-24 w-full object-cover rounded cursor-pointer hover:opacity-80 transition"
-                      onClick={() => setSelectedImage(img || '')}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
+       {/* Image Gallery */}
+<div className="bg-white rounded-xl shadow-sm overflow-hidden">
+  <div className="relative h-96">
+    {selectedImage ? (
+      <img 
+        src={getImageUrl(selectedImage) || selectedImage} 
+        alt={hotel.hotel_name} 
+        className="w-full h-full object-cover" 
+      />
+    ) : mainImageUrl ? (
+      <img src={mainImageUrl} alt={hotel.hotel_name} className="w-full h-full object-cover" />
+    ) : (
+      <div className="w-full h-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center">
+        <Hotel className="w-24 h-24 text-white/50" />
+      </div>
+    )}
+  </div>
+  
+  {additionalImages.length > 0 && (
+    <div className="grid grid-cols-4 gap-2 p-2">
+      {/* Main image as thumbnail */}
+      {mainImageUrl && (
+        <img 
+          src={mainImageUrl} 
+          alt="Main" 
+          className={`h-24 w-full object-cover rounded cursor-pointer transition-all duration-200 ${
+            selectedImage === hotel.main_image || (!selectedImage && !selectedImage)
+              ? "ring-2 ring-orange-600 ring-offset-1 opacity-100" 
+              : "opacity-50 hover:opacity-80"
+          }`}
+          onClick={() => setSelectedImage(hotel.main_image)}
+        />
+      )}
+      {/* Additional images */}
+      {additionalImages.slice(0, additionalImages.length > 3 ? 3 : 4).map((img, idx) => (
+        <img 
+          key={idx} 
+          src={img || ''} 
+          alt={`Gallery ${idx + 1}`} 
+          className={`h-24 w-full object-cover rounded cursor-pointer transition-all duration-200 ${
+            selectedImage === img
+              ? "ring-2 ring-orange-600 ring-offset-1 opacity-100" 
+              : "opacity-50 hover:opacity-80"
+          }`}
+          onClick={() => setSelectedImage(img || '')}
+        />
+      ))}
+    </div>
+  )}
+</div>
 
             {/* Overview */}
             <div className="bg-white rounded-xl shadow-sm p-6">
