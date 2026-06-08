@@ -332,7 +332,6 @@ const DateSelector = ({
     if (date < today) return true;
     if (minDate && date < minDate) return true;
     
-    // If availableDates is provided and not empty, only enable dates that are available
     if (availableDates.length > 0) {
       return !isDateAvailable(date);
     }
@@ -392,7 +391,6 @@ const DateSelector = ({
 
       {open && (
         <div className="fixed md:absolute top-full left-0 mt-2 bg-white border border-gray-200 shadow-xl rounded-lg z-[100] p-4 min-w-[320px]">
-          {/* Month Navigation */}
           <div className="flex items-center justify-between mb-4 px-2">
             <button
               onClick={handlePrevMonth}
@@ -415,7 +413,6 @@ const DateSelector = ({
             </button>
           </div>
 
-          {/* Legend */}
           {availableDates.length > 0 && (
             <div className="flex items-center gap-4 mb-3 px-2 text-xs">
               <div className="flex items-center gap-1.5">
@@ -429,7 +426,6 @@ const DateSelector = ({
             </div>
           )}
 
-          {/* Calendar Grid */}
           <div className="grid grid-cols-7 gap-1 text-center">
             {weekDays.map(day => (
               <div key={day} className="text-xs text-gray-500 py-1">{day}</div>
@@ -462,7 +458,6 @@ const DateSelector = ({
                   )}
                 >
                   {date ? format(date, "d") : ""}
-                  {/* Green dot indicator for available dates */}
                   {isAvailable && !isSelected && availableDates.length > 0 && (
                     <span className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 bg-green-600 rounded-full"></span>
                   )}
@@ -471,7 +466,6 @@ const DateSelector = ({
             })}
           </div>
           
-          {/* No available dates message */}
           {availableDates.length === 0 && (
             <p className="text-xs text-center text-amber-600 mt-3 p-2 bg-amber-50 rounded-lg">
               ⚠️ No flights available for this route
@@ -483,7 +477,7 @@ const DateSelector = ({
   );
 };
 
-// City Selector - Updated to fetch from API
+// City Selector
 const CitySelector = ({ 
   label, 
   selectedCity, 
@@ -613,7 +607,7 @@ const CitySelector = ({
   );
 };
 
-// Flight Results Component - With Working Filters and Exact Guest Match
+// Flight Results Component
 const FlightResults = ({ searchData, onBack, travellers }: { searchData: any; onBack: () => void; travellers: TravellerCount }) => {
   const [activeTab, setActiveTab] = useState<string | null>(null);
   const [flights, setFlights] = useState<Flight[]>([]);
@@ -624,29 +618,15 @@ const FlightResults = ({ searchData, onBack, travellers }: { searchData: any; on
   const [sortBy, setSortBy] = useState<string>("recommended");
   const navigate = useNavigate();
 
-  // Filter states
   const [filters, setFilters] = useState({
-    stops: {
-      nonstop: false,
-      oneStop: false,
-      twoPlusStops: false
-    },
-    priceRange: {
-      min: 0,
-      max: 100000
-    },
+    stops: { nonstop: false, oneStop: false, twoPlusStops: false },
+    priceRange: { min: 0, max: 100000 },
     airlines: {} as Record<string, boolean>,
-    departureTime: {
-      morning: false,
-      afternoon: false,
-      evening: false,
-      night: false
-    },
+    departureTime: { morning: false, afternoon: false, evening: false, night: false },
     baggageIncluded: false,
     mealsIncluded: false
   });
 
-  // Fetch flights from API
   useEffect(() => {
     const fetchFlights = async () => {
       if (!searchData) return;
@@ -690,17 +670,9 @@ const FlightResults = ({ searchData, onBack, travellers }: { searchData: any; on
               }
             }
             
-            // FIXED: Exact match for guest counts - Flight must have EXACTLY the same guest counts
-            const requestedAdults = travellers.adults;
-            const requestedChildren = travellers.children;
-            const requestedInfants = travellers.infants;
-            
-            // Check if flight's guest counts EXACTLY match the requested counts
-            const adultsMatch = flight.adults === requestedAdults;
-            const childrenMatch = flight.children === requestedChildren;
-            const infantsMatch = flight.infants === requestedInfants;
-            
-            // All capacity checks must pass - EXACT MATCH
+            const adultsMatch = flight.adults === travellers.adults;
+            const childrenMatch = flight.children === travellers.children;
+            const infantsMatch = flight.infants === travellers.infants;
             const capacityMatch = adultsMatch && childrenMatch && infantsMatch;
             
             return fromCityMatch && toCityMatch && dateMatch && bookingTypeMatch && returnDateMatch && capacityMatch;
@@ -709,7 +681,6 @@ const FlightResults = ({ searchData, onBack, travellers }: { searchData: any; on
           setFlights(filteredFlights);
           setFilteredFlights(filteredFlights);
           
-          // Initialize airline filters
           const airlineFilters: Record<string, boolean> = {};
           filteredFlights.forEach((flight: Flight) => {
             if (flight.airline && !airlineFilters[flight.airline]) {
@@ -718,9 +689,8 @@ const FlightResults = ({ searchData, onBack, travellers }: { searchData: any; on
           });
           setFilters(prev => ({ ...prev, airlines: airlineFilters }));
           
-          // Set max price
           if (filteredFlights.length > 0) {
-            const maxPrice = Math.max(...filteredFlights.map(f => parseFloat(f.price_per_adult)));
+            const maxPrice = Math.max(...filteredFlights.map((f: Flight) => parseFloat(f.price_per_adult)));
             setFilters(prev => ({ ...prev, priceRange: { ...prev.priceRange, max: maxPrice } }));
           }
         } else {
@@ -737,7 +707,6 @@ const FlightResults = ({ searchData, onBack, travellers }: { searchData: any; on
     fetchFlights();
   }, [searchData, travellers]);
 
-  // Apply filters and sorting
   useEffect(() => {
     let result = [...flights];
 
@@ -786,9 +755,7 @@ const FlightResults = ({ searchData, onBack, travellers }: { searchData: any; on
     }
 
     if (filters.baggageIncluded) {
-      result = result.filter(flight => 
-        flight.baggage_allowance && flight.baggage_allowance.includes('kg')
-      );
+      result = result.filter(flight => flight.baggage_allowance && flight.baggage_allowance.includes('kg'));
     }
 
     if (filters.mealsIncluded) {
@@ -823,13 +790,9 @@ const FlightResults = ({ searchData, onBack, travellers }: { searchData: any; on
     const adultCount = travellers.adults;
     const childCount = travellers.children;
     const infantCount = travellers.infants;
-    
-    // Use actual prices from API
     const adultPrice = parseFloat(flight.price_per_adult) || 0;
     const childPrice = flight.price_per_child ? parseFloat(flight.price_per_child) : 0;
-    const infantPrice = 0; // Infants are usually free or minimal charge
-    
-    // Calculate total based on actual prices
+    const infantPrice = 0;
     const totalPriceValue = (adultCount * adultPrice) + (childCount * childPrice) + (infantCount * infantPrice);
     
     const flightWithDetails = {
@@ -859,40 +822,25 @@ const FlightResults = ({ searchData, onBack, travellers }: { searchData: any; on
   };
 
   const handleStopFilter = (stopType: 'nonstop' | 'oneStop' | 'twoPlusStops') => {
-    setFilters(prev => ({
-      ...prev,
-      stops: { ...prev.stops, [stopType]: !prev.stops[stopType] }
-    }));
+    setFilters(prev => ({ ...prev, stops: { ...prev.stops, [stopType]: !prev.stops[stopType] } }));
   };
 
   const handleAirlineFilter = (airline: string) => {
-    setFilters(prev => ({
-      ...prev,
-      airlines: { ...prev.airlines, [airline]: !prev.airlines[airline] }
-    }));
+    setFilters(prev => ({ ...prev, airlines: { ...prev.airlines, [airline]: !prev.airlines[airline] } }));
   };
 
   const handleTimeFilter = (timeSlot: 'morning' | 'afternoon' | 'evening' | 'night') => {
-    setFilters(prev => ({
-      ...prev,
-      departureTime: { ...prev.departureTime, [timeSlot]: !prev.departureTime[timeSlot] }
-    }));
+    setFilters(prev => ({ ...prev, departureTime: { ...prev.departureTime, [timeSlot]: !prev.departureTime[timeSlot] } }));
   };
 
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value);
-    setFilters(prev => ({
-      ...prev,
-      priceRange: { ...prev.priceRange, max: value }
-    }));
+    setFilters(prev => ({ ...prev, priceRange: { ...prev.priceRange, max: value } }));
   };
 
   const clearAllFilters = () => {
     const airlineFilters: Record<string, boolean> = {};
-    flights.forEach((flight: Flight) => {
-      airlineFilters[flight.airline] = true;
-    });
-    
+    flights.forEach((flight: Flight) => { airlineFilters[flight.airline] = true; });
     setFilters({
       stops: { nonstop: false, oneStop: false, twoPlusStops: false },
       priceRange: { min: 0, max: Math.max(...flights.map(f => parseFloat(f.price_per_adult))) },
@@ -907,25 +855,13 @@ const FlightResults = ({ searchData, onBack, travellers }: { searchData: any; on
   const totalTravellers = travellers.adults + travellers.children + travellers.infants;
   const maxPrice = flights.length > 0 ? Math.max(...flights.map(f => parseFloat(f.price_per_adult))) : 50000;
 
-  // Calculate fare summary for a flight
   const calculateFareSummary = (flight: Flight) => {
     const adultPrice = parseFloat(flight.price_per_adult) || 0;
     const childPrice = flight.price_per_child ? parseFloat(flight.price_per_child) : 0;
-    const infantPrice = 0;
-    
     const adultTotal = travellers.adults * adultPrice;
     const childTotal = travellers.children * childPrice;
-    const infantTotal = travellers.infants * infantPrice;
-    
-    return {
-      adultPrice,
-      childPrice,
-      infantPrice,
-      adultTotal,
-      childTotal,
-      infantTotal,
-      total: adultTotal + childTotal + infantTotal
-    };
+    const infantTotal = 0;
+    return { adultPrice, childPrice, infantPrice: 0, adultTotal, childTotal, infantTotal, total: adultTotal + childTotal + infantTotal };
   };
 
   return (
@@ -1007,10 +943,7 @@ const FlightResults = ({ searchData, onBack, travellers }: { searchData: any; on
                   <h2 className="text-lg font-bold text-gray-900">Filters</h2>
                   <p className="text-sm text-gray-500">Refine your flight search</p>
                 </div>
-                <button 
-                  onClick={clearAllFilters}
-                  className="text-sm text-orange-600 hover:text-orange-700 font-medium"
-                >
+                <button onClick={clearAllFilters} className="text-sm text-orange-600 hover:text-orange-700 font-medium">
                   Clear all
                 </button>
               </div>
@@ -1182,10 +1115,7 @@ const FlightResults = ({ searchData, onBack, travellers }: { searchData: any; on
                   </svg>
                 </div>
                 <p className="text-red-600 font-medium mb-4">{error}</p>
-                <button 
-                  onClick={onBack}
-                  className="px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
-                >
+                <button onClick={onBack} className="px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors">
                   Back to Search
                 </button>
               </div>
@@ -1198,10 +1128,7 @@ const FlightResults = ({ searchData, onBack, travellers }: { searchData: any; on
                 </div>
                 <p className="text-gray-600 font-medium mb-2">No flights match your filters</p>
                 <p className="text-sm text-gray-400 mb-4">Try adjusting your filter criteria</p>
-                <button 
-                  onClick={clearAllFilters}
-                  className="px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
-                >
+                <button onClick={clearAllFilters} className="px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors">
                   Clear All Filters
                 </button>
               </div>
@@ -1268,10 +1195,7 @@ const FlightResults = ({ searchData, onBack, travellers }: { searchData: any; on
                           )}
                         </div>
                         <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleBookNowClick(flight);
-                          }}
+                          onClick={(e) => { e.stopPropagation(); handleBookNowClick(flight); }}
                           className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white px-6 py-2.5 rounded-xl font-semibold transition-all shadow-md hover:shadow-lg"
                         >
                           Book Now
@@ -1388,16 +1312,17 @@ const FlightSearch = () => {
     infants: 0,
   });
 
-  // State for cities from API
+  // All flights data cached
+  const [allFlightsData, setAllFlightsData] = useState<Flight[]>([]);
+
+  // City states
   const [allFromCities, setAllFromCities] = useState<City[]>([]);
-  const [allToCities, setAllToCities] = useState<City[]>([]);
   const [availableToCities, setAvailableToCities] = useState<City[]>([]);
   
-  // State for available dates from API
+  // Available dates
   const [availableDepartureDates, setAvailableDepartureDates] = useState<string[]>([]);
   const [availableReturnDates, setAvailableReturnDates] = useState<string[]>([]);
   
-  // Loading states
   const [loadingCities, setLoadingCities] = useState(true);
 
   // Auto-focus states
@@ -1406,161 +1331,143 @@ const FlightSearch = () => {
   const [autoOpenReturn, setAutoOpenReturn] = useState(false);
   const [autoOpenTravellers, setAutoOpenTravellers] = useState(false);
 
-  // Fetch all cities from API on mount
+  // Helper to convert tripType UI value to API value
+  const getApiTripType = (type: "one-way" | "round-trip") =>
+    type === "one-way" ? "oneWay" : "roundTrip";
+
+  // Fetch all flights once on mount
   useEffect(() => {
-    const fetchCities = async () => {
+    const fetchAllFlights = async () => {
       setLoadingCities(true);
       try {
         const response = await fetch(`${BASE_URL}/api/offline-flights`);
         const result = await response.json();
-        
         if (result.success && result.data) {
-          // Extract unique from_city values
-          const fromCitiesMap = new Map<string, City>();
-          const toCitiesMap = new Map<string, City>();
-          
-          result.data.forEach((flight: Flight) => {
-            // Add from city
-            if (flight.from_city && flight.from_airport && flight.from_airport_code) {
-              const key = flight.from_airport_code;
-              if (!fromCitiesMap.has(key)) {
-                fromCitiesMap.set(key, {
-                  code: flight.from_airport_code,
-                  name: flight.from_city,
-                  airport: flight.from_airport
-                });
-              }
-            }
-            
-            // Add to city
-            if (flight.to_city && flight.to_airport && flight.to_airport_code) {
-              const key = flight.to_airport_code;
-              if (!toCitiesMap.has(key)) {
-                toCitiesMap.set(key, {
-                  code: flight.to_airport_code,
-                  name: flight.to_city,
-                  airport: flight.to_airport
-                });
-              }
-            }
-          });
-          
-          const fromCitiesArray = Array.from(fromCitiesMap.values());
-          const toCitiesArray = Array.from(toCitiesMap.values());
-          
-          setAllFromCities(fromCitiesArray);
-          setAllToCities(toCitiesArray);
-          
-          // Set default cities if available
-          if (fromCitiesArray.length > 0) {
-            const delhiCity = fromCitiesArray.find(c => c.code === "DEL") || fromCitiesArray[0];
-            setFromCity(delhiCity);
-          }
-          if (toCitiesArray.length > 0) {
-            const blrCity = toCitiesArray.find(c => c.code === "BLR") || toCitiesArray[0];
-            setToCity(blrCity);
-          }
+          setAllFlightsData(result.data);
         }
       } catch (error) {
-        console.error('Error fetching cities:', error);
+        console.error('Error fetching flights:', error);
       } finally {
         setLoadingCities(false);
       }
     };
-    
-    fetchCities();
+    fetchAllFlights();
   }, []);
 
-  // Update available to_cities when from_city changes
+  // Recompute FROM cities whenever tripType or allFlightsData changes
   useEffect(() => {
-    const fetchAvailableToCities = async () => {
-      if (!fromCity) {
-        setAvailableToCities(allToCities);
-        return;
-      }
-      
-      try {
-        const response = await fetch(`${BASE_URL}/api/offline-flights`);
-        const result = await response.json();
-        
-        if (result.success && result.data) {
-          // Filter flights that have matching from_city
-          const relevantFlights = result.data.filter((flight: Flight) => 
-            flight.from_city?.toLowerCase() === fromCity.name?.toLowerCase()
-          );
-          
-          // Extract unique to_cities from these flights
-          const toCitiesMap = new Map<string, City>();
-          relevantFlights.forEach((flight: Flight) => {
-            if (flight.to_city && flight.to_airport && flight.to_airport_code) {
-              const key = flight.to_airport_code;
-              if (!toCitiesMap.has(key)) {
-                toCitiesMap.set(key, {
-                  code: flight.to_airport_code,
-                  name: flight.to_city,
-                  airport: flight.to_airport
-                });
-              }
-            }
-          });
-          
-          const availableToCitiesArray = Array.from(toCitiesMap.values());
-          setAvailableToCities(availableToCitiesArray);
-          
-          // If current toCity is not in available destinations, clear it
-          if (toCity && !availableToCitiesArray.find(c => c.code === toCity.code)) {
-            setToCity(availableToCitiesArray.length > 0 ? availableToCitiesArray[0] : null);
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching available to cities:', error);
-      }
-    };
-    
-    fetchAvailableToCities();
-  }, [fromCity, allToCities]);
+    if (!allFlightsData.length) return;
 
-  // Fetch available dates based on selected route
-  useEffect(() => {
-    const fetchAvailableDates = async () => {
-      if (!fromCity || !toCity) return;
-      
-      try {
-        const response = await fetch(`${BASE_URL}/api/offline-flights`);
-        const result = await response.json();
-        
-        if (result.success && result.data) {
-          // Filter flights for the selected route
-          const routeFlights = result.data.filter((flight: Flight) => 
-            flight.from_city?.toLowerCase() === fromCity.name?.toLowerCase() &&
-            flight.to_city?.toLowerCase() === toCity.name?.toLowerCase()
-          );
-          
-          // Get unique departure dates
-          const departureDates = [...new Set(
-            routeFlights
-              .map((flight: Flight) => flight.departure_date)
-              .filter(date => date)
-          )];
-          
-          setAvailableDepartureDates(departureDates);
-          
-          // Get unique return dates (only for round trip flights)
-          const returnDates = [...new Set(
-            routeFlights
-              .filter((flight: Flight) => flight.booking_type === 'roundTrip' && flight.return_date)
-              .map((flight: Flight) => flight.return_date!)
-          )];
-          
-          setAvailableReturnDates(returnDates);
+    const apiTripType = getApiTripType(tripType);
+
+    // Filter flights by booking_type first
+    const relevantFlights = allFlightsData.filter(
+      (f) => f.booking_type === apiTripType
+    );
+
+    // Extract unique from_cities
+    // Use city name as the dedup key so cities without airport info still appear
+    const fromCitiesMap = new Map<string, City>();
+    relevantFlights.forEach((flight) => {
+      if (flight.from_city) {
+        const key = flight.from_city.toLowerCase();
+        if (!fromCitiesMap.has(key)) {
+          fromCitiesMap.set(key, {
+            code: flight.from_airport_code || flight.from_city.substring(0, 3).toUpperCase(),
+            name: flight.from_city,
+            airport: flight.from_airport || flight.from_city,
+          });
         }
-      } catch (error) {
-        console.error('Error fetching available dates:', error);
       }
-    };
-    
-    fetchAvailableDates();
-  }, [fromCity, toCity]);
+    });
+
+    const fromCitiesArray = Array.from(fromCitiesMap.values());
+    setAllFromCities(fromCitiesArray);
+
+    // Reset fromCity if it's not valid for the new tripType
+    setFromCity((prev) => {
+      if (!prev) return null;
+      const stillValid = fromCitiesArray.find(
+        (c) => c.name.toLowerCase() === prev.name.toLowerCase()
+      );
+      return stillValid || null;
+    });
+  }, [tripType, allFlightsData]);
+
+  // Recompute TO cities whenever fromCity, tripType, or allFlightsData changes
+  useEffect(() => {
+    if (!allFlightsData.length) return;
+
+    const apiTripType = getApiTripType(tripType);
+
+    // Filter by booking_type AND from_city
+    const relevantFlights = allFlightsData.filter((f) => {
+      const bookingMatch = f.booking_type === apiTripType;
+      const fromMatch = fromCity
+        ? f.from_city?.toLowerCase() === fromCity.name?.toLowerCase()
+        : true;
+      return bookingMatch && fromMatch;
+    });
+
+    // Extract unique to_cities
+    const toCitiesMap = new Map<string, City>();
+    relevantFlights.forEach((flight) => {
+      if (flight.to_city) {
+        const key = flight.to_city.toLowerCase();
+        if (!toCitiesMap.has(key)) {
+          toCitiesMap.set(key, {
+            code: flight.to_airport_code || flight.to_city.substring(0, 3).toUpperCase(),
+            name: flight.to_city,
+            airport: flight.to_airport || flight.to_city,
+          });
+        }
+      }
+    });
+
+    const toCitiesArray = Array.from(toCitiesMap.values());
+    setAvailableToCities(toCitiesArray);
+
+    // Reset toCity if no longer valid
+    setToCity((prev) => {
+      if (!prev) return null;
+      const stillValid = toCitiesArray.find(
+        (c) => c.name.toLowerCase() === prev.name.toLowerCase()
+      );
+      return stillValid || null;
+    });
+  }, [fromCity, tripType, allFlightsData]);
+
+  // Recompute available dates whenever fromCity, toCity, tripType, or allFlightsData changes
+  useEffect(() => {
+    if (!fromCity || !toCity || !allFlightsData.length) {
+      setAvailableDepartureDates([]);
+      setAvailableReturnDates([]);
+      return;
+    }
+
+    const apiTripType = getApiTripType(tripType);
+
+    const routeFlights = allFlightsData.filter(
+      (f) =>
+        f.booking_type === apiTripType &&
+        f.from_city?.toLowerCase() === fromCity.name?.toLowerCase() &&
+        f.to_city?.toLowerCase() === toCity.name?.toLowerCase()
+    );
+
+    const departureDates = [
+      ...new Set(routeFlights.map((f) => f.departure_date).filter(Boolean)),
+    ] as string[];
+    setAvailableDepartureDates(departureDates);
+
+    const returnDates = [
+      ...new Set(
+        routeFlights
+          .filter((f) => f.booking_type === 'roundTrip' && f.return_date)
+          .map((f) => f.return_date!)
+      ),
+    ];
+    setAvailableReturnDates(returnDates);
+  }, [fromCity, toCity, tripType, allFlightsData]);
 
   const swapCities = () => {
     if (fromCity && toCity) {
@@ -1576,7 +1483,7 @@ const FlightSearch = () => {
       fromCity,
       toCity,
       departureDate,
-      returnDate,
+      returnDate: tripType === 'round-trip' ? returnDate : undefined,
       tripType,
       travellers
     };
@@ -1594,47 +1501,20 @@ const FlightSearch = () => {
 
   const handleBackToSearch = () => {
     setShowResults(false);
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleFromSelect = () => {
-    setAutoOpenTo(true);
-  };
-
-  const handleToSelect = () => {
-    setAutoOpenDeparture(true);
-  };
-
+  const handleFromSelect = () => { setAutoOpenTo(true); };
+  const handleToSelect = () => { setAutoOpenDeparture(true); };
   const handleDepartureSelect = () => {
-    if (tripType === "round-trip") {
-      setAutoOpenReturn(true);
-    } else {
-      setAutoOpenTravellers(true);
-    }
+    if (tripType === "round-trip") setAutoOpenReturn(true);
+    else setAutoOpenTravellers(true);
   };
-
-  const handleReturnSelect = () => {
-    setAutoOpenTravellers(true);
-  };
-
-  const handleToClose = () => {
-    setAutoOpenTo(false);
-  };
-
-  const handleDepartureClose = () => {
-    setAutoOpenDeparture(false);
-  };
-
-  const handleReturnClose = () => {
-    setAutoOpenReturn(false);
-  };
-
-  const handleTravellersClose = () => {
-    setAutoOpenTravellers(false);
-  };
+  const handleReturnSelect = () => { setAutoOpenTravellers(true); };
+  const handleToClose = () => { setAutoOpenTo(false); };
+  const handleDepartureClose = () => { setAutoOpenDeparture(false); };
+  const handleReturnClose = () => { setAutoOpenReturn(false); };
+  const handleTravellersClose = () => { setAutoOpenTravellers(false); };
 
   const isSearchEnabled = !!fromCity && !!toCity && !!departureDate;
 
@@ -1668,7 +1548,12 @@ const FlightSearch = () => {
               <div className="w-full md:w-auto">
                 <TripTypeSelector
                   tripType={tripType}
-                  onTripTypeChange={setTripType}
+                  onTripTypeChange={(type) => {
+                    setTripType(type);
+                    // Clear selections when switching trip type so user picks valid options
+                    setFromCity(null);
+                    setToCity(null);
+                  }}
                 />
               </div>
               
@@ -1773,7 +1658,7 @@ const FlightSearch = () => {
             <div className="md:hidden p-4 border-t border-gray-200">
               <div className="flex justify-center gap-4">
                 <button
-                  onClick={() => setTripType("one-way")}
+                  onClick={() => { setTripType("one-way"); setFromCity(null); setToCity(null); }}
                   className={cn(
                     "px-6 py-2.5 rounded-lg border text-sm font-medium transition-all duration-200",
                     tripType === "one-way" 
@@ -1784,7 +1669,7 @@ const FlightSearch = () => {
                   One Way
                 </button>
                 <button
-                  onClick={() => setTripType("round-trip")}
+                  onClick={() => { setTripType("round-trip"); setFromCity(null); setToCity(null); }}
                   className={cn(
                     "px-6 py-2.5 rounded-lg border text-sm font-medium transition-all duration-200",
                     tripType === "round-trip" 
