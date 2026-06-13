@@ -98,7 +98,36 @@ const PassportFormPDF: React.FC<PassportFormPDFProps> = ({ formData }) => {
                         <Text style={styles.value}>{formData.passport_booklet || '-'} Pages</Text>
                     </View>
                 </View>
-
+{/* Old Passport Details Section - Add this after Personal Details and before Address */}
+{(formData.applicant_for === "Reissue" || formData.applicant_for === "Lost / Damage") && (
+    <View style={styles.section}>
+        <Text style={styles.sectionHeader}>Old Passport Details</Text>
+        <View style={styles.row}>
+            <Text style={styles.label}>Old Passport Number:</Text>
+            <Text style={styles.value}>{formData.old_passport_number || '-'}</Text>
+        </View>
+        <View style={styles.row}>
+            <Text style={styles.label}>File Number:</Text>
+            <Text style={styles.value}>{formData.file_number || '-'}</Text>
+        </View>
+        <View style={styles.row}>
+            <Text style={styles.label}>Date of Issue:</Text>
+            <Text style={styles.value}>{formData.date_of_issue || '-'}</Text>
+        </View>
+        <View style={styles.row}>
+            <Text style={styles.label}>Date of Expiry:</Text>
+            <Text style={styles.value}>{formData.date_of_expiry || '-'}</Text>
+        </View>
+        <View style={styles.row}>
+            <Text style={styles.label}>Place of Issue:</Text>
+            <Text style={styles.value}>{formData.place_of_issue || '-'}</Text>
+        </View>
+        <View style={styles.row}>
+            <Text style={styles.label}>Date of Birth (as per old passport):</Text>
+            <Text style={styles.value}>{formData.old_dob || '-'}</Text>
+        </View>
+    </View>
+)}
                 {/* Personal Details Section */}
                 <View style={styles.section}>
                     <Text style={styles.sectionHeader}>Personal Details</Text>

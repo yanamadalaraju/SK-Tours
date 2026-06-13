@@ -55,6 +55,13 @@ interface PassportFormData {
     criminal_case: string;
     post_office: string;
     police_station: string;
+    // New fields for old passport details
+    old_passport_number: string;
+    file_number: string;
+    date_of_issue: string;
+    date_of_expiry: string;
+    place_of_issue: string;
+    old_dob: string;
 }
 
 interface EmailFormData {
@@ -136,9 +143,26 @@ const PassportFormOneM: React.FC = () => {
         criminal_case: "",
         post_office: "",
         police_station: "",
+        // Initialize new fields
+        old_passport_number: "",
+        file_number: "",
+        date_of_issue: "",
+        date_of_expiry: "",
+        place_of_issue: "",
+        old_dob: "",
     });
 
     const [selectedTab, setSelectedTab] = useState<TabType>("father");
+
+    // Check if old passport details should be shown (Reissue or Lost/Damage)
+    const shouldShowOldPassportDetails = () => {
+        return formData.applicant_for === "Reissue" || formData.applicant_for === "Lost / Damage";
+    };
+
+    // Check if fields should be hidden (only for Reissue)
+    const shouldHideFieldsForReissue = () => {
+        return formData.applicant_for === "Reissue";
+    };
 
     // Handle text input changes
     const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -153,179 +177,252 @@ const PassportFormOneM: React.FC = () => {
         if (showError) setShowError(false);
     };
 
-const validateForm = (): boolean => {
-    // Helper to check empty
-    const isEmpty = (value: string): boolean => !value || value.trim() === '';
-    
-    // Required field validations
-    if (!formData.applicant_for) {
-        setErrorMessage("Please select Applicant For");
-        setShowError(true);
-        setTimeout(() => setShowError(false), 5000);
-        return false;
-    }
-    
-    if (!formData.application_type) {
-        setErrorMessage("Please select Application Type");
-        setShowError(true);
-        setTimeout(() => setShowError(false), 5000);
-        return false;
-    }
-    
-    if (!formData.passport_booklet) {
-        setErrorMessage("Please select Passport Booklet Type");
-        setShowError(true);
-        setTimeout(() => setShowError(false), 5000);
-        return false;
-    }
-    
-    if (isEmpty(formData.name)) {
-        setErrorMessage("Please enter your Name");
-        setShowError(true);
-        setTimeout(() => setShowError(false), 5000);
-        return false;
-    }
-    
-    if (isEmpty(formData.surname)) {
-        setErrorMessage("Please enter your Surname");
-        setShowError(true);
-        setTimeout(() => setShowError(false), 5000);
-        return false;
-    }
-    
-    if (!formData.dob) {
-        setErrorMessage("Please select Date of Birth");
-        setShowError(true);
-        setTimeout(() => setShowError(false), 5000);
-        return false;
-    }
-    
-    // DOB - Not future date
-    const dobDate = new Date(formData.dob);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    if (dobDate > today) {
-        setErrorMessage("Date of Birth cannot be in the future");
-        setShowError(true);
-        setTimeout(() => setShowError(false), 5000);
-        return false;
-    }
-    
-    if (isEmpty(formData.place_of_birth)) {
-        setErrorMessage("Please enter Place of Birth");
-        setShowError(true);
-        setTimeout(() => setShowError(false), 5000);
-        return false;
-    }
-    
-    if (isEmpty(formData.cell_no)) {
-        setErrorMessage("Please enter Cell Number");
-        setShowError(true);
-        setTimeout(() => setShowError(false), 5000);
-        return false;
-    }
-    
-    // Cell number - 10 digits
-    const phoneRegex = /^\d{10}$/;
-    if (!phoneRegex.test(formData.cell_no)) {
-        setErrorMessage("Please enter a valid 10-digit phone number");
-        setShowError(true);
-        setTimeout(() => setShowError(false), 5000);
-        return false;
-    }
-    
-    if (isEmpty(formData.email)) {
-        setErrorMessage("Please enter Email Address");
-        setShowError(true);
-        setTimeout(() => setShowError(false), 5000);
-        return false;
-    }
-    
-    // Email - Valid format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-        setErrorMessage("Please enter a valid email address");
-        setShowError(true);
-        setTimeout(() => setShowError(false), 5000);
-        return false;
-    }
-    
-    if (isEmpty(formData.address)) {
-        setErrorMessage("Please enter Address");
-        setShowError(true);
-        setTimeout(() => setShowError(false), 5000);
-        return false;
-    }
-    
-    if (isEmpty(formData.city)) {
-        setErrorMessage("Please enter City");
-        setShowError(true);
-        setTimeout(() => setShowError(false), 5000);
-        return false;
-    }
-    
-    if (isEmpty(formData.pincode)) {
-        setErrorMessage("Please enter Pincode");
-        setShowError(true);
-        setTimeout(() => setShowError(false), 5000);
-        return false;
-    }
-    
-    // Pincode - 6 digits
-    const pincodeRegex = /^\d{6}$/;
-    if (!pincodeRegex.test(formData.pincode)) {
-        setErrorMessage("Please enter a valid 6-digit pincode");
-        setShowError(true);
-        setTimeout(() => setShowError(false), 5000);
-        return false;
-    }
-    
-    if (isEmpty(formData.state)) {
-        setErrorMessage("Please enter State");
-        setShowError(true);
-        setTimeout(() => setShowError(false), 5000);
-        return false;
-    }
-    
-    if (isEmpty(formData.country)) {
-        setErrorMessage("Please enter Country");
-        setShowError(true);
-        setTimeout(() => setShowError(false), 5000);
-        return false;
-    }
-    
-    if (!formData.criminal_case) {
-        setErrorMessage("Please select if you have any criminal cases pending");
-        setShowError(true);
-        setTimeout(() => setShowError(false), 5000);
-        return false;
-    }
-    
-    // PAN Card validation (optional but validate format if provided)
-    if (formData.pan_no && formData.pan_no.trim() !== "") {
-        const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
-        if (!panRegex.test(formData.pan_no.toUpperCase())) {
-            setErrorMessage("Invalid PAN Card format. Expected: ABCDE1234F");
+    const validateForm = (): boolean => {
+        // Helper to check empty
+        const isEmpty = (value: string): boolean => !value || value.trim() === '';
+        
+        // Required field validations
+        if (!formData.applicant_for) {
+            setErrorMessage("Please select Applicant For");
             setShowError(true);
             setTimeout(() => setShowError(false), 5000);
             return false;
         }
-    }
-    
-    // Aadhaar validation (optional but validate format if provided)
-    if (formData.aadhaar_no && formData.aadhaar_no.trim() !== "") {
-        const aadhaarRegex = /^\d{12}$/;
-        if (!aadhaarRegex.test(formData.aadhaar_no)) {
-            setErrorMessage("Invalid Aadhaar Number. Please enter 12 digits");
+        
+        if (!formData.application_type) {
+            setErrorMessage("Please select Application Type");
             setShowError(true);
             setTimeout(() => setShowError(false), 5000);
             return false;
         }
-    }
-    
-    return true;
-};
+        
+        if (!formData.passport_booklet) {
+            setErrorMessage("Please select Passport Booklet Type");
+            setShowError(true);
+            setTimeout(() => setShowError(false), 5000);
+            return false;
+        }
+        
+        if (isEmpty(formData.name)) {
+            setErrorMessage("Please enter your Name");
+            setShowError(true);
+            setTimeout(() => setShowError(false), 5000);
+            return false;
+        }
+        
+        if (isEmpty(formData.surname)) {
+            setErrorMessage("Please enter your Surname");
+            setShowError(true);
+            setTimeout(() => setShowError(false), 5000);
+            return false;
+        }
+        
+        if (!formData.dob) {
+            setErrorMessage("Please select Date of Birth");
+            setShowError(true);
+            setTimeout(() => setShowError(false), 5000);
+            return false;
+        }
+        
+        // DOB - Not future date
+        const dobDate = new Date(formData.dob);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        if (dobDate > today) {
+            setErrorMessage("Date of Birth cannot be in the future");
+            setShowError(true);
+            setTimeout(() => setShowError(false), 5000);
+            return false;
+        }
+        
+        if (isEmpty(formData.place_of_birth)) {
+            setErrorMessage("Please enter Place of Birth");
+            setShowError(true);
+            setTimeout(() => setShowError(false), 5000);
+            return false;
+        }
+        
+        if (isEmpty(formData.cell_no)) {
+            setErrorMessage("Please enter Cell Number");
+            setShowError(true);
+            setTimeout(() => setShowError(false), 5000);
+            return false;
+        }
+        
+        // Cell number - 10 digits
+        const phoneRegex = /^\d{10}$/;
+        if (!phoneRegex.test(formData.cell_no)) {
+            setErrorMessage("Please enter a valid 10-digit phone number");
+            setShowError(true);
+            setTimeout(() => setShowError(false), 5000);
+            return false;
+        }
+        
+        if (isEmpty(formData.email)) {
+            setErrorMessage("Please enter Email Address");
+            setShowError(true);
+            setTimeout(() => setShowError(false), 5000);
+            return false;
+        }
+        
+        // Email - Valid format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.email)) {
+            setErrorMessage("Please enter a valid email address");
+            setShowError(true);
+            setTimeout(() => setShowError(false), 5000);
+            return false;
+        }
+        
+        // Validate address fields only if not Reissue
+        if (!shouldHideFieldsForReissue()) {
+            if (isEmpty(formData.address)) {
+                setErrorMessage("Please enter Address");
+                setShowError(true);
+                setTimeout(() => setShowError(false), 5000);
+                return false;
+            }
+            
+            if (isEmpty(formData.city)) {
+                setErrorMessage("Please enter City");
+                setShowError(true);
+                setTimeout(() => setShowError(false), 5000);
+                return false;
+            }
+            
+            if (isEmpty(formData.pincode)) {
+                setErrorMessage("Please enter Pincode");
+                setShowError(true);
+                setTimeout(() => setShowError(false), 5000);
+                return false;
+            }
+            
+            // Pincode - 6 digits
+            const pincodeRegex = /^\d{6}$/;
+            if (!pincodeRegex.test(formData.pincode)) {
+                setErrorMessage("Please enter a valid 6-digit pincode");
+                setShowError(true);
+                setTimeout(() => setShowError(false), 5000);
+                return false;
+            }
+            
+            if (isEmpty(formData.state)) {
+                setErrorMessage("Please enter State");
+                setShowError(true);
+                setTimeout(() => setShowError(false), 5000);
+                return false;
+            }
+            
+            if (isEmpty(formData.country)) {
+                setErrorMessage("Please enter Country");
+                setShowError(true);
+                setTimeout(() => setShowError(false), 5000);
+                return false;
+            }
+
+            // Validate profession, govt employee, visible mark only for non-Reissue
+            if (isEmpty(formData.profession)) {
+                setErrorMessage("Please enter Profession");
+                setShowError(true);
+                setTimeout(() => setShowError(false), 5000);
+                return false;
+            }
+            
+            if (!formData.govt_employee) {
+                setErrorMessage("Please select if you are a Government Employee");
+                setShowError(true);
+                setTimeout(() => setShowError(false), 5000);
+                return false;
+            }
+            
+            if (isEmpty(formData.visible_mark)) {
+                setErrorMessage("Please enter Visible Mark");
+                setShowError(true);
+                setTimeout(() => setShowError(false), 5000);
+                return false;
+            }
+        }
+        
+        if (!formData.criminal_case) {
+            setErrorMessage("Please select if you have any criminal cases pending");
+            setShowError(true);
+            setTimeout(() => setShowError(false), 5000);
+            return false;
+        }
+        
+        // Validate old passport details if Reissue or Lost/Damage is selected
+        if (shouldShowOldPassportDetails()) {
+            if (isEmpty(formData.old_passport_number)) {
+                setErrorMessage("Please enter Old Passport Number");
+                setShowError(true);
+                setTimeout(() => setShowError(false), 5000);
+                return false;
+            }
+            
+            if (isEmpty(formData.file_number)) {
+                setErrorMessage("Please enter File Number");
+                setShowError(true);
+                setTimeout(() => setShowError(false), 5000);
+                return false;
+            }
+            
+            if (!formData.date_of_issue) {
+                setErrorMessage("Please select Date of Issue");
+                setShowError(true);
+                setTimeout(() => setShowError(false), 5000);
+                return false;
+            }
+            
+            if (!formData.date_of_expiry) {
+                setErrorMessage("Please select Date of Expiry");
+                setShowError(true);
+                setTimeout(() => setShowError(false), 5000);
+                return false;
+            }
+            
+            // Validate expiry date is after issue date
+            const issueDate = new Date(formData.date_of_issue);
+            const expiryDate = new Date(formData.date_of_expiry);
+            if (expiryDate <= issueDate) {
+                setErrorMessage("Date of Expiry must be after Date of Issue");
+                setShowError(true);
+                setTimeout(() => setShowError(false), 5000);
+                return false;
+            }
+            
+            if (isEmpty(formData.place_of_issue)) {
+                setErrorMessage("Please enter Place of Issue");
+                setShowError(true);
+                setTimeout(() => setShowError(false), 5000);
+                return false;
+            }
+        }
+        
+        // PAN Card validation (optional but validate format if provided)
+        if (formData.pan_no && formData.pan_no.trim() !== "") {
+            const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+            if (!panRegex.test(formData.pan_no.toUpperCase())) {
+                setErrorMessage("Invalid PAN Card format. Expected: ABCDE1234F");
+                setShowError(true);
+                setTimeout(() => setShowError(false), 5000);
+                return false;
+            }
+        }
+        
+        // Aadhaar validation (optional but validate format if provided)
+        if (formData.aadhaar_no && formData.aadhaar_no.trim() !== "") {
+            const aadhaarRegex = /^\d{12}$/;
+            if (!aadhaarRegex.test(formData.aadhaar_no)) {
+                setErrorMessage("Invalid Aadhaar Number. Please enter 12 digits");
+                setShowError(true);
+                setTimeout(() => setShowError(false), 5000);
+                return false;
+            }
+        }
+        
+        return true;
+    };
 
     const resetForm = () => {
         setFormData({
@@ -373,6 +470,12 @@ const validateForm = (): boolean => {
             criminal_case: "",
             post_office: "",
             police_station: "",
+            old_passport_number: "",
+            file_number: "",
+            date_of_issue: "",
+            date_of_expiry: "",
+            place_of_issue: "",
+            old_dob: "",
         });
     };
 
@@ -717,7 +820,73 @@ const validateForm = (): boolean => {
                             </div>
                         </div>
                     </div>
+  {/* Old Passport Details - Conditionally Rendered for Reissue or Lost/Damage */}
+                    {shouldShowOldPassportDetails() && (
+                        <>
+                            <div className="flex flex-col md:grid md:grid-cols-[200px_1fr_200px_1fr] gap-2 items-start md:items-center mb-1">
+                                <div className="bg-[#5d3b13] text-white p-2 font-bold text-sm w-full md:w-auto">Old Passport Number</div>
+                                <input
+                                    type="text"
+                                    name="old_passport_number"
+                                    value={formData.old_passport_number}
+                                    className="p-2 border border-[#c59a4b] bg-[#fff8e1] text-sm w-full"
+                                    onChange={handleInput}
+                                    placeholder="Enter old passport number"
+                                />
 
+                                <div className="bg-[#5d3b13] text-white p-2 font-bold text-sm w-full md:w-auto">File Number</div>
+                                <input
+                                    type="text"
+                                    name="file_number"
+                                    value={formData.file_number}
+                                    className="p-2 border border-[#c59a4b] bg-[#fff8e1] text-sm w-full"
+                                    onChange={handleInput}
+                                    placeholder="Enter file number"
+                                />
+                            </div>
+
+                            <div className="flex flex-col md:grid md:grid-cols-[200px_1fr_200px_1fr] gap-2 items-start md:items-center mb-1">
+                                <div className="bg-[#5d3b13] text-white p-2 font-bold text-sm w-full md:w-auto">Date of Issue</div>
+                                <input
+                                    type="date"
+                                    name="date_of_issue"
+                                    value={formData.date_of_issue}
+                                    className="p-2 border border-[#c59a4b] bg-[#fff8e1] text-sm w-full"
+                                    onChange={handleInput}
+                                />
+
+                                <div className="bg-[#5d3b13] text-white p-2 font-bold text-sm w-full md:w-auto">Date of Expiry</div>
+                                <input
+                                    type="date"
+                                    name="date_of_expiry"
+                                    value={formData.date_of_expiry}
+                                    className="p-2 border border-[#c59a4b] bg-[#fff8e1] text-sm w-full"
+                                    onChange={handleInput}
+                                />
+                            </div>
+
+                            <div className="flex flex-col md:grid md:grid-cols-[200px_1fr_200px_1fr] gap-2 items-start md:items-center mb-1">
+                                <div className="bg-[#5d3b13] text-white p-2 font-bold text-sm w-full md:w-auto">Place of Issue</div>
+                                <input
+                                    type="text"
+                                    name="place_of_issue"
+                                    value={formData.place_of_issue}
+                                    className="p-2 border border-[#c59a4b] bg-[#fff8e1] text-sm w-full"
+                                    onChange={handleInput}
+                                    placeholder="Enter place of issue"
+                                />
+
+                                <div className="bg-[#5d3b13] text-white p-2 font-bold text-sm w-full md:w-auto">Date of Birth (as per old passport)</div>
+                                <input
+                                    type="date"
+                                    name="old_dob"
+                                    value={formData.old_dob}
+                                    className="p-2 border border-[#c59a4b] bg-[#fff8e1] text-sm w-full"
+                                    onChange={handleInput}
+                                />
+                            </div>
+                        </>
+                    )}
                     {/* Name Row */}
                     <div className="flex flex-col md:grid md:grid-cols-[180px_1fr_180px_1fr_180px_1fr] gap-2 items-start md:items-center mb-1">
                         <div className="bg-[#5d3b13] text-white p-2 font-bold text-sm w-full md:w-auto">Name</div>
@@ -787,6 +956,8 @@ const validateForm = (): boolean => {
                         />
                     </div>
 
+                  
+
                     {/* PAN, Aadhaar, Qualification */}
                     <div className="flex flex-col md:grid md:grid-cols-[180px_1fr_180px_1fr_180px_1fr] gap-2 items-start md:items-center mb-1">
                         <div className="bg-[#5d3b13] text-white p-2 font-bold text-sm w-full md:w-auto">Pan Card No</div>
@@ -817,110 +988,117 @@ const validateForm = (): boolean => {
                         />
                     </div>
 
-                    {/* Profession, Govt Employee, Visible Mark */}
-                    <div className="flex flex-col md:grid md:grid-cols-[140px_1fr_280px_auto_100px_1fr] gap-2 items-start md:items-center mb-2">
-                        <div className="bg-[#5d3b13] text-white p-2 font-bold text-sm whitespace-nowrap w-full md:w-auto">Profession</div>
-                        <input
-                            type="text"
-                            name="profession"
-                            value={formData.profession}
-                            className="p-2 border border-[#c59a4b] bg-[#fff8e1] text-sm w-full"
-                            onChange={handleInput}
-                        />
+                    {/* Profession, Govt Employee, Visible Mark - Hidden for Reissue */}
+                    {!shouldHideFieldsForReissue() && (
+                        <div className="flex flex-col md:grid md:grid-cols-[140px_1fr_280px_auto_100px_1fr] gap-2 items-start md:items-center mb-2">
+                            <div className="bg-[#5d3b13] text-white p-2 font-bold text-sm whitespace-nowrap w-full md:w-auto">Profession</div>
+                            <input
+                                type="text"
+                                name="profession"
+                                value={formData.profession}
+                                className="p-2 border border-[#c59a4b] bg-[#fff8e1] text-sm w-full"
+                                onChange={handleInput}
+                            />
 
-                        <div className="bg-[#5d3b13] text-white p-2 font-bold text-sm whitespace-nowrap text-center w-full md:w-auto">
-                            Are you Government Employee
-                        </div>
-
-                        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
-                            <div className="flex items-center gap-1">
-                                <input
-                                    type="radio"
-                                    name="govt_employee"
-                                    value="Yes"
-                                    onChange={(e) => handleGroupCheckbox(e, "govt_employee")}
-                                    checked={formData.govt_employee === "Yes"}
-                                    className="w-4 h-4 md:w-5 md:h-5"
-                                />
-                                <span className="bg-white text-black px-3 md:px-4 py-1 md:py-1.5 border border-[#5d3b13] text-xs md:text-sm font-bold">
-                                    Yes
-                                </span>
+                            <div className="bg-[#5d3b13] text-white p-2 font-bold text-sm whitespace-nowrap text-center w-full md:w-auto">
+                                Are you Government Employee
                             </div>
-                            <div className="flex items-center gap-1">
-                                <input
-                                    type="radio"
-                                    name="govt_employee"
-                                    value="No"
-                                    onChange={(e) => handleGroupCheckbox(e, "govt_employee")}
-                                    checked={formData.govt_employee === "No"}
-                                    className="w-4 h-4 md:w-5 md:h-5"
-                                />
-                                <span className="bg-white text-black px-3 md:px-4 py-1 md:py-1.5 border border-[#5d3b13] text-xs md:text-sm font-bold">
-                                    No
-                                </span>
+
+                            <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                                <div className="flex items-center gap-1">
+                                    <input
+                                        type="radio"
+                                        name="govt_employee"
+                                        value="Yes"
+                                        onChange={(e) => handleGroupCheckbox(e, "govt_employee")}
+                                        checked={formData.govt_employee === "Yes"}
+                                        className="w-4 h-4 md:w-5 md:h-5"
+                                    />
+                                    <span className="bg-white text-black px-3 md:px-4 py-1 md:py-1.5 border border-[#5d3b13] text-xs md:text-sm font-bold">
+                                        Yes
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                    <input
+                                        type="radio"
+                                        name="govt_employee"
+                                        value="No"
+                                        onChange={(e) => handleGroupCheckbox(e, "govt_employee")}
+                                        checked={formData.govt_employee === "No"}
+                                        className="w-4 h-4 md:w-5 md:h-5"
+                                    />
+                                    <span className="bg-white text-black px-3 md:px-4 py-1 md:py-1.5 border border-[#5d3b13] text-xs md:text-sm font-bold">
+                                        No
+                                    </span>
+                                </div>
                             </div>
+
+                            <div className="bg-[#5d3b13] text-white p-2 font-bold text-sm whitespace-nowrap w-full md:w-auto">Visible Mark</div>
+                            <input
+                                type="text"
+                                name="visible_mark"
+                                value={formData.visible_mark}
+                                className="p-2 border border-[#c59a4b] bg-[#fff8e1] text-sm w-full"
+                                onChange={handleInput}
+                            />
                         </div>
+                    )}
 
-                        <div className="bg-[#5d3b13] text-white p-2 font-bold text-sm whitespace-nowrap w-full md:w-auto">Visible Mark</div>
-                        <input
-                            type="text"
-                            name="visible_mark"
-                            value={formData.visible_mark}
-                            className="p-2 border border-[#c59a4b] bg-[#fff8e1] text-sm w-full"
-                            onChange={handleInput}
-                        />
-                    </div>
+                    {/* Address Fields - Hidden for Reissue */}
+                    {!shouldHideFieldsForReissue() && (
+                        <>
+                            {/* Address */}
+                            <div className="flex flex-col md:grid md:grid-cols-[180px_1fr] gap-2 items-start md:items-center mb-1">
+                                <div className="bg-[#5d3b13] text-white p-2 font-bold text-sm w-full md:w-auto">Address</div>
+                                <input
+                                    type="text"
+                                    name="address"
+                                    value={formData.address}
+                                    className="p-2 border border-[#c59a4b] bg-[#fff8e1] text-sm w-full"
+                                    onChange={handleInput}
+                                />
+                            </div>
 
-                    {/* Address */}
-                    <div className="flex flex-col md:grid md:grid-cols-[180px_1fr] gap-2 items-start md:items-center mb-1">
-                        <div className="bg-[#5d3b13] text-white p-2 font-bold text-sm w-full md:w-auto">Address</div>
-                        <input
-                            type="text"
-                            name="address"
-                            value={formData.address}
-                            className="p-2 border border-[#c59a4b] bg-[#fff8e1] text-sm w-full"
-                            onChange={handleInput}
-                        />
-                    </div>
+                            {/* City, Pincode, State, Country */}
+                            <div className="flex flex-col md:grid md:grid-cols-[180px_1fr_180px_1fr_180px_1fr] gap-2 items-start md:items-center mb-1">
+                                <div className="bg-[#5d3b13] text-white p-2 font-bold text-sm w-full md:w-auto">City</div>
+                                <input
+                                    type="text"
+                                    name="city"
+                                    value={formData.city}
+                                    className="p-2 border border-[#c59a4b] bg-[#fff8e1] text-sm w-full"
+                                    onChange={handleInput}
+                                />
 
-                    {/* City, Pincode, State, Country */}
-                    <div className="flex flex-col md:grid md:grid-cols-[180px_1fr_180px_1fr_180px_1fr] gap-2 items-start md:items-center mb-1">
-                        <div className="bg-[#5d3b13] text-white p-2 font-bold text-sm w-full md:w-auto">City</div>
-                        <input
-                            type="text"
-                            name="city"
-                            value={formData.city}
-                            className="p-2 border border-[#c59a4b] bg-[#fff8e1] text-sm w-full"
-                            onChange={handleInput}
-                        />
+                                <div className="bg-[#5d3b13] text-white p-2 font-bold text-sm w-full md:w-auto">Pincode</div>
+                                <input
+                                    type="text"
+                                    name="pincode"
+                                    value={formData.pincode}
+                                    className="p-2 border border-[#c59a4b] bg-[#fff8e1] text-sm w-full"
+                                    onChange={handleInput}
+                                />
 
-                        <div className="bg-[#5d3b13] text-white p-2 font-bold text-sm w-full md:w-auto">Pincode</div>
-                        <input
-                            type="text"
-                            name="pincode"
-                            value={formData.pincode}
-                            className="p-2 border border-[#c59a4b] bg-[#fff8e1] text-sm w-full"
-                            onChange={handleInput}
-                        />
+                                <div className="bg-[#5d3b13] text-white p-2 font-bold text-sm w-full md:w-auto">State</div>
+                                <input
+                                    type="text"
+                                    name="state"
+                                    value={formData.state}
+                                    className="p-2 border border-[#c59a4b] bg-[#fff8e1] text-sm w-full"
+                                    onChange={handleInput}
+                                />
 
-                        <div className="bg-[#5d3b13] text-white p-2 font-bold text-sm w-full md:w-auto">State</div>
-                        <input
-                            type="text"
-                            name="state"
-                            value={formData.state}
-                            className="p-2 border border-[#c59a4b] bg-[#fff8e1] text-sm w-full"
-                            onChange={handleInput}
-                        />
-
-                        <div className="bg-[#5d3b13] text-white p-2 font-bold text-sm w-full md:w-auto">Country</div>
-                        <input
-                            type="text"
-                            name="country"
-                            value={formData.country}
-                            className="p-2 border border-[#c59a4b] bg-[#fff8e1] text-sm w-full"
-                            onChange={handleInput}
-                        />
-                    </div>
+                                <div className="bg-[#5d3b13] text-white p-2 font-bold text-sm w-full md:w-auto">Country</div>
+                                <input
+                                    type="text"
+                                    name="country"
+                                    value={formData.country}
+                                    className="p-2 border border-[#c59a4b] bg-[#fff8e1] text-sm w-full"
+                                    onChange={handleInput}
+                                />
+                            </div>
+                        </>
+                    )}
 
                     {/* Parent Tabs */}
                     <div className="grid grid-cols-2 md:grid-cols-4 border-3 border-[#ffe600] mt-1.5 mb-0">

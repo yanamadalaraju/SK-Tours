@@ -183,7 +183,7 @@ const PaymentResult = () => {
   const getBrowsePath = () => {
     switch(bookingSource) {
       case 'flights': return '/flights';
-      case 'hotels': return '/hotels';
+      case 'hotels': return '/offlinehotelbooking';
       case 'bungalows': return '/bungalows';
       case 'onedaypicnic': return '/oneday-picnic';
       case 'weekend': return '/weekend-gateway';
