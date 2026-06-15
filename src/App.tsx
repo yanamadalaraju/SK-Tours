@@ -10,7 +10,7 @@ import TourPackages from "./pages/TourPackages";
 import IntlTourPackages from "./pages/InternationalTourPackages";
 
 import AboutPage from "./pages/AboutPage";
-import TourDetails from "./pages/TourDetails";
+import TourDetails from "./pages/TourDetailsOld";
 import Ladiesspecial_tour from "./pages/Ladiesspecial_tour";
 
 import Students_tour from "./pages/Students_tour";
