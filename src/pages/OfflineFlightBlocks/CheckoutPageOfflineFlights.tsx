@@ -1,4 +1,4 @@
-// src/pages/OfflineFlightBlocks/CheckoutPageOfflineFlights.tsx - Fixed JSX syntax
+// src/pages/OfflineFlightBlocks/CheckoutPageOfflineFlights.tsx - Fixed with API price values
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -27,12 +27,43 @@ interface PassengerDetails {
   passportExpireDate?: string;
 }
 
+// Extended Flight interface with API fields
+interface FlightData {
+  id: number;
+  airline: string;
+  flight_number: string;
+  from_city: string;
+  from_airport_code: string;
+  to_city: string;
+  to_airport_code: string;
+  departure_date?: string;
+  flight_time: string;
+  arrival_time: string;
+  duration: string;
+  flight_type: string;
+  booking_type: string;
+  price_per_adult: string;
+  price_per_child: string | null;
+  total_amount: string | null;
+  baggage_allowance?: string;
+  meals_seat_description?: string;
+  refundable_status_description?: string;
+  meals_included?: number;
+  adults: number;
+  children: number;
+  infants: number;
+  adult_price?: number;
+  child_price?: number;
+  infant_price?: number;
+  total_price_value?: number;
+}
+
 const CheckoutPageOfflineFlights = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
   // Get flight data from navigation state or localStorage
-  const [flightData, setFlightData] = useState<any>(null);
+  const [flightData, setFlightData] = useState<FlightData | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
@@ -62,90 +93,121 @@ const CheckoutPageOfflineFlights = () => {
 
   // Initialize flight data and passenger details
   useEffect(() => {
+   const initializeFlightData = (flight: FlightData) => {
+  // Use the selected traveller counts (these override the API's capacity limits)
+  const adultCount = flight.adults || 1;
+  const childCount = flight.children || 0;
+  const infantCount = flight.infants || 0;
+  
+  // Get actual prices from API
+  const adultPrice = parsePrice(flight.price_per_adult);
+  const childPrice = flight.price_per_child ? parsePrice(flight.price_per_child) : 0;
+  const infantPrice = 0; // Infants are usually free
+  
+  // Calculate total based on actual API prices and selected counts
+  const calculatedTotal = (adultCount * adultPrice) + (childCount * childPrice) + (infantCount * infantPrice);
+  
+  // Use API total_amount if available and valid, otherwise use calculated total
+  const apiTotalAmount = flight.total_amount ? parsePrice(flight.total_amount) : null;
+  const finalTotal = apiTotalAmount && apiTotalAmount > 0 ? apiTotalAmount : calculatedTotal;
+  
+  const enrichedFlight: FlightData = {
+    ...flight,
+    adult_price: adultPrice,
+    child_price: childPrice,
+    infant_price: infantPrice,
+    total_price_value: finalTotal
+  };
+  
+  setFlightData(enrichedFlight);
+  setCustomPaymentAmount(finalTotal.toString());
+  setPaymentType('full');
+  
+  initializePassengerDetails(enrichedFlight);
+};
+
     if (location.state?.flight) {
-      const flight = location.state.flight;
-      setFlightData(flight);
-
-      const totalFlightCost = flight.total_price_value || parsePrice(flight.price_per_adult);
-      setCustomPaymentAmount(totalFlightCost.toString());
-      setPaymentType('full');
-
-      initializePassengerDetails(flight);
+      initializeFlightData(location.state.flight);
       setLoading(false);
     } else {
       const savedFlight = localStorage.getItem('selectedOfflineFlight');
       if (savedFlight) {
         const parsedFlight = JSON.parse(savedFlight);
-        setFlightData(parsedFlight);
-
-        const totalFlightCost = parsedFlight.total_price_value || parsePrice(parsedFlight.price_per_adult);
-        setCustomPaymentAmount(totalFlightCost.toString());
-        setPaymentType('full');
-
-        initializePassengerDetails(parsedFlight);
+        initializeFlightData(parsedFlight);
       }
       setLoading(false);
     }
   }, [location]);
 
-  const initializePassengerDetails = (flight: any) => {
-    const adults = flight.adults || 1;
-    const children = flight.children || 0;
-    const infants = flight.infants || 0;
+  const initializePassengerDetails = (flight: FlightData) => {
+  // IMPORTANT: Use the selected traveller counts that were stored during booking
+  // These override the API's capacity limits (flight.adults, flight.children)
+  const selectedAdults = flight.adults || 1;      // This is now the selected count from search
+  const selectedChildren = flight.children || 0;  // This is now the selected count from search
+  const selectedInfants = flight.infants || 0;    // This is now the selected count from search
 
-    const details: PassengerDetails[] = [];
-    let id = 1;
+  console.log('Initializing passengers:', { 
+    selectedAdults, 
+    selectedChildren, 
+    selectedInfants 
+  });
 
-    for (let i = 0; i < adults; i++) {
-      details.push({
-        id: id++,
-        type: 'adult',
-        name: '',
-        firstName: '',
-        middleName: '',
-        lastName: '',
-        age: 0,
-        dob: '',
-        gender: 'Mr',
-        passportNo: '',
-        passportExpireDate: ''
-      });
-    }
+  const details: PassengerDetails[] = [];
+  let id = 1;
 
-    for (let i = 0; i < children; i++) {
-      details.push({
-        id: id++,
-        type: 'child',
-        name: '',
-        firstName: '',
-        middleName: '',
-        lastName: '',
-        age: 8,
-        dob: '',
-        gender: 'Mstr',
-        passportNo: '',
-        passportExpireDate: ''
-      });
-    }
+  // Create adult passenger forms
+  for (let i = 0; i < selectedAdults; i++) {
+    details.push({
+      id: id++,
+      type: 'adult',
+      name: '',
+      firstName: '',
+      middleName: '',
+      lastName: '',
+      age: 0,
+      dob: '',
+      gender: 'Mr',
+      passportNo: '',
+      passportExpireDate: ''
+    });
+  }
 
-    for (let i = 0; i < infants; i++) {
-      details.push({
-        id: id++,
-        type: 'infant',
-        name: '',
-        firstName: '',
-        middleName: '',
-        lastName: '',
-        age: 1,
-        dob: '',
-        gender: 'Mstr',
-        passportNo: '',
-        passportExpireDate: ''
-      });
-    }
+  // Create child passenger forms
+  for (let i = 0; i < selectedChildren; i++) {
+    details.push({
+      id: id++,
+      type: 'child',
+      name: '',
+      firstName: '',
+      middleName: '',
+      lastName: '',
+      age: 8,
+      dob: '',
+      gender: 'Mstr',
+      passportNo: '',
+      passportExpireDate: ''
+    });
+  }
 
-    setPassengerDetails(details);
-  };
+  // Create infant passenger forms
+  for (let i = 0; i < selectedInfants; i++) {
+    details.push({
+      id: id++,
+      type: 'infant',
+      name: '',
+      firstName: '',
+      middleName: '',
+      lastName: '',
+      age: 1,
+      dob: '',
+      gender: 'Mstr',
+      passportNo: '',
+      passportExpireDate: ''
+    });
+  }
+
+  setPassengerDetails(details);
+};
 
   const handlePassengerInputChange = (passengerId: number, field: keyof PassengerDetails, value: string | number) => {
     setPassengerDetails(prev =>
@@ -202,20 +264,13 @@ const CheckoutPageOfflineFlights = () => {
     }
   };
 
-  const getTotalFlightCost = () => {
+  // Get total flight cost using actual API prices
+  const getTotalFlightCost = (): number => {
     if (!flightData) return 0;
-    const adultCount = flightData.adults || 1;
-    const childCount = flightData.children || 0;
-    const infantCount = flightData.infants || 0;
-    
-    const adultPrice = flightData.total_price_value || parsePrice(flightData.price_per_adult);
-    const childPrice = parsePrice(flightData.child_price) || adultPrice * 0.75;
-    const infantPrice = parsePrice(flightData.infant_price) || adultPrice * 0.1;
-    
-    return (adultCount * adultPrice) + (childCount * childPrice) + (infantCount * infantPrice);
+    return flightData.total_price_value || 0;
   };
 
-  const getCurrentPaymentAmount = () => {
+  const getCurrentPaymentAmount = (): number => {
     if (!flightData) return 0;
 
     if (paymentType === 'custom' || paymentType === 'partial') {
@@ -225,7 +280,7 @@ const CheckoutPageOfflineFlights = () => {
     return getTotalFlightCost();
   };
 
-  const validateCustomAmount = () => {
+  const validateCustomAmount = (): boolean => {
     if (!flightData) return false;
 
     const totalFlightCost = getTotalFlightCost();
@@ -276,7 +331,7 @@ const CheckoutPageOfflineFlights = () => {
     }));
   };
 
-  const parsePrice = (priceString: string) => {
+  const parsePrice = (priceString: string | null | undefined): number => {
     if (!priceString) return 0;
     const numericString = priceString
       .toString()
@@ -286,16 +341,16 @@ const CheckoutPageOfflineFlights = () => {
     return parseFloat(numericString) || 0;
   };
 
-  const formatPrice = (price: number) => {
+  const formatPrice = (price: number): string => {
     return `₹${price.toLocaleString('en-IN')}`;
   };
 
-  const calculatePercentage = (amount: number) => {
+  const calculatePercentage = (amount: number): number => {
     const total = getTotalFlightCost();
     return total > 0 ? Math.round((amount / total) * 100) : 0;
   };
 
-  const formatTime = (timeString: string) => {
+  const formatTime = (timeString: string): string => {
     if (!timeString) return 'N/A';
     return timeString.substring(0, 5);
   };
@@ -351,8 +406,8 @@ const CheckoutPageOfflineFlights = () => {
 
     try {
       const paymentDescription = isFullPayment
-        ? `Full Payment for ${flightData.flight_number} - ${flightData.airline}`
-        : `${paymentPercentage}% Partial Payment for ${flightData.flight_number} - ${flightData.airline}`;
+        ? `Full Payment for ${flightData?.flight_number} - ${flightData?.airline}`
+        : `${paymentPercentage}% Partial Payment for ${flightData?.flight_number} - ${flightData?.airline}`;
 
       const passengerDetailsJSON = JSON.stringify(passengerDetails.map(p => ({
         id: p.id,
@@ -370,12 +425,12 @@ const CheckoutPageOfflineFlights = () => {
       const checkoutResponse = await axios.post(
         `${BASE_URL}/api/checkout`,
         {
-          tour_id: flightData.id?.toString() || '',
-          tour_code: flightData.flight_number || '',
-          tour_title: `${flightData.airline} - ${flightData.flight_number}`,
-          tour_duration: flightData.duration || '',
-          tour_locations: `${flightData.from_city} to ${flightData.to_city}`,
-          tour_image_url: flightData.image || '',
+          tour_id: flightData?.id?.toString() || '',
+          tour_code: flightData?.flight_number || '',
+          tour_title: `${flightData?.airline} - ${flightData?.flight_number}`,
+          tour_duration: flightData?.duration || '',
+          tour_locations: `${flightData?.from_city} to ${flightData?.to_city}`,
+          tour_image_url: '',
           
           total_tour_cost: totalFlightCost,
           advance_percentage: paymentPercentage,
@@ -424,12 +479,12 @@ const CheckoutPageOfflineFlights = () => {
             email: formData.email,
             phone: formData.phone,
             checkout_id: checkoutId,
-            flight_number: flightData.flight_number || '',
+            flight_number: flightData?.flight_number || '',
             payment_type: isFullPayment ? 'full' : 'partial',
             payment_percentage: paymentPercentage,
             source: 'flights',
             passenger_count: passengerDetails.length,
-            flight_route: `${flightData.from_city} to ${flightData.to_city}`
+            flight_route: `${flightData?.from_city} to ${flightData?.to_city}`
           }
         }
       );
@@ -506,6 +561,11 @@ const CheckoutPageOfflineFlights = () => {
   const paymentPercentage = calculatePercentage(paymentAmount);
   const balanceAmount = totalFlightCost - paymentAmount;
   const isFullPayment = paymentAmount >= totalFlightCost;
+  
+  const adultPrice = flightData.adult_price || 0;
+  const childPrice = flightData.child_price || 0;
+  const adultCount = flightData.adults || 1;
+  const childCount = flightData.children || 0;
 
   return (
     <>
@@ -563,6 +623,10 @@ const CheckoutPageOfflineFlights = () => {
                       </div>
                       <p className="text-gray-600">Total Flight Cost</p>
                       <p className="text-sm text-gray-500 mt-1">For all passengers</p>
+                      {/* Show API total if available */}
+                      {flightData.total_amount && (
+                        <p className="text-xs text-green-600 mt-1">API Total: {formatPrice(parsePrice(flightData.total_amount))}</p>
+                      )}
                     </div>
                   </div>
                   
@@ -861,9 +925,15 @@ const CheckoutPageOfflineFlights = () => {
                 <h2 className="text-xl font-semibold text-gray-800 mb-6 pb-3 border-b">Price Breakdown</h2>
                 <div className="space-y-4">
                   <div className="flex justify-between py-3 border-b">
-                    <span className="text-gray-700">Base Fare (per adult)</span>
-                    <span className="font-bold">{formatPrice(parsePrice(flightData.price_per_adult))}</span>
+                    <span className="text-gray-700">Adult ({adultCount} × {formatPrice(adultPrice)})</span>
+                    <span className="font-bold">{formatPrice(adultCount * adultPrice)}</span>
                   </div>
+                  {childCount > 0 && (
+                    <div className="flex justify-between py-3 border-b">
+                      <span className="text-gray-700">Child ({childCount} × {formatPrice(childPrice)})</span>
+                      <span className="font-bold">{formatPrice(childCount * childPrice)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between py-3 border-b">
                     <span className="text-gray-700">Total Fare</span>
                     <span className="font-bold">{formatPrice(totalFlightCost)}</span>

@@ -23,11 +23,15 @@ interface EmailFormData {
 interface DomesticExhibition {
   id: number;
   domestic_category_name: string;
+  city_name: string;
+  state_name?: string;
 }
 
 interface InternationalExhibition {
   id: number;
   international_category_name: string;
+  city_name: string;
+  country_name?: string;
 }
 
 // DayCard Component
@@ -184,25 +188,7 @@ const Miceinternationaldetail = () => {
   // ── Sidebar Handlers ─────────────────────────────────────────────────────
   const handleAboutClick = () => navigate('/exhibition', { state: { category: null } });
 
-// Update this function in Miceinternationaldetail.tsx
-const handleDomesticClick = (category: string) => {
-  const found = domesticExhibitionData.find(
-    (item) => item.domestic_category_name === category
-  );
-  if (found) {
-    // Change this line - use the MICE domestic detail route instead
-    navigate(`/micedomesticdetail/${found.id}`);
-  } 
-};
 
-  const handleInternationalClick = (category: string) => {
-    const found = internationalExhibitionData.find(
-      (item) => item.international_category_name === category
-    );
-    if (found) {
-      navigate(`/exhibitioninternationalindetail/${found.id}`);
-    }
-  };
 
   const transformDeparturesToGroupFormat = (departures: any[]) => {
     if (!departures || departures.length === 0) return [];
@@ -323,29 +309,50 @@ const handleDomesticClick = (category: string) => {
     return price || '₹0';
   };
 
+
+
+  const handleDomesticClick = (category: string) => {
+  const found = domesticExhibitionData.find(
+    (item) => item.domestic_category_name === category
+  );
+  if (found) {
+    navigate(`/micedomesticdetail/${found.id}`);
+  }
+};
+
+  const handleInternationalClick = (category: string) => {
+    const found = internationalExhibitionData.find(
+      (item) => item.international_category_name === category
+    );
+    if (found) {
+      navigate(`/miceinternationaldetail/${found.id}`);
+    }
+  };
 const handleDomesticCheckboxChange = (category: string, checked: boolean) => {
   if (checked) {
     setSelectedDomesticCategories([category]);
     setSelectedInternationalCategories([]);
     const found = domesticExhibitionData.find(d => d.domestic_category_name === category);
-    if (found) {
-      // Change this line as well
+    if (found && found.id) {
+      console.log("Navigating to domestic detail with ID:", found.id);
       navigate(`/micedomesticdetail/${found.id}`);
     }
   } else {
     setSelectedDomesticCategories([]);
   }
 };
-  const handleInternationalCheckboxChange = (category: string, checked: boolean) => {
-    if (checked) {
-      setSelectedInternationalCategories([category]);
-      setSelectedDomesticCategories([]);
-      const found = internationalExhibitionData.find(i => i.international_category_name === category);
-      if (found) navigate(`/exhibitioninternationalindetail/${found.id}`);
-    } else {
-      setSelectedInternationalCategories([]);
+const handleInternationalCheckboxChange = (category: string, checked: boolean) => {
+  if (checked) {
+    setSelectedInternationalCategories([category]);
+    setSelectedDomesticCategories([]);
+    const found = internationalExhibitionData.find(i => i.international_category_name === category);
+    if (found && found.id !== Number(miceId)) {
+      navigate(`/miceinternationaldetail/${found.id}`);
     }
-  };
+  } else {
+    setSelectedInternationalCategories([]);
+  }
+};
 
   const clearAllFilters = () => {
     setPriceRange([0, 200000]);
@@ -363,7 +370,6 @@ const handleDomesticCheckboxChange = (category: string, checked: boolean) => {
     setActiveVisaFeeType('tourist');
   };
 
-  // ── processTourData — updated for MICE API ────────────────────────────────
   const processTourData = (apiData) => {
     const {
       mice_city,
@@ -680,31 +686,35 @@ const processTourCost = (apiData) => {
       setLoading(false);
     }
   };
-// ── API: Domestic sidebar list ─────────────────────────────────────────────
 const fetchDomesticData = async () => {
   setLoadingDomestic(true);
   try {
     const response = await fetch(`${BASE_URL}/api/mice/domestic`);
     if (!response.ok) throw new Error(`Failed: ${response.status}`);
-    const data = await response.json();
+    const result = await response.json();
     
-    // Transform the data to match expected structure
-    if (Array.isArray(data) && data.length > 0) {
-      const transformedData = data.map((item: any) => ({
-        id: item.id,
-        domestic_category_name: item.city_name, // Map city_name to domestic_category_name
-        city_name: item.city_name,
-        state_name: item.state_name,
-        image: item.image,
-        price: item.price
-      }));
+    const uniqueStates = Object.keys(result || {});
+    console.log("Unique domestic states:", uniqueStates);
+    
+    const transformedData = uniqueStates.map((state, index) => {
+      const stateData = result[state];
+      let actualId = index + 1;
       
-      setDomesticList(transformedData.map(item => item.domestic_category_name));
-      setDomesticExhibitionData(transformedData);
-    } else {
-      setDomesticList([]);
-      setDomesticExhibitionData([]);
-    }
+      if (Array.isArray(stateData) && stateData.length > 0 && stateData[0].id) {
+        actualId = stateData[0].id;
+      }
+      
+      return {
+        id: actualId,
+        domestic_category_name: state,
+        city_name: state,
+        state_name: state
+      };
+    });
+    
+    setDomesticList(transformedData.map(item => item.domestic_category_name));
+    setDomesticExhibitionData(transformedData);
+    console.log("Domestic exhibition data with IDs:", transformedData);
   } catch (error) {
     console.error("Error fetching domestic:", error);
     setDomesticList([]);
@@ -714,31 +724,26 @@ const fetchDomesticData = async () => {
   }
 };
 
-// ── API: International sidebar list ───────────────────────────────────────
 const fetchInternationalData = async () => {
   setLoadingInternational(true);
   try {
     const response = await fetch(`${BASE_URL}/api/mice/international`);
     if (!response.ok) throw new Error(`Failed: ${response.status}`);
-    const data = await response.json();
+    const result = await response.json();
     
-    // Transform the data to match expected structure
-    if (Array.isArray(data) && data.length > 0) {
-      const transformedData = data.map((item: any) => ({
-        id: item.id,
-        international_category_name: item.city_name, // Map city_name to international_category_name
-        city_name: item.city_name,
-        country_name: item.country_name,
-        image: item.image,
-        price: item.price
-      }));
-      
-      setInternationalList(transformedData.map(item => item.international_category_name));
-      setInternationalExhibitionData(transformedData);
-    } else {
-      setInternationalList([]);
-      setInternationalExhibitionData([]);
-    }
+    // Get unique country names from the grouped data
+    const uniqueCountries = Object.keys(result || {});
+    console.log("Unique international countries:", uniqueCountries);
+    
+    const transformedData = uniqueCountries.map((country, index) => ({
+      id: index + 1,
+      international_category_name: country,
+      city_name: country,
+      country_name: country
+    }));
+    
+    setInternationalList(transformedData.map(item => item.international_category_name));
+    setInternationalExhibitionData(transformedData);
   } catch (error) {
     console.error("Error fetching international:", error);
     setInternationalList([]);
@@ -747,7 +752,6 @@ const fetchInternationalData = async () => {
     setLoadingInternational(false);
   }
 };
-
   // ── Mail Handler ──────────────────────────────────────────────────────────
   const handleEmailSubmit = async (emailData: EmailFormData) => {
     try {
@@ -817,7 +821,7 @@ const handleSearch = (e: React.FormEvent) => {
     item.international_category_name.toLowerCase().includes(query)
   );
   if (internationalMatch) {
-    navigate(`/exhibitioninternationalindetail/${internationalMatch.id}`);
+    navigate(`/miceinternationaldetail/${internationalMatch.id}`);
     return;
   }
   alert("No exhibition found for: " + searchQuery);
@@ -865,173 +869,173 @@ const handleSearch = (e: React.FormEvent) => {
           {/* Page layout: sidebar + main content */}
           <div className="flex gap-4">
 
-            {/* ── LEFT SIDEBAR ── */}
-            <div className="w-80 flex-shrink-0 bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl shadow-lg p-6 border border-blue-200 self-start sticky top-24">
-              <div className="flex justify-between items-center mb-4 bg-[#2E4D98] p-2 rounded-lg border border-black">
-                <h2 className="text-2xl font-bold text-white">Mice</h2>
-                <button onClick={clearAllFilters} className="text-sm text-white hover:underline">
-                  Clear All
-                </button>
-              </div>
+          {/* ── LEFT SIDEBAR ── */}
+<div className="w-80 flex-shrink-0 bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl shadow-lg p-6 border border-blue-200 self-start sticky top-24">
+  <div className="flex justify-between items-center mb-4 bg-[#2E4D98] p-2 rounded-lg border border-black">
+    <h2 className="text-2xl font-bold text-white">MICE</h2>
+    <button onClick={clearAllFilters} className="text-sm text-white hover:underline">
+      Clear All
+    </button>
+  </div>
 
-              {/* About Exhibition */}
-              <div className="mt-3 mb-4">
-                <div
-                  onClick={handleAboutClick}
-                  className="flex justify-between items-center p-2 rounded-lg cursor-pointer border border-black bg-white text-[#2E4D98]"
-                >
-                  <h2 className="text-xl font-bold text-[#2E4D98]">About Mice</h2>
-                  <span className="text-xs">▶</span>
-                </div>
-              </div>
-
-              <div className="mb-6">
-                <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Exhibition Range</h3>
-                <div className="flex justify-between text-sm text-gray-600 mb-3">
-                  <span>{durationRange[0]} days</span>
-                  <span>{durationRange[1]} days</span>
-                </div>
-                <Slider value={durationRange} onValueChange={setDurationRange} max={10} step={1} className="w-full" />
-              </div>
-
-              {/* Price Filter */}
-              <div className="mb-6">
-                <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Price Range</h3>
-                <div className="flex justify-between text-sm text-gray-600 mb-3">
-                  <span>₹{priceRange[0].toLocaleString()}</span>
-                  <span>₹{priceRange[1].toLocaleString()}</span>
-                </div>
-                <Slider value={priceRange} onValueChange={setPriceRange} min={0} max={200000} step={1000} className="w-full" />
-              </div>
-
-              {/* Domestic Exhibition Section */}
-              <div className="mb-6">
-                <div className="flex justify-between items-center mb-3 bg-white p-2 rounded-lg border border-black">
-                  <h2 className="text-xl font-bold text-[#2E4D98]">Domestic Mice</h2>
-                </div>
-                <div className={`${showMoreDomestic ? "max-h-64 overflow-y-auto pr-1" : ""} space-y-3`}>
-                  {loadingDomestic ? (
-                    <div className="flex justify-center py-4">
-                      <span className="animate-spin h-5 w-5 border-2 border-gray-300 border-t-blue-600 rounded-full" />
-                    </div>
-                  ) : domesticList.length > 0 ? (
-                    domesticList
-                      .slice(0, showMoreDomestic ? domesticList.length : 6)
-                      .sort((a, b) => a.localeCompare(b))
-                      .map((category) => (
-                        <div key={category} className="flex items-center gap-3 cursor-pointer">
-                          <Checkbox
-                            checked={selectedDomesticCategories.includes(category)}
-                            onCheckedChange={(checked) => handleDomesticCheckboxChange(category, checked as boolean)}
-                            className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
-                          />
-                          <span
-                            className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${selectedDomesticCategories.includes(category) ? 'font-bold text-[#2E4D98]' : ''}`}
-                            onClick={() => handleDomesticCheckboxChange(category, !selectedDomesticCategories.includes(category))}
-                          >
-                            {category}
-                          </span>
-                        </div>
-                      ))
-                  ) : (
-                    <div className="text-sm text-gray-400">No domestic Mice available</div>
-                  )}
-                </div>
-                {domesticList.length > 6 && (
-                  <button onClick={() => setShowMoreDomestic(!showMoreDomestic)} className="mt-4 text-[#2E4D98] text-sm font-semibold hover:underline">
-                    {showMoreDomestic ? "Show Less" : "Show More"}
-                  </button>
-                )}
-              </div>
-
-              {/* International Exhibition Section */}
-              <div className='mb-3'>
-                <div className="flex justify-between items-center mb-3 bg-white p-2 rounded-lg border border-black">
-                  <h2 className="text-xl font-bold text-[#2E4D98]">International Mice</h2>
-                </div>
-                <div className={`${showMoreInternational ? "max-h-64 overflow-y-auto pr-1" : ""} space-y-3`}>
-                  {loadingInternational ? (
-                    <div className="flex justify-center py-4">
-                      <span className="animate-spin h-5 w-5 border-2 border-gray-300 border-t-blue-600 rounded-full" />
-                    </div>
-                  ) : internationalList.length > 0 ? (
-                    internationalList
-                      .slice(0, showMoreInternational ? internationalList.length : 6)
-                      .sort((a, b) => a.localeCompare(b))
-                      .map((category) => {
-                        const found = internationalExhibitionData.find(
-                          item => item.international_category_name === category
-                        );
-                        const isActive = found?.id === Number(miceId);
-                        return (
-                          <div key={category} className="flex items-center gap-3 cursor-pointer">
-                            <Checkbox
-                              checked={selectedInternationalCategories.includes(category) || isActive}
-                              onCheckedChange={(checked) => handleInternationalCheckboxChange(category, checked as boolean)}
-                              className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
-                            />
-                            <span
-                              className={`cursor-pointer ${isActive ? 'font-bold text-[#2E4D98]' : 'text-gray-700 hover:text-[#2E4D98]'}`}
-                              onClick={() => handleInternationalCheckboxChange(category, !selectedInternationalCategories.includes(category) && !isActive)}
-                            >
-                              {category}
-                            </span>
-                          </div>
-                        );
-                      })
-                  ) : (
-                    <div className="text-sm text-gray-400">No international exhibitions available</div>
-                  )}
-                </div>
-                {internationalList.length > 6 && (
-                  <button onClick={() => setShowMoreInternational(!showMoreInternational)} className="mt-4 text-[#2E4D98] text-sm font-semibold hover:underline">
-                    {showMoreInternational ? "Show Less" : "Show More"}
-                  </button>
-                )}
-              </div>
-              <div className="mt-0 pt-0 border-t border-gray-300">
+  {/* About MICE */}
   <div className="mb-4">
     <div
-      onClick={() => {
-        navigate("/enquiryformmic");
-      }}
+      onClick={handleAboutClick}
       className="flex justify-between items-center p-2 rounded-lg cursor-pointer border border-black transition shadow-sm bg-white text-[#2E4D98] hover:bg-gray-50"
     >
-      <h3 className="text-lg font-semibold">Enquiry Form</h3>
+      <h2 className="text-xl font-bold text-[#2E4D98]">About MICE</h2>
+      <span className="text-xs">▶</span>
     </div>
   </div>
-  <div className="mb-4">
-    <div
-      onClick={() => {
-        navigate("/bankgallery");
-      }}
-      className="flex justify-between items-center p-2 rounded-lg cursor-pointer border border-black transition shadow-sm bg-white text-[#2E4D98] hover:bg-gray-50"
-    >
-      <h3 className="text-lg font-semibold">Our Clients</h3>
+
+  {/* Duration Range */}
+  <div className="mb-6">
+    <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Duration Range</h3>
+    <div className="flex justify-between text-sm text-gray-600 mb-3">
+      <span>{durationRange[0]} days</span>
+      <span>{durationRange[1]} days</span>
     </div>
+    <Slider value={durationRange} onValueChange={setDurationRange} max={10} step={1} className="w-full" />
   </div>
-  <div className="mb-4">
-    <div
-      onClick={() => {
-        navigate("/venuephotos");
-      }}
-      className="flex justify-between items-center p-2 rounded-lg cursor-pointer border border-black transition shadow-sm bg-white text-[#2E4D98] hover:bg-gray-50"
-    >
-      <h3 className="text-lg font-semibold">Venue Photos</h3>
+
+  {/* Price Range */}
+  <div className="mb-6">
+    <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">Price Range</h3>
+    <div className="flex justify-between text-sm text-gray-600 mb-3">
+      <span>₹{priceRange[0].toLocaleString()}</span>
+      <span>₹{priceRange[1].toLocaleString()}</span>
     </div>
+    <Slider value={priceRange} onValueChange={setPriceRange} min={0} max={200000} step={1000} className="w-full" />
   </div>
-  <div className="mb-4">
-    <div
-      onClick={() => {
-        navigate("/micgallery");
-      }}
-      className="flex justify-between items-center p-2 rounded-lg cursor-pointer border border-black transition shadow-sm bg-white text-[#2E4D98] hover:bg-gray-50"
-    >
-      <h3 className="text-lg font-semibold">Mice Gallery</h3>
+
+
+
+<div className="mb-6">
+  <div className="flex justify-between items-center mb-3 bg-white p-2 rounded-lg border border-black">
+    <h2 className="text-xl font-bold text-[#2E4D98]">Domestic MICE</h2>
+  </div>
+  <div className={`${showMoreDomestic ? "max-h-64 overflow-y-auto pr-1" : ""} space-y-3`}>
+    {loadingDomestic ? (
+      <div className="flex justify-center py-4">
+        <span className="animate-spin h-5 w-5 border-2 border-gray-300 border-t-blue-600 rounded-full" />
+      </div>
+    ) : domesticExhibitionData.length > 0 ? (
+      domesticExhibitionData
+        .slice(0, showMoreDomestic ? domesticExhibitionData.length : 6)
+        .sort((a, b) => (a.domestic_category_name || '').localeCompare(b.domestic_category_name || ''))
+        .map((item) => {
+          const isActive = false;
+          return (
+            <div key={item.id} className="flex items-center gap-3 cursor-pointer">
+              <Checkbox
+                checked={selectedDomesticCategories.includes(item.domestic_category_name) || isActive}
+                onCheckedChange={(checked) => handleDomesticCheckboxChange(item.domestic_category_name, checked as boolean)}
+                className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
+              />
+              <span
+                className={`cursor-pointer ${
+                  isActive ? 'font-bold text-[#2E4D98]' : 'text-gray-700 hover:text-[#2E4D98]'
+                }`}
+                onClick={() => handleDomesticCheckboxChange(item.domestic_category_name, !selectedDomesticCategories.includes(item.domestic_category_name))}
+              >
+                {item.domestic_category_name}
+              </span>
+            </div>
+          );
+        })
+    ) : (
+      <div className="text-sm text-gray-400">No domestic MICE available</div>
+    )}
+  </div>
+  {domesticExhibitionData.length > 6 && (
+    <button onClick={() => setShowMoreDomestic(!showMoreDomestic)} className="mt-4 text-[#2E4D98] text-sm font-semibold hover:underline">
+      {showMoreDomestic ? "Show Less" : `Show ${domesticExhibitionData.length - 6} More`}
+    </button>
+  )}
+</div>
+
+{/* International MICE Section - Display as country names */}
+<div className="mb-4">
+  <div className="flex justify-between items-center mb-3 bg-white p-2 rounded-lg border border-black">
+    <h2 className="text-xl font-bold text-[#2E4D98]">International MICE</h2>
+  </div>
+  <div className="space-y-3">
+    {loadingInternational ? (
+      <div className="flex justify-center py-4">
+        <span className="animate-spin h-5 w-5 border-2 border-gray-300 border-t-blue-600 rounded-full" />
+      </div>
+    ) : internationalExhibitionData.length > 0 ? (
+      internationalExhibitionData
+        .slice(0, showMoreInternational ? internationalExhibitionData.length : 6)
+        .sort((a, b) => (a.international_category_name || '').localeCompare(b.international_category_name || ''))
+        .map((item) => {
+          // Fix: Compare the item's ID with the current miceId from URL
+          const isActive = item.id === Number(miceId);
+          return (
+            <div key={item.id} className="flex items-center gap-3 cursor-pointer">
+              <Checkbox
+                checked={isActive || selectedInternationalCategories.includes(item.international_category_name)}
+                onCheckedChange={(checked) => handleInternationalCheckboxChange(item.international_category_name, checked as boolean)}
+                className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
+              />
+              <span
+                className={`cursor-pointer ${
+                  isActive ? 'font-bold text-[#2E4D98]' : 'text-gray-700 hover:text-[#2E4D98]'
+                }`}
+                onClick={() => handleInternationalCheckboxChange(item.international_category_name, !isActive && !selectedInternationalCategories.includes(item.international_category_name))}
+              >
+                {item.international_category_name}
+              </span>
+            </div>
+          );
+        })
+    ) : (
+      <div className="text-sm text-gray-400">No international MICE available</div>
+    )}
+  </div>
+  {internationalExhibitionData.length > 6 && (
+    <button onClick={() => setShowMoreInternational(!showMoreInternational)} className="mt-4 text-[#2E4D98] text-sm font-semibold hover:underline">
+      {showMoreInternational ? "Show Less" : `Show ${internationalExhibitionData.length - 6} More`}
+    </button>
+  )}
+</div>
+  {/* Menu Items Section */}
+  <div className="mt-0 pt-0 border-t border-gray-300">
+    <div className="mb-4">
+      <div
+        onClick={() => navigate("/enquiryformmic")}
+        className="flex justify-between items-center p-2 rounded-lg cursor-pointer border border-black transition shadow-sm bg-white text-[#2E4D98] hover:bg-gray-50"
+      >
+        <h3 className="text-lg font-semibold">Enquiry Form</h3>
+      </div>
+    </div>
+    <div className="mb-4">
+      <div
+        onClick={() => navigate("/bankgallery")}
+        className="flex justify-between items-center p-2 rounded-lg cursor-pointer border border-black transition shadow-sm bg-white text-[#2E4D98] hover:bg-gray-50"
+      >
+        <h3 className="text-lg font-semibold">Our Clients</h3>
+      </div>
+    </div>
+    <div className="mb-4">
+      <div
+        onClick={() => navigate("/venuephotos")}
+        className="flex justify-between items-center p-2 rounded-lg cursor-pointer border border-black transition shadow-sm bg-white text-[#2E4D98] hover:bg-gray-50"
+      >
+        <h3 className="text-lg font-semibold">Venue Photos</h3>
+      </div>
+    </div>
+    <div className="mb-4">
+      <div
+        onClick={() => navigate("/micgallery")}
+        className="flex justify-between items-center p-2 rounded-lg cursor-pointer border border-black transition shadow-sm bg-white text-[#2E4D98] hover:bg-gray-50"
+      >
+        <h3 className="text-lg font-semibold">MICE Gallery</h3>
+      </div>
     </div>
   </div>
 </div>
-            </div>
 
             {/* ── MAIN CONTENT ── */}
             <main className="flex-1 min-w-0">

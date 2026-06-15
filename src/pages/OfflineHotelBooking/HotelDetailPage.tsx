@@ -1,3 +1,4 @@
+// src/pages/OfflineHotelBooking/HotelDetailPage.tsx
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -22,16 +23,12 @@ import {
   Sparkles,
   Bath,
   Tv,
-  Thermometer,
   ShieldCheck,
   Gift,
   Ticket,
   Clock8,
   ChevronLeft,
   ChevronRight,
-  Volume2,
-  Zap,
-  WashingMachine
 } from "lucide-react";
 import { format } from "date-fns";
 import Header from "@/components/Header";
@@ -62,6 +59,8 @@ interface HotelDetail {
   total_ratings: number;
   price: string;
   taxes: string;
+  total_amount: string;
+  price_per_child: string;
   amenities: string[];
   custom_amenities: string[];
   status: string;
@@ -99,6 +98,7 @@ interface RoomVariant {
   id: number;
   roomType: string;
   price: string;
+  pricePerChild?: string | null;
   amenities: string[];
   maxOccupancy: number;
   bedType: string;
@@ -108,13 +108,6 @@ interface RoomVariant {
   images: string[];
 }
 
-interface TravellerCount {
-  rooms: number;
-  adults: number;
-  children: number;
-  infants?: number;
-}
-
 interface RoomTypeDisplay {
   id: string;
   name: string;
@@ -122,38 +115,40 @@ interface RoomTypeDisplay {
   enabled: boolean;
 }
 
+// Helper function to get effective price (prioritize sale_price)
+const getEffectivePrice = (hotel: HotelDetail): number => {
+  if (hotel.sale_price && Number(hotel.sale_price) > 0) {
+    return Number(hotel.sale_price);
+  }
+  if (hotel.price && Number(hotel.price) > 0) {
+    return Number(hotel.price);
+  }
+  return 0;
+};
+
+const getOriginalPrice = (hotel: HotelDetail): number | null => {
+  if (hotel.original_price && Number(hotel.original_price) > 0) {
+    return Number(hotel.original_price);
+  }
+  return null;
+};
+
 const HotelDetailPage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [hotel, setHotel] = useState<HotelDetail | null>(null);
   const [selectedImage, setSelectedImage] = useState<string>("");
   const [showFullDescription, setShowFullDescription] = useState(false);
-  const [selectedRoomType, setSelectedRoomType] = useState<string>("standard");
+  const [selectedRoomType, setSelectedRoomType] = useState<string>("");
   const [selectedRoomVariant, setSelectedRoomVariant] = useState<RoomVariant | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [imageError, setImageError] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState<Record<string, number>>({});
 
-  // Travellers from search or default
-  const [travellers, setTravellers] = useState<TravellerCount>({
-    rooms: 1,
-    adults: 2,
-    children: 0,
-    infants: 0
-  });
-
-  // Dates from search or default
-  const [checkIn, setCheckIn] = useState<Date>(() => {
-    const d = new Date();
-    d.setDate(d.getDate() + 1);
-    return d;
-  });
-  const [checkOut, setCheckOut] = useState<Date>(() => {
-    const d = new Date();
-    d.setDate(d.getDate() + 3);
-    return d;
-  });
+  // Dates from API
+  const [checkIn, setCheckIn] = useState<Date>(new Date());
+  const [checkOut, setCheckOut] = useState<Date>(new Date());
 
   useEffect(() => {
     fetchHotelDetails();
@@ -169,16 +164,17 @@ const HotelDetailPage = () => {
         setHotel(hotelData);
         setSelectedImage(hotelData.main_image || "");
         
-        // Set default selected room variant
-        if (hotelData.room_types_data?.standard?.enabled && hotelData.room_types_data.standard.hotels.length > 0) {
-          setSelectedRoomVariant(hotelData.room_types_data.standard.hotels[0]);
-        } else if (hotelData.room_types_data?.deluxe?.enabled && hotelData.room_types_data.deluxe.hotels.length > 0) {
-          setSelectedRoomVariant(hotelData.room_types_data.deluxe.hotels[0]);
-          setSelectedRoomType("deluxe");
-        } else if (hotelData.room_types_data?.luxury?.enabled && hotelData.room_types_data.luxury.hotels.length > 0) {
-          setSelectedRoomVariant(hotelData.room_types_data.luxury.hotels[0]);
-          setSelectedRoomType("luxury");
+        // Set dates from API data
+        if (hotelData.check_in_date) {
+          setCheckIn(new Date(hotelData.check_in_date));
         }
+        if (hotelData.check_out_date) {
+          setCheckOut(new Date(hotelData.check_out_date));
+        }
+        
+        // FIXED: DO NOT auto-select any room - let user choose or use default sale price
+        setSelectedRoomType("");
+        setSelectedRoomVariant(null);
       } else {
         setError("Failed to fetch hotel details");
       }
@@ -202,27 +198,146 @@ const HotelDetailPage = () => {
     return Number(price).toLocaleString('en-IN');
   };
 
-  const calculateTotalPrice = () => {
-    if (!selectedRoomVariant) return 0;
-    return Number(selectedRoomVariant.price);
+  const calculateNights = () => {
+    if (!checkIn || !checkOut) return 1;
+    const nights = Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
+    return nights > 0 ? nights : 1;
   };
 
-  const handleBookNow = () => {
-    if (!hotel || !selectedRoomVariant) return;
-    const hotelForCheckout = {
-      ...hotel,
-      checkIn: checkIn,
-      checkOut: checkOut,
-      rooms: travellers.rooms,
-      adults: travellers.adults,
-      children: travellers.children,
-      selectedRoomType: selectedRoomType,
-      selectedRoomVariant: selectedRoomVariant,
-      total_price_value: Number(selectedRoomVariant.price)
-    };
-    localStorage.setItem('selectedHotel', JSON.stringify(hotelForCheckout));
-    navigate('/checkout-hotels', { state: { hotel: hotelForCheckout } });
+  const calculateTotalPrice = () => {
+    if (!hotel || !selectedRoomVariant) return 0;
+    
+    const roomPrice = Number(selectedRoomVariant.price);
+    const totalRoomPrice = roomPrice;
+    
+    // Calculate children price
+    const childPrice = selectedRoomVariant.pricePerChild 
+      ? Number(selectedRoomVariant.pricePerChild) 
+      : Number(hotel.price_per_child || 0);
+    const childrenCount = hotel.children || 0;
+    const totalChildrenPrice = childPrice * childrenCount;
+    
+    const taxes = Number(hotel.taxes || 0);
+    
+    return totalRoomPrice + totalChildrenPrice + taxes;
   };
+
+  // Get the display price for the top section (prioritizes sale_price)
+  const getDisplayPrice = (): number => {
+    if (!hotel) return 0;
+    return getEffectivePrice(hotel);
+  };
+
+  // Check if there's a discount to show
+  const hasDiscount = (): boolean => {
+    if (!hotel) return false;
+    const effectivePrice = getEffectivePrice(hotel);
+    const originalPrice = getOriginalPrice(hotel);
+    return !!(originalPrice && originalPrice > effectivePrice);
+  };
+
+  // Get discount percentage
+  const getDiscountPercentage = (): number => {
+    if (!hotel || !hasDiscount()) return 0;
+    const effectivePrice = getEffectivePrice(hotel);
+    const originalPrice = getOriginalPrice(hotel);
+    if (!originalPrice) return 0;
+    return Math.round((1 - effectivePrice / originalPrice) * 100);
+  };
+
+ const handleBookNow = () => {
+  if (!hotel) return;
+  
+  const nights = calculateNights();
+  
+  // Check if a room type is ACTUALLY selected
+  const hasSelectedRoom = selectedRoomVariant !== null && selectedRoomType !== "";
+  
+  let roomPrice: number;
+  let childPrice: number;
+  let totalRoomPrice: number;
+  let totalChildrenPrice: number;
+  let taxes: number;
+  let totalPrice: number;
+  let roomData: RoomVariant | null = null;
+  
+  if (hasSelectedRoom && selectedRoomVariant) {
+    // USE SELECTED ROOM PRICE
+    roomPrice = Number(selectedRoomVariant.price);
+    childPrice = selectedRoomVariant.pricePerChild 
+      ? Number(selectedRoomVariant.pricePerChild) 
+      : Number(hotel.price_per_child || 0);
+    totalRoomPrice = roomPrice;
+    taxes = Number(hotel.taxes || 0);
+    
+    const childrenCount = hotel.children || 0;
+    totalChildrenPrice = childPrice * childrenCount;
+    
+    totalPrice = totalRoomPrice + totalChildrenPrice + taxes;
+    roomData = selectedRoomVariant;
+    
+    console.log('✅ Using SELECTED ROOM price:', {
+      roomType: selectedRoomType,
+      roomPrice,
+      childPrice,
+      totalChildrenPrice,
+      taxes,
+      totalPrice
+    });
+  } else {
+    // USE PARENT COMPONENT SALE PRICE (NO ROOM SELECTED)
+    roomPrice = getEffectivePrice(hotel);
+    childPrice = Number(hotel.price_per_child || 0);
+    totalRoomPrice = roomPrice;
+    taxes = Number(hotel.taxes || 0);
+    
+    const childrenCount = hotel.children || 0;
+    totalChildrenPrice = childPrice * childrenCount;
+    
+    totalPrice = totalRoomPrice + totalChildrenPrice + taxes;
+    roomData = null;
+    
+    console.log('💰 Using PARENT SALE PRICE (no room selected):', {
+      salePrice: hotel.sale_price,
+      regularPrice: hotel.price,
+      effectivePrice: roomPrice,
+      childPrice,
+      totalChildrenPrice,
+      taxes,
+      totalPrice
+    });
+  }
+  
+  const hotelForCheckout = {
+    ...hotel,
+    checkIn: checkIn,
+    checkOut: checkOut,
+    rooms: hotel.rooms || 1,
+    adults: hotel.adults || 2,
+    children: hotel.children || 0,
+    children_ages: hotel.children_ages || [],
+    selectedRoom: roomData,
+    selectedRoomCategory: hasSelectedRoom ? selectedRoomType : null,
+    nights: 1,
+    roomPrice: roomPrice,
+    childPrice: childPrice,
+    totalChildrenPrice: totalChildrenPrice,
+    total_price_value: totalPrice,
+    basePrice: roomPrice,
+    taxes: taxes,
+    total_amount: totalPrice,
+    hasRoomSelected: hasSelectedRoom  // FIXED: Use correct variable name
+  };
+  
+  console.log('📦 Final hotelForCheckout:', {
+    hasRoomSelected: hasSelectedRoom,  // FIXED: Use correct variable name
+    selectedRoom: roomData?.roomType || 'None',
+    totalPrice
+  });
+  
+  localStorage.setItem('selectedHotel', JSON.stringify(hotelForCheckout));
+  navigate('/checkout-hotels', { state: { hotel: hotelForCheckout } });
+};
 
   const nextImage = (roomId: string, imagesLength: number) => {
     setCurrentImageIndex(prev => ({
@@ -273,6 +388,7 @@ const HotelDetailPage = () => {
   const handleRoomTypeSelect = (typeId: string, variant: RoomVariant) => {
     setSelectedRoomType(typeId);
     setSelectedRoomVariant(variant);
+    console.log('🏨 Room selected:', { typeId, roomType: variant.roomType, price: variant.price });
   };
 
   const amenitiesList = [
@@ -318,6 +434,12 @@ const HotelDetailPage = () => {
   const mainImageUrl = getImageUrl(hotel.main_image);
   const additionalImages = hotel.additional_images?.map(img => getImageUrl(img)).filter(Boolean) || [];
   const enabledRoomTypes = getEnabledRoomTypes();
+  const nights = calculateNights();
+  const totalPrice = calculateTotalPrice();
+  const displayPrice = getDisplayPrice();
+  const originalPriceValue = getOriginalPrice(hotel);
+  const showDiscount = hasDiscount();
+  const discountPercentage = getDiscountPercentage();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -368,16 +490,28 @@ const HotelDetailPage = () => {
                 </div>
               </div>
               
+              {/* Price Display Section */}
               <div className="bg-white/10 backdrop-blur-sm rounded-xl p-5">
                 <div className="text-center">
-                  <div className="text-3xl font-bold">₹{formatPrice(selectedRoomVariant?.price || hotel.price)}</div>
-                  <div className="text-sm text-white/70">per night</div>
-                  {hotel.original_price && Number(hotel.original_price) > Number(hotel.price) && (
-                    <div className="mt-1">
-                      <span className="text-sm line-through text-white/50">₹{formatPrice(hotel.original_price)}</span>
-                      <span className="ml-2 text-green-400 text-sm">Save {Math.round((1 - Number(hotel.price)/Number(hotel.original_price)) * 100)}%</span>
+                  <div className="text-3xl font-bold">₹{formatPrice(displayPrice)}</div>
+                  
+                  {showDiscount && originalPriceValue && (
+                    <div className="mt-1 flex items-center justify-center gap-2">
+                      <span className="text-sm line-through text-white/50">₹{formatPrice(originalPriceValue)}</span>
+                      <span className="bg-green-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                        Save {discountPercentage}%
+                      </span>
                     </div>
                   )}
+                  
+                  {hotel.limited_time_sale === 1 && (
+                    <div className="mt-2">
+                      <span className="bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+                        Limited Time Sale!
+                      </span>
+                    </div>
+                  )}
+                  
                   <button 
                     onClick={handleBookNow}
                     className="w-full mt-4 bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 rounded-lg transition-all"
@@ -397,25 +531,56 @@ const HotelDetailPage = () => {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Left Column - Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Image Gallery */}
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-              <div className="relative h-96">
-                {mainImageUrl ? (
-                  <img src={mainImageUrl} alt={hotel.hotel_name} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center">
-                    <Hotel className="w-24 h-24 text-white/50" />
-                  </div>
-                )}
-              </div>
-              {additionalImages.length > 0 && (
-                <div className="grid grid-cols-4 gap-2 p-2">
-                  {additionalImages.slice(0, 4).map((img, idx) => (
-                    <img key={idx} src={img || ''} alt={`Gallery ${idx + 1}`} className="h-24 w-full object-cover rounded cursor-pointer hover:opacity-80 transition" />
-                  ))}
-                </div>
-              )}
-            </div>
+       {/* Image Gallery */}
+<div className="bg-white rounded-xl shadow-sm overflow-hidden">
+  <div className="relative h-96">
+    {selectedImage ? (
+      <img 
+        src={getImageUrl(selectedImage) || selectedImage} 
+        alt={hotel.hotel_name} 
+        className="w-full h-full object-cover" 
+      />
+    ) : mainImageUrl ? (
+      <img src={mainImageUrl} alt={hotel.hotel_name} className="w-full h-full object-cover" />
+    ) : (
+      <div className="w-full h-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center">
+        <Hotel className="w-24 h-24 text-white/50" />
+      </div>
+    )}
+  </div>
+  
+  {additionalImages.length > 0 && (
+    <div className="grid grid-cols-4 gap-2 p-2">
+      {/* Main image as thumbnail */}
+      {mainImageUrl && (
+        <img 
+          src={mainImageUrl} 
+          alt="Main" 
+          className={`h-24 w-full object-cover rounded cursor-pointer transition-all duration-200 ${
+            selectedImage === hotel.main_image || (!selectedImage && !selectedImage)
+              ? "ring-2 ring-orange-600 ring-offset-1 opacity-100" 
+              : "opacity-50 hover:opacity-80"
+          }`}
+          onClick={() => setSelectedImage(hotel.main_image)}
+        />
+      )}
+      {/* Additional images */}
+      {additionalImages.slice(0, additionalImages.length > 3 ? 3 : 4).map((img, idx) => (
+        <img 
+          key={idx} 
+          src={img || ''} 
+          alt={`Gallery ${idx + 1}`} 
+          className={`h-24 w-full object-cover rounded cursor-pointer transition-all duration-200 ${
+            selectedImage === img
+              ? "ring-2 ring-orange-600 ring-offset-1 opacity-100" 
+              : "opacity-50 hover:opacity-80"
+          }`}
+          onClick={() => setSelectedImage(img || '')}
+        />
+      ))}
+    </div>
+  )}
+</div>
 
             {/* Overview */}
             <div className="bg-white rounded-xl shadow-sm p-6">
@@ -466,7 +631,7 @@ const HotelDetailPage = () => {
                     <div key={roomType.id} className="space-y-3">
                       <h3 className="text-xl font-semibold text-gray-800">{roomType.name}</h3>
                       <div className="grid grid-cols-1 gap-4">
-                        {roomType.variants.map((variant, idx) => (
+                        {roomType.variants.map((variant) => (
                           <div
                             key={variant.id}
                             className={`border rounded-xl overflow-hidden cursor-pointer transition-all ${
@@ -557,8 +722,11 @@ const HotelDetailPage = () => {
                                       <span>📏 {variant.roomSize} sq.ft</span>
                                       <span>🛏️ {variant.bedType}</span>
                                       <span>👥 Max {variant.maxOccupancy} Guests</span>
-                                      <span className="text-orange-600 font-semibold">₹{formatPrice(variant.price)}/night</span>
+                                      {/* <span className="text-orange-600 font-semibold">₹{formatPrice(variant.price)}/night</span> */}
+                                      {/* <span className="text-orange-600 font-semibold">₹{formatPrice(variant.price)}</span> */}
+                                 
                                     </div>
+
                                     <div className="flex flex-wrap gap-2">
                                       {variant.amenities?.slice(0, 4).map((amenity, amenityIdx) => (
                                         <span key={amenityIdx} className="text-xs bg-gray-100 px-2 py-1 rounded">✓ {amenity}</span>
@@ -568,19 +736,29 @@ const HotelDetailPage = () => {
                                       )}
                                     </div>
                                   </div>
-                                  <button
-                                    className={`px-6 py-2 rounded-lg font-medium whitespace-nowrap transition-all ${
-                                      selectedRoomType === roomType.id && selectedRoomVariant?.id === variant.id
-                                        ? "bg-orange-600 text-white"
-                                        : "bg-gray-100 text-gray-700 hover:bg-orange-100 hover:text-orange-600"
-                                    }`}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleRoomTypeSelect(roomType.id, variant);
-                                    }}
-                                  >
-                                    {selectedRoomType === roomType.id && selectedRoomVariant?.id === variant.id ? "Selected" : "Select"}
-                                  </button>
+                          <div className="flex flex-col items-end gap-2">
+  {/* SELECT BUTTON */}
+  <button
+    className={`w-28 h-10 flex items-center justify-center rounded-lg font-medium whitespace-nowrap transition-all ${
+      selectedRoomType === roomType.id && selectedRoomVariant?.id === variant.id
+        ? "bg-orange-600 text-white"
+        : "bg-gray-100 text-gray-700 hover:bg-orange-100 hover:text-orange-600"
+    }`}
+    onClick={(e) => {
+      e.stopPropagation();
+      handleRoomTypeSelect(roomType.id, variant);
+    }}
+  >
+    {selectedRoomType === roomType.id && selectedRoomVariant?.id === variant.id
+      ? "Selected"
+      : "Select"}
+  </button>
+
+  {/* PRICE (same size as button) */}
+  <span className="w-28 h-10 flex items-center justify-center rounded-lg bg-orange-100 text-orange-700 font-semibold text-sm">
+    ₹{formatPrice(variant.price)}
+  </span>
+</div>
                                 </div>
                               </div>
                             </div>
@@ -664,29 +842,91 @@ const HotelDetailPage = () => {
             <div className="bg-white rounded-xl shadow-sm p-6 sticky top-24">
               <h3 className="text-xl font-bold mb-4">Your Booking Summary</h3>
               
-              {selectedRoomVariant && (
-                <div className="mb-4 p-3 bg-orange-50 rounded-lg">
-                  <p className="text-sm text-gray-600">Selected Room</p>
-                  <p className="font-semibold text-orange-600">{selectedRoomVariant.roomType}</p>
-                  <p className="text-xs text-gray-500 mt-1">Max {selectedRoomVariant.maxOccupancy} guests • {selectedRoomVariant.bedType}</p>
-                </div>
-              )}
+              {/* Selected Room or Default Hotel Info */}
+              <div className="mb-4 p-3 bg-orange-50 rounded-lg">
+                {selectedRoomVariant ? (
+                  <>
+                    <p className="text-sm text-gray-600">Selected Room</p>
+                    <p className="font-semibold text-orange-600">{selectedRoomVariant.roomType}</p>
+                    <p className="text-xs text-gray-500 mt-1">Max {selectedRoomVariant.maxOccupancy} guests • {selectedRoomVariant.bedType}</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm text-gray-600">Hotel Price (Base Rate)</p>
+                    <p className="font-semibold text-orange-600">Standard Room</p>
+                    <p className="text-xs text-gray-500 mt-1">Select a room type above for specific pricing</p>
+                  </>
+                )}
+              </div>
               
               <div className="space-y-4 mb-6">
+                {/* Room Price */}
                 <div className="flex justify-between text-gray-700">
                   <span>Room Price (per night)</span>
-                  <span className="font-semibold">₹{formatPrice(selectedRoomVariant?.price || hotel.price)}</span>
+                  <span className="font-semibold">
+                    ₹{formatPrice(selectedRoomVariant?.price || getEffectivePrice(hotel))}
+                  </span>
                 </div>
+                
+                {/* Show Original Price with Discount if no room selected and sale price applies */}
+                {!selectedRoomVariant && showDiscount && originalPriceValue && (
+                  <div className="flex justify-between text-gray-500 text-sm">
+                    <span>Original Price</span>
+                    <span className="line-through">₹{formatPrice(originalPriceValue)}</span>
+                  </div>
+                )}
+                
+                {/* Children Charges */}
+                {hotel.children > 0 && (
+                  <div className="flex justify-between text-gray-700">
+                    <span>
+                      Children ({hotel.children} child{hotel.children > 1 ? 'ren' : ''})
+                    </span>
+                    <span className="font-semibold">
+                      ₹{formatPrice(
+                        Number(selectedRoomVariant?.pricePerChild || hotel.price_per_child || 0) * hotel.children
+                      )}
+                    </span>
+                  </div>
+                )}
+                
+                {/* Taxes */}
+                {Number(hotel.taxes || 0) > 0 && (
+                  <div className="flex justify-between text-gray-700">
+                    <span>Taxes & Fees</span>
+                    <span className="font-semibold">₹{formatPrice(hotel.taxes || 0)}</span>
+                  </div>
+                )}
+                
+                {/* Kids Stay Free badge */}
                 {hotel.free_stay_for_kids === 1 && (
                   <div className="flex justify-between text-green-600">
                     <span>Kids Stay Free</span>
                     <span>✓</span>
                   </div>
                 )}
+                
+                {/* Limited Time Sale badge */}
+                {!selectedRoomVariant && hotel.limited_time_sale === 1 && (
+                  <div className="flex justify-between text-red-600">
+                    <span>Limited Time Sale</span>
+                    <span className="bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded-full">
+                      Active
+                    </span>
+                  </div>
+                )}
+                
+                {/* Total Amount */}
                 <div className="border-t pt-4">
                   <div className="flex justify-between text-xl font-bold text-orange-600">
-                    <span>Total per night</span>
-                    <span>₹{formatPrice(calculateTotalPrice())}</span>
+                    <span>Total Amount</span>
+                    <span>
+                      ₹{formatPrice(
+                        selectedRoomVariant 
+                          ? calculateTotalPrice() 
+                          : (getEffectivePrice(hotel) + (Number(hotel.price_per_child || 0) * (hotel.children || 0)) + Number(hotel.taxes || 0))
+                      )}
+                    </span>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">All taxes included</p>
                 </div>
@@ -716,8 +956,17 @@ const HotelDetailPage = () => {
                 <label className="block text-sm font-semibold mb-2">Guests</label>
                 <div className="border rounded-lg p-3 flex items-center gap-2 bg-gray-50">
                   <Users size={18} className="text-gray-500" />
-                  <span>{travellers.rooms} Room, {travellers.adults} Adult{travellers.adults > 1 ? 's' : ''}{travellers.children > 0 ? `, ${travellers.children} Child` : ''}</span>
+                  <span>
+                    {hotel.rooms} Room{hotel.rooms > 1 ? 's' : ''}, 
+                    {hotel.adults} Adult{hotel.adults > 1 ? 's' : ''}
+                    {hotel.children > 0 ? `, ${hotel.children} Child${hotel.children > 1 ? 'ren' : ''}` : ''}
+                  </span>
                 </div>
+                {hotel.children_ages && hotel.children_ages.length > 0 && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Children ages: {hotel.children_ages.join(', ')}
+                  </p>
+                )}
               </div>
 
               {/* Cancellation Policy */}

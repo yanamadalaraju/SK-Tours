@@ -333,7 +333,7 @@ const Login = () => {
                 <span style={{ fontSize: '14px' }}>Remember me</span>
               </label>
               
-              <button 
+              {/* <button 
                 type="button"
                 onClick={handleForgotPassword}
                 style={{
@@ -348,7 +348,7 @@ const Login = () => {
                 disabled={isLoading}
               >
                 Forgot password?
-              </button>
+              </button> */}
             </div>
           </div>
 

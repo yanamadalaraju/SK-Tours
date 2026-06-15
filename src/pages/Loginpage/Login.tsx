@@ -350,7 +350,7 @@ const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
                 <span style={{ fontSize: '14px' }}>Remember me</span>
               </label>
               
-              <button 
+              {/* <button 
                 type="button"
                 onClick={handleForgotPassword}
                 style={{
@@ -365,7 +365,7 @@ const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
                 disabled={isLoading}
               >
                 Forgot password?
-              </button>
+              </button> */}
             </div>
           </div>
 

@@ -156,11 +156,13 @@ interface ExhibitionItem {
 interface DomesticExhibition {
   id: number;
   domestic_category_name: string;
+    cities: City[];
 }
 
 interface InternationalExhibition {
   id: number;
   international_category_name: string;
+  cities?: City[];
 }
 
 const Exhibitiondetail = () => {
@@ -723,61 +725,92 @@ useEffect(() => {
     }
   }, [tourId]);
 
-  // Fetch Domestic Data
-  useEffect(() => {
-    const fetchDomesticData = async () => {
-      setLoadingDomestic(true);
-      try {
-        const response = await fetch(`${BASE_URL}/api/exhibitions/domestic`);
-        if (!response.ok) throw new Error(`Failed: ${response.status}`);
-        const data = await response.json();
-        if (Array.isArray(data) && data.length > 0) {
-          const categories = data
-            .map((item: any) => item.domestic_category_name)
-            .filter((category: string) => category && category.trim() !== '');
-          setDomesticList(categories);
-          setDomesticExhibitionData(data);
-          setExhibitionData(data);
-        } else {
-          setDomesticList([]);
-          setExhibitionData([]);
-        }
-      } catch (error) {
-        console.error("Error fetching domestic:", error);
-        setDomesticList([]);
+// Update the fetchDomesticData function in Exhibitiondetail.tsx
+useEffect(() => {
+  const fetchDomesticData = async () => {
+    setLoadingDomestic(true);
+    try {
+      const response = await fetch(`${BASE_URL}/api/exhibitions/domestic`);
+      if (!response.ok) throw new Error(`Failed: ${response.status}`);
+      const data = await response.json();
+      
+      // Handle grouped response format
+      let exhibitionsArray: ExhibitionItem[] = [];
+      
+      if (data && typeof data === 'object' && !Array.isArray(data)) {
+        // New grouped format: { "Pharma": [...], "Furniture": [...], etc. }
+        Object.keys(data).forEach(categoryName => {
+          exhibitionsArray.push(...data[categoryName]);
+        });
+      } else if (Array.isArray(data)) {
+        // Old array format (backward compatibility)
+        exhibitionsArray = data;
+      }
+      
+      if (exhibitionsArray.length > 0) {
+        setExhibitionData(exhibitionsArray);
+        setDomesticExhibitionData(exhibitionsArray);
+        // Extract unique categories for domestic list
+        const categories = [...new Set(exhibitionsArray.map(item => item.domestic_category_name))];
+        setDomesticList(categories);
+      } else {
         setExhibitionData([]);
-      } finally {
-        setLoadingDomestic(false);
+        setDomesticExhibitionData([]);
+        setDomesticList([]);
       }
-    };
-    fetchDomesticData();
-  }, []);
+    } catch (error) {
+      console.error("Error fetching domestic:", error);
+      setExhibitionData([]);
+      setDomesticExhibitionData([]);
+      setDomesticList([]);
+    } finally {
+      setLoadingDomestic(false);
+    }
+  };
+  fetchDomesticData();
+}, []);
 
-  // Fetch International Data
-  useEffect(() => {
-    const fetchInternationalData = async () => {
-      setLoadingInternational(true);
-      try {
-        const response = await fetch(`${BASE_URL}/api/exhibitions/international`);
-        if (!response.ok) throw new Error(`Failed: ${response.status}`);
-        const data: InternationalExhibition[] = await response.json();
-        if (Array.isArray(data) && data.length > 0) {
-          setInternationalList(data.map(item => item.international_category_name));
-          setInternationalExhibitionData(data);
-        } else {
-          setInternationalList([]);
-          setInternationalExhibitionData([]);
-        }
-      } catch (error) {
-        console.error("Error fetching international:", error);
-        setInternationalList([]);
-        setInternationalExhibitionData([]);
-      } finally {
-        setLoadingInternational(false);
+// Update the fetchInternationalData function
+useEffect(() => {
+  const fetchInternationalData = async () => {
+    setLoadingInternational(true);
+    try {
+      const response = await fetch(`${BASE_URL}/api/exhibitions/international`);
+      if (!response.ok) throw new Error(`Failed: ${response.status}`);
+      const data = await response.json();
+      
+      // Handle grouped response format
+      let exhibitionsArray: InternationalExhibition[] = [];
+      
+      if (data && typeof data === 'object' && !Array.isArray(data)) {
+        // New grouped format
+        Object.keys(data).forEach(categoryName => {
+          exhibitionsArray.push(...data[categoryName]);
+        });
+      } else if (Array.isArray(data)) {
+        // Old array format (backward compatibility)
+        exhibitionsArray = data;
       }
-    };
-    fetchInternationalData();
-  }, []);
+      
+      if (exhibitionsArray.length > 0) {
+        setInternationalExhibitionData(exhibitionsArray);
+        // Extract unique categories for international list
+        const categories = [...new Set(exhibitionsArray.map(item => item.international_category_name))];
+        setInternationalList(categories);
+      } else {
+        setInternationalExhibitionData([]);
+        setInternationalList([]);
+      }
+    } catch (error) {
+      console.error("Error fetching international:", error);
+      setInternationalExhibitionData([]);
+      setInternationalList([]);
+    } finally {
+      setLoadingInternational(false);
+    }
+  };
+  fetchInternationalData();
+}, []);
 
   const handleInternationalClick = (category: string) => {
     const found = internationalExhibitionData.find(
@@ -1004,15 +1037,14 @@ const handleSearch = (e: React.FormEvent) => {
 
         <div className="container mx-auto px-4 py-6">
           <div className="flex flex-col lg:flex-row gap-6">
-            {/* Sidebar - EXACT same as ExhibitionView */}
-       <aside className="lg:w-80">
+    {/* Sidebar - Updated with Category (City) format */}
+<aside className="lg:w-80">
   <div className="bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl shadow-lg p-6 border border-blue-200 sticky top-24">
-    {/* Header with Clear All button - Updated */}
+    {/* Header with Clear All button */}
     <div className="flex justify-between items-center mb-4 bg-[#2E4D98] p-2 rounded-lg border border-black">
       <h2 className="text-2xl font-bold text-white">Exhibitions</h2>
       <button
         onClick={() => {
-          // Reset all filters
           setDurationRange([0, 10]);
           setPriceRange([0, 200000]);
           setSelectedDomesticCategories([]);
@@ -1021,8 +1053,6 @@ const handleSearch = (e: React.FormEvent) => {
           setSelectedCostMonth("");
           setSelectedCostDate("");
           setOpenIndex(null);
-          // Navigate back to main exhibition page
-         
         }}
         className="text-sm text-[white] hover:underline"
       >
@@ -1073,135 +1103,148 @@ const handleSearch = (e: React.FormEvent) => {
       />
     </div>
 
-    {/* Domestic Exhibition Section with Checkboxes */}
-    <div className="mb-6">
-      <div className="flex justify-between items-center mb-3 bg-white p-2 rounded-lg border border-black">
-        <h2 className="text-xl font-bold text-[#2E4D98]">Domestic Exhibition</h2>
+<div className="mb-6">
+  <div className="flex justify-between items-center mb-3 bg-white p-2 rounded-lg border border-black">
+    <h2 className="text-xl font-bold text-[#2E4D98]">Domestic Exhibition</h2>
+  </div>
+  
+  <div className={`${showMoreDomestic ? "max-h-64 overflow-y-auto pr-1" : ""} space-y-3`}>
+    {loadingDomestic ? (
+      <div className="flex justify-center py-4">
+        <span className="animate-spin h-5 w-5 border-2 border-gray-300 border-t-blue-600 rounded-full" />
       </div>
-      
-      <div className={`${showMoreDomestic ? "max-h-64 overflow-y-auto pr-1" : ""} space-y-3`}>
-        {loadingDomestic ? (
-          <div className="flex justify-center py-4">
-            <span className="animate-spin h-5 w-5 border-2 border-gray-300 border-t-blue-600 rounded-full" />
-          </div>
-        ) : domesticList.length > 0 ? (
-          domesticList
-            .slice(0, showMoreDomestic ? domesticList.length : 6)
-            .sort((a, b) => a.localeCompare(b))
-            .map((category) => {
-              const found = domesticExhibitionData.find(
-                item => item.domestic_category_name === category
-              );
-              const isActive = found?.id === currentExhibitionId;
-              return (
-                <div key={category} className="flex items-center gap-3 cursor-pointer">
-                  <Checkbox
-                    checked={selectedDomesticCategories.includes(category) || isActive}
-                    onCheckedChange={(checked) => {
-                      if (checked) {
-                        setSelectedDomesticCategories([category]);
-                        setSelectedInternationalCategories([]);
-                        handleDomesticClick(category);
-                      } else {
-                        setSelectedDomesticCategories([]);
-                      }
-                    }}
-                    className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
-                  />
-                  <span
-                    className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${
-                      isActive ? 'font-bold text-[#2E4D98]' : ''
-                    }`}
-                    onClick={() => {
-                      setSelectedDomesticCategories([category]);
-                      setSelectedInternationalCategories([]);
-                      handleDomesticClick(category);
-                    }}
-                  >
-                    {category}
-                  </span>
-                </div>
-              );
-            })
-        ) : (
-          <div className="text-sm text-gray-400">No domestic exhibitions available</div>
-        )}
+    ) : domesticList.length > 0 ? (
+      domesticList
+        .slice(0, showMoreDomestic ? domesticList.length : 6)
+        .map((category) => {
+          // Find the exhibition ID for this category
+          const foundExhibition = domesticExhibitionData.find(
+            (item) => item.domestic_category_name === category
+          );
+          const isActive = foundExhibition?.id === currentExhibitionId;
+          
+          return (
+            <div key={category} className="flex items-center gap-3 cursor-pointer">
+              <Checkbox
+                checked={selectedDomesticCategories.includes(category) || isActive}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    setSelectedDomesticCategories([category]);
+                    setSelectedInternationalCategories([]);
+                    if (foundExhibition) {
+                      navigate(`/exhibitiondetail/${foundExhibition.id}`);
+                    } else {
+                      navigate('/exhibition', { state: { category } });
+                    }
+                  } else {
+                    setSelectedDomesticCategories([]);
+                  }
+                }}
+                className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
+              />
+              <span
+                className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${
+                  isActive ? 'font-bold text-[#2E4D98]' : ''
+                }`}
+                onClick={() => {
+                  setSelectedDomesticCategories([category]);
+                  setSelectedInternationalCategories([]);
+                  if (foundExhibition) {
+                    navigate(`/exhibitiondetail/${foundExhibition.id}`);
+                  } else {
+                    navigate('/exhibition', { state: { category } });
+                  }
+                }}
+              >
+                {category}
+              </span>
+            </div>
+          );
+        })
+    ) : (
+      <div className="text-sm text-gray-400">No domestic exhibitions available</div>
+    )}
+  </div>
+  
+  {domesticList.length > 6 && (
+    <button
+      onClick={() => setShowMoreDomestic(!showMoreDomestic)}
+      className="mt-4 text-[#2E4D98] text-sm font-semibold hover:underline"
+    >
+      {showMoreDomestic ? "Show Less" : `Show ${domesticList.length - 6} More`}
+    </button>
+  )}
+</div>
+
+{/* International Exhibition Section - Fixed to show only categories */}
+<div>
+  <div className="flex justify-between items-center mb-3 bg-white p-2 rounded-lg border border-black">
+    <h2 className="text-xl font-bold text-[#2E4D98]">International Exhibition</h2>
+  </div>
+  
+  <div className={`${showMoreInternational ? "max-h-64 overflow-y-auto pr-1" : ""} space-y-3`}>
+    {loadingInternational ? (
+      <div className="flex justify-center py-4">
+        <span className="animate-spin h-5 w-5 border-2 border-gray-300 border-t-blue-600 rounded-full" />
       </div>
-      
-      {domesticList.length > 6 && (
-        <button
-          onClick={() => setShowMoreDomestic(!showMoreDomestic)}
-          className="mt-4 text-[#2E4D98] text-sm font-semibold hover:underline"
-        >
-          {showMoreDomestic ? "Show Less" : "Show More"}
-        </button>
-      )}
-    </div>
-    
-    {/* International Exhibition Section */}
-    <div>
-      <div className="flex justify-between items-center mb-3 bg-white p-2 rounded-lg border border-black">
-        <h2 className="text-xl font-bold text-[#2E4D98]">International Exhibition</h2>
-      </div>
-      
-      <div className={`${showMoreInternational ? "max-h-64 overflow-y-auto pr-1" : ""} space-y-3`}>
-        {loadingInternational ? (
-          <div className="flex justify-center py-4">
-            <span className="animate-spin h-5 w-5 border-2 border-gray-300 border-t-blue-600 rounded-full" />
-          </div>
-        ) : internationalList.length > 0 ? (
-          internationalList
-            .slice(0, showMoreInternational ? internationalList.length : 6)
-            .sort((a, b) => a.localeCompare(b))
-            .map((category) => {
-              const found = internationalExhibitionData.find(
-                item => item.international_category_name === category
-              );
-              const isActive = found?.id === currentExhibitionId;
-              return (
-                <div key={category} className="flex items-center gap-3 cursor-pointer">
-                  <Checkbox
-                    checked={selectedInternationalCategories.includes(category) || isActive}
-                    onCheckedChange={(checked) => {
-                      if (checked) {
-                        setSelectedInternationalCategories([category]);
-                        setSelectedDomesticCategories([]);
-                        handleInternationalClick(category);
-                      } else {
-                        setSelectedInternationalCategories([]);
-                      }
-                    }}
-                    className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
-                  />
-                  <span
-                    className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${
-                      isActive ? 'font-bold text-[#2E4D98]' : ''
-                    }`}
-                    onClick={() => {
-                      setSelectedInternationalCategories([category]);
-                      setSelectedDomesticCategories([]);
-                      handleInternationalClick(category);
-                    }}
-                  >
-                    {category}
-                  </span>
-                </div>
-              );
-            })
-        ) : (
-          <div className="text-sm text-gray-400">No international exhibitions available</div>
-        )}
-      </div>
-      
-      {internationalList.length > 6 && (
-        <button
-          onClick={() => setShowMoreInternational(!showMoreInternational)}
-          className="mt-4 text-[#2E4D98] text-sm font-semibold hover:underline"
-        >
-          {showMoreInternational ? "Show Less" : "Show More"}
-        </button>
-      )}
-    </div>
+    ) : internationalList.length > 0 ? (
+      internationalList
+        .slice(0, showMoreInternational ? internationalList.length : 6)
+        .map((category) => {
+          // Find the exhibition ID for this category
+          const foundExhibition = internationalExhibitionData.find(
+            (item) => item.international_category_name === category
+          );
+          const isActive = foundExhibition?.id === currentExhibitionId;
+          
+          return (
+            <div key={category} className="flex items-center gap-3 cursor-pointer">
+              <Checkbox
+                checked={selectedInternationalCategories.includes(category) || isActive}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    setSelectedInternationalCategories([category]);
+                    setSelectedDomesticCategories([]);
+                    if (foundExhibition) {
+                      navigate(`/exhibitioninternationalindetail/${foundExhibition.id}`);
+                    }
+                  } else {
+                    setSelectedInternationalCategories([]);
+                  }
+                }}
+                className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
+              />
+              <span
+                className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${
+                  isActive ? 'font-bold text-[#2E4D98]' : ''
+                }`}
+                onClick={() => {
+                  setSelectedInternationalCategories([category]);
+                  setSelectedDomesticCategories([]);
+                  if (foundExhibition) {
+                    navigate(`/exhibitioninternationalindetail/${foundExhibition.id}`);
+                  }
+                }}
+              >
+                {category}
+              </span>
+            </div>
+          );
+        })
+    ) : (
+      <div className="text-sm text-gray-400">No international exhibitions available</div>
+    )}
+  </div>
+  
+  {internationalList.length > 6 && (
+    <button
+      onClick={() => setShowMoreInternational(!showMoreInternational)}
+      className="mt-4 text-[#2E4D98] text-sm font-semibold hover:underline"
+    >
+      {showMoreInternational ? "Show Less" : `Show ${internationalList.length - 6} More`}
+    </button>
+  )}
+</div>
   </div>
 </aside>
 

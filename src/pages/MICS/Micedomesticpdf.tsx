@@ -849,53 +849,62 @@ const Micedomesticpdf: React.FC<TourPdfDocumentProps> = ({
         )} fixed />
       </Page>
 
-      {/* Page 6: Booking & Cancellation Policies */}
-      <Page size="A4" style={styles.page}>
-        <View style={styles.section}>
-          <Text style={styles.subHeader}>Booking Policy</Text>
-          
-          {tour?.booking?.items && tour.booking.items.length > 0 ? (
-            tour.booking.items.map((item, index) => (
-              <View key={index} style={styles.listItem}>
-                <Text style={[styles.bullet, { color: '#2E4D98' }]}>{index + 1}.</Text>
-                <Text style={styles.listText}>{item}</Text>
-              </View>
-            ))
-          ) : (
-            <View style={styles.highlight}>
-              <Text style={styles.text}>Standard booking terms and conditions apply</Text>
-            </View>
-          )}
-          
-          {tour?.booking?.amountDetails && tour.booking.amountDetails.length > 0 && (
-            <View style={[styles.section, { marginTop: 10 }]}>
-              <Text style={styles.title}>Amount Details:</Text>
-              {tour.booking.amountDetails.map((amount, index) => (
-                <View key={index} style={styles.flexRow}>
-                  <Text style={styles.text}>Item {index + 1}:</Text>
-                  <Text style={styles.boldText}>{amount}</Text>
-                </View>
-              ))}
-            </View>
-          )}
-          
-          {tour?.bookingRemarks && tour.bookingRemarks.length > 0 && (
-            <View style={styles.section}>
-              <Text style={styles.title}>Booking Remarks:</Text>
-              {tour.bookingRemarks.map((remark, index) => (
-                <View key={index} style={styles.listItem}>
-                  <Text style={styles.bullet}>•</Text>
-                  <Text style={styles.listText}>{remark}</Text>
-                </View>
-              ))}
-            </View>
-          )}
+ {/* Page 6: Booking & Cancellation Policies */}
+<Page size="A4" style={styles.page}>
+  <View style={styles.section}>
+    <Text style={styles.subHeader}>Booking Policy</Text>
+    
+    {tour?.booking?.items && tour.booking.items.length > 0 ? (
+      tour.booking.items.map((item, index) => (
+        <View key={index} style={styles.listItem}>
+          <Text style={[styles.bullet, { color: '#2E4D98' }]}>{index + 1}.</Text>
+          <Text style={styles.listText}>{item}</Text>
         </View>
-        
-        <Text style={styles.pageNumber} render={({ pageNumber, totalPages }) => (
-          `${pageNumber} / ${totalPages}`
-        )} fixed />
-      </Page>
+      ))
+    ) : (
+      <View style={styles.highlight}>
+        <Text style={styles.text}>Standard booking terms and conditions apply</Text>
+      </View>
+    )}
+    
+    {tour?.booking?.amountDetails && tour.booking.amountDetails.length > 0 && (
+      <View style={[styles.section, { marginTop: 10 }]}>
+        <Text style={styles.title}>Amount Details:</Text>
+        {tour.booking.amountDetails.map((amount, index) => (
+          <View key={index} style={styles.flexRow}>
+            <Text style={styles.text}>Item {index + 1}:</Text>
+            <Text style={[
+              styles.boldText, 
+              { 
+                color: amount.includes('%') ? '#E53C42' : 
+                       amount.toLowerCase().includes('balance') ? '#2E4D98' : 
+                       amount.startsWith('₹') ? '#10b981' : '#333'
+              }
+            ]}>
+              {amount}
+            </Text>
+          </View>
+        ))}
+      </View>
+    )}
+    
+    {tour?.bookingRemarks && tour.bookingRemarks.length > 0 && (
+      <View style={styles.section}>
+        <Text style={styles.title}>Booking Remarks:</Text>
+        {tour.bookingRemarks.map((remark, index) => (
+          <View key={index} style={styles.listItem}>
+            <Text style={styles.bullet}>•</Text>
+            <Text style={styles.listText}>{remark}</Text>
+          </View>
+        ))}
+      </View>
+    )}
+  </View>
+  
+  <Text style={styles.pageNumber} render={({ pageNumber, totalPages }) => (
+    `${pageNumber} / ${totalPages}`
+  )} fixed />
+</Page>
 
       {/* Page 7: Cancellation Policy & Instructions */}
       <Page size="A4" style={styles.page}>

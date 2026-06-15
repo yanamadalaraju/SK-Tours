@@ -8,7 +8,8 @@ import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { BASE_URL } from '@/ApiUrls';
 import Footer from '@/components/Footer';
-import { Input } from "@/components/ui/input"; // Add this with other imports
+import { Input } from "@/components/ui/input"; 
+import Pagination from '../Tablelayouts/Pagination';
 
 const stateHeroImages = {
   "Andaman": "https://i.pinimg.com/1200x/67/10/27/671027210a396e38b27e5d0432bd18db.jpg",
@@ -83,8 +84,8 @@ const TourPackages = () => {
   const [showMoreWorld, setShowMoreWorld] = useState(false);
   const [sortType, setSortType] = useState("recommended");
   const [showAllDepartureMonths, setShowAllDepartureMonths] = useState(false);
-  const [searchQuery, setSearchQuery] = useState(""); // ADD THIS
-  const [isSearchActive, setIsSearchActive] = useState(false); // ADD THIS
+  const [searchQuery, setSearchQuery] = useState(""); 
+  const [isSearchActive, setIsSearchActive] = useState(false); 
   const [showSearchBtn, setShowSearchBtn] = useState(false);
   const [durationRange, setDurationRange] = useState([0, 150]);
   const [priceRange, setPriceRange] = useState([0, 10000000]);
@@ -92,18 +93,20 @@ const TourPackages = () => {
   const [selectedIndianTours, setSelectedIndianTours] = useState<string[]>([]);
   const [selectedWorldTours, setSelectedWorldTours] = useState<string[]>([]);
   const [filteredTours, setFilteredTours] = useState<any[]>([]);
-  const [formattedTours, setFormattedTours] = useState<any[]>([]); // NEW: Store all formatted tours
+  const [formattedTours, setFormattedTours] = useState<any[]>([]); 
   const [selectedState, setSelectedState] = useState<string>(state || "Andaman");
   const [tourDepartures, setTourDepartures] = useState<Record<number | string, string[]>>({});
   const [departureMonths, setDepartureMonths] = useState<string[]>([]);
   const [internationalDestinations, setInternationalDestinations] = useState<string[]>([]);
   const [loadingDestinations, setLoadingDestinations] = useState(false);
   const [appliedSearchQuery, setAppliedSearchQuery] = useState("");
-
+const [currentPage, setCurrentPage] = useState(1);
+const [itemsPerPage, setItemsPerPage] = useState(9);
+const [paginatedTours, setPaginatedTours] = useState([]);
   const [allTours, setAllTours] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [tourImages, setTourImages] = useState<Record<number | string, string>>({});
-  const [tourEmiData, setTourEmiData] = useState<Record<number | string, any>>({}); // NEW: Store EMI data for senior citizen
+  const [tourEmiData, setTourEmiData] = useState<Record<number | string, any>>({});
   const [activeSearchQuery, setActiveSearchQuery] = useState("");
 
   // ---------- Fetch base tours ----------
@@ -283,17 +286,37 @@ const TourPackages = () => {
     }
   }, [state]);
 
-  // Function to get tours for current state (senior citizen)
+useEffect(() => {
+  if (state && internationalDestinations.length > 0) {
+    const decodedState = decodeURIComponent(state);
+    
+    console.log("Syncing URL state for Senior Tours:", decodedState);
+    console.log("International destinations:", internationalDestinations);
+    
+    if (internationalDestinations.includes(decodedState)) {
+      console.log("Setting as international tour:", decodedState);
+      setSelectedWorldTours([decodedState]);
+      setSelectedIndianTours([]); 
+    } else {
+      console.log("Setting as Indian tour:", decodedState);
+      setSelectedIndianTours([decodedState]);
+      setSelectedWorldTours([]);
+    }
+  }
+}, [state, internationalDestinations]);
+
   const getCurrentStateTours = () => {
     if (!selectedState) {
       console.log("No selected state, returning all tours");
       return allTours;
     }
 
+
+
+
     console.log("Filtering senior citizen tours for state:", selectedState);
     console.log("Total tours to filter:", allTours.length);
 
-    // Filter by state AND tour_type = "seniorcitizen" (case-insensitive)
     const filtered = allTours.filter((tour) => {
       const stateMatch = tour.primary_destination_name?.toLowerCase() === selectedState.toLowerCase();
       const typeMatch = tour.tour_type?.toLowerCase() === "seniorcitizen";
@@ -514,7 +537,7 @@ const TourPackages = () => {
       return;
     }
 
-    setAppliedSearchQuery(query); // ✅ freeze search value
+    setAppliedSearchQuery(query);
     setIsSearchActive(true);
   };
 
@@ -559,7 +582,7 @@ const TourPackages = () => {
     setSelectedIndianTours([]);
     setSelectedWorldTours([]);
     setSortType("recommended");
-    clearSearch(); // ADD THIS
+    clearSearch();
 
   };
 
@@ -569,6 +592,19 @@ const TourPackages = () => {
       setSelectedState(decodedState);
     }
   }, [state]);
+
+  useEffect(() => {
+  if (filteredTours.length > 0) {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    setPaginatedTours(filteredTours.slice(startIndex, endIndex));
+  } else {
+    setPaginatedTours([]);
+  }
+}, [filteredTours, currentPage, itemsPerPage]);
+useEffect(() => {
+  setCurrentPage(1);
+}, [durationRange, priceRange, selectedDepartureMonths, selectedIndianTours, selectedWorldTours, sortType, appliedSearchQuery, isSearchActive]);
 
   const currentTours = getCurrentStateTours();
   const heroImage = stateHeroImages[selectedState as keyof typeof stateHeroImages] || stateHeroImages.Andaman;
@@ -910,7 +946,7 @@ const TourPackages = () => {
               </div>
 
               {/* Main Content Header */}
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 gap-4">
                 <div>
                   <h2 className="text-3xl font-bold text-gray-800">{selectedState} Senior Holiday Packages</h2>
                   <p className="text-gray-600 mt-1">
@@ -919,128 +955,153 @@ const TourPackages = () => {
                 </div>
               </div>
 
-              {/* 3 Cards Per Row */}
-              {filteredTours.length === 0 ? (
-                <div className="text-center py-12">
-                  <h3 className="text-xl font-semibold text-gray-600">No senior citizen tours found for the selected filters</h3>
-                  <p className="text-gray-500 mt-2">
-                    Total available senior citizen tours for {selectedState}: {formattedTours.length}
-                  </p>
-                  <Button
-                    onClick={clearAllFilters}
-                    className="mt-4 bg-[#2E4D98] hover:bg-[#2E4D98] hover:opacity-90 text-white"
-                  >
-                    Clear All Filters
-                  </Button>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredTours.map((tour) => (
-                    <div key={tour.id} className="flex flex-col">
-                      {/* Separate Top Block - Excel-like box design */}
-                       <div className="bg-white border-2 border-gray-300 rounded-lg p-3 mb-3 shadow-sm">
-  <div className="grid grid-cols-3 gap-0 border border-gray-400 rounded overflow-hidden">
-
-    {/* Box 1 - Code Label */}
-    <div className="bg-[#2E4D98] border-r border-gray-400 p-2 flex items-center justify-center flex-1">
-      <div className="text-sm font-bold text-white text-center">CODE</div>
-    </div>
-
-    {/* Box 2 - Code Value */}
-    <div className="bg-gradient-to-br from-blue-100 to-blue-50 border-gray-400 p-2 flex items-center justify-center flex-1">
-      <div className="text-sm font-bold text-gray-900 text-center">{tour.code}</div>
-    </div>
-
-    {/* Box 3 - Duration */}
-    <div className="bg-[#2E4D98] p-2 flex items-center justify-center flex-1">
-      <div className="text-sm font-bold text-white text-center">{tour.duration}</div>
-    </div>
-
+        {/* 3 Cards Per Row */}
+{filteredTours.length === 0 ? (
+  <div className="text-center py-12">
+    <h3 className="text-xl font-semibold text-gray-600">No senior citizen tours found for the selected filters</h3>
+    <p className="text-gray-500 mt-2">
+      Total available senior citizen tours for {selectedState}: {formattedTours.length}
+    </p>
+    <Button
+      onClick={clearAllFilters}
+      className="mt-4 bg-[#2E4D98] hover:bg-[#2E4D98] hover:opacity-90 text-white"
+    >
+      Clear All Filters
+    </Button>
   </div>
-</div>
-                      {/* Separate Card with Light Blue Background */}
-                      <div className="group bg-blue-50 rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer border border-blue-100 flex flex-col flex-1 min-h-0">
-                        {/* Image Section */}
-                        <div className="relative h-56 overflow-hidden flex-shrink-0">
-                          <img
-                            src={tour.image}
-                            alt={tour.title}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-                        </div>
+) : (
+  <>
+    {/* Items Per Page Selector */}
+    <div className="flex justify-between items-center mb-2">
+      <div className="text-sm text-gray-600">
+        Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredTours.length)} of {filteredTours.length} tours
+      </div>
+      <div className="flex items-center gap-2">
+        <label className="text-sm text-gray-600">Show:</label>
+        <select
+          value={itemsPerPage}
+          onChange={(e) => {
+            setItemsPerPage(Number(e.target.value));
+            setCurrentPage(1);
+          }}
+          className="border rounded-md px-2 py-1 text-sm"
+        >
+          <option value={6}>6</option>
+          <option value={9}>9</option>
+          <option value={12}>12</option>
+          <option value={18}>18</option>
+          <option value={24}>24</option>
+        </select>
+        <span className="text-sm text-gray-600">per page</span>
+      </div>
+    </div>
 
-                        {/* Content Section */}
-                        <div className="p-5 flex-1 flex flex-col min-h-0">
-                          <h3 className="font-bold text-lg text-gray-800 line-clamp-2 mb-2">
-                            {tour.title}
-                          </h3>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {paginatedTours.map((tour) => (
+        <div key={tour.id} className="flex flex-col">
+          <div className="bg-white border-2 border-gray-300 rounded-lg p-3 mb-3 shadow-sm">
+            <div className="grid grid-cols-3 gap-0 border border-gray-400 rounded overflow-hidden">
+              <div className="bg-[#2E4D98] border-r border-gray-400 p-2 flex items-center justify-center flex-1">
+                <div className="text-sm font-bold text-white text-center">CODE</div>
+              </div>
 
-                                 <div className="mb-3">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-sm text-[#2E4D98] font-bold">Tour Cost P.P</span>
-                            <p className="text-2xl font-bold text-gray-900">{tour.price}</p>
-                          </div>
-                          
-                          <div className="flex items-center justify-between">
-  <span className="text-sm text-[#2E4D98] font-bold">EMI Per Month</span>
-  <p className="text-sm font-bold text-gray-900">{tour.emi}</p>
-</div>
+              <div className="bg-gradient-to-br from-blue-100 to-blue-50 border-gray-400 p-2 flex items-center justify-center flex-1">
+                <div className="text-sm font-bold text-gray-900 text-center">{tour.code}</div>
+              </div>
 
-                        </div>
+              <div className="bg-[#2E4D98] p-2 flex items-center justify-center flex-1">
+                <div className="text-sm font-bold text-white text-center">{tour.duration}</div>
+              </div>
+            </div>
+          </div>
 
-                        <p className="text-sm text-[#2E4D98] font-bold mb-3">{tour.locations}</p>
+          <div className="group bg-blue-50 rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer border border-blue-100 flex flex-col flex-1 min-h-0">
+            <div className="relative h-56 overflow-hidden flex-shrink-0">
+              <img
+                src={tour.image}
+                alt={tour.title}
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+            </div>
 
-                        <div className="flex items-center justify-between text-sm text-gray-500 mb-0">
-                          <span>{tour.dates}</span>
-                        </div>
+            <div className="p-5 flex-1 flex flex-col min-h-0">
+              <h3 className="font-bold text-lg text-gray-800 line-clamp-2 mb-2">
+                {tour.title}
+              </h3>
 
-                          {/* Buttons */}
-                          <div className="flex gap-2 mt-0">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="flex-1 border-[#2E4D98] text-[#2E4D98] hover:bg-[#2E4D98] hover:text-white"
-                              onClick={() => {
-
-                                // Check if it's an international tour
-                                if (tour.is_international === true) {
-                                  navigate(`/international_tour_details/${tour.id}`);
-                                } else {
-                                  navigate(`/tour_details/${tour.id}`);
-                                }
-                              }}
-                            >
-                              View Tour
-                            </Button>
-                            <Button
-                              size="sm"
-                              className="flex-1 bg-[#E53C42] hover:bg-[#E53C42] hover:opacity-90 text-white"
-                              onClick={() => {
-                                // Save tour data to localStorage as backup
-                                localStorage.setItem('selectedTour', JSON.stringify(tour));
-                                // Navigate to checkout page with tour data
-                                navigate('/checkout', { state: { tour } });
-                              }}
-                            >
-                              Book Now
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+              <div className="mb-3">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm text-[#2E4D98] font-bold">Tour Cost P.P</span>
+                  <p className="text-2xl font-bold text-gray-900">{tour.price}</p>
                 </div>
-              )}
+                
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-[#2E4D98] font-bold">EMI Per Month</span>
+                  <p className="text-sm font-bold text-gray-900">{tour.emi}</p>
+                </div>
+              </div>
+
+              <p className="text-sm text-[#2E4D98] font-bold mb-3">{tour.locations}</p>
+
+              <div className="flex items-center justify-between text-sm text-gray-500 mb-0">
+                <span>{tour.dates}</span>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex gap-2 mt-0">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="flex-1 border-[#2E4D98] text-[#2E4D98] hover:bg-[#2E4D98] hover:text-white"
+                  onClick={() => {
+                    if (tour.is_international === true) {
+                      navigate(`/international_tour_details/${tour.id}`);
+                    } else {
+                      navigate(`/tour_details/${tour.id}`);
+                    }
+                  }}
+                >
+                  View Tour
+                </Button>
+                <Button
+                  size="sm"
+                  className="flex-1 bg-[#E53C42] hover:bg-[#E53C42] hover:opacity-90 text-white"
+                  onClick={() => {
+                    localStorage.setItem('selectedTour', JSON.stringify(tour));
+                    navigate('/checkout', { state: { tour } });
+                  }}
+                >
+                  Book Now
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    {Math.ceil(filteredTours.length / itemsPerPage) > 1 && (
+      <div className="mt-8">
+        <Pagination
+          currentPage={currentPage}
+          totalPages={Math.ceil(filteredTours.length / itemsPerPage)}
+          onPageChange={setCurrentPage}
+          maxVisiblePages={3}
+        />
+      </div>
+    )}
+  </>
+)}
 
               {/* Load More */}
-              {filteredTours.length > 0 && (
+              {/* {filteredTours.length > 0 && (
                 <div className="text-center mt-8">
                   <Button size="lg" className="bg-[#2E4D98] hover:bg-[#2E4D98] hover:opacity-90 px-12 text-white">
                     Load More Tours
                   </Button>
                 </div>
-              )}
+              )} */}
             </main>
           </div>
         </div>

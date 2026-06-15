@@ -30,6 +30,7 @@ interface TravellerCount {
   adults: number;
   children: number;
   infants?: number;
+  pets?: boolean;
 }
 
 interface Hotel {
@@ -45,6 +46,8 @@ interface Hotel {
   original_price?: string | number;
   sale_price?: string | number;
   taxes?: string | number;
+  total_amount?: string | number;
+  price_per_child?: string | number;
   amenities?: string | string[];
   main_image?: string;
   additional_images?: string[];
@@ -59,37 +62,65 @@ interface Hotel {
   pay_later?: boolean | number;
   status?: string;
   city?: string;
+  property_name?: string;
+  country?: string;
   check_in_date?: string;
   check_out_date?: string;
   rooms?: number;
   adults?: number;
   children?: number;
   pets?: boolean | number;
+  children_ages?: number[];
 }
 
-// Popular cities
-const cities = [
-  { name: "Goa", country: "India", popular: true },
-  { name: "Delhi", country: "India", popular: true },
-  { name: "Mumbai", country: "India", popular: true },
-  { name: "Bengaluru", country: "India", popular: true },
-  { name: "Chennai", country: "India", popular: true },
-  { name: "Kolkata", country: "India", popular: true },
-  { name: "Hyderabad", country: "India", popular: true },
-  { name: "Pune", country: "India", popular: true },
-  { name: "Jaipur", country: "India", popular: true },
-  { name: "Ahmedabad", country: "India", popular: true }
-];
+// Helper function to get effective price from hotel data
+const getEffectivePrice = (hotel: Hotel): number => {
+  if (hotel.sale_price && Number(hotel.sale_price) > 0) {
+    return Number(hotel.sale_price);
+  }
+  if (hotel.price && Number(hotel.price) > 0) {
+    return Number(hotel.price);
+  }
+  return 0;
+};
+
+// Helper function to get effective original price
+const getEffectiveOriginalPrice = (hotel: Hotel): number | null => {
+  if (hotel.original_price && Number(hotel.original_price) > 0) {
+    return Number(hotel.original_price);
+  }
+  return null;
+};
+
+// Helper function to get effective taxes
+const getEffectiveTaxes = (hotel: Hotel): number => {
+  if (hotel.taxes && Number(hotel.taxes) > 0) {
+    return Number(hotel.taxes);
+  }
+  return 0;
+};
+
+// Helper function to get total amount
+const getTotalAmount = (hotel: Hotel): number => {
+  if (hotel.total_amount && Number(hotel.total_amount) > 0) {
+    return Number(hotel.total_amount);
+  }
+  const effectivePrice = getEffectivePrice(hotel);
+  const effectiveTaxes = getEffectiveTaxes(hotel);
+  return effectivePrice + effectiveTaxes;
+};
 
 // ==================== Location Dropdown Component ====================
 const LocationDropdown = ({ 
   isOpen,
   onClose, 
-  onSelectCity 
+  onSelectCity,
+  availableCities
 }: { 
   isOpen: boolean;
   onClose: () => void; 
   onSelectCity: (city: string) => void;
+  availableCities: string[];
 }) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -106,8 +137,8 @@ const LocationDropdown = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen, onClose]);
 
-  const filteredCities = cities.filter(city =>
-    city.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredCities = availableCities.filter(city =>
+    city.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleCitySelect = (city: string) => {
@@ -130,7 +161,7 @@ const LocationDropdown = ({
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
         <input
           type="text"
-          placeholder="Search: 'Beachfront stays Goa'"
+          placeholder="Search city..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/30"
@@ -138,32 +169,27 @@ const LocationDropdown = ({
         />
       </div>
 
-      <div className="mb-6">
-        <h4 className="font-semibold text-gray-700 mb-2 text-xs">RECENT SEARCHES</h4>
-        <div
-          className="flex items-center justify-between p-3 hover:bg-gray-50 rounded cursor-pointer"
-          onClick={() => handleCitySelect("Goa")}
-        >
-          <div>
-            <p className="font-medium">Goa</p>
-            <p className="text-sm text-gray-600">10 Feb - 11 Feb | 2 Guests | 1 Room</p>
-          </div>
-          <button className="text-blue-600 text-sm">Search</button>
-        </div>
-      </div>
-
       <div>
-        <h4 className="font-semibold text-gray-700 mb-2 text-xs">POPULAR</h4>
-        <div className="grid grid-cols-2 gap-2">
-          {filteredCities.map((city) => (
-            <button
-              key={city.name}
-              className="text-left p-3 border border-gray-200 rounded hover:border-orange-500 hover:bg-orange-50 transition-colors"
-              onClick={() => handleCitySelect(city.name)}
-            >
-              {city.name}
-            </button>
-          ))}
+        <h4 className="font-semibold text-gray-700 mb-2 text-xs">AVAILABLE CITIES</h4>
+        <div className="max-h-64 overflow-y-auto">
+          {filteredCities.length === 0 ? (
+            <p className="text-center text-gray-500 py-4">No cities found</p>
+          ) : (
+            <div className="grid grid-cols-1 gap-1">
+              {filteredCities.map((city) => (
+                <button
+                  key={city}
+                  className="text-left p-3 border border-gray-200 rounded hover:border-orange-500 hover:bg-orange-50 transition-colors"
+                  onClick={() => handleCitySelect(city)}
+                >
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-gray-400" />
+                    <span className="font-medium">{city}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -178,7 +204,8 @@ const DatePickerDropdown = ({
   nextStep,
   selectedDate,
   autoOpen,
-  availableDates = []
+  availableDates = [],
+  minDate
 }: {
   title: string;
   onClose: () => void;
@@ -187,6 +214,7 @@ const DatePickerDropdown = ({
   selectedDate?: Date | null;
   autoOpen?: boolean;
   availableDates?: string[];
+  minDate?: Date;
 }) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const weekDays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
@@ -306,7 +334,7 @@ const DatePickerDropdown = ({
         {days.map((day, index) => {
           const isSelected = selected && day.date.toDateString() === selected.toDateString();
           const isToday = day.date.toDateString() === new Date().toDateString();
-          const isPast = day.date < new Date(new Date().setHours(0, 0, 0, 0));
+          const isPast = minDate ? day.date < minDate : day.date < new Date(new Date().setHours(0, 0, 0, 0));
           const isAvailable = isDateAvailable(day.date);
           
           const isDisabled = !day.currentMonth || isPast || (hasAvailableDates && !isAvailable);
@@ -363,7 +391,7 @@ const GuestsDropdown = ({
   const [adults, setAdults] = useState(travellers.adults || 2);
   const [children, setChildren] = useState(travellers.children || 0);
   const [childrenAges, setChildrenAges] = useState<number[]>([5, 8].slice(0, children));
-  const [withPets, setWithPets] = useState(false);
+  const [withPets, setWithPets] = useState(travellers.pets || false);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -380,9 +408,10 @@ const GuestsDropdown = ({
       rooms,
       adults,
       children,
-      infants: 0
+      infants: 0,
+      pets: withPets
     });
-  }, [rooms, adults, children, onTravellersChange]);
+  }, [rooms, adults, children, withPets, onTravellersChange]);
 
   const updateChildrenAge = (index: number, age: number) => {
     const newAges = [...childrenAges];
@@ -506,9 +535,38 @@ const FilterSidebar = ({
   selectedFilters: any;
   onClearFilters: () => void;
 }) => {
+  const getAvailableAmenities = () => {
+    const amenitySet = new Set<string>();
+    hotels.forEach(hotel => {
+      if (hotel.amenities) {
+        if (Array.isArray(hotel.amenities)) {
+          hotel.amenities.forEach(a => {
+            if (a && typeof a === 'string') {
+              amenitySet.add(a.trim());
+            }
+          });
+        } else if (typeof hotel.amenities === 'string') {
+          hotel.amenities.split(',').forEach(a => {
+            if (a) amenitySet.add(a.trim());
+          });
+        }
+      }
+    });
+    return Array.from(amenitySet).sort();
+  };
+
+  const getAvailableLocations = () => {
+    const locationSet = new Set<string>();
+    hotels.forEach(hotel => {
+      if (hotel.city) locationSet.add(hotel.city);
+      if (hotel.hotel_location) locationSet.add(hotel.hotel_location);
+    });
+    return Array.from(locationSet).sort();
+  };
+
   const getPriceRangeCount = (min: number, max: number | null) => {
     return hotels.filter(hotel => {
-      const price = Number(hotel.price);
+      const price = getEffectivePrice(hotel);
       if (max === null) return price >= min;
       return price >= min && price <= max;
     }).length;
@@ -524,16 +582,22 @@ const FilterSidebar = ({
       
       if (Array.isArray(hotel.amenities)) {
         return hotel.amenities.some(a => 
-          a.toLowerCase().includes(amenity.toLowerCase())
+          String(a).trim().toLowerCase() === amenity.toLowerCase()
         );
       }
       
       if (typeof hotel.amenities === 'string') {
-        return hotel.amenities.toLowerCase().includes(amenity.toLowerCase());
+        return hotel.amenities.split(',').some(a => 
+          a.trim().toLowerCase() === amenity.toLowerCase()
+        );
       }
       
       return false;
     }).length;
+  };
+
+  const getRatingCount = (minRating: number) => {
+    return hotels.filter(hotel => Number(hotel.rating) >= minRating).length;
   };
 
   const priceRanges = [
@@ -548,11 +612,11 @@ const FilterSidebar = ({
 
   const starCategories = [3, 4, 5];
   
-  const amenitiesList = [
-    'Free Cancellation', 'Breakfast Included', 'Swimming Pool', 
-    'Spa', 'Wi-Fi', 'Pet Friendly', 'Parking', 'Airport Shuttle', 
-    'Restaurant', 'Fitness Center', 'Room Service', 'Bar'
-  ];
+  const actualAmenities = getAvailableAmenities();
+  
+  const amenitiesList = actualAmenities.length > 0 
+    ? actualAmenities 
+    : ['Free WiFi', 'Air Conditioning', 'TV', 'Tea/Coffee Maker', 'Mini Fridge', 'Bathtub', 'Mini Bar'];
 
   const activeFiltersCount = () => {
     let count = 0;
@@ -561,8 +625,18 @@ const FilterSidebar = ({
     if (selectedFilters.amenities?.length) count += selectedFilters.amenities.length;
     if (selectedFilters.minRating && selectedFilters.minRating > 0) count++;
     if (selectedFilters.customBudget?.min || selectedFilters.customBudget?.max) count++;
+    if (selectedFilters.location) count++;
     return count;
   };
+
+  const [searchLocation, setSearchLocation] = useState(selectedFilters.location || '');
+  const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
+  
+  const availableLocations = getAvailableLocations();
+  
+  const filteredLocationSuggestions = availableLocations.filter(loc => 
+    loc.toLowerCase().includes(searchLocation.toLowerCase())
+  ).slice(0, 5);
 
   return (
     <div className="bg-white rounded-xl shadow-lg p-6 sticky top-24">
@@ -575,20 +649,74 @@ const FilterSidebar = ({
           <p className="text-sm text-gray-500 mt-1">Refine your hotel search</p>
         </div>
         {activeFiltersCount() > 0 && (
-          <button onClick={onClearFilters} className="text-sm text-orange-600 hover:text-orange-700 font-medium">
+          <button 
+            onClick={() => {
+              setSearchLocation('');
+              onClearFilters();
+            }} 
+            className="text-sm text-orange-600 hover:text-orange-700 font-medium"
+          >
             Clear all ({activeFiltersCount()})
           </button>
         )}
       </div>
 
+      {/* Location Filter */}
       <div className="mb-6">
         <h3 className="font-semibold text-gray-800 mb-3">Search for locality / hotel name</h3>
         <div className="relative">
-          <input type="text" placeholder="Enter locality or hotel" className="w-full p-3 pl-10 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/30 transition-all" />
+          <input 
+            type="text" 
+            placeholder="Enter locality or hotel" 
+            value={searchLocation}
+            onChange={(e) => {
+              setSearchLocation(e.target.value);
+              setShowLocationSuggestions(true);
+            }}
+            onFocus={() => setShowLocationSuggestions(true)}
+            onBlur={() => setTimeout(() => setShowLocationSuggestions(false), 200)}
+            className="w-full p-3 pl-10 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/30 transition-all" 
+          />
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+          
+          {showLocationSuggestions && searchLocation && filteredLocationSuggestions.length > 0 && (
+            <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+              {filteredLocationSuggestions.map((loc, idx) => (
+                <div
+                  key={idx}
+                  className="px-4 py-2 hover:bg-orange-50 cursor-pointer text-sm"
+                  onClick={() => {
+                    setSearchLocation(loc);
+                    onFilterChange({ ...selectedFilters, location: loc });
+                    setShowLocationSuggestions(false);
+                  }}
+                >
+                  <MapPin className="w-3 h-3 inline mr-2 text-gray-400" />
+                  {loc}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
+        {selectedFilters.location && (
+          <div className="mt-2 flex items-center gap-2">
+            <span className="text-xs bg-orange-50 text-orange-600 px-2 py-1 rounded-full flex items-center gap-1">
+              {selectedFilters.location}
+              <button 
+                onClick={() => {
+                  setSearchLocation('');
+                  onFilterChange({ ...selectedFilters, location: '' });
+                }}
+                className="hover:text-orange-800"
+              >
+                <X size={12} />
+              </button>
+            </span>
+          </div>
+        )}
       </div>
 
+      {/* Price Per Night */}
       <div className="mb-6">
         <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
           <DollarSign className="w-4 h-4 text-gray-500" />
@@ -623,6 +751,7 @@ const FilterSidebar = ({
         </div>
       </div>
 
+      {/* Custom Budget */}
       <div className="mb-6 p-4 bg-gray-50 rounded-xl">
         <h3 className="font-semibold text-gray-800 mb-3">Custom Budget</h3>
         <div className="flex gap-3">
@@ -655,6 +784,7 @@ const FilterSidebar = ({
         </div>
       </div>
 
+      {/* Star Category */}
       <div className="mb-6">
         <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
           <Star className="w-4 h-4 text-gray-500" />
@@ -680,7 +810,9 @@ const FilterSidebar = ({
                     className="w-4 h-4 rounded border-gray-300 text-orange-600 focus:ring-orange-500 cursor-pointer" 
                   />
                   <div className="flex items-center gap-1">
-                    {[...Array(stars)].map((_, i) => (<Star key={i} className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />))}
+                    {[...Array(stars)].map((_, i) => (
+                      <Star key={i} className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
+                    ))}
                     <span className="text-gray-700 text-sm ml-1">{stars} Star</span>
                   </div>
                 </div>
@@ -691,69 +823,122 @@ const FilterSidebar = ({
         </div>
       </div>
 
+      {/* Guest Rating */}
       <div className="mb-6">
         <h3 className="font-semibold text-gray-800 mb-3">Guest Rating</h3>
         <div className="space-y-2.5">
-          {[4.5, 4.0, 3.5, 3.0].map(rating => (
-            <label key={rating} className="flex items-center gap-3 cursor-pointer group">
-              <input 
-                type="radio" 
-                name="rating" 
-                checked={selectedFilters.minRating === rating} 
-                onChange={() => onFilterChange({ ...selectedFilters, minRating: rating })} 
-                className="w-4 h-4 text-orange-600 focus:ring-orange-500 cursor-pointer" 
-              />
-              <span className="text-gray-700 group-hover:text-orange-600 transition-colors text-sm">{rating}+ Stars</span>
-            </label>
-          ))}
+          {[4.5, 4.0, 3.5, 3.0].map(rating => {
+            const count = getRatingCount(rating);
+            return (
+              <label key={rating} className="flex items-center justify-between cursor-pointer group">
+                <div className="flex items-center gap-3">
+                  <input 
+                    type="radio" 
+                    name="rating" 
+                    checked={selectedFilters.minRating === rating} 
+                    onChange={() => onFilterChange({ ...selectedFilters, minRating: rating })} 
+                    className="w-4 h-4 text-orange-600 focus:ring-orange-500 cursor-pointer" 
+                  />
+                  <span className="text-gray-700 group-hover:text-orange-600 transition-colors text-sm">{rating}+ Stars</span>
+                </div>
+                <span className="text-xs text-gray-400">({count})</span>
+              </label>
+            );
+          })}
+          {selectedFilters.minRating > 0 && (
+            <button 
+              onClick={() => onFilterChange({ ...selectedFilters, minRating: 0 })}
+              className="text-xs text-orange-600 hover:text-orange-700 mt-1"
+            >
+              Clear rating filter
+            </button>
+          )}
         </div>
       </div>
 
+      {/* Amenities */}
       <div className="mb-6">
         <h3 className="font-semibold text-gray-800 mb-3">Amenities</h3>
-        <div className="grid grid-cols-2 gap-2.5">
+        <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
           {amenitiesList.map(amenity => {
             const count = getAmenityCount(amenity);
             const isSelected = selectedFilters.amenities?.includes(amenity);
             return (
-              <label key={amenity} className="flex items-center gap-2 cursor-pointer group">
-                <input 
-                  type="checkbox" 
-                  checked={isSelected || false} 
-                  onChange={() => {
-                    const currentAmenities = selectedFilters.amenities || [];
-                    const newAmenities = currentAmenities.includes(amenity)
-                      ? currentAmenities.filter((a: string) => a !== amenity)
-                      : [...currentAmenities, amenity];
-                    onFilterChange({ ...selectedFilters, amenities: newAmenities });
-                  }} 
-                  className="w-3.5 h-3.5 rounded border-gray-300 text-orange-600 focus:ring-orange-500 cursor-pointer" 
-                />
-                <span className="text-xs text-gray-700 group-hover:text-orange-600 transition-colors">{amenity}</span>
-                <span className="text-xs text-gray-400">({count})</span>
+              <label key={amenity} className="flex items-center justify-between cursor-pointer group">
+                <div className="flex items-center gap-2">
+                  <input 
+                    type="checkbox" 
+                    checked={isSelected || false} 
+                    onChange={() => {
+                      const currentAmenities = selectedFilters.amenities || [];
+                      const newAmenities = currentAmenities.includes(amenity)
+                        ? currentAmenities.filter((a: string) => a !== amenity)
+                        : [...currentAmenities, amenity];
+                      onFilterChange({ ...selectedFilters, amenities: newAmenities });
+                    }} 
+                    className="w-3.5 h-3.5 rounded border-gray-300 text-orange-600 focus:ring-orange-500 cursor-pointer" 
+                  />
+                  <span className="text-sm text-gray-700 group-hover:text-orange-600 transition-colors truncate max-w-[180px]">
+                    {amenity}
+                  </span>
+                </div>
+                <span className="text-xs text-gray-400 ml-2">({count})</span>
               </label>
             );
           })}
         </div>
       </div>
 
+      {/* Active Filters Summary */}
       {activeFiltersCount() > 0 && (
         <div className="pt-4 border-t">
           <p className="text-xs text-gray-500 mb-2">Active filters:</p>
           <div className="flex flex-wrap gap-2">
-            {selectedFilters.priceRanges?.slice(0, 3).map((range: string) => (<span key={range} className="text-xs bg-orange-50 text-orange-600 px-2 py-1 rounded-full">{range.replace('-inf', '+').replace('-', ' - ')}</span>))}
-            {selectedFilters.stars?.map((stars: number) => (<span key={stars} className="text-xs bg-orange-50 text-orange-600 px-2 py-1 rounded-full">{stars} Star</span>))}
-            {selectedFilters.amenities?.slice(0, 2).map((amenity: string) => (<span key={amenity} className="text-xs bg-orange-50 text-orange-600 px-2 py-1 rounded-full">{amenity}</span>))}
-            {selectedFilters.minRating > 0 && (<span className="text-xs bg-orange-50 text-orange-600 px-2 py-1 rounded-full">{selectedFilters.minRating}+ Rating</span>)}
-            {activeFiltersCount() > 5 && (<span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">+{activeFiltersCount() - 5} more</span>)}
+            {selectedFilters.location && (
+              <span className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded-full flex items-center gap-1">
+                <MapPin size={10} />
+                {selectedFilters.location}
+              </span>
+            )}
+            {selectedFilters.priceRanges?.slice(0, 3).map((range: string) => {
+              const display = range.replace('-inf', '+').replace(/-/g, ' - ₹');
+              return (
+                <span key={range} className="text-xs bg-orange-50 text-orange-600 px-2 py-1 rounded-full">
+                  ₹{display}
+                </span>
+              );
+            })}
+            {selectedFilters.customBudget?.min && selectedFilters.customBudget?.max && (
+              <span className="text-xs bg-orange-50 text-orange-600 px-2 py-1 rounded-full">
+                ₹{selectedFilters.customBudget.min} - ₹{selectedFilters.customBudget.max}
+              </span>
+            )}
+            {selectedFilters.stars?.map((stars: number) => (
+              <span key={stars} className="text-xs bg-orange-50 text-orange-600 px-2 py-1 rounded-full">
+                {stars} ★
+              </span>
+            ))}
+            {selectedFilters.minRating > 0 && (
+              <span className="text-xs bg-orange-50 text-orange-600 px-2 py-1 rounded-full">
+                {selectedFilters.minRating}+ Rating
+              </span>
+            )}
+            {selectedFilters.amenities?.slice(0, 3).map((amenity: string) => (
+              <span key={amenity} className="text-xs bg-orange-50 text-orange-600 px-2 py-1 rounded-full truncate max-w-[120px]">
+                {amenity}
+              </span>
+            ))}
+            {activeFiltersCount() > 6 && (
+              <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
+                +{activeFiltersCount() - 6} more
+              </span>
+            )}
           </div>
         </div>
       )}
     </div>
   );
 };
-
-// ==================== Hotel Card Component ====================
 
 // ==================== Hotel Card Component ====================
 const HotelCard = ({ hotel, onBookNow, checkIn, checkOut, travellers }: { 
@@ -856,14 +1041,16 @@ const HotelCard = ({ hotel, onBookNow, checkIn, checkOut, travellers }: {
         ) : (
           <div className="space-y-2">
             {[
-              { label: 'Base Price', amount: `₹${formatPrice(hotel.price)}` },
-              { label: 'SGST (9%)', amount: `₹${Math.round(Number(hotel.price) * 0.09).toLocaleString()}` },
-              { label: 'CGST (9%)', amount: `₹${Math.round(Number(hotel.price) * 0.09).toLocaleString()}` },
-              { label: 'Service Charge', amount: hotel.taxes ? `₹${formatPrice(hotel.taxes)}` : '₹315' }
+              { label: 'Base Price', amount: `₹${formatPrice(getEffectivePrice(hotel))}` },
             ].map((item, idx) => (
               <div key={idx} className="flex justify-between text-sm border-b pb-2"><span>{item.label}</span><span className="font-medium">{item.amount}</span></div>
             ))}
-            <div className="flex justify-between text-sm font-bold pt-2"><span>Total per night</span><span>₹{(Number(hotel.price) + Math.round(Number(hotel.price) * 0.18) + (Number(hotel.taxes) || 315)).toLocaleString()}</span></div>
+            <div className="flex justify-between text-sm font-bold pt-2">
+              <span>Total Amount</span>
+              <span className="text-lg text-orange-600">
+                ₹{formatPrice(getTotalAmount(hotel))}
+              </span>
+            </div>
           </div>
         )}
       </div>
@@ -876,30 +1063,32 @@ const HotelCard = ({ hotel, onBookNow, checkIn, checkOut, travellers }: {
     navigate(`/hotel-detail/${hotel.id}`);
   };
 
+  const displayPrice = getEffectivePrice(hotel);
+  const originalPrice = getEffectiveOriginalPrice(hotel);
+  const totalAmount = getTotalAmount(hotel);
+  const hasDiscount = originalPrice && originalPrice > displayPrice;
+
   return (
     <div className="bg-white rounded-xl shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-300 mb-6 overflow-hidden">
-      {/* FIXED: Separate image section with fixed height */}
       <div className="flex flex-col lg:flex-row">
-<div className="lg:w-64 lg:flex-shrink-0">
-  <div className="h-48 lg:h-56 bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center relative overflow-hidden">
-    {mainImageUrl ? (
-      <img 
-        src={mainImageUrl} 
-        alt={hotel.hotel_name} 
-        className="w-full h-full object-cover transition-transform duration-300 hover:scale-105" 
-        onError={() => setImageError(true)} 
-      />
-    ) : (
-      <div className="text-white text-center">
-        <Hotel className="w-12 h-12 mx-auto mb-2" />
-        <p className="font-bold text-lg">{hotel.hotel_name?.split(' ').slice(0, 2).join(' ')}</p>
-      </div>
-    )}
-  </div>
-</div>
+        <div className="lg:w-64 lg:flex-shrink-0">
+          <div className="h-48 lg:h-56 bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center relative overflow-hidden">
+            {mainImageUrl ? (
+              <img 
+                src={mainImageUrl} 
+                alt={hotel.hotel_name} 
+                className="w-full h-full object-cover transition-transform duration-300 hover:scale-105" 
+                onError={() => setImageError(true)} 
+              />
+            ) : (
+              <div className="text-white text-center">
+                <Hotel className="w-12 h-12 mx-auto mb-2" />
+                <p className="font-bold text-lg">{hotel.hotel_name?.split(' ').slice(0, 2).join(' ')}</p>
+              </div>
+            )}
+          </div>
+        </div>
 
-
-        {/* Content Section - Expands based on tab content */}
         <div className="flex-1 p-5 min-w-0">
           <div className="flex flex-wrap justify-between items-start gap-4 mb-4">
             <div className="min-w-0 flex-1">
@@ -961,7 +1150,6 @@ const HotelCard = ({ hotel, onBookNow, checkIn, checkOut, travellers }: {
             </div>
           </div>
 
-          {/* Tab Content - This expands but image stays fixed */}
           {activeTab && (
             <div className="mb-4 bg-gray-50 rounded-lg overflow-hidden">
               {tabContent[activeTab]}
@@ -971,35 +1159,39 @@ const HotelCard = ({ hotel, onBookNow, checkIn, checkOut, travellers }: {
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mt-4 pt-4 border-t border-gray-100">
             <div className="mb-4 sm:mb-0">
               <div>
-                {hotel.original_price && Number(hotel.original_price) > Number(hotel.price) && (
+                {hasDiscount && (
                   <div className="mb-1">
-                    <span className="text-gray-400 line-through text-sm">₹{formatPrice(hotel.original_price)}</span>
+                    <span className="text-gray-400 line-through text-sm">₹{formatPrice(originalPrice)}</span>
+                    <span className="ml-2 bg-green-100 text-green-700 text-xs font-semibold px-2 py-0.5 rounded-full">
+                      Save ₹{formatPrice(originalPrice - displayPrice)}
+                    </span>
                   </div>
                 )}
                 <div className="flex items-baseline flex-wrap gap-2">
-                  <span className="text-2xl font-bold text-gray-800">₹{formatPrice(hotel.price)}</span>
-                  {hotel.taxes && (
-                    <span className="text-gray-500 text-sm">+ ₹{formatPrice(hotel.taxes)} taxes</span>
+                  <span className="text-2xl font-bold text-gray-800">₹{formatPrice(totalAmount)}</span>
+                  {hotel.taxes && Number(hotel.taxes) > 0 && (
+                    <span className="text-gray-500 text-sm">incl. taxes</span>
                   )}
                 </div>
+                <p className="text-xs text-gray-500 mt-1">Total price for stay</p>
               </div>
             </div>
 
-           <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-          <button
-            onClick={handleViewDetails}
-            className="bg-white border-2 border-blue-500 text-blue-600 hover:bg-blue-50 font-bold py-2.5 px-6 rounded-xl transition-all shadow-sm hover:shadow-md w-full sm:w-auto"
-          >
-            View Details
-          </button>
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+              <button
+                onClick={handleViewDetails}
+                className="bg-white border-2 border-blue-500 text-blue-600 hover:bg-blue-50 font-bold py-2.5 px-6 rounded-xl transition-all shadow-sm hover:shadow-md w-full sm:w-auto"
+              >
+                View Details
+              </button>
 
-          <button
-            onClick={() => onBookNow(hotel)}
-            className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-2.5 px-6 rounded-xl transition-all shadow-md hover:shadow-lg w-full sm:w-auto"
-          >
-            BOOK NOW
-          </button>
-        </div>
+              <button
+                onClick={() => onBookNow(hotel)}
+                className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-2.5 px-6 rounded-xl transition-all shadow-md hover:shadow-lg w-full sm:w-auto"
+              >
+                BOOK NOW
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -1017,33 +1209,31 @@ const HotelSearchMain = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
+  // Dynamic cities from API
+  const [availableCities, setAvailableCities] = useState<string[]>([]);
   const [availableCheckInDates, setAvailableCheckInDates] = useState<string[]>([]);
   const [availableCheckOutDates, setAvailableCheckOutDates] = useState<string[]>([]);
+  const [filteredCheckInDates, setFilteredCheckInDates] = useState<string[]>([]);
+  const [filteredCheckOutDates, setFilteredCheckOutDates] = useState<string[]>([]);
   
   const [filters, setFilters] = useState({
     priceRanges: [] as string[],
     stars: [] as number[],
     amenities: [] as string[],
     minRating: 0,
-    customBudget: { min: '', max: '' }
+    customBudget: { min: '', max: '' },
+    location: ''
   });
 
-  const [location, setLocation] = useState("Goa");
-  const [checkIn, setCheckIn] = useState<Date>(() => {
-    const d = new Date();
-    d.setDate(d.getDate() + 1);
-    return d;
-  });
-  const [checkOut, setCheckOut] = useState<Date | undefined>(() => {
-    const d = new Date();
-    d.setDate(d.getDate() + 3);
-    return d;
-  });
+  const [location, setLocation] = useState("");
+  const [checkIn, setCheckIn] = useState<Date | undefined>(undefined);
+  const [checkOut, setCheckOut] = useState<Date | undefined>(undefined);
   const [travellers, setTravellers] = useState<TravellerCount>({
     rooms: 1,
     adults: 2,
     children: 0,
-    infants: 0
+    infants: 0,
+    pets: false
   });
 
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
@@ -1055,11 +1245,12 @@ const HotelSearchMain = () => {
   const [autoOpenCheckOut, setAutoOpenCheckOut] = useState(false);
   const [autoOpenGuests, setAutoOpenGuests] = useState(false);
 
+  // Fetch hotels and extract unique cities
   useEffect(() => {
-    fetchHotelsAndDates();
+    fetchHotels();
   }, []);
 
-  const fetchHotelsAndDates = async () => {
+  const fetchHotels = async () => {
     setLoading(true);
     setError('');
     try {
@@ -1069,20 +1260,41 @@ const HotelSearchMain = () => {
         setHotels(hotelsData);
         setFilteredHotels(hotelsData);
         
-        const checkInDates: string[] = [...new Set(
+        // Extract unique cities from hotels
+        const cities = [...new Set(
+          hotelsData
+            .filter((hotel: Hotel) => hotel.city)
+            .map((hotel: Hotel) => hotel.city as string)
+        )].sort();
+        
+        setAvailableCities(cities);
+        
+        // Set default location to first city if available
+        if (cities.length > 0 && !location) {
+          setLocation(cities[0]);
+        }
+        
+        // Extract all check-in dates
+        const allCheckInDates: string[] = [...new Set(
           hotelsData
             .filter((hotel: Hotel) => hotel.check_in_date)
             .map((hotel: Hotel) => hotel.check_in_date as string)
-        )];
+        )].sort();
         
-        const checkOutDates: string[] = [...new Set(
+        setAvailableCheckInDates(allCheckInDates);
+        
+        // Extract all check-out dates
+        const allCheckOutDates: string[] = [...new Set(
           hotelsData
             .filter((hotel: Hotel) => hotel.check_out_date)
             .map((hotel: Hotel) => hotel.check_out_date as string)
-        )];
+        )].sort();
         
-        setAvailableCheckInDates(checkInDates);
-        setAvailableCheckOutDates(checkOutDates);
+        setAvailableCheckOutDates(allCheckOutDates);
+        
+        // Initially show all dates
+        setFilteredCheckInDates(allCheckInDates);
+        setFilteredCheckOutDates(allCheckOutDates);
       } else {
         setError('Failed to fetch hotels');
       }
@@ -1094,12 +1306,79 @@ const HotelSearchMain = () => {
     }
   };
 
+  // Update available check-in dates when location changes
+  useEffect(() => {
+    if (!location || hotels.length === 0) return;
+    
+    const hotelsInCity = hotels.filter(hotel => 
+      hotel.city?.toLowerCase() === location.toLowerCase()
+    );
+    
+    const cityCheckInDates = [...new Set(
+      hotelsInCity
+        .filter(hotel => hotel.check_in_date)
+        .map(hotel => hotel.check_in_date as string)
+    )].sort();
+    
+    setFilteredCheckInDates(cityCheckInDates);
+    
+    // Clear check-in if it's not available for selected city
+    if (checkIn && cityCheckInDates.length > 0) {
+      const checkInStr = format(checkIn, 'yyyy-MM-dd');
+      if (!cityCheckInDates.includes(checkInStr)) {
+        setCheckIn(undefined);
+      }
+    }
+  }, [location, hotels]);
+
+  // Update available check-out dates when check-in changes
+  useEffect(() => {
+    if (!location || !checkIn || hotels.length === 0) return;
+    
+    const checkInStr = format(checkIn, 'yyyy-MM-dd');
+    
+    const hotelsMatching = hotels.filter(hotel => 
+      hotel.city?.toLowerCase() === location.toLowerCase() &&
+      hotel.check_in_date === checkInStr
+    );
+    
+    const cityCheckOutDates = [...new Set(
+      hotelsMatching
+        .filter(hotel => hotel.check_out_date)
+        .map(hotel => hotel.check_out_date as string)
+    )].sort();
+    
+    setFilteredCheckOutDates(cityCheckOutDates);
+    
+    // Clear check-out if it's not available for selected check-in
+    if (checkOut && cityCheckOutDates.length > 0) {
+      const checkOutStr = format(checkOut, 'yyyy-MM-dd');
+      if (!cityCheckOutDates.includes(checkOutStr)) {
+        setCheckOut(undefined);
+      }
+    }
+  }, [location, checkIn, hotels]);
+
   const applyFilters = (hotelList: Hotel[], currentFilters: typeof filters, searchLocation: string, searchCheckIn: Date | undefined, searchCheckOut: Date | undefined, searchTravellers: TravellerCount) => {
     let filtered = [...hotelList];
 
+    // Apply location filter from sidebar (if set)
+    if (currentFilters.location) {
+      const filterLocation = currentFilters.location.toLowerCase();
+      filtered = filtered.filter(hotel => {
+        const hotelCity = (hotel.city || '').toLowerCase();
+        const hotelLocation = (hotel.hotel_location || '').toLowerCase();
+        const hotelName = (hotel.hotel_name || '').toLowerCase();
+        return hotelCity.includes(filterLocation) || 
+               hotelLocation.includes(filterLocation) || 
+               hotelName.includes(filterLocation);
+      });
+    }
+
+    // Apply price range filters
     if (currentFilters.priceRanges.length > 0) {
       filtered = filtered.filter(hotel => {
-        const price = Number(hotel.price);
+        const price = getEffectivePrice(hotel);
         return currentFilters.priceRanges.some(rangeKey => {
           const [min, max] = rangeKey.split('-').map(v => v === 'inf' ? Infinity : Number(v));
           return price >= min && price <= max;
@@ -1107,36 +1386,42 @@ const HotelSearchMain = () => {
       });
     }
 
+    // Apply custom budget filter
     if (currentFilters.customBudget.min) {
-      filtered = filtered.filter(hotel => Number(hotel.price) >= Number(currentFilters.customBudget.min));
+      filtered = filtered.filter(hotel => getEffectivePrice(hotel) >= Number(currentFilters.customBudget.min));
     }
     if (currentFilters.customBudget.max) {
-      filtered = filtered.filter(hotel => Number(hotel.price) <= Number(currentFilters.customBudget.max));
+      filtered = filtered.filter(hotel => getEffectivePrice(hotel) <= Number(currentFilters.customBudget.max));
     }
 
+    // Apply star rating filter
     if (currentFilters.stars.length > 0) {
       filtered = filtered.filter(hotel => currentFilters.stars.includes(hotel.star_rating));
     }
 
+    // Apply guest rating filter
     if (currentFilters.minRating > 0) {
       filtered = filtered.filter(hotel => Number(hotel.rating) >= currentFilters.minRating);
     }
 
+    // Apply amenities filter
     if (currentFilters.amenities.length > 0) {
       filtered = filtered.filter(hotel => {
         if (!hotel.amenities) return false;
         
         const amenitiesIncludes = (amenity: string): boolean => {
-          const searchTerm = amenity.toLowerCase();
+          const searchTerm = amenity.toLowerCase().trim();
           
           if (Array.isArray(hotel.amenities)) {
             return hotel.amenities.some(a => 
-              String(a).toLowerCase().includes(searchTerm)
+              String(a).trim().toLowerCase() === searchTerm
             );
           }
           
           if (typeof hotel.amenities === 'string') {
-            return hotel.amenities.toLowerCase().includes(searchTerm);
+            return hotel.amenities.split(',').some(a => 
+              a.trim().toLowerCase() === searchTerm
+            );
           }
           
           return false;
@@ -1146,41 +1431,56 @@ const HotelSearchMain = () => {
       });
     }
 
-    filtered = filtered.filter(hotel => {
+    // Apply location search from main search bar
+    if (searchLocation) {
       const searchLocationLower = searchLocation.toLowerCase();
-      const hotelCity = (hotel.city || '').toLowerCase();
-      const hotelLocation = (hotel.hotel_location || '').toLowerCase();
-      return hotelCity.includes(searchLocationLower) || hotelLocation.includes(searchLocationLower);
-    });
+      filtered = filtered.filter(hotel => {
+        const hotelCity = (hotel.city || '').toLowerCase();
+        const hotelLocation = (hotel.hotel_location || '').toLowerCase();
+        const hotelName = (hotel.hotel_name || '').toLowerCase();
+        return hotelCity.includes(searchLocationLower) || 
+               hotelLocation.includes(searchLocationLower) || 
+               hotelName.includes(searchLocationLower);
+      });
+    }
 
-    filtered = filtered.filter(hotel => {
-      let dateMatch = true;
-      if (searchCheckIn && hotel.check_in_date) {
-        const hotelCheckIn = new Date(hotel.check_in_date);
-        const searchCheckInDate = new Date(searchCheckIn);
-        hotelCheckIn.setHours(0, 0, 0, 0);
-        searchCheckInDate.setHours(0, 0, 0, 0);
-        dateMatch = hotelCheckIn.getTime() === searchCheckInDate.getTime();
-      }
-      if (dateMatch && searchCheckOut && hotel.check_out_date) {
-        const hotelCheckOut = new Date(hotel.check_out_date);
-        const searchCheckOutDate = new Date(searchCheckOut);
-        hotelCheckOut.setHours(0, 0, 0, 0);
-        searchCheckOutDate.setHours(0, 0, 0, 0);
-        dateMatch = hotelCheckOut.getTime() === searchCheckOutDate.getTime();
-      }
-      return dateMatch;
-    });
+    // Apply date filters
+    if (searchCheckIn) {
+      const checkInStr = format(searchCheckIn, 'yyyy-MM-dd');
+      filtered = filtered.filter(hotel => hotel.check_in_date === checkInStr);
+    }
+    
+    if (searchCheckOut) {
+      const checkOutStr = format(searchCheckOut, 'yyyy-MM-dd');
+      filtered = filtered.filter(hotel => hotel.check_out_date === checkOutStr);
+    }
 
-    filtered = filtered.filter(hotel => {
-      let guestMatch = true;
-      if (searchTravellers) {
-        if (hotel.rooms && hotel.rooms < searchTravellers.rooms) guestMatch = false;
-        if (hotel.adults && hotel.adults < searchTravellers.adults) guestMatch = false;
-        if (hotel.children !== undefined && hotel.children < searchTravellers.children) guestMatch = false;
-      }
-      return guestMatch;
-    });
+    // Apply guest capacity filters - EXACT MATCH
+    if (searchTravellers) {
+      filtered = filtered.filter(hotel => {
+        // Exact match for rooms
+        if (hotel.rooms !== undefined && hotel.rooms !== null) {
+          if (hotel.rooms !== searchTravellers.rooms) return false;
+        }
+        
+        // Exact match for adults
+        if (hotel.adults !== undefined && hotel.adults !== null) {
+          if (hotel.adults !== searchTravellers.adults) return false;
+        }
+        
+        // Exact match for children
+        if (hotel.children !== undefined && hotel.children !== null) {
+          if (hotel.children !== searchTravellers.children) return false;
+        }
+        
+        // Check pets
+        if (searchTravellers.pets) {
+          if (hotel.pets !== 1 && hotel.pets !== true) return false;
+        }
+        
+        return true;
+      });
+    }
 
     return filtered;
   };
@@ -1202,7 +1502,8 @@ const HotelSearchMain = () => {
       stars: [],
       amenities: [],
       minRating: 0,
-      customBudget: { min: '', max: '' }
+      customBudget: { min: '', max: '' },
+      location: ''
     });
   };
 
@@ -1252,6 +1553,9 @@ const HotelSearchMain = () => {
 
   const handleBookNow = (hotel: Hotel) => {
     const nights = checkOut && checkIn ? Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)) : 1;
+    
+    const totalAmount = getTotalAmount(hotel);
+    
     const hotelForCheckout = {
       ...hotel,
       checkIn: checkIn,
@@ -1260,7 +1564,8 @@ const HotelSearchMain = () => {
       adults: travellers.adults,
       children: travellers.children,
       nights: nights,
-      total_price_value: Number(hotel.price)
+      total_price_value: Number(totalAmount),
+      selectedRoomType: null
     };
     localStorage.setItem('selectedHotel', JSON.stringify(hotelForCheckout));
     navigate('/checkout-hotels', { state: { hotel: hotelForCheckout } });
@@ -1309,7 +1614,7 @@ const HotelSearchMain = () => {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs text-gray-500 uppercase tracking-wide">CITY / HOTEL</p>
-                        <p className="font-semibold text-gray-900 truncate">{location}</p>
+                        <p className="font-semibold text-gray-900 truncate">{location || "Select City"}</p>
                         <p className="text-xs text-gray-500 truncate">India</p>
                       </div>
                       <ChevronDown className="w-4 h-4 text-gray-500 shrink-0" />
@@ -1321,6 +1626,7 @@ const HotelSearchMain = () => {
                         isOpen={showLocationDropdown}
                         onClose={handleLocationClose} 
                         onSelectCity={handleLocationSelect} 
+                        availableCities={availableCities}
                       />
                     </div>
                   )}
@@ -1357,7 +1663,7 @@ const HotelSearchMain = () => {
                         nextStep={() => setShowCheckOutDropdown(true)} 
                         selectedDate={checkIn} 
                         autoOpen={autoOpenCheckIn}
-                        availableDates={availableCheckInDates}
+                        availableDates={filteredCheckInDates}
                       />
                     </div>
                   )}
@@ -1394,7 +1700,8 @@ const HotelSearchMain = () => {
                         nextStep={() => setShowGuestsDropdown(true)} 
                         selectedDate={checkOut} 
                         autoOpen={autoOpenCheckOut}
-                        availableDates={availableCheckOutDates}
+                        availableDates={filteredCheckOutDates}
+                        minDate={checkIn}
                       />
                     </div>
                   )}

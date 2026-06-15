@@ -9,6 +9,7 @@ import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { BASE_URL } from '@/ApiUrls';
+import Pagination from './Tablelayouts/Pagination';
 
 const stateHeroImages = {
   "Andaman": "https://i.pinimg.com/1200x/67/10/27/671027210a396e38b27e5d0432bd18db.jpg",
@@ -103,8 +104,10 @@ const [loadingDestinations, setLoadingDestinations] = useState(false);
   const [searchFilteredTours, setSearchFilteredTours] = useState<any[] | null>(null);
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [showSearchBtn, setShowSearchBtn] = useState(false);
-
-  // ---------- Fetch base tours ----------
+const [currentPage, setCurrentPage] = useState(1);
+const [itemsPerPage, setItemsPerPage] = useState(9);
+const [paginatedTours, setPaginatedTours] = useState([]);
+ 
   useEffect(() => {
     const fetchTours = async () => {
       try {
@@ -124,11 +127,12 @@ const [loadingDestinations, setLoadingDestinations] = useState(false);
     fetchTours();
   }, []);
 
-  // ---------- Fetch full tour details including EMI for each tour ----------
   useEffect(() => {
     if (!allTours || allTours.length === 0) return;
 
-    const fetchTourDetails = async () => {
+
+
+const fetchTourDetails = async () => {
       try {
         console.log("Fetching tour details for", allTours.length, "tours");
         const results = await Promise.all(
@@ -199,6 +203,18 @@ const [loadingDestinations, setLoadingDestinations] = useState(false);
 
 
   
+    useEffect(() => {
+  if (filteredTours.length > 0) {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    setPaginatedTours(filteredTours.slice(startIndex, endIndex));
+  } else {
+    setPaginatedTours([]);
+  }
+}, [filteredTours, currentPage, itemsPerPage]);
+useEffect(() => {
+  setCurrentPage(1);
+}, [durationRange, priceRange, selectedDepartureMonths, selectedIndianTours, selectedWorldTours, sortType, searchQuery]);
   useEffect(() => {
     const fetchInternationalDestinations = async () => {
       try {
@@ -509,11 +525,13 @@ const [loadingDestinations, setLoadingDestinations] = useState(false);
     setIsSearchActive(false);
   };
 
+  const totalPages = Math.ceil(filteredTours.length / itemsPerPage);
+
   const heroImage =
     stateHeroImages[selectedState as keyof typeof stateHeroImages] ??
     '/img/default.jpg';
 
-  const heroDescription =
+  const heroDescription = 
     stateDescriptions[selectedState as keyof typeof stateDescriptions] ??
     'Explore the beauty of India';
 
@@ -813,7 +831,7 @@ const [loadingDestinations, setLoadingDestinations] = useState(false);
               </div>
 
               {/* Main Content Header */}
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 gap-4">
                 <div>
                   <h2 className="text-3xl font-bold text-gray-800">{selectedState}  Holiday Packages</h2>
                   <p className="text-gray-600 mt-1">
@@ -822,141 +840,142 @@ const [loadingDestinations, setLoadingDestinations] = useState(false);
                 </div>
               </div>
 
-              {/* 3 Cards Per Row */}
-              {filteredTours.length === 0 ? (
-                <div className="text-center py-12">
-                  <h3 className="text-xl font-semibold text-gray-600">No individual tours found for the selected filters</h3>
-                  <p className="text-gray-500 mt-2">
-                    Total available tours for {selectedState}: {formattedTours.length}
-                  </p>
-                  <Button
-                    onClick={clearAllFilters}
-                    className="mt-4 bg-[#2E4D98] hover:bg-[#2E4D98] hover:opacity-90 text-white"
-                  >
-                    Clear All Filters
-                  </Button>
+         {/* 3 Cards Per Row with Pagination */}
+{filteredTours.length === 0 ? (
+  <div className="text-center py-12">
+    <h3 className="text-xl font-semibold text-gray-600">No individual tours found for the selected filters</h3>
+    <p className="text-gray-500 mt-2">
+      Total available tours for {selectedState}: {formattedTours.length}
+    </p>
+    <Button
+      onClick={clearAllFilters}
+      className="mt-4 bg-[#2E4D98] hover:bg-[#2E4D98] hover:opacity-90 text-white"
+    >
+      Clear All Filters
+    </Button>
+  </div>
+) : (
+  <>
+    {/* Items Per Page Selector */}
+    <div className="flex justify-between items-center mb-2">
+      <div className="text-sm text-gray-600">
+        Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredTours.length)} of {filteredTours.length} tours
+      </div>
+      <div className="flex items-center gap-2">
+        <label className="text-sm text-gray-600">Show:</label>
+        <select
+          value={itemsPerPage}
+          onChange={(e) => {
+            setItemsPerPage(Number(e.target.value));
+            setCurrentPage(1);
+          }}
+          className="border rounded-md px-2 py-1 text-sm"
+        >
+          <option value={6}>6</option>
+          <option value={9}>9</option>
+          <option value={12}>12</option>
+          <option value={18}>18</option>
+          <option value={24}>24</option>
+        </select>
+        <span className="text-sm text-gray-600">per page</span>
+      </div>
+    </div>
+
+    {/* Tours Grid */}
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {paginatedTours.map((tour, index) => (
+        <div key={index} className="flex flex-col">
+      
+          <div className="bg-white border-2 border-gray-300 rounded-lg p-3 mb-3 shadow-sm">
+            <div className="grid grid-cols-3 gap-0 border border-gray-400 rounded overflow-hidden">
+              {/* Box 1 - Code Label */}
+              <div className="bg-[#2E4D98] border-r border-gray-400 p-2 flex items-center justify-center flex-1">
+                <div className="text-sm font-bold text-white text-center">CODE</div>
+              </div>
+
+              {/* Box 2 - Code Value */}
+              <div className="bg-gradient-to-br from-blue-100 to-blue-50 border-gray-400 p-2 flex items-center justify-center flex-1">
+                <div className="text-sm font-bold text-gray-900 text-center">{tour.code}</div>
+              </div>
+
+              {/* Box 3 - Duration */}
+              <div className="bg-[#2E4D98] p-2 flex items-center justify-center flex-1">
+                <div className="text-sm font-bold text-white text-center">{tour.duration}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Separate Card with Light Blue Background */}
+          <div className="group bg-blue-50 rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer border border-blue-100 flex flex-col flex-1 min-h-0">
+            {/* Image Section */}
+            <div className="relative h-56 overflow-hidden flex-shrink-0">
+              <img
+                src={tour.image}
+                alt={tour.title}
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+            </div>
+
+            {/* Content Section */}
+            <div className="p-5 flex-1 flex flex-col min-h-0">
+              <h3 className="font-bold text-lg text-gray-800 line-clamp-2 mb-2">
+                {tour.title}
+              </h3>
+
+              {/* Price Details */}
+              <div className="mb-3">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm text-[#2E4D98] font-bold">Tour Cost P.P</span>
+                  <p className="text-2xl font-bold text-gray-900">{tour.price}</p>
                 </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredTours.map((tour, index) => (
-                    <div key={index} className="flex flex-col">
-                      {/* Separate Top Block - Excel-like box design */}
-                      <div className="bg-white border-2 border-gray-300 rounded-lg p-3 mb-3 shadow-sm">
-                        <div className="grid grid-cols-3 gap-0 border border-gray-400 rounded overflow-hidden">
-                          {/* Box 1 - Code Label */}
-                           <div className="bg-[#2E4D98] border-r border-gray-400 p-2 flex items-center justify-center flex-1">
 
-                            <div className="text-sm font-bold text-white text-center">CODE</div>
-                          </div>
-
-                          {/* Box 2 - Code Value */}
-    <div className="bg-gradient-to-br from-blue-100 to-blue-50 border-gray-400 p-2 flex items-center justify-center flex-1">
-                            <div className="text-sm font-bold text-gray-900 text-center">{tour.code}</div>
-                          </div>
-
-                          {/* Box 3 - Duration */}
-    <div className="bg-[#2E4D98] p-2 flex items-center justify-center flex-1">
-                            <div className="text-sm font-bold text-white text-center">{tour.duration}</div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Separate Card with Light Blue Background */}
-                      <div className="group bg-blue-50 rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer border border-blue-100 flex flex-col flex-1 min-h-0">
-                        {/* Image Section */}
-                        <div className="relative h-56 overflow-hidden flex-shrink-0">
-                          <img
-                            src={tour.image}
-                            alt={tour.title}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-                        </div>
-
-                        {/* Content Section */}
-                        <div className="p-5 flex-1 flex flex-col min-h-0">
-                          <h3 className="font-bold text-lg text-gray-800 line-clamp-2 mb-2">
-                            {tour.title}
-                          </h3>
-
-                          {/* Price Details */}
-                          <div className="mb-3">
-                            <div className="flex items-center justify-between mb-1">
-                             <span className="text-sm text-[#2E4D98] font-bold">Tour Cost P.P</span>
-                              <p className="text-2xl font-bold text-gray-900">{tour.price}</p>
-                            </div>
-
-                            <div className="flex items-center justify-between">
-                               <span className="text-sm text-[#2E4D98] font-bold">EMI Per Month</span>
-
-                              <p className="text-sm font-bold text-gray-900">{tour.emi}</p>
-                            </div>
-                          </div>
-
-                          <p className="text-sm text-[#2E4D98] font-bold mb-3">{tour.locations}</p>
-
-                          <div className="flex items-center justify-between text-sm text-gray-500 mb-0">
-                            <span>{tour.dates}</span>
-                          </div>
-
-                          {/* Buttons */}
-                          <div className="flex gap-2 mt-0">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="flex-1 border-[#2E4D98] text-[#2E4D98] hover:bg-[#2E4D98] hover:text-white"
-                              onClick={() => navigate(`/tour/${tour.id}`)}
-                            >
-                              View Tour
-                            </Button>
-                           
-                            <Button
-                                size="sm"
-                                className="flex-1 bg-[#E53C42] hover:bg-[#E53C42] hover:opacity-90 text-white"
-                                onClick={() => handleBookNowClick(tour)}
-                            >
-                                Book Now
-                            </Button>
-{/* 
-                             <Button
-                              size="sm"
-                              variant="outline"
-                              className="w-full border-green-600 text-green-600 hover:bg-green-50 hover:border-green-700 hover:text-green-700"
-                              onClick={() => handleEnquiryClick(tour)}
-                            > */}
-                              {/* <svg 
-                                xmlns="http://www.w3.org/2000/svg" 
-                                className="h-4 w-4 mr-2" 
-                                fill="none" 
-                                viewBox="0 0 24 24" 
-                                stroke="currentColor"
-                              >
-                                <path 
-                                  strokeLinecap="round" 
-                                  strokeLinejoin="round" 
-                                  strokeWidth={2} 
-                                  d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" 
-                                />
-                              </svg> */}
-                               {/* Enquiry
-                            </Button> */}
-
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-[#2E4D98] font-bold">EMI Per Month</span>
+                  <p className="text-sm font-bold text-gray-900">{tour.emi}</p>
                 </div>
-              )}
+              </div>
 
-              {/* Load More */}
-              {filteredTours.length > 0 && (
-                <div className="text-center mt-8">
-                  <Button size="lg" className="bg-[#2E4D98] hover:bg-[#2E4D98] hover:opacity-90 px-12 text-white">
-                    Load More Tours
-                  </Button>
-                </div>
-              )}
+              <p className="text-sm text-[#2E4D98] font-bold mb-3">{tour.locations}</p>
+
+              <div className="flex items-center justify-between text-sm text-gray-500 mb-0">
+                <span>{tour.dates}</span>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex gap-2 mt-0">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="flex-1 border-[#2E4D98] text-[#2E4D98] hover:bg-[#2E4D98] hover:text-white"
+                  onClick={() => navigate(`/tour/${tour.id}`)}
+                >
+                  View Tour
+                </Button>
+               
+                <Button
+                  size="sm"
+                  className="flex-1 bg-[#E53C42] hover:bg-[#E53C42] hover:opacity-90 text-white"
+                  onClick={() => handleBookNowClick(tour)}
+                >
+                  Book Now
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+    {totalPages > 1 && (
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+        maxVisiblePages={3} 
+      />
+    )}
+    </>
+  )}
             </main>
           </div>
         </div>

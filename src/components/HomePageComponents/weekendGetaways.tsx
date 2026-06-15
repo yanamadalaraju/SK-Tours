@@ -533,7 +533,7 @@ const WeekendGetawaysSection: React.FC = () => {
   // Loading state
   if (loading) {
     return (
-      <section className="py-0 bg-gradient-to-br from-sky-200 via-sky-200 to-sky-200">
+      <section className="py-1 bg-gradient-to-br from-sky-200 via-sky-200 to-sky-200">
         <div className="w-full bg-gradient-to-r from-[#0F1F5C] via-[#1F3F93] to-[#0F1F5C] py-8 mb-10 shadow-lg">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
@@ -555,7 +555,7 @@ const WeekendGetawaysSection: React.FC = () => {
   // Error state
   if (error) {
     return (
-      <section className="py-0 bg-gradient-to-br from-sky-200 via-sky-200 to-sky-200">
+      <section className="py-1 bg-gradient-to-br from-sky-200 via-sky-200 to-sky-200">
         <div className="w-full bg-gradient-to-r from-[#0F1F5C] via-[#1F3F93] to-[#0F1F5C] py-8 mb-10 shadow-lg">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
@@ -577,7 +577,7 @@ const WeekendGetawaysSection: React.FC = () => {
   // If no getaways found
   if (weekendGetaways.length === 0) {
     return (
-      <section className="py-0 bg-gradient-to-br from-sky-200 via-sky-200 to-sky-200">
+      <section className="py-1 bg-gradient-to-br from-sky-200 via-sky-200 to-sky-200">
         <div className="w-full bg-gradient-to-r from-[#0F1F5C] via-[#1F3F93] to-[#0F1F5C] py-8 mb-10 shadow-lg">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
@@ -597,7 +597,7 @@ const WeekendGetawaysSection: React.FC = () => {
   }
 
   return (
-    <section className="py-0 bg-gradient-to-br from-sky-200 via-sky-200 to-sky-200">
+    <section className="py-1 bg-gradient-to-br from-sky-200 via-sky-200 to-sky-200">
       {/* Full Width Header Strip */}
       <div className="w-full bg-gradient-to-r from-[#0F1F5C] via-[#1F3F93] to-[#0F1F5C] py-8 mb-10 shadow-lg">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -640,7 +640,7 @@ const WeekendGetawaysSection: React.FC = () => {
           {/* Content */}
           <div className="relative z-10">
             {/* Carousel Header */}
-            <div className="flex items-center justify-between mb-6 mt-1">
+            <div className="flex items-center justify-between mb-8 mt-1">
               <div>
                 <h3 className="text-xl font-bold text-white drop-shadow-lg">
                   Weekend Getaways
@@ -775,11 +775,11 @@ const WeekendGetawaysSection: React.FC = () => {
 
         {/* Bottom CTA */}
         <div className="text-center">
-          <button className="inline-flex mb-10 items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-xl shadow transition-all duration-300 transform hover:scale-105 border border-white/20">
+          {/* <button className="inline-flex mb-10 items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-xl shadow transition-all duration-300 transform hover:scale-105 border border-white/20">
             <MapPin className="h-4 w-4" />
             Explore All Getaways
             <ChevronRight className="h-4 w-4" />
-          </button>
+          </button> */}
         </div>
       </div>
     </section>

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import Pagination from '../../../pages/Tablelayouts/Pagination';
 
 interface PicnicItem {
   picnic_id: number;
@@ -31,6 +32,11 @@ const Onedaypicnic_card: React.FC = () => {
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [selectedCities, setSelectedCities] = useState<string[]>([]);
   const [showMoreCities, setShowMoreCities] = useState(false);
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(9);
+  const [paginatedPicnics, setPaginatedPicnics] = useState<PicnicItem[]>([]);
 
   // Extract duration number from string like "5N/3D" - returns number of nights
   const extractDuration = (durationStr: string): number => {
@@ -88,6 +94,24 @@ const Onedaypicnic_card: React.FC = () => {
 
     setFilteredPicnics(result);
   }, [picnics, priceRange, durationRange, selectedCities, searchQuery, isSearchActive]);
+
+  // Update paginated picnics when filteredPicnics or pagination settings change
+  useEffect(() => {
+    if (filteredPicnics.length > 0) {
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      setPaginatedPicnics(filteredPicnics.slice(startIndex, endIndex));
+    } else {
+      setPaginatedPicnics([]);
+    }
+  }, [filteredPicnics, currentPage, itemsPerPage]);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [priceRange, durationRange, selectedCities, searchQuery, isSearchActive]);
+
+  const totalPages = Math.ceil(filteredPicnics.length / itemsPerPage);
 
   const handleCardClick = (picnic: PicnicItem): void => {
     navigate(`/onedaybooking/${picnic.picnic_id}`);
@@ -181,8 +205,6 @@ const Onedaypicnic_card: React.FC = () => {
                   />
                 </div>
 
-       
-
                 {/* Search */}
                 <div className="mb-4">
                   <form onSubmit={handleSearch} className="flex gap-2">
@@ -215,7 +237,8 @@ const Onedaypicnic_card: React.FC = () => {
                     )}
                   </form>
                 </div>
-                         {/* City Filter */}
+
+                {/* City Filter */}
                 {uniqueCities.length > 0 && (
                   <div className="mb-6">
                     <h3 className="font-semibold text-lg mb-4 text-[#2E4D98]">City</h3>
@@ -273,12 +296,39 @@ const Onedaypicnic_card: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 gap-4">
                 <div>
                   <h2 className="text-3xl font-bold text-gray-800">Available Picnics</h2>
                   <p className="text-gray-600 mt-1">Showing {filteredPicnics.length} picnics • Best prices guaranteed</p>
                 </div>
               </div>
+
+              {/* Items Per Page Selector */}
+              {filteredPicnics.length > 0 && (
+                <div className="flex justify-between items-center mb-2">
+                  <div className="text-sm text-gray-600">
+                    Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredPicnics.length)} of {filteredPicnics.length} picnics
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm text-gray-600">Show:</label>
+                    <select
+                      value={itemsPerPage}
+                      onChange={(e) => {
+                        setItemsPerPage(Number(e.target.value));
+                        setCurrentPage(1);
+                      }}
+                      className="border rounded-md px-2 py-1 text-sm"
+                    >
+                      <option value={6}>6</option>
+                      <option value={9}>9</option>
+                      <option value={12}>12</option>
+                      <option value={18}>18</option>
+                      <option value={24}>24</option>
+                    </select>
+                    <span className="text-sm text-gray-600">per page</span>
+                  </div>
+                </div>
+              )}
 
               {/* Picnic Cards */}
               {filteredPicnics.length === 0 ? (
@@ -290,96 +340,108 @@ const Onedaypicnic_card: React.FC = () => {
                   </Button>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredPicnics.map((item) => (
-                    <div key={item.picnic_id} className="flex flex-col">
-                      {/* Two-column header UI - OUTSIDE the card */}
-                      <div className="bg-white border-2 border-gray-300 rounded-lg p-3 mb-3 shadow-sm">
-                        <div className="grid grid-cols-3 gap-0 border border-gray-400 rounded overflow-hidden">
-                          <div className="bg-[#2E4D98] border-r border-gray-400 p-2 flex items-center justify-center">
-                            <div className="text-sm font-bold text-white text-center">CODE</div>
-                          </div>
-                          <div className="bg-gradient-to-br from-blue-100 to-blue-50 p-2 flex items-center justify-center">
-                            <div className="text-sm font-bold text-gray-900 text-center">
-                              {item.picnic_code ||'N/A'}
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {paginatedPicnics.map((item) => (
+                      <div key={item.picnic_id} className="flex flex-col">
+                        {/* Two-column header UI - OUTSIDE the card */}
+                        <div className="bg-white border-2 border-gray-300 rounded-lg p-3 mb-3 shadow-sm">
+                          <div className="grid grid-cols-3 gap-0 border border-gray-400 rounded overflow-hidden">
+                            <div className="bg-[#2E4D98] border-r border-gray-400 p-2 flex items-center justify-center">
+                              <div className="text-sm font-bold text-white text-center">CODE</div>
+                            </div>
+                            <div className="bg-gradient-to-br from-blue-100 to-blue-50 p-2 flex items-center justify-center">
+                              <div className="text-sm font-bold text-gray-900 text-center">
+                                {item.picnic_code || 'N/A'}
+                              </div>
+                            </div>
+                            <div className="bg-[#2E4D98] border-r border-gray-400 p-2 flex items-center justify-center">
+                              <div className="text-sm font-bold text-white text-center">{item.duration || 'N/A'}</div>
                             </div>
                           </div>
-                            <div className="bg-[#2E4D98] border-r border-gray-400 p-2 flex items-center justify-center">
-                            <div className="text-sm font-bold text-white text-center">{item.duration ||'N/A'}</div>
+                        </div>
+
+                        {/* Card Content */}
+                        <div
+                          onClick={() => handleCardClick(item)}
+                          className="group bg-blue-50 rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer border border-blue-100 flex flex-col"
+                        >
+                          <div className="relative h-56 overflow-hidden">
+                            <img
+                              src={`${BASE_URL}${item.main_image}`}
+                              alt={item.name}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                              onError={(e) => {
+                                e.currentTarget.style.display = "none";
+                                const parent = e.currentTarget.parentElement;
+                                if (parent) {
+                                  const errorDiv = document.createElement('div');
+                                  errorDiv.className = "flex flex-col items-center justify-center w-full h-full text-gray-700 p-4 bg-blue-50";
+                                  errorDiv.innerHTML = `<span class="text-center text-sm">${item.name}</span><span class="text-center text-xs text-gray-600 mt-2">Image not available</span>`;
+                                  parent.appendChild(errorDiv);
+                                }
+                              }}
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                          </div>
+
+                          <div className="p-5 flex-1 flex flex-col">
+                            {/* Price */}
+                            <div className="mb-3 flex items-center">
+                              <span className="w-[150px] text-sm text-[#2E4D98] font-bold">Price</span>
+                              <p className="text-2lg font-bold text-gray-900 ml-auto text-right">
+                                ₹{parseFloat(item.price).toLocaleString('en-IN')}
+                              </p>
+                            </div>
+                            <div className="mb-3 flex items-center">
+                              <span className="w-[150px] text-sm text-[#2E4D98] font-bold">City</span>
+                              <p className="text-2lg font-bold text-gray-900 ml-auto text-right">
+                                {item.city_name || 'N/A'}
+                              </p>
+                            </div>
+                            <div className="mb-3 flex items-center">
+                              <span className="w-[150px] text-sm text-[#2E4D98] font-bold">One Day Picnic Name</span>
+                              <p className="text-2lg font-bold text-gray-900 ml-auto text-right">
+                                {item.name || 'N/A'}
+                              </p>
+                            </div>
+
+                            <div className="flex gap-2 mt-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="flex-1 border-[#2E4D98] text-[#2E4D98] hover:bg-[#2E4D98] hover:text-white"
+                                onClick={(e) => handleViewClick(e, item)}
+                              >
+                                View
+                              </Button>
+
+                              <Button
+                                size="sm"
+                                className="flex-1 bg-[#E53C42] hover:bg-[#E53C42] hover:opacity-90 text-white"
+                                onClick={(e) => handleBookClick(e, item)}
+                              >
+                                Book Now
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       </div>
+                    ))}
+                  </div>
 
-                      {/* Card Content */}
-                      <div
-                        onClick={() => handleCardClick(item)}
-                        className="group bg-blue-50 rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer border border-blue-100 flex flex-col"
-                      >
-                        <div className="relative h-56 overflow-hidden">
-                          <img
-                            src={`${BASE_URL}${item.main_image}`}
-                            alt={item.name}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                            onError={(e) => {
-                              e.currentTarget.style.display = "none";
-                              const parent = e.currentTarget.parentElement;
-                              if (parent) {
-                                const errorDiv = document.createElement('div');
-                                errorDiv.className = "flex flex-col items-center justify-center w-full h-full text-gray-700 p-4 bg-blue-50";
-                                errorDiv.innerHTML = `<span class="text-center text-sm">${item.name}</span><span class="text-center text-xs text-gray-600 mt-2">Image not available</span>`;
-                                parent.appendChild(errorDiv);
-                              }
-                            }}
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-                        </div>
-
-                        <div className="p-5 flex-1 flex flex-col">
-                     
-
-                          {/* Price */}
-                          <div className="mb-3 flex items-center">
-                            <span className="w-[150px] text-sm text-[#2E4D98] font-bold">Price</span>
-                            <p className="text-2lg font-bold text-gray-900 ml-auto text-right">
-                              ₹{parseFloat(item.price).toLocaleString('en-IN')}
-                            </p>
-                          </div>
-                             <div className="mb-3 flex items-center">
-                            <span className="w-[150px] text-sm text-[#2E4D98] font-bold">City</span>
-                            <p className="text-2lg font-bold text-gray-900 ml-auto text-right">
-                              {item.city_name ||'N/A'}
-                            </p>
-                          </div>
-                             <div className="mb-3 flex items-center">
-                            <span className="w-[150px] text-sm text-[#2E4D98] font-bold">One Day Picnic Name</span>
-                            <p className="text-2lg font-bold text-gray-900 ml-auto text-right">
-                              {item.name ||'N/A'}
-                            </p>
-                          </div>
-
-                          <div className="flex gap-2 mt-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="flex-1 border-[#2E4D98] text-[#2E4D98] hover:bg-[#2E4D98] hover:text-white"
-                              onClick={(e) => handleViewClick(e, item)}
-                            >
-                              View
-                            </Button>
-
-                            <Button
-                              size="sm"
-                              className="flex-1 bg-[#E53C42] hover:bg-[#E53C42] hover:opacity-90 text-white"
-                              onClick={(e) => handleBookClick(e, item)}
-                            >
-                              Book Now
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
+                  {/* Pagination Component */}
+                  {totalPages > 1 && (
+                    <div className="mt-8">
+                      <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={setCurrentPage}
+                        maxVisiblePages={3}
+                      />
                     </div>
-                  ))}
-                </div>
+                  )}
+                </>
               )}
             </main>
           </div>

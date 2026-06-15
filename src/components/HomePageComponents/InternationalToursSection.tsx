@@ -643,13 +643,11 @@ const InternationalToursSection: React.FC = () => {
           tourType="Student"
         />
 
-        <div className="text-center">
-          <button className="inline-flex mb-6 md:mb-10 items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 md:px-6 md:py-3 rounded-xl shadow transition-all duration-300 transform hover:scale-105 border border-white/20">
-            <MapPin className="h-4 w-4" />
-            View All Tours
-            <ChevronRight className="h-4 w-4" />
-          </button>
-        </div>
+       <div className="text-center">
+          <div className="inline-flex items-center">
+           
+          </div>
+          </div>
       </div>
     </section>
   );
