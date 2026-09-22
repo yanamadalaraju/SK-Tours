@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -194,7 +194,11 @@ const TourDetails = () => {
 
   const [selectedCostMonth, setSelectedCostMonth] = useState("");
   const [selectedCostDate, setSelectedCostDate] = useState("");
-  const [autoScrollInterval, setAutoScrollInterval] = useState<NodeJS.Timeout | null>(null);
+
+  // ============================================
+  // FIX #1: Replaced NodeJS.Timeout with ReturnType<typeof setInterval>
+  // ============================================
+  const [autoScrollInterval, setAutoScrollInterval] = useState<ReturnType<typeof setInterval> | null>(null);
 
   const [groupTourCost, setGroupTourCost] = useState({
     month: "January",
@@ -403,10 +407,15 @@ const TourDetails = () => {
           };
         });
 
+        // ============================================
+        // FIX #2: Removed departureItems.map(dep => dep.description) 
+        // since 'description' doesn't exist on the mapped object.
+        // Group departures don't have descriptions anyway.
+        // ============================================
         return {
           type: 'Group',
           data: departureItems,
-          descriptions: departureItems.map(dep => dep.description || '')
+          descriptions: []
         };
       } else {
         const descriptions: string[] = [];
@@ -624,120 +633,120 @@ const TourDetails = () => {
     };
   };
 
-const fetchTourDetails = async () => {
-  try {
-    setLoading(true);
-    setError(null);
+  const fetchTourDetails = async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-    // First, try the main tours endpoint with the ID
-    let response = await fetch(`${BASE_URL}/api/tours/${tourId}`);
-    
-    if (!response.ok) {
-      throw new Error('Failed to fetch tour data');
-    }
-    
-    let data = await response.json();
-    
-    // Check if the response has the tour property (from your main endpoint)
-    if (data.tour) {
-      // Data is from the main /:id endpoint
-      const mappedData = {
-        success: true,
-        basic_details: {
-          title: data.tour.title || '',
-          duration_days: data.tour.duration_days || 0,
-          base_price_adult: data.tour.base_price_adult || '0',
-          emi_price: data.tour.emi_price || '0',
-          category_id: data.tour.category_id || 1,
-          tour_code: data.tour.tour_code || '',
-          overview: data.tour.overview || '',
-          cost_remarks: data.tour.cost_remarks || '',
-          hotel_remarks: data.tour.hotel_remarks || '',
-          transport_remarks: data.tour.transport_remarks || '',
-          emi_remarks: data.tour.emi_remarks || '',
-          booking_poi_remarks: data.tour.booking_poi_remarks || '',
-          cancellation_remarks: data.tour.cancellation_remarks || '',
-          optional_tour_remarks: data.tour.optional_tour_remarks || '',
-          primary_destination_name: data.tour.primary_destination_name || '',
+      // First, try the main tours endpoint with the ID
+      let response = await fetch(`${BASE_URL}/api/tours/${tourId}`);
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch tour data');
+      }
+
+      let data = await response.json();
+
+      // Check if the response has the tour property (from your main endpoint)
+      if (data.tour) {
+        // Data is from the main /:id endpoint
+        const mappedData = {
+          success: true,
+          basic_details: {
+            title: data.tour.title || '',
+            duration_days: data.tour.duration_days || 0,
+            base_price_adult: data.tour.base_price_adult || '0',
+            emi_price: data.tour.emi_price || '0',
+            category_id: data.tour.category_id || 1,
+            tour_code: data.tour.tour_code || '',
+            overview: data.tour.overview || '',
+            cost_remarks: data.tour.cost_remarks || '',
+            hotel_remarks: data.tour.hotel_remarks || '',
+            transport_remarks: data.tour.transport_remarks || '',
+            emi_remarks: data.tour.emi_remarks || '',
+            booking_poi_remarks: data.tour.booking_poi_remarks || '',
+            cancellation_remarks: data.tour.cancellation_remarks || '',
+            optional_tour_remarks: data.tour.optional_tour_remarks || '',
+            primary_destination_name: data.tour.primary_destination_name || '',
+            tour_type: data.tour.tour_type || 'Individual'
+          },
+          departures: data.departures || [],
+          images: data.images || [],
+          inclusions: data.inclusions || [],
+          exclusions: data.exclusions || [],
+          itinerary: data.itinerary || [],
+          costs: data.costs || [],
+          hotels: data.hotels || [],
+          transports: data.transports || [],
+          bookingPoi: data.bookingPoi || [],
+          cancellationPolicies: data.cancellationPolicies || [],
+          instructions: data.instructions || [],
+          optionalTours: data.optionalTours || [],
+          emiOptions: data.emiOptions || [],
           tour_type: data.tour.tour_type || 'Individual'
-        },
-        departures: data.departures || [],
-        images: data.images || [],
-        inclusions: data.inclusions || [],
-        exclusions: data.exclusions || [],
-        itinerary: data.itinerary || [],
-        costs: data.costs || [],
-        hotels: data.hotels || [],
-        transports: data.transports || [],
-        bookingPoi: data.bookingPoi || [],
-        cancellationPolicies: data.cancellationPolicies || [],
-        instructions: data.instructions || [],  // ADD THIS LINE
-        optionalTours: data.optionalTours || [],
-        emiOptions: data.emiOptions || [],
-        tour_type: data.tour.tour_type || 'Individual'
-      };
+        };
 
-      const processedData = processTourData(mappedData);
-      const foundTourType = (mappedData.tour_type as 'Individual' | 'Group' | 'Honeymoon' | 'Ladies Special' | 'Senior Citizen' | 'Student' | 'Sports' | 'Festival') || 'Individual';
-      
-      console.log("Processed data:", processedData);
-      console.log("Tour type:", foundTourType);
-      
-      setTour(processedData);
-      setTourType(foundTourType);
-      setSelectedState(data.tour.primary_destination_name || "");
-      
-      const defaultVisible = [
-        'Andhra Pradesh', 'Bihar', 'Chhattisgarh', 'Dadra & Nagar Haveli',
-        'Daman & Diu', 'Delhi', 'Gujarat', 'Haryana', 'Jharkhand',
-        'Karnataka', 'Ladakh', 'Lakshadweep', 'Madhya Pradesh', 'Maharashtra',
-        'North East', 'Odisha', 'Puducherry', 'Punjab & Haryana',
-        'Seven Sisters', 'Tamil Nadu', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal'
-      ];
-      
-      if (!defaultVisible.includes(data.tour.primary_destination_name || "")) {
-        setShowMoreIndian(true);
+        const processedData = processTourData(mappedData);
+        const foundTourType = (mappedData.tour_type as 'Individual' | 'Group' | 'Honeymoon' | 'Ladies Special' | 'Senior Citizen' | 'Student' | 'Sports' | 'Festival') || 'Individual';
+
+        console.log("Processed data:", processedData);
+        console.log("Tour type:", foundTourType);
+
+        setTour(processedData);
+        setTourType(foundTourType);
+        setSelectedState(data.tour.primary_destination_name || "");
+
+        const defaultVisible = [
+          'Andhra Pradesh', 'Bihar', 'Chhattisgarh', 'Dadra & Nagar Haveli',
+          'Daman & Diu', 'Delhi', 'Gujarat', 'Haryana', 'Jharkhand',
+          'Karnataka', 'Ladakh', 'Lakshadweep', 'Madhya Pradesh', 'Maharashtra',
+          'North East', 'Odisha', 'Puducherry', 'Punjab & Haryana',
+          'Seven Sisters', 'Tamil Nadu', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal'
+        ];
+
+        if (!defaultVisible.includes(data.tour.primary_destination_name || "")) {
+          setShowMoreIndian(true);
+        }
+
+        setLoading(false);
+        return;
       }
-      
-      setLoading(false);
-      return;
-    }
-    
-    // If the response doesn't have the tour property, try to see if it's from another endpoint
-    if (data.basic_details) {
-      // Data is already in the format expected by processTourData
-      const processedData = processTourData(data);
-      const foundTourType = data.tour_type || 'Individual';
-      
-      setTour(processedData);
-      setTourType(foundTourType);
-      setSelectedState(data.basic_details.primary_destination_name || "");
-      
-      const defaultVisible = [
-        'Andhra Pradesh', 'Bihar', 'Chhattisgarh', 'Dadra & Nagar Haveli',
-        'Daman & Diu', 'Delhi', 'Gujarat', 'Haryana', 'Jharkhand',
-        'Karnataka', 'Ladakh', 'Lakshadweep', 'Madhya Pradesh', 'Maharashtra',
-        'North East', 'Odisha', 'Puducherry', 'Punjab & Haryana',
-        'Seven Sisters', 'Tamil Nadu', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal'
-      ];
-      
-      if (!defaultVisible.includes(data.basic_details.primary_destination_name || "")) {
-        setShowMoreIndian(true);
+
+      // If the response doesn't have the tour property, try to see if it's from another endpoint
+      if (data.basic_details) {
+        // Data is already in the format expected by processTourData
+        const processedData = processTourData(data);
+        const foundTourType = data.tour_type || 'Individual';
+
+        setTour(processedData);
+        setTourType(foundTourType);
+        setSelectedState(data.basic_details.primary_destination_name || "");
+
+        const defaultVisible = [
+          'Andhra Pradesh', 'Bihar', 'Chhattisgarh', 'Dadra & Nagar Haveli',
+          'Daman & Diu', 'Delhi', 'Gujarat', 'Haryana', 'Jharkhand',
+          'Karnataka', 'Ladakh', 'Lakshadweep', 'Madhya Pradesh', 'Maharashtra',
+          'North East', 'Odisha', 'Puducherry', 'Punjab & Haryana',
+          'Seven Sisters', 'Tamil Nadu', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal'
+        ];
+
+        if (!defaultVisible.includes(data.basic_details.primary_destination_name || "")) {
+          setShowMoreIndian(true);
+        }
+
+        setLoading(false);
+        return;
       }
-      
+
+      // If we get here, the response format is unexpected
+      throw new Error('Unexpected response format from server');
+
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+      console.error('Error fetching tour details:', err);
       setLoading(false);
-      return;
     }
-    
-    // If we get here, the response format is unexpected
-    throw new Error('Unexpected response format from server');
-    
-  } catch (err) {
-    setError(err instanceof Error ? err.message : 'An error occurred');
-    console.error('Error fetching tour details:', err);
-    setLoading(false);
-  }
-};
+  };
 
   useEffect(() => {
     if (tourId) {
@@ -862,10 +871,30 @@ const fetchTourDetails = async () => {
 
   const isGroupTour = tour?.tourType && ['Group', 'ladiesspecial', 'seniorcitizen', 'student'].includes(tour.tourType);
 
-  const filteredDepartureData = isGroupTour && tour?.departures?.data
+  // <--- Filter out past dates logic
+  const validDepartureData = useMemo(() => {
+    if (!isGroupTour || !tour?.departures?.data) return [];
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set to start of day for accurate comparison
+
+    return tour.departures.data.filter((dep: any) => {
+      // Use the 'fromDate' field formatted as "DD Mon YYYY" (e.g., "15 Nov 2026")
+      // or fallback to start_date if available
+      const departureDate = dep.start_date ? new Date(dep.start_date) : new Date(dep.fromDate);
+
+      // If date is invalid, keep it (safer to show than hide)
+      if (isNaN(departureDate.getTime())) return true;
+
+      // Only keep dates that are today or in the future
+      return departureDate >= today;
+    });
+  }, [tour?.departures?.data, isGroupTour]);
+
+  const filteredDepartureData = isGroupTour && validDepartureData
     ? (selectedMonth === "ALL"
-      ? tour.departures.data
-      : tour.departures.data.filter((d: any) => d.month === selectedMonth))
+      ? validDepartureData
+      : validDepartureData.filter((d: any) => d.month === selectedMonth))
     : [];
 
   const departuresByMonth = React.useMemo(() => {
@@ -1341,7 +1370,7 @@ const fetchTourDetails = async () => {
                     </div>
                   </div>
                 )}
-                
+
                 {/* Dep Date Tab */}
                 {activeTab === "dep-date" && (
                   isGroupTour ? (
@@ -1354,24 +1383,26 @@ const fetchTourDetails = async () => {
                         <div className="flex-1 overflow-y-auto p-2 bg-[#FFEBEE] w-full">
                           <div className="flex flex-wrap gap-1 lg:gap-2 mb-2">
                             {(() => {
-                              const availableMonths = tour.departures.data
+                              const availableMonthsList = validDepartureData
                                 .map((dep: any) => dep.month)
                                 .filter((month: string, index: number, self: string[]) =>
                                   self.indexOf(month) === index
                                 )
                                 .sort((a: string, b: string) => {
+                                  const [monthA, yearA] = a.split(' ');
+                                  const [monthB, yearB] = b.split(' ');
+
+                                  const yearDiff = parseInt(yearA) - parseInt(yearB);
+                                  if (yearDiff !== 0) return yearDiff;
+
                                   const monthOrder = [
                                     "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
                                     "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"
                                   ];
-                                  const getMonthNum = (monthStr: string) => {
-                                    const monthAbbr = monthStr.split(' ')[0];
-                                    return monthOrder.indexOf(monthAbbr);
-                                  };
-                                  return getMonthNum(a) - getMonthNum(b);
+                                  return monthOrder.indexOf(monthA) - monthOrder.indexOf(monthB);
                                 });
 
-                              const allTabs = ["ALL", ...availableMonths];
+                              const allTabs = ["ALL", ...availableMonthsList];
 
                               return (
                                 <div className="flex flex-wrap gap-1 lg:gap-2 mb-1 overflow-x-auto pb-2">
@@ -1549,7 +1580,7 @@ const fetchTourDetails = async () => {
                   )
                 )}
 
-                {/* Tour Cost Tab - Simplified for brevity, similar structure to your existing code */}
+                {/* Tour Cost Tab */}
                 {activeTab === "tour-cost" && (
                   <div className="bg-[#E8F0FF] rounded-lg p-1">
                     <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg mb-1.5">
@@ -1668,7 +1699,7 @@ const fetchTourDetails = async () => {
                           </div>
                         </div>
                       )}
-                      
+
                       <div className="bg-[#E8F0FF] rounded-lg w-full overflow-x-hidden mt-0">
                         <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
                           Tour Cost Remarks
@@ -1693,7 +1724,7 @@ const fetchTourDetails = async () => {
                           </div>
                         </div>
                       </div>
-                      
+
                       <div className="mt-1">
                         <button
                           onClick={() => navigate("/alert")}
@@ -1706,8 +1737,7 @@ const fetchTourDetails = async () => {
                   </div>
                 )}
 
-                {/* Other tabs (Cost inc./Cost ex., Flights & Hotels, Bookings POI, Cancellation, Instructions) */}
-                {/* These remain largely the same as your original code */}
+                {/* Cost inc./Cost ex. Tab */}
                 {activeTab === "cost-inc./cost-ex." && (
                   <div className="bg-[#E8F0FF] rounded-lg p-1 w-full overflow-x-hidden">
                     <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg mb-1 w-full">
@@ -1766,257 +1796,254 @@ const fetchTourDetails = async () => {
                   </div>
                 )}
 
-                {/* Flights & Hotels Tab - Simplified version */}
                 {/* Flights & Hotels Tab */}
-{/* Flights & Hotels Tab */}
-{/* Flights & Hotels Tab */}
-{activeTab === "flights-&-hotels" && (
-  <div className="bg-[#E8F0FF] rounded-lg p-0.2 w-full overflow-x-hidden">
-    {/* Flights Section */}
-    <div className="bg-[#FFEBEE] rounded-lg p-1 mb-1 w-full">
-      <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
-        Flight Details
-      </div>
+                {activeTab === "flights-&-hotels" && (
+                  <div className="bg-[#E8F0FF] rounded-lg p-0.2 w-full overflow-x-hidden">
+                    {/* Flights Section */}
+                    <div className="bg-[#FFEBEE] rounded-lg p-1 mb-1 w-full">
+                      <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-2xl py-2 lg:py-2.5 rounded-t-lg w-full">
+                        Flight Details
+                      </div>
 
-      <div className="border-2 border-[#1e3a8a] rounded-t-none border-t-0 rounded-lg overflow-hidden w-full mb-1">
-        <div className="min-h-[250px] lg:min-h-[300px] max-h-[300px] lg:max-h-[400px] overflow-y-auto p-1 bg-[#FFEBEE] w-full">
-          {isGroupTour ? (
-            // TABLE FORMAT for Group, Ladies Special, Senior Citizen, Student
-            <div className="overflow-x-auto border shadow-sm">
-              <table className="w-full border-collapse table-fixed min-w-[800px] lg:min-w-0">
-                <thead>
-                  <tr className="bg-[red]">
-                    <th className="border border-black px-2 lg:px-3 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm">Airlines</th>
-                    <th className="border border-black px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm">Flight No</th>
-                    <th className="border border-black px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm">From</th>
-                    <th className="border border-black px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm">Date</th>
-                    <th className="border border-black px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm">Time</th>
-                    <th className="border border-black px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm">To</th>
-                    <th className="border border-black px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm">Date</th>
-                    <th className="border border-black px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm">Time</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {tour.airlines.tableData && tour.airlines.tableData.length > 0 ? (
-                    tour.airlines.tableData.map((flight: any, index: number) => {
-                      const formatDateToIndian = (dateString: string) => {
-                        if (!dateString) return '';
-                        try {
-                          const date = new Date(dateString);
-                          if (isNaN(date.getTime())) return dateString;
-                          const day = String(date.getDate()).padStart(2, '0');
-                          const month = String(date.getMonth() + 1).padStart(2, '0');
-                          const year = date.getFullYear();
-                          return `${day}-${month}-${year}`;
-                        } catch (error) { return dateString; }
-                      };
-                      const formatTimeToAMPM = (timeString: string) => {
-                        if (!timeString) return '';
-                        try {
-                          if (timeString.includes(':')) {
-                            const timeParts = timeString.split(':');
-                            if (timeParts.length >= 2) {
-                              let hours = parseInt(timeParts[0], 10);
-                              const minutes = timeParts[1];
-                              const ampm = hours >= 12 ? 'PM' : 'AM';
-                              hours = hours % 12;
-                              hours = hours === 0 ? 12 : hours;
-                              return `${hours}:${minutes} ${ampm}`;
-                            }
-                          }
-                          return timeString;
-                        } catch (error) { return timeString; }
-                      };
-                      return (
-                        <tr key={index} className={index % 2 === 0 ? 'bg-[#FFEBEE]' : 'bg-[#FFEBEE]/80'}>
-                          <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm">{flight.airline || ''}</td>
-                          <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm">{flight.flightNo || ''}</td>
-                          <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm">{flight.from || ''}</td>
-                          <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm">{formatDateToIndian(flight.depDate) || ''}</td>
-                          <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm">{formatTimeToAMPM(flight.depTime) || ''}</td>
-                          <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm">{flight.to || ''}</td>
-                          <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm">{formatDateToIndian(flight.arrDate) || ''}</td>
-                          <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm">{formatTimeToAMPM(flight.arrTime) || ''}</td>
-                        </tr>
-                      );
-                    })
-                  ) : (
-                    [1, 2, 3, 4].map((row, index) => (
-                      <tr key={index} className={index % 2 === 0 ? 'bg-[#FFEBEE]' : 'bg-[#FFEBEE]/80'}>
-                        <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center">&nbsp;</td>
-                        <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center">&nbsp;</td>
-                        <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center">&nbsp;</td>
-                        <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center">&nbsp;</td>
-                        <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center">&nbsp;</td>
-                        <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center">&nbsp;</td>
-                        <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center">&nbsp;</td>
-                        <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center">&nbsp;</td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-              
-              {/* Description Area for Table Format */}
-              {tour.airlines.tableData && tour.airlines.tableData.some((flight: any) => flight.description) && (
-                <div className="mt-4 p-3 lg:p-4 bg-[#E8F0FF] border border-gray-200 rounded-lg">
-                  <h4 className="font-bold text-base lg:text-lg mb-3 text-center text-red-600">Additional Information</h4>
-                  <div className="space-y-4">
-                    {tour.airlines.tableData.map((flight: any, index: number) => (
-                      flight.description && (
-                        <div key={index} className="border border-gray-300 rounded p-2 lg:p-3 bg-gray-50">
-                          <div className="flex items-start mb-2">
-                            <span className="font-bold mr-2 text-xs lg:text-sm">Transport {index + 1}:</span>
-                            <span className="text-xs lg:text-sm">{flight.airline} - {flight.flightNo}</span>
-                          </div>
-                          <p className="text-gray-700 whitespace-pre-wrap text-xs lg:text-sm">{flight.description}</p>
+                      <div className="border-2 border-[#1e3a8a] rounded-t-none border-t-0 rounded-lg overflow-hidden w-full mb-1">
+                        <div className="min-h-[250px] lg:min-h-[300px] max-h-[300px] lg:max-h-[400px] overflow-y-auto p-1 bg-[#FFEBEE] w-full">
+                          {isGroupTour ? (
+                            // TABLE FORMAT for Group, Ladies Special, Senior Citizen, Student
+                            <div className="overflow-x-auto border shadow-sm">
+                              <table className="w-full border-collapse table-fixed min-w-[800px] lg:min-w-0">
+                                <thead>
+                                  <tr className="bg-[red]">
+                                    <th className="border border-black px-2 lg:px-3 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm">Airlines</th>
+                                    <th className="border border-black px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm">Flight No</th>
+                                    <th className="border border-black px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm">From</th>
+                                    <th className="border border-black px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm">Date</th>
+                                    <th className="border border-black px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm">Time</th>
+                                    <th className="border border-black px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm">To</th>
+                                    <th className="border border-black px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm">Date</th>
+                                    <th className="border border-black px-2 lg:px-4 py-2 lg:py-3 text-center font-semibold text-white text-xs lg:text-sm">Time</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {tour.airlines.tableData && tour.airlines.tableData.length > 0 ? (
+                                    tour.airlines.tableData.map((flight: any, index: number) => {
+                                      const formatDateToIndian = (dateString: string) => {
+                                        if (!dateString) return '';
+                                        try {
+                                          const date = new Date(dateString);
+                                          if (isNaN(date.getTime())) return dateString;
+                                          const day = String(date.getDate()).padStart(2, '0');
+                                          const month = String(date.getMonth() + 1).padStart(2, '0');
+                                          const year = date.getFullYear();
+                                          return `${day}-${month}-${year}`;
+                                        } catch (error) { return dateString; }
+                                      };
+                                      const formatTimeToAMPM = (timeString: string) => {
+                                        if (!timeString) return '';
+                                        try {
+                                          if (timeString.includes(':')) {
+                                            const timeParts = timeString.split(':');
+                                            if (timeParts.length >= 2) {
+                                              let hours = parseInt(timeParts[0], 10);
+                                              const minutes = timeParts[1];
+                                              const ampm = hours >= 12 ? 'PM' : 'AM';
+                                              hours = hours % 12;
+                                              hours = hours === 0 ? 12 : hours;
+                                              return `${hours}:${minutes} ${ampm}`;
+                                            }
+                                          }
+                                          return timeString;
+                                        } catch (error) { return timeString; }
+                                      };
+                                      return (
+                                        <tr key={index} className={index % 2 === 0 ? 'bg-[#FFEBEE]' : 'bg-[#FFEBEE]/80'}>
+                                          <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm">{flight.airline || ''}</td>
+                                          <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm">{flight.flightNo || ''}</td>
+                                          <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm">{flight.from || ''}</td>
+                                          <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm">{formatDateToIndian(flight.depDate) || ''}</td>
+                                          <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm">{formatTimeToAMPM(flight.depTime) || ''}</td>
+                                          <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm">{flight.to || ''}</td>
+                                          <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm">{formatDateToIndian(flight.arrDate) || ''}</td>
+                                          <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center text-xs lg:text-sm">{formatTimeToAMPM(flight.arrTime) || ''}</td>
+                                        </tr>
+                                      );
+                                    })
+                                  ) : (
+                                    [1, 2, 3, 4].map((row, index) => (
+                                      <tr key={index} className={index % 2 === 0 ? 'bg-[#FFEBEE]' : 'bg-[#FFEBEE]/80'}>
+                                        <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center">&nbsp;</td>
+                                        <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center">&nbsp;</td>
+                                        <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center">&nbsp;</td>
+                                        <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center">&nbsp;</td>
+                                        <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center">&nbsp;</td>
+                                        <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center">&nbsp;</td>
+                                        <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center">&nbsp;</td>
+                                        <td className="border border-black px-2 lg:px-4 py-1 lg:py-3 text-center">&nbsp;</td>
+                                      </tr>
+                                    ))
+                                  )}
+                                </tbody>
+                              </table>
+
+                              {/* Description Area for Table Format */}
+                              {tour.airlines.tableData && tour.airlines.tableData.some((flight: any) => flight.description) && (
+                                <div className="mt-4 p-3 lg:p-4 bg-[#E8F0FF] border border-gray-200 rounded-lg">
+                                  <h4 className="font-bold text-base lg:text-lg mb-3 text-center text-red-600">Additional Information</h4>
+                                  <div className="space-y-4">
+                                    {tour.airlines.tableData.map((flight: any, index: number) => (
+                                      flight.description && (
+                                        <div key={index} className="border border-gray-300 rounded p-2 lg:p-3 bg-gray-50">
+                                          <div className="flex items-start mb-2">
+                                            <span className="font-bold mr-2 text-xs lg:text-sm">Transport {index + 1}:</span>
+                                            <span className="text-xs lg:text-sm">{flight.airline} - {flight.flightNo}</span>
+                                          </div>
+                                          <p className="text-gray-700 whitespace-pre-wrap text-xs lg:text-sm">{flight.description}</p>
+                                        </div>
+                                      )
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            // DESCRIPTION FORMAT for Individual, Honeymoon, Sports, Festival
+                            <div className="w-full">
+                              {tour.airlines.tableData?.length > 0 ? (
+                                <div className="bg-[#FFEBEE] min-h-[250px] lg:min-h-[300px] p-3 lg:p-4">
+                                  {tour.airlines.tableData.map((flight: any, index: number) => (
+                                    <div key={index} className="mb-4">
+                                      <p className="text-black text-sm lg:text-base leading-8 whitespace-pre-wrap">
+                                        {flight.description ||
+                                          `${flight.from || ""} ${flight.to ? `to ${flight.to}` : ""} ${flight.airline ? `by ${flight.airline}` : ""
+                                          } ${flight.flightNo ? `(${flight.flightNo})` : ""}`}
+                                      </p>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className="flex items-center justify-center min-h-[250px] lg:min-h-[300px] bg-[#E9D9DC]">
+                                  <p className="text-gray-500 text-base lg:text-lg">
+                                    No information available
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
-                      )
-                    ))}
+                      </div>
+
+                      {/* Flight Remarks Section - Only for Table Format tours */}
+                      {isGroupTour && (
+                        <div className="mb-1">
+                          {tour.airlines.remarks && tour.airlines.remarks.length > 0 ? (
+                            <>
+                              <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-xl py-2 lg:py-3 rounded-t-lg w-full">
+                                Flight Remarks
+                              </div>
+                              <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg overflow-hidden w-full">
+                                <div className="min-h-[120px] lg:min-h-[150px] max-h-[120px] lg:max-h-[160px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+                                  <ul className="space-y-2 w-full">
+                                    {tour.airlines.remarks.map((remark: string, index: number) => (
+                                      <li key={`flight-${index}`} className="flex items-start gap-1 w-full">
+                                        <span className="text-black break-words whitespace-pre-wrap text-justify w-full text-sm lg:text-base">
+                                          {remark}
+                                        </span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-xl py-2 lg:py-3 rounded-t-lg w-full">
+                                Flight Remarks
+                              </div>
+                              <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg overflow-hidden w-full">
+                                <div className="min-h-[120px] lg:min-h-[150px] max-h-[120px] lg:max-h-[160px] overflow-y-auto p-2 bg-[#FFEBEE] w-full flex items-center justify-center">
+                                  <div className="text-gray-500 text-center">
+                                    <div className="text-base lg:text-lg font-semibold">No remarks available</div>
+                                    <div className="text-xs lg:text-sm mt-1">There are no flight remarks at this time</div>
+                                  </div>
+                                </div>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Hotels Section */}
+                    <div className='p-1 -mt-3 w-full overflow-x-hidden'>
+                      <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-xl rounded-t-lg py-2 lg:py-3 mb-1 w-full">
+                        Hotel Details
+                      </div>
+
+                      <div className="overflow-x-auto w-full">
+                        {tour.hotels.tableData.length > 0 ? (
+                          <table className="w-full border-collapse min-w-[600px] lg:min-w-max">
+                            <thead>
+                              <tr className="bg-[#2E4D98]">
+                                <th className="border border-white px-2 lg:px-3 py-2 lg:py-3 text-left text-white text-xs lg:text-sm">City</th>
+                                <th className="border border-white px-2 lg:px-3 py-2 lg:py-3 text-left text-white text-xs lg:text-sm">Nights</th>
+                                <th className="border border-white px-2 lg:px-3 py-2 lg:py-3 text-left text-white text-xs lg:text-sm">Standard</th>
+                                <th className="border border-white px-2 lg:px-3 py-2 lg:py-3 text-left text-white text-xs lg:text-sm">Deluxe</th>
+                                <th className="border border-white px-2 lg:px-3 py-2 lg:py-3 text-left text-white text-xs lg:text-sm">Executive</th>
+                              </tr>
+                            </thead>
+                            <tbody className="border-2 border-[#1e3a8a] border-t-0">
+                              {tour.hotels.tableData.map((hotel: any, index: number) => (
+                                <tr key={index} className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}>
+                                  <td className="border border-black px-1 lg:px-2 py-1 lg:py-2 break-all whitespace-pre-wrap text-black text-xs lg:text-sm">{hotel.city}</td>
+                                  <td className="border border-black px-1 lg:px-2 py-1 lg:py-2 break-all whitespace-pre-wrap text-black text-xs lg:text-sm">{hotel.nights}</td>
+                                  <td className="border border-black px-1 lg:px-2 py-1 lg:py-2 break-all whitespace-pre-wrap text-black text-xs lg:text-sm">{hotel.standard}</td>
+                                  <td className="border border-black px-1 lg:px-2 py-1 lg:py-2 break-all whitespace-pre-wrap text-xs lg:text-sm">{hotel.deluxe}</td>
+                                  <td className="border border-black px-1 lg:px-2 py-1 lg:py-2 break-all whitespace-pre-wrap text-xs lg:text-sm">{hotel.executive}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        ) : (
+                          <div className="border-2 border-[#1e3a8a] p-3 lg:p-4 bg-white rounded-lg">
+                            <p className="text-gray-500 text-center text-sm lg:text-base">No hotel information available</p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Hotel Remarks Section */}
+                      {tour.hotels.remarks.length > 0 && (
+                        <div className="bg-[#E8F0FF] rounded-lg mt-1 w-full overflow-x-hidden">
+                          <div className="mb-0">
+                            <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-xl py-2 lg:py-3 rounded-t-lg w-full">
+                              Hotel Remarks
+                            </div>
+                            <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg overflow-hidden w-full">
+                              <div className="min-h-[120px] lg:min-h-[150px] max-h-[120px] lg:max-h-[160px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
+                                <ul className="space-y-2 w-full">
+                                  {tour.hotels.remarks.map((remark: string, index: number) => (
+                                    <li key={`hotel-${index}`} className="flex items-start gap-1 w-full">
+                                      <span className="text-black break-words whitespace-pre-wrap text-justify w-full text-sm lg:text-base">
+                                        {remark}
+                                      </span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      <div className="mt-1">
+                        <button
+                          onClick={() => navigate("/alert")}
+                          className="w-full font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90 text-sm lg:text-base"
+                        >
+                          Customize your tour on chargeable basis
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            // DESCRIPTION FORMAT for Individual, Honeymoon, Sports, Festival
-          <div className="w-full">
-  {tour.airlines.tableData?.length > 0 ? (
-    <div className="bg-[#FFEBEE] min-h-[250px] lg:min-h-[300px] p-3 lg:p-4">
-      {tour.airlines.tableData.map((flight: any, index: number) => (
-        <div key={index} className="mb-4">
-          <p className="text-black text-sm lg:text-base leading-8 whitespace-pre-wrap">
-            {flight.description ||
-              `${flight.from || ""} ${flight.to ? `to ${flight.to}` : ""} ${
-                flight.airline ? `by ${flight.airline}` : ""
-              } ${flight.flightNo ? `(${flight.flightNo})` : ""}`}
-          </p>
-        </div>
-      ))}
-    </div>
-  ) : (
-    <div className="flex items-center justify-center min-h-[250px] lg:min-h-[300px] bg-[#E9D9DC]">
-      <p className="text-gray-500 text-base lg:text-lg">
-        No information available
-      </p>
-    </div>
-  )}
-</div>
-          )}
-        </div>
-      </div>
-      
-      {/* Flight Remarks Section - Only for Table Format tours */}
-      {isGroupTour && (
-        <div className="mb-1">
-          {tour.airlines.remarks && tour.airlines.remarks.length > 0 ? (
-            <>
-              <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-xl py-2 lg:py-3 rounded-t-lg w-full">
-                Flight Remarks
-              </div>
-              <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg overflow-hidden w-full">
-                <div className="min-h-[120px] lg:min-h-[150px] max-h-[120px] lg:max-h-[160px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-                  <ul className="space-y-2 w-full">
-                    {tour.airlines.remarks.map((remark: string, index: number) => (
-                      <li key={`flight-${index}`} className="flex items-start gap-1 w-full">
-                        <span className="text-black break-words whitespace-pre-wrap text-justify w-full text-sm lg:text-base">
-                          {remark}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-xl py-2 lg:py-3 rounded-t-lg w-full">
-                Flight Remarks
-              </div>
-              <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg overflow-hidden w-full">
-                <div className="min-h-[120px] lg:min-h-[150px] max-h-[120px] lg:max-h-[160px] overflow-y-auto p-2 bg-[#FFEBEE] w-full flex items-center justify-center">
-                  <div className="text-gray-500 text-center">
-                    <div className="text-base lg:text-lg font-semibold">No remarks available</div>
-                    <div className="text-xs lg:text-sm mt-1">There are no flight remarks at this time</div>
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
-        </div>
-      )}
-    </div>
+                )}
 
-    {/* Hotels Section */}
-    <div className='p-1 -mt-3 w-full overflow-x-hidden'>
-      <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-xl rounded-t-lg py-2 lg:py-3 mb-1 w-full">
-        Hotel Details
-      </div>
-
-      <div className="overflow-x-auto w-full">
-        {tour.hotels.tableData.length > 0 ? (
-          <table className="w-full border-collapse min-w-[600px] lg:min-w-max">
-            <thead>
-              <tr className="bg-[#2E4D98]">
-                <th className="border border-white px-2 lg:px-3 py-2 lg:py-3 text-left text-white text-xs lg:text-sm">City</th>
-                <th className="border border-white px-2 lg:px-3 py-2 lg:py-3 text-left text-white text-xs lg:text-sm">Nights</th>
-                <th className="border border-white px-2 lg:px-3 py-2 lg:py-3 text-left text-white text-xs lg:text-sm">Standard</th>
-                <th className="border border-white px-2 lg:px-3 py-2 lg:py-3 text-left text-white text-xs lg:text-sm">Deluxe</th>
-                <th className="border border-white px-2 lg:px-3 py-2 lg:py-3 text-left text-white text-xs lg:text-sm">Executive</th>
-              </tr>
-            </thead>
-            <tbody className="border-2 border-[#1e3a8a] border-t-0">
-              {tour.hotels.tableData.map((hotel: any, index: number) => (
-                <tr key={index} className={index % 2 === 0 ? "bg-[#FFEBEE]" : "bg-[#FFEBEE]/80"}>
-                  <td className="border border-black px-1 lg:px-2 py-1 lg:py-2 break-all whitespace-pre-wrap text-black text-xs lg:text-sm">{hotel.city}</td>
-                  <td className="border border-black px-1 lg:px-2 py-1 lg:py-2 break-all whitespace-pre-wrap text-black text-xs lg:text-sm">{hotel.nights}</td>
-                  <td className="border border-black px-1 lg:px-2 py-1 lg:py-2 break-all whitespace-pre-wrap text-black text-xs lg:text-sm">{hotel.standard}</td>
-                  <td className="border border-black px-1 lg:px-2 py-1 lg:py-2 break-all whitespace-pre-wrap text-xs lg:text-sm">{hotel.deluxe}</td>
-                  <td className="border border-black px-1 lg:px-2 py-1 lg:py-2 break-all whitespace-pre-wrap text-xs lg:text-sm">{hotel.executive}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <div className="border-2 border-[#1e3a8a] p-3 lg:p-4 bg-white rounded-lg">
-            <p className="text-gray-500 text-center text-sm lg:text-base">No hotel information available</p>
-          </div>
-        )}
-      </div>
-
-      {/* Hotel Remarks Section */}
-      {tour.hotels.remarks.length > 0 && (
-        <div className="bg-[#E8F0FF] rounded-lg mt-1 w-full overflow-x-hidden">
-          <div className="mb-0">
-            <div className="bg-red-600 text-white text-center font-bold text-lg lg:text-xl py-2 lg:py-3 rounded-t-lg w-full">
-              Hotel Remarks
-            </div>
-            <div className="border-2 border-t-0 border-[#1e3a8a] rounded-b-lg overflow-hidden w-full">
-              <div className="min-h-[120px] lg:min-h-[150px] max-h-[120px] lg:max-h-[160px] overflow-y-auto p-2 bg-[#FFEBEE] w-full">
-                <ul className="space-y-2 w-full">
-                  {tour.hotels.remarks.map((remark: string, index: number) => (
-                    <li key={`hotel-${index}`} className="flex items-start gap-1 w-full">
-                      <span className="text-black break-words whitespace-pre-wrap text-justify w-full text-sm lg:text-base">
-                        {remark}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      <div className="mt-1">
-        <button
-          onClick={() => navigate("/alert")}
-          className="w-full font-bold py-2 rounded-lg border bg-[#A72703] text-white border-black transition-opacity hover:opacity-90 text-sm lg:text-base"
-        >
-          Customize your tour on chargeable basis
-        </button>
-      </div>
-    </div>
-  </div>
-)}
                 {/* Bookings POI Tab */}
                 {activeTab === "bookings-poi" && (
                   <div className="bg-[#E8F0FF] rounded-lg p-1">

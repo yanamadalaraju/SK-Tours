@@ -1739,13 +1739,13 @@ const International_Tourdetails = () => {
                                   <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap">{hotel.city}</td>
                                   <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap">{hotel.hotelName}</td>
                                   <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap">
-                                    {hotel.standard || hotel.standardPrice || "N/A"}
+                                    {hotel.standard || "N/A"}
                                   </td>
                                   <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap">
-                                    {hotel.deluxe || hotel.deluxePrice || "N/A"}
+                                    {hotel.deluxe || "N/A"}
                                   </td>
                                   <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap">
-                                    {hotel.executive || hotel.executivePrice || "N/A"}
+                                    {hotel.executive || "N/A"}
                                   </td>
                                   <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap">{hotel.roomType}</td>
                                   <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap">{hotel.nights}</td>
@@ -2074,7 +2074,7 @@ const International_Tourdetails = () => {
       <tbody className="border-2 border-[#1e3a8a] border-t-0">
   {/* Tourist Visa Row */}
 <tr className="bg-[#FFEBEE]">
-  <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap w-[14.28%] h-10" colSpan="5">
+  <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap w-[14.28%] h-10">
       Tourist Visa Form Download
     </td>
   <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap w-[14.28%] h-10 text-center bg-red-600 text-white">
@@ -2086,7 +2086,7 @@ const International_Tourdetails = () => {
 </tr>
   {/* Transit Visa Row */}
 <tr className="bg-[#FFEBEE]">
-  <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap w-[14.28%] h-10" colSpan="5">
+  <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap w-[14.28%] h-10">
       Tourist Visa Form Download
     </td>
   <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap w-[14.28%] h-10 text-center bg-red-600 text-white">
@@ -2099,7 +2099,7 @@ const International_Tourdetails = () => {
   
   {/* Business Visa Row */}
 <tr className="bg-[#FFEBEE]">
-  <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap w-[14.28%] h-10" colSpan="5">
+  <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap w-[14.28%] h-10">
       Tourist Visa Form Download
     </td>
   <td className="border border-black px-2 py-2 break-all whitespace-pre-wrap w-[14.28%] h-10 text-center bg-red-600 text-white">
@@ -2145,60 +2145,60 @@ const International_Tourdetails = () => {
       <table className="w-full border-collapse min-w-max border border-gray-300">
         <thead>
           <tr className="bg-[#2E4D98]">
-            <th className="border border-white px-4 py-3 text-center text-white" colSpan="5">
+            <th className="border border-white px-4 py-3 text-center text-white">
               Photo Specification
             </th>
-            <th className="border border-white px-12 py-3 text-left text-white opacity-0" colSpan="3">
+            <th className="border border-white px-12 py-3 text-left text-white opacity-0">
               {/* Empty columns - no visible lines */}
             </th>
           </tr>
         </thead>
         <tbody className="border-2 border-[#1e3a8a] border-t-0">
           <tr className="bg-[#FFEBEE]">
-            <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap" colSpan="5">
+            <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap">
               Free Flow Entry
             </td>
-            <td className="border-0 px-12 py-3 opacity-0" colSpan="2">
+            <td className="border-0 px-12 py-3 opacity-0">
               {/* Empty columns */}
             </td>
           </tr>
           <tr className="bg-[#FFEBEE]/80">
-            <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap" colSpan="5">
+            <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap">
               Free Flow Entry
             </td>
-            <td className="border-0 px-12 py-3 opacity-0" colSpan="2">
+            <td className="border-0 px-12 py-3 opacity-0">
               {/* Empty columns */}
             </td>
           </tr>
           <tr className="bg-[#FFEBEE]">
-            <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap" colSpan="5">
+            <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap">
               Free Flow Entry
             </td>
-            <td className="border-0 px-12 py-3 opacity-0" colSpan="2">
+            <td className="border-0 px-12 py-3 opacity-0">
               {/* Empty columns */}
             </td>
           </tr>
           <tr className="bg-[#FFEBEE]/80">
-            <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap" colSpan="5">
+            <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap">
               Free Flow Entry
             </td>
-            <td className="border-0 px-12 py-3 opacity-0" colSpan="2">
+            <td className="border-0 px-12 py-3 opacity-0">
               {/* Empty columns */}
             </td>
           </tr>
           <tr className="bg-[#FFEBEE]">
-            <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap" colSpan="5">
+            <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap">
               Free Flow Entry
             </td>
-            <td className="border-0 px-12 py-3 opacity-0" colSpan="2">
+            <td className="border-0 px-12 py-3 opacity-0">
               {/* Empty columns */}
             </td>
           </tr>
           <tr className="bg-[#FFEBEE]/80">
-            <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap" colSpan="5">
+            <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap">
               Extendable as per requirement
             </td>
-            <td className="border-0 px-12 py-3 opacity-0" colSpan="2">
+            <td className="border-0 px-12 py-3 opacity-0">
               {/* Empty columns */}
             </td>
           </tr>
@@ -2213,58 +2213,58 @@ const International_Tourdetails = () => {
     <table className="w-full border-collapse min-w-max border border-gray-300">
   <thead>
     <tr className="bg-[#2E4D98] text-white text-center">
-      <th className="border border-white px-4 py-3" colSpan="2">Tourist Visa</th>
-      <th className="border border-white px-4 py-3" colSpan="2">Transit Visa</th>
-      <th className="border border-white px-4 py-3" colSpan="2">Business Visa</th>
-      <th className="border border-white px-4 py-3" colSpan="1">Visa & VFS Charges</th>
+      <th className="border border-white px-4 py-3">Tourist Visa</th>
+      <th className="border border-white px-4 py-3">Transit Visa</th>
+      <th className="border border-white px-4 py-3">Business Visa</th>
+      <th className="border border-white px-4 py-3">Visa & VFS Charges</th>
     </tr>
   </thead>
   <tbody className="border-2 border-[#1e3a8a] border-t-0">
     <tr className="bg-[#FFEBEE]">
-      <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap" colSpan="6">
+      <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap">
         Free Flow Entry
       </td>
-      <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap" colSpan="1">
+      <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap">
         {/* Empty column */}
       </td>
     </tr>
     <tr className="bg-[#FFEBEE]/80">
-      <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap" colSpan="6">
+      <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap">
         Free Flow Entry
       </td>
-      <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap" colSpan="1">
+      <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap">
         {/* Empty column */}
       </td>
     </tr>
     <tr className="bg-[#FFEBEE]">
-      <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap" colSpan="6">
+      <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap">
         Free Flow Entry
       </td>
-      <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap" colSpan="1">
+      <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap">
         {/* Empty column */}
       </td>
     </tr>
     <tr className="bg-[#FFEBEE]/80">
-      <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap" colSpan="6">
+      <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap">
         Free Flow Entry
       </td>
-      <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap" colSpan="1">
+      <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap">
         {/* Empty column */}
       </td>
     </tr>
     <tr className="bg-[#FFEBEE]">
-      <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap" colSpan="6">
+      <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap">
         Free Flow Entry
       </td>
-      <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap" colSpan="1">
+      <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap">
         {/* Empty column */}
       </td>
     </tr>
     <tr className="bg-[#FFEBEE]/80">
-      <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap" colSpan="6">
+      <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap">
         Extendable as per requirement
       </td>
-      <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap" colSpan="1">
+      <td className="border border-black px-4 py-3 break-all whitespace-pre-wrap">
         {/* Empty column */}
       </td>
     </tr>

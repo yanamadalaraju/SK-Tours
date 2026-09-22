@@ -21,8 +21,8 @@ interface BungalowItem {
 }
 
 interface BungalowcheckboxProps {
-  sidebarOpen: boolean;
-  closeSidebar: () => void;
+  sidebarOpen?: boolean;
+  closeSidebar?: () => void;
   onFilterChange?: (filters: any) => void;
 }
 

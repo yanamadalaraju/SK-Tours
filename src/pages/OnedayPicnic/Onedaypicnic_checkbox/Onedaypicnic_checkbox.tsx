@@ -28,8 +28,8 @@ interface FilterState {
 }
 
 interface PicnicCheckboxProps {  // Renamed component interface
-  sidebarOpen: boolean;
-  closeSidebar: () => void;
+  sidebarOpen?: boolean;
+  closeSidebar?: () => void;
   onFilterChange?: (filters: FilterState) => void;
   initialFilters?: Partial<FilterState>;
 }

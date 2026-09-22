@@ -28,8 +28,8 @@ interface FilterState {
 }
 
 interface GatewayCheckboxProps {
-  sidebarOpen: boolean;
-  closeSidebar: () => void;
+  sidebarOpen?: boolean;
+  closeSidebar?: () => void;
   onFilterChange?: (filters: FilterState) => void;
   initialFilters?: Partial<FilterState>;
 }
@@ -55,8 +55,8 @@ const Gatewaycheckbox = ({
   const [selectedGatewayCodes, setSelectedGatewayCodes] = useState<string[]>(initialFilters?.selectedGatewayCodes || []);
   const [showMoreGateways, setShowMoreGateways] = useState(false);
   
-  // Debounce timer reference
-  const debounceTimerRef = useRef<NodeJS.Timeout>();
+  // Debounce timer reference - FIXED: Using ReturnType<typeof setTimeout> instead of NodeJS.Timeout
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
   // Fetch weekends from API
   useEffect(() => {
