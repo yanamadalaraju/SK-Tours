@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { BASE_URL } from '@/ApiUrls';
 import { Input } from "@/components/ui/input"; 
 import Pagination from './Tablelayouts/Pagination';
+
 const stateHeroImages = {
   "Andaman": "https://i.pinimg.com/1200x/67/10/27/671027210a396e38b27e5d0432bd18db.jpg",
   "Andhra Pradesh": "https://images.unsplash.com/photo-1587132135057-bc3c3dcfd4d9?w=1200&q=80",
@@ -40,6 +41,18 @@ const stateHeroImages = {
   "Uttar Pradesh": "https://images.unsplash.com/photo-1587132135074-bc3c3dcfd4eb?w=1200&q=80",
   "Uttarakhand": "https://images.unsplash.com/photo-1587132135075-bc3c3dcfd4ec?w=1200&q=80",
   "West Bengal": "https://images.unsplash.com/photo-1587132135076-bc3c3dcfd4ed?w=1200&q=80",
+};
+
+// International country hero images — ADD your country images here
+const countryHeroImages: Record<string, string> = {
+  "Australia": "https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?w=1200&q=80",
+  "America": "https://images.unsplash.com/photo-1485738422979-f5c462d49f74?w=1200&q=80",
+  "Dubai": "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1200&q=80",
+  "Europe": "https://images.unsplash.com/photo-1467269204594-9661b134dd2b?w=1200&q=80",
+  "Japan": "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=1200&q=80",
+  "Singapore": "https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=1200&q=80",
+  "Thailand": "https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=1200&q=80",
+  // Add more as needed
 };
 
 // Get state-specific descriptions
@@ -82,8 +95,8 @@ const TourPackages = () => {
   const [showMoreIndian, setShowMoreIndian] = useState(false);
   const [showMoreWorld, setShowMoreWorld] = useState(false);
   const [sortType, setSortType] = useState("recommended");
-const [internationalDestinations, setInternationalDestinations] = useState<string[]>([]);
-const [loadingDestinations, setLoadingDestinations] = useState(false);
+  const [internationalDestinations, setInternationalDestinations] = useState<string[]>([]);
+  const [loadingDestinations, setLoadingDestinations] = useState(false);
   const [durationRange, setDurationRange] = useState([0, 120]);
   const [priceRange, setPriceRange] = useState([0, 10000000]);
   const [selectedDepartureMonths, setSelectedDepartureMonths] = useState<string[]>([]);
@@ -96,14 +109,20 @@ const [loadingDestinations, setLoadingDestinations] = useState(false);
   const [loading, setLoading] = useState(true);
   const [tourImages, setTourImages] = useState<Record<number | string, string>>({});
   const [tourEmiData, setTourEmiData] = useState<Record<number | string, any>>({}); 
-const [searchQuery, setSearchQuery] = useState(""); 
-const [isSearchActive, setIsSearchActive] = useState(false); 
-const [currentPage, setCurrentPage] = useState(1);
-const [itemsPerPage, setItemsPerPage] = useState(9);
-const [paginatedTours, setPaginatedTours] = useState([]);
-const [showSearchBtn, setShowSearchBtn] = useState(false); 
+  const [searchQuery, setSearchQuery] = useState(""); 
+  const [isSearchActive, setIsSearchActive] = useState(false); 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(9);
+  const [paginatedTours, setPaginatedTours] = useState([]);
+  const [showSearchBtn, setShowSearchBtn] = useState(false); 
   const [activeSearchQuery, setActiveSearchQuery] = useState(""); 
 
+  // NEW: Map country name → list of destination names
+  const [countryDestinations, setCountryDestinations] = useState<Record<string, string[]>>({});
+  // NEW: Track if current selectedState is a country (international) or state (Indian)
+  const [isInternationalPage, setIsInternationalPage] = useState(false);
+
+  // Fetch tours
   useEffect(() => {
     const fetchTours = async () => {
       try {
@@ -123,13 +142,12 @@ const [showSearchBtn, setShowSearchBtn] = useState(false);
     fetchTours();
   }, []);
 
-  // ---------- Fetch full tour details including EMI for each tour ----------
+  // Fetch tour details including EMI
   useEffect(() => {
     if (!allTours || allTours.length === 0) return;
 
     const fetchTourDetails = async () => {
       try {
-        console.log("Fetching tour details for", allTours.length, "tours");
         const results = await Promise.all(
           allTours.map(async (tour) => {
             try {
@@ -137,15 +155,9 @@ const [showSearchBtn, setShowSearchBtn] = useState(false);
                 `${BASE_URL}/api/tours/tour/full/individual/${tour.tour_id}`
               );
               const data = await res.json();
-
-              // Get cover image
               const images = data.images || [];
-              const cover =
-                images.find((img: any) => img.is_cover === 1) || images[0];
-
-              // Get EMI price from basic_details
+              const cover = images.find((img: any) => img.is_cover === 1) || images[0];
               const emiPrice = data.basic_details?.emi_price || "0";
-
               return {
                 tourId: tour.tour_id,
                 imageUrl: cover?.url || "",
@@ -153,39 +165,19 @@ const [showSearchBtn, setShowSearchBtn] = useState(false);
                 basicDetails: data.basic_details || {}
               };
             } catch (err) {
-              console.error(
-                "Error fetching tour details for",
-                tour.tour_id,
-                err
-              );
-              return {
-                tourId: tour.tour_id,
-                imageUrl: "",
-                emiPrice: "0",
-                basicDetails: {}
-              };
+              return { tourId: tour.tour_id, imageUrl: "", emiPrice: "0", basicDetails: {} };
             }
           })
         );
 
         const imageMap: Record<number | string, string> = {};
         const emiMap: Record<number | string, any> = {};
-
         results.forEach((r) => {
-          if (r.imageUrl) {
-            imageMap[r.tourId] = r.imageUrl;
-          }
+          if (r.imageUrl) imageMap[r.tourId] = r.imageUrl;
           if (r.emiPrice || r.basicDetails) {
-            emiMap[r.tourId] = {
-              emiPrice: r.emiPrice,
-              basicDetails: r.basicDetails
-            };
+            emiMap[r.tourId] = { emiPrice: r.emiPrice, basicDetails: r.basicDetails };
           }
         });
-
-        console.log("Tour images map:", imageMap);
-        console.log("Tour EMI data map:", emiMap);
-
         setTourImages(imageMap);
         setTourEmiData(emiMap);
       } catch (err) {
@@ -196,40 +188,51 @@ const [showSearchBtn, setShowSearchBtn] = useState(false);
     fetchTourDetails();
   }, [allTours]);
 
+  // Fetch international destinations AND group them by country
+  useEffect(() => {
+    const fetchInternationalDestinations = async () => {
+      try {
+        setLoadingDestinations(true);
+        console.log("Fetching international destinations...");
 
+        // Fetch destinations with country info
+        const destinationsRes = await fetch(`${BASE_URL}/api/destinations/international`);
+        if (!destinationsRes.ok) throw new Error(`Failed to fetch destinations: ${destinationsRes.status}`);
+        
+        const data: any[] = await destinationsRes.json();
+        console.log("Fetched international destinations:", data);
 
-useEffect(() => {
-  const fetchInternationalDestinations = async () => {
-    try {
-      setLoadingDestinations(true);
-      console.log("Fetching international destinations...");
+        // Build destination list
+        const destinationNames: string[] = data.map(dest => dest.name);
+        const uniqueSortedDestinations: string[] = [...new Set(destinationNames)].sort(
+          (a, b) => a.localeCompare(b)
+        );
+        setInternationalDestinations(uniqueSortedDestinations);
 
-      const destinationsRes = await fetch(`${BASE_URL}/api/destinations/international`);
+        // NEW: Build country → destinations map
+        const countryMap: Record<string, string[]> = {};
+        data.forEach((dest: any) => {
+          const countryName = dest.country_name;
+          if (!countryName) return;
+          if (!countryMap[countryName]) countryMap[countryName] = [];
+          if (!countryMap[countryName].includes(dest.name)) {
+            countryMap[countryName].push(dest.name);
+          }
+        });
+        console.log("Country → destinations map:", countryMap);
+        setCountryDestinations(countryMap);
 
-      if (!destinationsRes.ok) {
-        throw new Error(`Failed to fetch destinations: ${destinationsRes.status}`);
+      } catch (err) {
+        console.error("Error fetching international destinations:", err);
+      } finally {
+        setLoadingDestinations(false);
       }
+    };
 
-      const data: { name: string }[] = await destinationsRes.json();
-      console.log("Fetched international destinations:", data);
+    fetchInternationalDestinations();
+  }, []);
 
-      const destinationNames: string[] = data.map(dest => dest.name);
-
-      const uniqueSortedDestinations: string[] = [...new Set(destinationNames)].sort(
-        (a, b) => a.localeCompare(b)
-      );
-
-      setInternationalDestinations(uniqueSortedDestinations);
-    } catch (err) {
-      console.error("Error fetching international destinations:", err);
-    } finally {
-      setLoadingDestinations(false);
-    }
-  };
-
-  fetchInternationalDestinations();
-}, []);
-
+  // Update selectedState when URL param changes
   useEffect(() => {
     if (state) {
       const decodedState = decodeURIComponent(state);
@@ -238,77 +241,76 @@ useEffect(() => {
     }
   }, [state]);
 
-useEffect(() => {
-  if (state) {
-    const decodedState = decodeURIComponent(state);
-    if (internationalDestinations.includes(decodedState)) {
-      setSelectedWorldTours([decodedState]);
+  // NEW: Determine if current page is international (country) or Indian (state)
+  useEffect(() => {
+    if (!selectedState) return;
+    const isCountry = Object.keys(countryDestinations).some(
+      c => c.toLowerCase() === selectedState.toLowerCase()
+    );
+    console.log(`Is "${selectedState}" an international country?`, isCountry);
+    setIsInternationalPage(isCountry);
+
+    if (isCountry) {
+      setSelectedWorldTours([selectedState]);
+      setSelectedIndianTours([]);
     } else {
-      setSelectedIndianTours([decodedState]);
+      setSelectedIndianTours([selectedState]);
+      setSelectedWorldTours([]);
     }
-  }
-}, [state, internationalDestinations]);
+  }, [selectedState, countryDestinations]);
+
+  // ============ UPDATED: Filter by country OR state ============
   const getCurrentStateTours = () => {
     if (!selectedState) {
       console.log("No selected state, returning all tours");
       return allTours;
     }
 
-    console.log("Filtering tours for state:", selectedState);
-    console.log("Total tours to filter:", allTours.length);
+    console.log("Filtering tours for:", selectedState);
+    console.log("Is international page?", isInternationalPage);
 
-    // Debug log each tour
-    allTours.forEach((tour, index) => {
-      console.log(`Tour ${index + 1}:`, {
-        id: tour.tour_id,
-        state: tour.primary_destination_name,
-        type: tour.tour_type,
-        title: tour.title
+    let filtered: any[] = [];
+
+    if (isInternationalPage) {
+      // Find destinations belonging to this country
+      const countryKey = Object.keys(countryDestinations).find(
+        c => c.toLowerCase() === selectedState.toLowerCase()
+      );
+      const destinationsInCountry = countryKey ? countryDestinations[countryKey] : [];
+      console.log(`Destinations in ${selectedState}:`, destinationsInCountry);
+
+      // Match tours where primary_destination_name is ANY destination in this country
+      filtered = allTours.filter((tour) => {
+        const destName = tour.primary_destination_name?.toLowerCase() || "";
+        const typeMatch = tour.tour_type?.toLowerCase() === "individual";
+        const matchesAnyDestination = destinationsInCountry.some(
+          d => d.toLowerCase() === destName
+        );
+        return matchesAnyDestination && typeMatch;
       });
-    });
-
-    // Filter by state AND tour_type = "individual" (case-insensitive)
-    const filtered = allTours.filter((tour) => {
-      const stateMatch = tour.primary_destination_name?.toLowerCase() === selectedState.toLowerCase();
-      const typeMatch = tour.tour_type?.toLowerCase() === "individual";
-
-      console.log(`Tour ${tour.tour_id}: stateMatch=${stateMatch}, typeMatch=${typeMatch}`);
-
-      return stateMatch && typeMatch;
-    });
+    } else {
+      // Indian state: match by primary_destination_name = state
+      filtered = allTours.filter((tour) => {
+        const stateMatch = tour.primary_destination_name?.toLowerCase() === selectedState.toLowerCase();
+        const typeMatch = tour.tour_type?.toLowerCase() === "individual";
+        return stateMatch && typeMatch;
+      });
+    }
 
     console.log("Filtered tours count:", filtered.length);
-    console.log("Filtered tour IDs:", filtered.map(t => t.tour_id));
     return filtered;
   };
 
-  // Function to format tours
+  // Format tours
   const formatTours = (tours: any[]) => {
-    console.log("Formatting", tours.length, "tours");
-
     return tours.map((tour) => {
-      console.log("Formatting tour:", {
-        id: tour.tour_id,
-        code: tour.tour_code,
-        type: tour.tour_type,
-        price: tour.base_price_adult
-      });
-
-      const imgUrl =
-        tourImages[tour.tour_id] ||
-        "https://via.placeholder.com/800x600?text=Tour+Image";
-
+      const imgUrl = tourImages[tour.tour_id] || "https://via.placeholder.com/800x600?text=Tour+Image";
       const priceValue = Number(tour.base_price_adult) || 0;
       const days = tour.duration_days || 1;
-
-
-      // Get EMI price from stored data (already fetched)
       const emiData = tourEmiData[tour.tour_id];
-
       const emiPrice = emiData?.emiPrice || "0";
-      const basicDetails = emiData?.basicDetails || {};  // Extract basicDetails here
-      const isInternational = basicDetails.is_international === 1;
-      // Format EMI price (remove the /12 calculation and use dynamic value)
+      const basicDetails = emiData?.basicDetails || {};
+      const isInternational = basicDetails.is_international === 1 || isInternationalPage;
       const formattedEmi = emiPrice !== "0" ? `₹${parseFloat(emiPrice).toLocaleString()}` : "₹0";
 
       return {
@@ -319,11 +321,12 @@ useEffect(() => {
         days: days,
         price: `₹${priceValue.toLocaleString()}`,
         priceValue: priceValue,
-        locations: tour.primary_destination_name || "Unknown Location",
-        image: imgUrl,
-        emi: formattedEmi, // Use dynamic EMI price from API
-        emiPriceValue: parseFloat(emiPrice) || 0, // Store numeric value for filtering if needed
-        isIndian: true,
+        locations: isInternationalPage 
+  ? `${selectedState} — ${tour.primary_destination_name || ""}` 
+  : (tour.primary_destination_name || "Unknown Location"),        image: imgUrl,
+        emi: formattedEmi,
+        emiPriceValue: parseFloat(emiPrice) || 0,
+        isIndian: !isInternational,
         locationTags: [tour.primary_destination_name || ""],
         tourType: tour.tour_type,
         rawTourType: tour.tour_type,
@@ -332,196 +335,106 @@ useEffect(() => {
     });
   };
 
-const handleSearchTourCode = (e: React.FormEvent) => {
-  e.preventDefault();
-  const query = searchQuery.trim().toUpperCase();
-  
-  if (query === "") {
+  const handleSearchTourCode = (e: React.FormEvent) => {
+    e.preventDefault();
+    const query = searchQuery.trim().toUpperCase();
+    if (query === "") {
+      setActiveSearchQuery("");
+      setIsSearchActive(false);
+      return;
+    }
+    setActiveSearchQuery(query);
+    setIsSearchActive(true);
+  };
+
+  const clearSearch = () => {
+    setSearchQuery("");
     setActiveSearchQuery("");
     setIsSearchActive(false);
-    return;
-  }
-  
-  setActiveSearchQuery(query);
-  setIsSearchActive(true);
-  console.log("Search activated for:", query);
-};
-
-const clearSearch = () => {
-  setSearchQuery("");
-  setActiveSearchQuery("");
-  setIsSearchActive(false);
-  setShowSearchBtn(false);
-};
+    setShowSearchBtn(false);
+  };
 
   useEffect(() => {
-    if (allTours.length === 0) {
-      console.log("No tours to format yet");
-      return;
-    }
-
-    // Only format if we have EMI data and images loaded
-    if (Object.keys(tourEmiData).length === 0 || Object.keys(tourImages).length === 0) {
-      console.log("Waiting for tour details to load...");
-      return;
-    }
+    if (allTours.length === 0) return;
+    if (Object.keys(tourEmiData).length === 0 || Object.keys(tourImages).length === 0) return;
 
     console.log("=== FORMATTING TOURS ===");
-    console.log("All tours available:", allTours.length);
-    console.log("Selected state:", selectedState);
-    console.log("Tour EMI data available for:", Object.keys(tourEmiData).length, "tours");
-
     const currentStateTours = getCurrentStateTours();
-    console.log("Tours for current state:", currentStateTours.length);
-
     const formatted = formatTours(currentStateTours);
-    console.log("Formatted tours (all individual tours for this state):", formatted);
-
     setFormattedTours(formatted);
-  }, [allTours, tourImages, tourEmiData, selectedState]);
+  }, [allTours, tourImages, tourEmiData, selectedState, isInternationalPage, countryDestinations]);
 
-useEffect(() => {
-  console.log("=== APPLYING FILTERS ===");
-  console.log("Search active:", isSearchActive);
-  console.log("Search query:", searchQuery);
-  
-  if (formattedTours.length === 0) {
-    setFilteredTours([]);
-    return;
-  }
+  // Apply filters
+  useEffect(() => {
+    if (formattedTours.length === 0) {
+      setFilteredTours([]);
+      return;
+    }
 
-  let result = [...formattedTours];
-  console.log("Initial tours count:", result.length);
+    let result = [...formattedTours];
 
-    if (isSearchActive && activeSearchQuery.trim() !== "") { 
-    const query = activeSearchQuery.trim().toUpperCase(); 
-    console.log("Applying search filter for query:", query);
-    
-    result = result.filter(tour => {
-      const codeMatch = tour.code?.toUpperCase().includes(query);
-      
-      const titleMatch = tour.title?.toUpperCase().includes(query);
-      
-      return codeMatch || titleMatch;
-    });
-    
-    console.log("After search filter:", result.length);
-  }
-
-  // Duration filter
-  console.log("Duration range:", durationRange);
-  result = result.filter(
-    (tour) => tour.days >= durationRange[0] && tour.days <= durationRange[1]
-  );
-  console.log("After duration filter:", result.length);
-
-  // Price filter
-  console.log("Price range:", priceRange);
-  result = result.filter(
-    (tour) =>
-      tour.priceValue >= priceRange[0] && tour.priceValue <= priceRange[1]
-  );
-  console.log("After price filter:", result.length);
-
-  // Departure month filter (placeholder logic)
-  if (selectedDepartureMonths.length > 0) {
-    result = result.filter(() => true);
-  }
-
-  // Indian tours filter
-  if (selectedIndianTours.length > 0) {
-    console.log("Selected Indian tours:", selectedIndianTours);
-    result = result.filter((tour) => {
-      if (!tour.isIndian) return false;
-
-      return selectedIndianTours.some((sel) => {
-        if (tour.state === sel) return true;
-        if (tour.title.toLowerCase().includes(sel.toLowerCase())) return true;
-        if (tour.locations.toLowerCase().includes(sel.toLowerCase()))
-          return true;
-        return false;
+    if (isSearchActive && activeSearchQuery.trim() !== "") {
+      const query = activeSearchQuery.trim().toUpperCase();
+      result = result.filter(tour => {
+        const codeMatch = tour.code?.toUpperCase().includes(query);
+        const titleMatch = tour.title?.toUpperCase().includes(query);
+        return codeMatch || titleMatch;
       });
-    });
-    console.log("After Indian tours filter:", result.length);
-  }
+    }
 
-  // World tours filter (won't really match for isIndian=true, but safe)
-  // if (selectedWorldTours.length > 0) {
-  //   console.log("Selected World tours:", selectedWorldTours);
-  //   result = result.filter((tour) => {
-  //     if (tour.isIndian) return false;
-  //     return selectedWorldTours.some((selectedLocation) =>
-  //       (tour.locationTags || []).some((tag: string) =>
-  //         tag.toLowerCase().includes(selectedLocation.toLowerCase())
-  //       )
-  //     );
-  //   });
-  //   console.log("After world tours filter:", result.length);
-  // }
+    result = result.filter((tour) => tour.days >= durationRange[0] && tour.days <= durationRange[1]);
+    result = result.filter((tour) => tour.priceValue >= priceRange[0] && tour.priceValue <= priceRange[1]);
 
-  // Sorting
-  console.log("Sort type:", sortType);
-  if (sortType === "price-low") {
-    result.sort((a, b) => a.priceValue - b.priceValue);
-  } else if (sortType === "price-high") {
-    result.sort((a, b) => b.priceValue - a.priceValue);
-  } else if (sortType === "duration") {
-    result.sort((a, b) => a.days - b.days);
-  }
+    if (selectedDepartureMonths.length > 0) {
+      result = result.filter(() => true);
+    }
 
-  console.log("Final filtered tours count:", result.length);
-  console.log("Final filtered tour IDs:", result.map(t => t.id));
-  setFilteredTours(result);
-}, [
-  formattedTours,
-  isSearchActive, 
-activeSearchQuery, 
-  durationRange,
-  priceRange,
-  selectedDepartureMonths,
-  selectedIndianTours,
-  selectedWorldTours,
-  sortType,
-]);
+    if (selectedIndianTours.length > 0 && !isInternationalPage) {
+      result = result.filter((tour) => {
+        if (!tour.isIndian) return false;
+        return selectedIndianTours.some((sel) => {
+          if (tour.state === sel) return true;
+          if (tour.title.toLowerCase().includes(sel.toLowerCase())) return true;
+          if (tour.locations.toLowerCase().includes(sel.toLowerCase())) return true;
+          return false;
+        });
+      });
+    }
 
-  // ---------- Filter handlers ----------
+    if (sortType === "price-low") result.sort((a, b) => a.priceValue - b.priceValue);
+    else if (sortType === "price-high") result.sort((a, b) => b.priceValue - a.priceValue);
+    else if (sortType === "duration") result.sort((a, b) => a.days - b.days);
+
+    setFilteredTours(result);
+  }, [formattedTours, isSearchActive, activeSearchQuery, durationRange, priceRange, selectedDepartureMonths, selectedIndianTours, selectedWorldTours, sortType, isInternationalPage]);
+
   const handleDepartureMonthChange = (month: string, checked: boolean) => {
+    if (checked) setSelectedDepartureMonths([...selectedDepartureMonths, month]);
+    else setSelectedDepartureMonths(selectedDepartureMonths.filter((m) => m !== month));
+  };
+
+  const handleIndianTourChange = (tour: string, checked: boolean) => {
     if (checked) {
-      setSelectedDepartureMonths([...selectedDepartureMonths, month]);
+      setSelectedWorldTours([]);
+      setSelectedIndianTours([...selectedIndianTours, tour]);
     } else {
-      setSelectedDepartureMonths(
-        selectedDepartureMonths.filter((m) => m !== month)
-      );
+      setSelectedIndianTours(selectedIndianTours.filter((t) => t !== tour));
     }
   };
-const handleIndianTourChange = (tour: string, checked: boolean) => {
-  if (checked) {
-    setSelectedWorldTours([]);
-    setSelectedIndianTours([...selectedIndianTours, tour]);
-  } else {
-    setSelectedIndianTours(selectedIndianTours.filter((t) => t !== tour));
-  }
-};
-
-useEffect(() => {
-  if (state) {
-    const decodedState = decodeURIComponent(state);
-    setSelectedState(decodedState);
-  }
-}, [state]);
 
   useEffect(() => {
-  if (filteredTours.length > 0) {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    setPaginatedTours(filteredTours.slice(startIndex, endIndex));
-  } else {
-    setPaginatedTours([]);
-  }
-}, [filteredTours, currentPage, itemsPerPage]);
-useEffect(() => {
-  setCurrentPage(1);
-}, [durationRange, priceRange, selectedDepartureMonths, selectedIndianTours, selectedWorldTours, sortType, activeSearchQuery, isSearchActive]);
+    if (filteredTours.length > 0) {
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      setPaginatedTours(filteredTours.slice(startIndex, endIndex));
+    } else {
+      setPaginatedTours([]);
+    }
+  }, [filteredTours, currentPage, itemsPerPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [durationRange, priceRange, selectedDepartureMonths, selectedIndianTours, selectedWorldTours, sortType, activeSearchQuery, isSearchActive]);
 
   const clearAllFilters = () => {
     setDurationRange([0, 150]);
@@ -530,16 +443,18 @@ useEffect(() => {
     setSelectedIndianTours([]);
     setSelectedWorldTours([]);
     setSortType("recommended");
-      clearSearch(); // ADD THIS
+    clearSearch();
   };
 
+  // Hero image — check both state and country
   const heroImage =
     stateHeroImages[selectedState as keyof typeof stateHeroImages] ??
+    countryHeroImages[selectedState] ??
     '/img/default.jpg';
 
   const heroDescription =
     stateDescriptions[selectedState as keyof typeof stateDescriptions] ??
-    'Explore the beauty of India';
+    `Explore the beauty of ${selectedState}`;
 
   if (loading) {
     return (
@@ -554,18 +469,16 @@ useEffect(() => {
       <div className="min-h-screen bg-[#E53C42] bg-opacity-10">
         <Header />
 
-        {/* Combined Hero and Filter Section */}
         <div className="container mx-auto px-4 py-6">
           <div className="flex flex-col lg:flex-row gap-6">
             {/* Filters Sidebar */}
-          <aside className="lg:w-80">
+            <aside className="lg:w-80">
               <div className="bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl shadow-lg p-6 border border-blue-200 sticky top-24">
                 <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
-                  <h2 className="text-2xl font-bold text-[#2E4D98]">Intl Individual Tours</h2>
-                  <button
-                    onClick={clearAllFilters}
-                    className="text-sm text-[#E53C42] hover:underline"
-                  >
+                  <h2 className="text-2xl font-bold text-[#2E4D98]">
+                    {isInternationalPage ? "Intl Individual Tours" : "Indian Tours"}
+                  </h2>
+                  <button onClick={clearAllFilters} className="text-sm text-[#E53C42] hover:underline">
                     Clear All
                   </button>
                 </div>
@@ -577,13 +490,7 @@ useEffect(() => {
                     <span>{durationRange[0]} days</span>
                     <span>{durationRange[1]} days</span>
                   </div>
-                  <Slider
-                    value={durationRange}
-                    onValueChange={setDurationRange}
-                    max={30}
-                    step={1}
-                    className="w-full"
-                  />
+                  <Slider value={durationRange} onValueChange={setDurationRange} max={30} step={1} className="w-full" />
                 </div>
 
                 {/* Price */}
@@ -593,108 +500,74 @@ useEffect(() => {
                     <span>₹{priceRange[0].toLocaleString()}</span>
                     <span>₹{priceRange[1].toLocaleString()}</span>
                   </div>
-                  <Slider
-                    value={priceRange}
-                    onValueChange={setPriceRange}
-                    min={0}
-                    max={500000}
-                    step={1000}
-                  />
+                  <Slider value={priceRange} onValueChange={setPriceRange} min={0} max={500000} step={1000} />
                 </div>
 
                 <div className="mb-3">
-
-             <div className="mb-4">
-  <form onSubmit={handleSearchTourCode} className="flex gap-2">
-    <div className="relative flex-1">
-      <Input
-        type="text"
-        placeholder="Search by tour code"
-        value={searchQuery}
-        onChange={(e) => {
-          setSearchQuery(e.target.value);
-          setShowSearchBtn(e.target.value.trim() !== "");
-        }}
-        onFocus={() => setShowSearchBtn(true)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            handleSearchTourCode(e);
-          }
-        }}
-        className="border-[#2E4D98] focus:border-[#2E4D98] focus:ring-[#2E4D98] pr-8 placeholder:text-sm"
-      />
-
-      {/* Show clear button when there's text in the input field */}
-      {searchQuery && (
-        <button
-          type="button"
-          onClick={() => {
-            clearSearch();
-            setShowSearchBtn(false);
-          }}
-          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-        >
-          ✕
-        </button>
-      )}
-    </div>
-
-    {/* Show search button when input has content OR search is active */}
-    {(showSearchBtn || isSearchActive) && (
-      <Button
-        type="submit"
-        className="bg-red-600 hover:bg-red-700 text-white px-6"
-      >
-        Search
-      </Button>
-    )}
-  </form>
-  
-  
-</div>
-
-                  <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
-                    <h2 className="text-2xl font-bold text-[#2E4D98]">Indian Tours</h2>
-                      
+                  <div className="mb-4">
+                    <form onSubmit={handleSearchTourCode} className="flex gap-2">
+                      <div className="relative flex-1">
+                        <Input
+                          type="text"
+                          placeholder="Search by tour code"
+                          value={searchQuery}
+                          onChange={(e) => {
+                            setSearchQuery(e.target.value);
+                            setShowSearchBtn(e.target.value.trim() !== "");
+                          }}
+                          onFocus={() => setShowSearchBtn(true)}
+                          onKeyDown={(e) => { if (e.key === "Enter") handleSearchTourCode(e); }}
+                          className="border-[#2E4D98] focus:border-[#2E4D98] focus:ring-[#2E4D98] pr-8 placeholder:text-sm"
+                        />
+                        {searchQuery && (
+                          <button
+                            type="button"
+                            onClick={() => { clearSearch(); setShowSearchBtn(false); }}
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                          >✕</button>
+                        )}
+                      </div>
+                      {(showSearchBtn || isSearchActive) && (
+                        <Button type="submit" className="bg-red-600 hover:bg-red-700 text-white px-6">Search</Button>
+                      )}
+                    </form>
                   </div>
 
+                  {/* ========== INDIAN TOURS SECTION ========== */}
+                  <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
+                    <h2 className="text-2xl font-bold text-[#2E4D98]">Indian Tours</h2>
+                  </div>
 
-
-                  {/* States list - This is the part that toggles with Show More/Less */}
                   <div className={`${showMoreIndian ? "max-h-64 overflow-y-auto pr-1" : ""} space-y-3`}>
                     {[
                       'Andaman', 'Goa', 'Kerala', 'Kashmir', 'Rajasthan', 'Himachal',
-                      ...(showMoreIndian
-                        ? [
-                          'Andhra Pradesh', 'Bihar', 'Chhattisgarh', 'Dadra & Nagar Haveli',
-                          'Daman & Diu', 'Delhi', 'Gujarat', 'Haryana', 'Jharkhand',
-                          'Karnataka', 'Ladakh', 'Lakshadweep', 'Madhya Pradesh',
-                          'Maharashtra', 'North East', 'Odisha', 'Puducherry',
-                          'Punjab & Haryana', 'Seven Sisters', 'Tamil Nadu',
-                          'Uttar Pradesh', 'Uttarakhand', 'West Bengal'
-                        ]
-                        : [])
+                      ...(showMoreIndian ? [
+                        'Andhra Pradesh', 'Bihar', 'Chhattisgarh', 'Dadra & Nagar Haveli',
+                        'Daman & Diu', 'Delhi', 'Gujarat', 'Haryana', 'Jharkhand',
+                        'Karnataka', 'Ladakh', 'Lakshadweep', 'Madhya Pradesh',
+                        'Maharashtra', 'North East', 'Odisha', 'Puducherry',
+                        'Punjab & Haryana', 'Seven Sisters', 'Tamil Nadu',
+                        'Uttar Pradesh', 'Uttarakhand', 'West Bengal'
+                      ] : [])
                     ]
                       .sort((a, b) => a.localeCompare(b))
                       .map((place) => {
                         const isCurrentState = selectedState === place;
-
                         return (
                           <div key={place} className="flex items-center gap-3 cursor-pointer">
-                     <Checkbox
-  checked={isCurrentState}
-  onCheckedChange={(checked) => {
-    if (checked) {
-      clearAllFilters(); // This will clear world tours too
-      setSelectedIndianTours([place]); // Add the selected place
-      navigate(`/tours-packages/${encodeURIComponent(place)}`);
-    }
-  }}
-  className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
-/>
+                            <Checkbox
+                              checked={isCurrentState}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  clearAllFilters();
+                                  setSelectedIndianTours([place]);
+                                  navigate(`/tours-packages/${encodeURIComponent(place)}`);
+                                }
+                              }}
+                              className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
+                            />
                             <span
-                              className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${isCurrentState ? 'font-bold text-[#2E4D98]' : ''
-                                }`}
+                              className={`text-gray-700 hover:text-[#2E4D98] cursor-pointer ${isCurrentState ? 'font-bold text-[#2E4D98]' : ''}`}
                               onClick={() => {
                                 clearAllFilters();
                                 navigate(`/tours-packages/${encodeURIComponent(place)}`);
@@ -707,109 +580,82 @@ useEffect(() => {
                       })}
                   </div>
 
-                  <button
-                    onClick={() => setShowMoreIndian(!showMoreIndian)}
-                    className="mt-4 text-[#2E4D98] text-sm font-semibold hover:underline"
-                  >
+                  <button onClick={() => setShowMoreIndian(!showMoreIndian)} className="mt-4 text-[#2E4D98] text-sm font-semibold hover:underline">
                     {showMoreIndian ? "Show Less" : "Show More"}
                   </button>
                 </div>
-{/* World Tours Section */}
-<div>
-  <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
-    <h2 className="text-2xl font-bold text-[#2E4D98]">Intl Individual Tours</h2>
-  </div>
 
-  {loadingDestinations ? (
-    <div className="text-center py-4">
-      <p className="text-gray-500">Loading international destinations...</p>
-    </div>
-  ) : internationalDestinations.length === 0 ? (
-    <div className="text-center py-4">
-      <p className="text-gray-500">No international destinations found</p>
-    </div>
-  ) : (
-    <>
-      <div className={`${showMoreWorld ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
-        {internationalDestinations
-          .slice(0, showMoreWorld ? internationalDestinations.length : 6)
-          .map((place) => {
-            const isSelected = selectedWorldTours.includes(place);
-            
-            return (
-              <div 
-                key={place} 
-                className="flex items-center gap-3 cursor-pointer"
-                onClick={() => {
-                  // Add to selected world tours
-                  if (!selectedWorldTours.includes(place)) {
-                    setSelectedWorldTours([...selectedWorldTours, place]);
-                  }
-                  // Navigate directly when clicked
-                  const encodedDestination = encodeURIComponent(place);
-                  navigate(`/intl-tours-packages/${encodedDestination}`);
-                }}
-              >
-                <Checkbox
-                  checked={isSelected}
-                  onCheckedChange={(checked) => {
-                    if (checked) {
-                      setSelectedWorldTours([...selectedWorldTours, place]);
-                      const encodedDestination = encodeURIComponent(place);
-                      navigate(`/intl-tours-packages/${encodedDestination}`);
-                    } else {
-                      setSelectedWorldTours(selectedWorldTours.filter(t => t !== place));
-                    }
-                  }}
-                  className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
-                  onClick={(e) => {
-                    e.stopPropagation(); // Prevent double triggering
-                  }}
-                />
-                <span 
-                  className={`${isSelected ? 'font-bold text-[#2E4D98]' : 'text-gray-700 hover:text-[#2E4D98]'} cursor-pointer flex-1`}
-                >
-                  {place}
-                </span>
-              </div>
-            );
-          })}
-      </div>
+                {/* ========== INTERNATIONAL TOURS SECTION ========== */}
+                <div>
+                  <div className="flex justify-between items-center mb-6 bg-white p-2 rounded-lg border border-black">
+                    <h2 className="text-2xl font-bold text-[#2E4D98]">Intl Individual Tours</h2>
+                  </div>
 
-      {internationalDestinations.length > 6 && (
-        <button
-          onClick={() => setShowMoreWorld(!showMoreWorld)}
-          className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline"
-        >
-          {showMoreWorld ? "Show Less" : "Show More"}
-        </button>
-      )}
-    </>
-  )}
-</div>
+                  {loadingDestinations ? (
+                    <div className="text-center py-4"><p className="text-gray-500">Loading international destinations...</p></div>
+                  ) : internationalDestinations.length === 0 ? (
+                    <div className="text-center py-4"><p className="text-gray-500">No international destinations found</p></div>
+                  ) : (
+                    <>
+                      <div className={`${showMoreWorld ? "max-h-40 overflow-y-auto pr-1" : ""} space-y-3`}>
+                        {/* Show COUNTRY names instead of destination names */}
+                        {Object.keys(countryDestinations)
+                          .sort()
+                          .slice(0, showMoreWorld ? Object.keys(countryDestinations).length : 6)
+                          .map((countryName) => {
+                            const isSelected = selectedState === countryName;
+                            return (
+                              <div
+                                key={countryName}
+                                className="flex items-center gap-3 cursor-pointer"
+                                onClick={() => {
+                                  setSelectedWorldTours([countryName]);
+                                  navigate(`/intl-tours-packages/${encodeURIComponent(countryName)}`);
+                                }}
+                              >
+                                <Checkbox
+                                  checked={isSelected}
+                                  onCheckedChange={(checked) => {
+                                    if (checked) {
+                                      setSelectedWorldTours([countryName]);
+                                      navigate(`/intl-tours-packages/${encodeURIComponent(countryName)}`);
+                                    } else {
+                                      setSelectedWorldTours([]);
+                                    }
+                                  }}
+                                  className="data-[state=checked]:bg-[#2E4D98] data-[state=checked]:border-[#2E4D98]"
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                                <span className={`${isSelected ? 'font-bold text-[#2E4D98]' : 'text-gray-700 hover:text-[#2E4D98]'} cursor-pointer flex-1`}>
+                                  {countryName}
+                                </span>
+                              </div>
+                            );
+                          })}
+                      </div>
+
+                      {Object.keys(countryDestinations).length > 6 && (
+                        <button onClick={() => setShowMoreWorld(!showMoreWorld)} className="mt-3 text-[#2E4D98] text-sm font-semibold hover:underline">
+                          {showMoreWorld ? "Show Less" : "Show More"}
+                        </button>
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
             </aside>
 
-            {/* Hero and Main Content Area */}
+            {/* Main Content */}
             <main className="flex-1">
               {/* Hero Section */}
               <div className="relative rounded-2xl overflow-hidden mb-6">
-                <div
-                  className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-                  style={{
-                    backgroundImage: `url('${heroImage}')`
-                  }}
-                >
+                <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `url('${heroImage}')` }}>
                   <div className="absolute inset-0 bg-gradient-to-r from-black/90 to-black/10"></div>
                 </div>
-
-                {/* Hero Content */}
                 <div className="relative p-8 min-h-[200px] flex items-center">
                   <div className="text-white">
-                    <h1 className="text-3xl font-bold mb-2">{selectedState}  Tour Packages</h1>
-                    <p className="text-base opacity-90 max-w-2xl">
-                      {heroDescription}
-                    </p>
+                    <h1 className="text-3xl font-bold mb-2">{selectedState} Tour Packages</h1>
+                    <p className="text-base opacity-90 max-w-2xl">{heroDescription}</p>
                     <p className="text-sm opacity-80 mt-2">
                       Showing {filteredTours.length} tour packages for {selectedState}
                       <span className="ml-2 text-xs">(Total available: {formattedTours.length})</span>
@@ -818,184 +664,137 @@ useEffect(() => {
                 </div>
               </div>
 
-              {/* Main Content Header */}
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 gap-4">
                 <div>
-                  <h2 className="text-3xl font-bold text-gray-800">{selectedState}  Holiday Packages</h2>
+                  <h2 className="text-3xl font-bold text-gray-800">{selectedState} Holiday Packages</h2>
                   <p className="text-gray-600 mt-1">
                     Showing {filteredTours.length} of {formattedTours.length} individual tours • Best prices guaranteed
                   </p>
                 </div>
               </div>
 
-            {/* 3 Cards Per Row */}
-{filteredTours.length === 0 ? (
-  <div className="text-center py-12">
-    <h3 className="text-xl font-semibold text-gray-600">No individual tours found for the selected filters</h3>
-    <p className="text-gray-500 mt-2">
-      Total available tours for {selectedState}: {formattedTours.length}
-    </p>
-    <Button
-      onClick={clearAllFilters}
-      className="mt-4 bg-[#2E4D98] hover:bg-[#2E4D98] hover:opacity-90 text-white"
-    >
-      Clear All Filters
-    </Button>
-  </div>
-) : (
-  <>
-    {/* Items Per Page Selector */}
-    <div className="flex justify-between items-center mb-2">
-      <div className="text-sm text-gray-600">
-        Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredTours.length)} of {filteredTours.length} tours
-      </div>
-      <div className="flex items-center gap-2">
-        <label className="text-sm text-gray-600">Show:</label>
-        <select
-          value={itemsPerPage}
-          onChange={(e) => {
-            setItemsPerPage(Number(e.target.value));
-            setCurrentPage(1);
-          }}
-          className="border rounded-md px-2 py-1 text-sm"
-        >
-          <option value={6}>6</option>
-          <option value={9}>9</option>
-          <option value={12}>12</option>
-          <option value={18}>18</option>
-          <option value={24}>24</option>
-        </select>
-        <span className="text-sm text-gray-600">per page</span>
-      </div>
-    </div>
-
-    {/* Tours Grid */}
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {paginatedTours.map((tour, index) => (
-        <div key={index} className="flex flex-col">
-          {/* Separate Top Block - Excel-like box design */}
-          <div className="bg-white border-2 border-gray-300 rounded-lg p-3 mb-3 shadow-sm">
-            <div className="grid grid-cols-3 gap-0 border border-gray-400 rounded overflow-hidden">
-              {/* Box 1 - Code Label */}
-              <div className="bg-[#2E4D98] border-r border-gray-400 p-2 flex items-center justify-center flex-1">
-                <div className="text-sm font-bold text-white text-center">CODE</div>
-              </div>
-
-              {/* Box 2 - Code Value */}
-              <div className="bg-gradient-to-br from-blue-100 to-blue-50 border-gray-400 p-2 flex items-center justify-center flex-1">
-                <div className="text-sm font-bold text-gray-900 text-center">{tour.code}</div>
-              </div>
-
-              {/* Box 3 - Duration */}
-              <div className="bg-[#2E4D98] p-2 flex items-center justify-center flex-1">
-                <div className="text-sm font-bold text-white text-center">{tour.duration}</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Separate Card with Light Blue Background */}
-          <div className="group bg-blue-50 rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer border border-blue-100 flex flex-col flex-1 min-h-0">
-            {/* Image Section */}
-            <div className="relative h-56 overflow-hidden flex-shrink-0">
-              <img
-                src={tour.image}
-                alt={tour.title}
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-            </div>
-
-            {/* Content Section */}
-            <div className="p-5 flex-1 flex flex-col min-h-0">
-              <h3 className="font-bold text-lg text-gray-800 line-clamp-2 mb-2">
-                {tour.title}
-              </h3>
-
-              {/* Price Details */}
-              <div className="mb-3">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm text-[#2E4D98] font-bold">Tour Cost P.P</span>
-                  <p className="text-2xl font-bold text-gray-900">{tour.price}</p>
+              {filteredTours.length === 0 ? (
+                <div className="text-center py-12">
+                  <h3 className="text-xl font-semibold text-gray-600">No individual tours found for the selected filters</h3>
+                  <p className="text-gray-500 mt-2">Total available tours for {selectedState}: {formattedTours.length}</p>
+                  <Button onClick={clearAllFilters} className="mt-4 bg-[#2E4D98] hover:bg-[#2E4D98] hover:opacity-90 text-white">Clear All Filters</Button>
                 </div>
+              ) : (
+                <>
+                  <div className="flex justify-between items-center mb-2">
+                    <div className="text-sm text-gray-600">
+                      Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredTours.length)} of {filteredTours.length} tours
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <label className="text-sm text-gray-600">Show:</label>
+                      <select
+                        value={itemsPerPage}
+                        onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+                        className="border rounded-md px-2 py-1 text-sm"
+                      >
+                        <option value={6}>6</option>
+                        <option value={9}>9</option>
+                        <option value={12}>12</option>
+                        <option value={18}>18</option>
+                        <option value={24}>24</option>
+                      </select>
+                      <span className="text-sm text-gray-600">per page</span>
+                    </div>
+                  </div>
 
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-[#2E4D98] font-bold">EMI Per Month</span>
-                  <p className="text-sm font-bold text-gray-900">{tour.emi}</p>
-                </div>
-              </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {paginatedTours.map((tour, index) => (
+                      <div key={index} className="flex flex-col">
+                        <div className="bg-white border-2 border-gray-300 rounded-lg p-3 mb-3 shadow-sm">
+                          <div className="grid grid-cols-3 gap-0 border border-gray-400 rounded overflow-hidden">
+                            <div className="bg-[#2E4D98] border-r border-gray-400 p-2 flex items-center justify-center flex-1">
+                              <div className="text-sm font-bold text-white text-center">CODE</div>
+                            </div>
+                            <div className="bg-gradient-to-br from-blue-100 to-blue-50 border-gray-400 p-2 flex items-center justify-center flex-1">
+                              <div className="text-sm font-bold text-gray-900 text-center">{tour.code}</div>
+                            </div>
+                            <div className="bg-[#2E4D98] p-2 flex items-center justify-center flex-1">
+                              <div className="text-sm font-bold text-white text-center">{tour.duration}</div>
+                            </div>
+                          </div>
+                        </div>
 
-              <p className="text-sm text-[#2E4D98] font-bold mb-3">{tour.locations}</p>
+                        <div className="group bg-blue-50 rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer border border-blue-100 flex flex-col flex-1 min-h-0">
+                          <div className="relative h-56 overflow-hidden flex-shrink-0">
+                            <img src={tour.image} alt={tour.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                          </div>
 
-              <div className="flex items-center justify-between text-sm text-gray-500 mb-0">
-                <span>{tour.dates}</span>
-              </div>
+                          <div className="p-5 flex-1 flex flex-col min-h-0">
+                            <h3 className="font-bold text-lg text-gray-800 line-clamp-2 mb-2">{tour.title}</h3>
 
-              {/* Buttons */}
-              <div className="flex gap-2 mt-0">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="flex-1 border-[#2E4D98] text-[#2E4D98] hover:bg-[#2E4D98] hover:text-white"
-                  onClick={() => {
-                    console.log("Tour object:", tour);
-                    console.log("is_international value:", tour.is_international);
-                    console.log("Type of is_international:", typeof tour.is_international);
+                            <div className="mb-3">
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="text-sm text-[#2E4D98] font-bold">Tour Cost P.P</span>
+                                <p className="text-2xl font-bold text-gray-900">{tour.price}</p>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm text-[#2E4D98] font-bold">EMI Per Month</span>
+                                <p className="text-sm font-bold text-gray-900">{tour.emi}</p>
+                              </div>
+                            </div>
 
-                    if (tour.is_international === true) {
-                      navigate(`/international_tour_details/${tour.id}`);
-                    } else {
-                      navigate(`/tour_details/${tour.id}`);
-                    }
-                  }}
-                >
-                  View Tour
-                </Button>
-                <Button
-                  size="sm"
-                  className="flex-1 bg-[#E53C42] hover:bg-[#E53C42] hover:opacity-90 text-white"
-                  onClick={() => {
-                    localStorage.setItem('selectedTour', JSON.stringify(tour));
-                    navigate('/checkout', { state: { tour } });
-                  }}
-                >
-                  Book Now
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
+                            <p className="text-sm text-[#2E4D98] font-bold mb-3">{tour.locations}</p>
 
-    {/* Pagination Component */}
-    {Math.ceil(filteredTours.length / itemsPerPage) > 1 && (
-      <div className="mt-8">
-        <Pagination
-          currentPage={currentPage}
-          totalPages={Math.ceil(filteredTours.length / itemsPerPage)}
-          onPageChange={setCurrentPage}
-          maxVisiblePages={3}
-        />
-      </div>
-    )}
-  </>
-)}
+                            <div className="flex items-center justify-between text-sm text-gray-500 mb-0">
+                              <span>{tour.dates}</span>
+                            </div>
 
-              {/* Load More */}
-              {/* {filteredTours.length > 0 && (
-                <div className="text-center mt-8">
-                  <Button size="lg" className="bg-[#2E4D98] hover:bg-[#2E4D98] hover:opacity-90 px-12 text-white">
-                    Load More Tours
-                  </Button>
-                </div>
-              )} */}
+                            <div className="flex gap-2 mt-0">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="flex-1 border-[#2E4D98] text-[#2E4D98] hover:bg-[#2E4D98] hover:text-white"
+                                onClick={() => {
+                                  if (tour.is_international === true) {
+                                    navigate(`/international_tour_details/${tour.id}`);
+                                  } else {
+                                    navigate(`/tour_details/${tour.id}`);
+                                  }
+                                }}
+                              >
+                                View Tour
+                              </Button>
+                              <Button
+                                size="sm"
+                                className="flex-1 bg-[#E53C42] hover:bg-[#E53C42] hover:opacity-90 text-white"
+                                onClick={() => {
+                                  localStorage.setItem('selectedTour', JSON.stringify(tour));
+                                  navigate('/checkout', { state: { tour } });
+                                }}
+                              >
+                                Book Now
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {Math.ceil(filteredTours.length / itemsPerPage) > 1 && (
+                    <div className="mt-8">
+                      <Pagination
+                        currentPage={currentPage}
+                        totalPages={Math.ceil(filteredTours.length / itemsPerPage)}
+                        onPageChange={setCurrentPage}
+                        maxVisiblePages={3}
+                      />
+                    </div>
+                  )}
+                </>
+              )}
             </main>
           </div>
         </div>
       </div>
       <Footer />
     </>
-
   );
 };
 
